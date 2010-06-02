@@ -29,6 +29,22 @@ public class Summary
         this.values = values;
     }
 
+    public long getTimestamp()
+    {
+        return timestamp;
+    }
+
+    public Type getType()
+    {
+        return type;
+    }
+
+    public Map<String, String> getValues()
+    {
+        return values;
+    }
+
     long timestamp;
     Map<String, String> values;
+    Type type;
 }

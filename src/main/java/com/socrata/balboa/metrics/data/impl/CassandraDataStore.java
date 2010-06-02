@@ -1,5 +1,6 @@
 package com.socrata.balboa.metrics.data.impl;
 
+import com.socrata.balboa.exceptions.InternalException;
 import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.Summary.Type;
 import com.socrata.balboa.metrics.data.DataStore;
@@ -18,6 +19,7 @@ import me.prettyprint.cassandra.service.CassandraClientPoolFactory;
 import me.prettyprint.cassandra.service.Keyspace;
 import org.apache.cassandra.thrift.Column;
 import org.apache.cassandra.thrift.ColumnParent;
+import org.apache.cassandra.thrift.ColumnPath;
 import org.apache.cassandra.thrift.NotFoundException;
 import org.apache.cassandra.thrift.SlicePredicate;
 import org.apache.cassandra.thrift.SliceRange;
@@ -188,4 +190,54 @@ public class CassandraDataStore implements DataStore
         
         return new QueryRobot(rowId, parent, range);
     }
+
+    @Override
+    public void persist(String entityId, Summary summary)
+    {
+        CassandraClient client;
+
+        try
+        {
+            client = pool.borrowClient(hosts);
+        }
+        catch (Exception e)
+        {
+            throw new InternalException("Unknown exception trying to borrow a cassandra client.", e);
+        }        
+
+        try
+        {
+            Keyspace keyspace = client.getKeyspace(keyspaceName);
+
+            for (String key : summary.getValues().keySet())
+            {
+                ColumnPath path = new ColumnPath(summary.getType().toString());
+                path.setColumn(key.getBytes("UTF-8"));
+                path.setSuper_column(CassandraUtils.packLong(summary.getTimestamp()));
+
+                keyspace.insert(entityId, path, summary.getValues().get(key).getBytes("UTF-8"));
+            }
+        }
+        catch (NotFoundException e)
+        {
+            throw new InternalException("Keyspace '" + keyspaceName + "' not found.");
+        }
+        catch (Exception e)
+        {
+            throw new InternalException("Unknown exception saving summary.");
+        }
+        finally
+        {
+            try
+            {
+                pool.releaseClient(client);
+            }
+            catch (Exception e)
+            {
+                log.warn("Unable to release the cassandra client for some reason (not good).", e);
+            }
+        }
+    }
+
+
 }
