@@ -7,6 +7,6 @@ import java.util.Iterator;
 
 public interface DataStore
 {
-    public Iterator<Summary> find(String entityType, String entityId, Type type, Date date);
+    public Iterator<Summary> find(String entityId, Type type, Date date);
     public void persist(String entityId, Summary summary);
 }

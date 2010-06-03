@@ -34,15 +34,16 @@ public class CassandraDataStore implements DataStore
         static final int QUERYBUFFER = 100;
         
         String rowId;
-        ColumnParent parent;
+        Type type;
         DateRange range;
 
         List<SuperColumn> buffer;
         
-        QueryRobot(String rowId, ColumnParent parent, DateRange range)
+        QueryRobot(String rowId, Type type, DateRange range)
         {
-            this.parent = parent;
+            this.type = type;
             this.range = range;
+            this.rowId = rowId;
             
             buffer = new ArrayList<SuperColumn>(0);
         }
@@ -77,7 +78,7 @@ public class CassandraDataStore implements DataStore
             try
             {
                 Keyspace keyspace = client.getKeyspace(keyspaceName);
-                return keyspace.getSuperSlice(rowId, parent, predicate);
+                return keyspace.getSuperSlice(rowId, new ColumnParent(type.toString()), predicate);
             }
             finally
             {
@@ -107,7 +108,13 @@ public class CassandraDataStore implements DataStore
                 // Update the range so that the next time we fill the buffer, we
                 // do it starting from the last of the returned results.
                 SuperColumn last = results.get(results.size() - 1);
-                range.start = new Date(CassandraUtils.unpackLong(last.getName()));
+
+                // Add one to the last result's timestamp. This should never
+                // cause any summary to be skipped over since we have a quantum
+                // of time (1 nano/mill/whatever second) that's our highest
+                // resolution. In practice, for anything other than the realtime
+                // type, there should only be one summary per period.
+                range.start = new Date(CassandraUtils.unpackLong(last.getName()) + 1);
 
                 return results;
             }
@@ -157,7 +164,7 @@ public class CassandraDataStore implements DataStore
                     values.put(new String(subColumn.getName()), new String(subColumn.getValue()));
                 }
 
-                return new Summary(CassandraUtils.unpackLong(column.getName()), values);
+                return new Summary(type, CassandraUtils.unpackLong(column.getName()), values);
             }
         }
 
@@ -182,13 +189,12 @@ public class CassandraDataStore implements DataStore
     }
     
     @Override
-    public Iterator<Summary> find(String entityType, String entityId, Type type, Date date)
+    public Iterator<Summary> find(String entityId, Type type, Date date)
     {
         DateRange range = DateRange.create(type, date);
-        String rowId = entityType + "-" + entityId;
-        ColumnParent parent = new ColumnParent(type.toString());
+        String rowId = entityId;
         
-        return new QueryRobot(rowId, parent, range);
+        return new QueryRobot(rowId, type, range);
     }
 
     @Override
@@ -212,10 +218,10 @@ public class CassandraDataStore implements DataStore
             for (String key : summary.getValues().keySet())
             {
                 ColumnPath path = new ColumnPath(summary.getType().toString());
-                path.setColumn(key.getBytes("UTF-8"));
+                path.setColumn(key.getBytes());
                 path.setSuper_column(CassandraUtils.packLong(summary.getTimestamp()));
 
-                keyspace.insert(entityId, path, summary.getValues().get(key).getBytes("UTF-8"));
+                keyspace.insert(entityId, path, summary.getValues().get(key).getBytes());
             }
         }
         catch (NotFoundException e)
@@ -224,7 +230,7 @@ public class CassandraDataStore implements DataStore
         }
         catch (Exception e)
         {
-            throw new InternalException("Unknown exception saving summary.");
+            throw new InternalException("Unknown exception saving summary.", e);
         }
         finally
         {

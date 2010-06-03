@@ -23,6 +23,12 @@ public class Summary
         }
     };
 
+    public Summary(Type type, long timestamp, Map<String, String> values)
+    {
+        this(timestamp, values);
+        this.type = type;
+    }
+
     public Summary(long timestamp, Map<String, String> values)
     {
         this.timestamp = timestamp;

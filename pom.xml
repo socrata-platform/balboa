@@ -59,6 +59,42 @@
           <version>0.6.0-11</version>
         </dependency>
 
+        <!-- 
+             Dependencies for testing cassandra not in maven repos (side note: 
+             cassandra's dependencies are all kinds of fucked up who does this?)
+        -->
+        <dependency>
+            <groupId>reardencommerce</groupId>
+            <artifactId>reardencommerce</artifactId>
+            <version>UNKNOWN</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/clhm-production.jar</systemPath>
+        </dependency>
+
+        <dependency>
+          <groupId>org.cliffc</groupId>
+          <artifactId>high-scale-lib</artifactId>
+          <version>1.1.2</version>
+          <scope>system</scope>
+            <systemPath>${basedir}/lib/high-scale-lib.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>jsonsimple</groupId>
+            <artifactId>jsonsimple</artifactId>
+            <version>UNKNOWN</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/json_simple-1.1.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>flexjson</groupId>
+            <artifactId>flexjson</artifactId>
+            <version>1.7</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/flexjson-1.7.jar</systemPath>
+        </dependency>
+
         <dependency>
           <groupId>log4j</groupId>
           <artifactId>log4j</artifactId>
