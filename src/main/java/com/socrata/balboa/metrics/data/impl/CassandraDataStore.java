@@ -187,14 +187,21 @@ public class CassandraDataStore implements DataStore
         this.hosts = hosts;
         this.keyspaceName = keyspaceName;
     }
+
+    @Override
+    public Iterator<Summary> find(String entityId, Type type, Date start, Date end)
+    {
+        DateRange range = new DateRange(start, end);
+
+        return new QueryRobot(entityId, type, range);
+    }
     
     @Override
     public Iterator<Summary> find(String entityId, Type type, Date date)
     {
         DateRange range = DateRange.create(type, date);
-        String rowId = entityId;
         
-        return new QueryRobot(rowId, type, range);
+        return new QueryRobot(entityId, type, range);
     }
 
     @Override
