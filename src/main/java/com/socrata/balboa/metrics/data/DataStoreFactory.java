@@ -1,12 +1,21 @@
 package com.socrata.balboa.metrics.data;
 
-import com.socrata.balboa.metrics.data.impl.CassandraDataStore;
+import com.socrata.balboa.metrics.data.impl.MapDataStore;
 
 public class DataStoreFactory
 {
     public static DataStore get()
     {
-        // TODO: Move this to a configuration file.
-        return new CassandraDataStore(new String[] {"localhost:9160"}, "Metrics");
+        /*tring environment = System.getProperty("socrata.env");
+        System.out.println(">>>>>>>>>>>>>>>> " + environment);
+
+        if ("test".equals(environment))
+        { */
+            return MapDataStore.getInstance();
+        /*}
+        else
+        {
+            return new CassandraDataStore(new String[] {"localhost:9160"}, "Metrics");
+        }*/
     }
 }
