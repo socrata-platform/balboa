@@ -17,7 +17,7 @@ public class MetricReader
     {
         DataStore ds = DataStoreFactory.get();
 
-        Iterator<Summary> iter = ds.find(entityId, Type.REALTIME, start, end);
+        Iterator<Summary> iter = ds.find(entityId, Type.MONTHLY, start, end);
 
         while (iter.hasNext())
         {

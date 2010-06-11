@@ -56,13 +56,13 @@ public class BalboaServlet extends HttpServlet
     {
         Map params = request.getParameterMap();
 
-        String field = (String)params.get("field");
+        String field = ((String[])params.get("field"))[0];
 
         DateRange range = null;
         if (params.containsKey("type") && params.containsKey("date"))
         {
-            String type = (String)params.get("type");
-            Date date = DateTime.parse((String)params.get("date")).toDate();
+            String type = ((String[])params.get("type"))[0];
+            Date date = DateTime.parse(((String[])params.get("date"))[0]).toDate();
             range = DateRange.create(Summary.Type.valueOf(type), date);
         }
         else if (params.containsKey("type"))
