@@ -1,9 +1,10 @@
 package com.socrata.balboa.metrics.data;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 public class DateRangeTest
 {
@@ -19,6 +20,7 @@ public class DateRangeTest
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 1, 28, 23, 59, 59);
+        cal.set(Calendar.MILLISECOND, 999);
         Assert.assertEquals(cal.getTime(), range.end);
     }
 
@@ -34,6 +36,7 @@ public class DateRangeTest
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 1, 13, 23, 59, 59);
+        cal.set(Calendar.MILLISECOND, 999);
         Assert.assertEquals(cal.getTime(), range.end);
     }
 
@@ -49,6 +52,7 @@ public class DateRangeTest
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 5, 5, 23, 59, 59);
+        cal.set(Calendar.MILLISECOND, 999);
         Assert.assertEquals(cal.getTime(), range.end);
     }
 
@@ -64,6 +68,7 @@ public class DateRangeTest
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 5, 2, 23, 59, 59);
+        cal.set(Calendar.MILLISECOND, 999);
         Assert.assertEquals(cal.getTime(), range.end);
     }
 
@@ -79,6 +84,7 @@ public class DateRangeTest
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 1, 28, 23, 59, 59);
+        cal.set(Calendar.MILLISECOND, 999);
         Assert.assertEquals(cal.getTime(), range.end);
     }
 
@@ -94,6 +100,7 @@ public class DateRangeTest
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 1, 28, 23, 59, 59);
+        cal.set(Calendar.MILLISECOND, 999);
         Assert.assertEquals(cal.getTime(), range.end);
     }
 }

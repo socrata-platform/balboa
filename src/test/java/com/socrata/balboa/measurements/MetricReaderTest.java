@@ -25,6 +25,41 @@ public class MetricReaderTest
     }
 
     @Test
+    public void testDontSummarizeForRangesThatIncludeToday() throws Exception
+    {
+        DataStore ds = DataStoreFactory.get();
+
+        Map<String, String> data = new HashMap<String, String>();
+        data.put("views", "1");
+        data.put("hits", "123");
+
+        // Create a new date range that includes today.
+        DateRange range = DateRange.create(Summary.Type.MONTHLY, new Date());
+
+        // Create a summary that's within that date range
+        Summary summary = new Summary(Summary.Type.DAILY, range.start.getTime(), data);
+        ds.persist("bugs-bugs", summary);
+
+        // Read the summary and make sure that we don't summarize on the monthly level yet since it hasn't ended.
+        MetricReader reader = new MetricReader();
+        Object result = reader.read("bugs-bugs", "views", Summary.Type.MONTHLY, range, ds, new JsonPreprocessor(), new Sum());
+
+        MapDataStore mds = (MapDataStore)ds;
+        Assert.assertFalse(mds.data.containsKey("monthly"));
+    }
+
+    @Test
+    public void testReadNone() throws Exception
+    {
+        DataStore ds = DataStoreFactory.get();
+
+        MetricReader reader = new MetricReader();
+        Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, DateRange.create(Summary.Type.DAILY, new Date()), ds, new JsonPreprocessor(), new Sum());
+
+        Assert.assertEquals(0, result);
+    }
+
+    @Test
     public void testReadSimple() throws Exception
     {
         DataStore ds = DataStoreFactory.get();

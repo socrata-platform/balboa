@@ -25,7 +25,7 @@ public class MapDataStore implements DataStore
         return instance;
     }
 
-    Map<Summary.Type, Map<String, List<Summary>>> data = new HashMap<Summary.Type, Map<String, List<Summary>>>();
+    public Map<Summary.Type, Map<String, List<Summary>>> data = new HashMap<Summary.Type, Map<String, List<Summary>>>();
 
     /**
      * An iterator that filters out all summaries from a list that aren't within the date range.

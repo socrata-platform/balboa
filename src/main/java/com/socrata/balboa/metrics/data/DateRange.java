@@ -44,6 +44,7 @@ public class DateRange
                 end.getActualMaximum(Calendar.HOUR_OF_DAY),
                 end.getActualMaximum(Calendar.MINUTE),
                 end.getActualMaximum(Calendar.SECOND));
+        end.set(Calendar.MILLISECOND, 999);
 
         return new DateRange(start.getTime(), end.getTime());
     }
@@ -77,6 +78,7 @@ public class DateRange
                 end.getActualMaximum(Calendar.HOUR_OF_DAY),
                 end.getActualMaximum(Calendar.MINUTE),
                 end.getActualMaximum(Calendar.SECOND));
+        end.set(Calendar.MILLISECOND, 999);
 
         return new DateRange(start.getTime(), end.getTime());
     }
@@ -109,6 +111,7 @@ public class DateRange
                 end.getActualMaximum(Calendar.HOUR_OF_DAY),
                 end.getActualMaximum(Calendar.MINUTE),
                 end.getActualMaximum(Calendar.SECOND));
+        end.set(Calendar.MILLISECOND, 999);
 
         return new DateRange(start.getTime(), end.getTime());
     }
