@@ -2,24 +2,19 @@ package com.socrata.balboa.metrics.measurements.combining;
 
 public class Sum implements Combinator<Integer>
 {
-    Integer current = 0;
-
     @Override
     public Integer combine(Integer first, Integer second)
     {
+        if (first == null)
+        {
+            first = 0;
+        }
+        
+        if (second == null)
+        {
+            second = 0;
+        }
+
         return first + second;
-    }
-
-    @Override
-    public Integer feed(Integer input)
-    {
-        current += input;
-        return current;
-    }
-
-    @Override
-    public Integer getValue()
-    {
-        return current;
     }
 }

@@ -157,4 +157,9 @@ public class MapDataStore implements DataStore
 
         summaries.add(summary);
     }
+
+    public static void destroy()
+    {
+        instance = null;
+    }
 }

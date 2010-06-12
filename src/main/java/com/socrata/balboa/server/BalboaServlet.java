@@ -3,14 +3,12 @@ package com.socrata.balboa.server;
 import com.socrata.balboa.exceptions.InternalException;
 import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.measurements.MetricReader;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.measurements.combining.Sum;
 import com.socrata.balboa.metrics.measurements.preprocessing.JsonPreprocessor;
 import com.socrata.balboa.metrics.measurements.preprocessing.Preprocessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.pojava.datetime.DateTime;
 
 import javax.servlet.ServletException;
@@ -85,11 +83,11 @@ public class BalboaServlet extends HttpServlet
         try
         {
             // Query for the metric.
-            Object metrics = MetricReader.read(id, field, range.start, range.end, preprocessor, combinator);
+            /*Object metrics = MetricReader.read(id, field, range.start, range.end, preprocessor, combinator);
 
             // And now write result to the response.
             ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue(response.getOutputStream(), metrics);
+            mapper.writeValue(response.getOutputStream(), metrics);*/
         }
         catch (Exception e)
         {
