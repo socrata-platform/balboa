@@ -12,6 +12,7 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +23,35 @@ public class MetricReaderTest
     public void teardown()
     {
         MapDataStore.destroy();
+    }
+
+    @Test
+    public void testSummarizeReallyBigNumbers() throws Exception
+    {
+        DataStore ds = DataStoreFactory.get();
+        
+        Map<String, String> data = new HashMap<String, String>();
+        data.put("views", Long.toString(Long.MAX_VALUE));
+        data.put("hits", "123");
+
+        // Create a new date range that includes today.
+        DateRange range = DateRange.create(Summary.Type.MONTHLY, new Date());
+
+        // Create a summary that's within that date range
+        Summary summary = new Summary(Summary.Type.REALTIME, range.start.getTime(), data);
+        ds.persist("bugs-bugs", summary);
+
+        summary = new Summary(Summary.Type.REALTIME, range.end.getTime() + 1, data);
+        ds.persist("bugs-bugs", summary);
+
+        // Read the summary and make sure that we don't summarize on the monthly level yet since it hasn't ended.
+        MetricReader reader = new MetricReader();
+        Object result = reader.read("bugs-bugs", "views", Summary.Type.MONTHLY, range, ds, new JsonPreprocessor(), new Sum());
+
+        MapDataStore mds = (MapDataStore)ds;
+        Assert.assertFalse(mds.data.containsKey(Summary.Type.MONTHLY));
+
+        Assert.assertEquals(new BigDecimal("9223372036854775807"), result);
     }
 
     @Test
