@@ -128,4 +128,10 @@ public class DateRange
                 return createDaily(date);
         }
     }
+
+    @Override
+    public String toString()
+    {
+        return start + " -> " + end;
+    }
 }

@@ -6,6 +6,8 @@ import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.measurements.preprocessing.Preprocessor;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 import java.util.Date;
@@ -15,6 +17,8 @@ import java.util.Map;
 
 public class MetricReader
 {
+    private static Log log = LogFactory.getLog(MetricReader.class);
+
     Object summarize(String field, Type type, Preprocessor preprocessor, Combinator combinator, Iterator<Summary> iter) throws IOException
     {
         Object current = null;
@@ -102,10 +106,19 @@ public class MetricReader
 
             // Summarize this time period permanently by writing it to the datastore. Subsequent reads will no longer
             // recurse to it's next best type summary.
-            Map<String, String> values = new HashMap<String, String>();
-            values.put(field, pre.toString(current));
-            Summary summary = new Summary(type, range.start.getTime(), values);
-            ds.persist(entityId, summary);
+            if (range.start.before(new Date()) && range.end.after(new Date()))
+            {
+                log.debug("Range includes today so I can't summarize yet (patience, young one).");
+            }
+            else
+            {
+                log.debug("Summarizing the range '" + range + "' in the type '" + type + "'");
+
+                Map<String, String> values = new HashMap<String, String>();
+                values.put(field, pre.toString(current));
+                Summary summary = new Summary(type, range.start.getTime(), values);
+                ds.persist(entityId, summary);
+            }
 
             // And at the end: We're done and we've got our metric.
             return current;

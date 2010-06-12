@@ -45,7 +45,38 @@ public class MetricReaderTest
         Object result = reader.read("bugs-bugs", "views", Summary.Type.MONTHLY, range, ds, new JsonPreprocessor(), new Sum());
 
         MapDataStore mds = (MapDataStore)ds;
-        Assert.assertFalse(mds.data.containsKey("monthly"));
+        Assert.assertFalse(mds.data.containsKey(Summary.Type.MONTHLY));
+
+        Assert.assertEquals(1, result);
+    }
+
+    @Test
+    public void testDoSummarizeForRangesOtherThanTheOutermostIfTheyDontIncludeTodayButTheOuterDoes() throws Exception
+    {
+        DataStore ds = DataStoreFactory.get();
+
+        Map<String, String> data = new HashMap<String, String>();
+        data.put("views", "1");
+        data.put("hits", "123");
+
+        // Create a new date range that includes today.
+        DateRange range = DateRange.create(Summary.Type.MONTHLY, new Date());
+
+        // Create a summary that's within that date range
+        Summary summary = new Summary(Summary.Type.REALTIME, range.start.getTime(), data);
+        ds.persist("bugs-bugs", summary);
+
+        // Read the summary and make sure that we don't summarize on the monthly level yet since it hasn't ended.
+        MetricReader reader = new MetricReader();
+        Object result = reader.read("bugs-bugs", "views", Summary.Type.MONTHLY, range, ds, new JsonPreprocessor(), new Sum());
+
+        MapDataStore mds = (MapDataStore)ds;
+        Assert.assertFalse(mds.data.containsKey(Summary.Type.MONTHLY));
+
+        // Make sure we *do* summarize on the daily level though.
+        Assert.assertTrue(mds.data.containsKey(Summary.Type.DAILY));
+
+        Assert.assertEquals(1, result);
     }
 
     @Test
