@@ -5,6 +5,7 @@ import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.data.impl.MapDataStore;
+import com.socrata.balboa.metrics.measurements.Configuration;
 import com.socrata.balboa.metrics.measurements.MetricReader;
 import com.socrata.balboa.metrics.measurements.combining.Sum;
 import com.socrata.balboa.metrics.measurements.preprocessing.JsonPreprocessor;
@@ -23,6 +24,60 @@ public class MetricReaderTest
     public void teardown()
     {
         MapDataStore.destroy();
+    }
+
+    @Test
+    public void testWhenSomeSummariesInRangeDontHaveAField() throws Exception
+    {
+        DataStore ds = DataStoreFactory.get();
+
+        Map<String, String> data = new HashMap<String, String>();
+        data.put("views", "1");
+        data.put("hits", "123");
+
+        DateRange range = DateRange.create(Summary.Type.DAILY, new Date(0));
+        Summary summary = new Summary(Summary.Type.DAILY, range.start.getTime(), data);
+        ds.persist("bugs-bugs", summary);
+
+        Map<String, String> data2 = new HashMap<String, String>();
+        data2.put("hits", "123");
+        summary = new Summary(Summary.Type.DAILY, range.end.getTime() + 1, data2);
+        ds.persist("bugs-bugs", summary);
+
+        MetricReader reader = new MetricReader();
+        range.end = new Date();
+        Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new Sum());
+
+        Assert.assertEquals(1, result);
+    }
+
+    @Test
+    public void testReadConfiguration() throws Exception
+    {
+        DataStore ds = DataStoreFactory.get();
+
+        Configuration config = new Configuration();
+        config.add("views", new JsonPreprocessor(), new Sum());
+        config.add("hits", new JsonPreprocessor(), new Sum());
+        
+        Map<String, String> data = new HashMap<String, String>();
+        data.put("views", "1");
+        data.put("hits", "123");
+
+        DateRange range = DateRange.create(Summary.Type.DAILY, new Date(0));
+        Summary summary = new Summary(Summary.Type.DAILY, range.start.getTime(), data);
+        ds.persist("bugs-bugs", summary);
+
+        summary = new Summary(Summary.Type.DAILY, range.end.getTime() + 1, data);
+        ds.persist("bugs-bugs", summary);
+
+        MetricReader reader = new MetricReader();
+        range.end = new Date();
+        //Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new Sum());
+        Map<String, Object> results = reader.read("bugs-bugs", config, Summary.Type.DAILY, range, ds);
+
+        Assert.assertEquals(2, results.get("views"));
+        Assert.assertEquals(246, results.get("hits"));
     }
 
     @Test

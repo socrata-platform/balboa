@@ -9,8 +9,7 @@ public class Sum implements Combinator<Number>
     {
         if (!(second instanceof BigDecimal))
         {
-            // *ahem* Close enough, I think.
-            second = new BigDecimal(second.doubleValue());
+            second = new BigDecimal(second.toString());
         }
 
         return ((BigDecimal)first).add((BigDecimal)second);

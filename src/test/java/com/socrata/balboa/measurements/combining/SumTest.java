@@ -47,8 +47,8 @@ public class SumTest
     @Test
     public void testCombined() throws Exception
     {
-        Assert.assertEquals(new BigDecimal(100), sum.combine(new BigDecimal("50"), 50.0d));
-        Assert.assertEquals(new BigDecimal(100), sum.combine(50.0d, new BigDecimal("50")));
+        Assert.assertEquals(new BigDecimal("100.0"), sum.combine(new BigDecimal("50"), 50.0d));
+        Assert.assertEquals(new BigDecimal("100.0"), sum.combine(50.0d, new BigDecimal("50")));
 
         Assert.assertEquals(100.0d, sum.combine(new Double("50"), 50));
         Assert.assertEquals(100.0d, sum.combine(50, new Double("50")));
