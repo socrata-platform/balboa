@@ -172,7 +172,7 @@ public class MetricReaderTest
         MetricReader reader = new MetricReader();
         Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, DateRange.create(Summary.Type.DAILY, new Date()), ds, new JsonPreprocessor(), new Sum());
 
-        Assert.assertEquals(0, result);
+        Assert.assertEquals(null, result);
     }
 
     @Test

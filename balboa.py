@@ -21,8 +21,8 @@ class Summary(record.Record):
 def populate():
     data = {"narf": "1", "jess": "2"}
 
-    for i in xrange(18000000, 18010000):
-        print "Inserting %d" % i
+    for i in xrange(100000):
+        print "Inserting %d" % current
         s = Summary(data)
         s.save()
 

@@ -2,13 +2,17 @@ package com.socrata.balboa.server;
 
 import com.socrata.balboa.exceptions.InternalException;
 import com.socrata.balboa.metrics.Summary;
+import com.socrata.balboa.metrics.data.DataStore;
+import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.measurements.MetricReader;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.measurements.combining.Sum;
 import com.socrata.balboa.metrics.measurements.preprocessing.JsonPreprocessor;
 import com.socrata.balboa.metrics.measurements.preprocessing.Preprocessor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.pojava.datetime.DateTime;
 
 import javax.servlet.ServletException;
@@ -55,18 +59,19 @@ public class BalboaServlet extends HttpServlet
         Map params = request.getParameterMap();
 
         String field = ((String[])params.get("field"))[0];
+        String type = "realtime";
 
         DateRange range = null;
         if (params.containsKey("type") && params.containsKey("date"))
         {
-            String type = ((String[])params.get("type"))[0];
+            type = ((String[])params.get("type"))[0];
             Date date = DateTime.parse(((String[])params.get("date"))[0]).toDate();
             range = DateRange.create(Summary.Type.valueOf(type), date);
         }
         else if (params.containsKey("type"))
         {
             // If no date is provided, then just use today along with the type.
-            String type = ((String[])params.get("type"))[0];
+            type = ((String[])params.get("type"))[0];
             range = DateRange.create(Summary.Type.valueOf(type), new Date());
         }
         else
@@ -83,11 +88,13 @@ public class BalboaServlet extends HttpServlet
         try
         {
             // Query for the metric.
-            /*Object metrics = MetricReader.read(id, field, range.start, range.end, preprocessor, combinator);
+            DataStore ds = DataStoreFactory.get();
+            MetricReader reader = new MetricReader();
+            Object metrics = reader.read(id, field, Summary.Type.valueOf(type), range, ds, preprocessor, combinator);
 
             // And now write result to the response.
             ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue(response.getOutputStream(), metrics);*/
+            mapper.writeValue(response.getOutputStream(), metrics);
         }
         catch (Exception e)
         {

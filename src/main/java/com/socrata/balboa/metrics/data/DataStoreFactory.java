@@ -15,7 +15,7 @@ public class DataStoreFactory
         /*}
         else
         {
-            return new CassandraDataStore(new String[] {"localhost:9160"}, "Metrics");
-        }*/
+            return new CassandraDataStore(new String[] {"localhost:9160"}, "Metrics");*/
+        //}
     }
 }

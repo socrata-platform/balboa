@@ -20,7 +20,7 @@ public class CassandraDataStore implements DataStore
 {
     public class QueryRobot implements Iterator<Summary>
     {
-        static final int QUERYBUFFER = 100;
+        static final int QUERYBUFFER = 5000;
         
         String rowId;
         Type type;
