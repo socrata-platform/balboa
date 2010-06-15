@@ -16,26 +16,6 @@ public class MetricReader
 {
     private static Log log = LogFactory.getLog(MetricReader.class);
 
-    Object summarize(String field, Type type, Preprocessor preprocessor, Combinator combinator, Iterator<Summary> iter) throws IOException
-    {
-        Object current = null;
-        
-        while (iter.hasNext())
-        {
-            Summary summary = iter.next();
-
-            if (summary.getValues().containsKey(field))
-            {
-                String serializedValue = summary.getValues().get(field);
-
-                Object value = preprocessor.toValue(serializedValue);
-                current = combinator.combine(current, value);
-            }
-        }
-
-        return current;
-    }
-
     Map<String, Object> summarize(Configuration config, Type type, Iterator<Summary> iter) throws IOException
     {
         Map<String, Object> results = new HashMap<String, Object>(config.getMeasurements().size());

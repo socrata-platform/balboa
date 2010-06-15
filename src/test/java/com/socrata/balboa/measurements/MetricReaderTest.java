@@ -7,6 +7,7 @@ import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.data.impl.MapDataStore;
 import com.socrata.balboa.metrics.measurements.Configuration;
 import com.socrata.balboa.metrics.measurements.MetricReader;
+import com.socrata.balboa.metrics.measurements.combining.FrequencyMap;
 import com.socrata.balboa.metrics.measurements.combining.Sum;
 import com.socrata.balboa.metrics.measurements.preprocessing.JsonPreprocessor;
 import org.junit.After;
@@ -26,6 +27,31 @@ public class MetricReaderTest
         MapDataStore.destroy();
     }
 
+    @Test
+    public void testComplexValue() throws Exception
+    {
+        DataStore ds = DataStoreFactory.get();
+
+        Map<String, String> data = new HashMap<String, String>();
+        data.put("referrals", "{\"http://socrata/wherever\": 10, \"http://whitehouse\": 5}");
+
+        DateRange range = DateRange.create(Summary.Type.DAILY, new Date(0));
+        Summary summary = new Summary(Summary.Type.DAILY, range.start.getTime(), data);
+        ds.persist("bugs-bugs", summary);
+
+        data = new HashMap<String, String>();
+        data.put("referrals", "{\"http://socrata/wherever\": 25}");
+        summary = new Summary(Summary.Type.DAILY, range.start.getTime() + 1, data);
+        ds.persist("bugs-bugs", summary);
+
+        MetricReader reader = new MetricReader();
+        Object result = reader.read("bugs-bugs", "referrals", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new FrequencyMap());
+
+        Map<String, Number> real = (Map<String, Number>)result;
+        Assert.assertEquals(35, real.get("http://socrata/wherever"));
+        Assert.assertEquals(5, real.get("http://whitehouse"));
+    }
+    
     @Test
     public void testWhenSomeSummariesInRangeDontHaveAField() throws Exception
     {
