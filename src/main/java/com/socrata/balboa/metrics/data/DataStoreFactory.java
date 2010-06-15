@@ -1,21 +1,27 @@
 package com.socrata.balboa.metrics.data;
 
+import com.socrata.balboa.metrics.data.impl.CassandraDataStore;
 import com.socrata.balboa.metrics.data.impl.MapDataStore;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class DataStoreFactory
 {
+    private static Log log = LogFactory.getLog(DataStoreFactory.class);
+
     public static DataStore get()
     {
-        /*tring environment = System.getProperty("socrata.env");
-        System.out.println(">>>>>>>>>>>>>>>> " + environment);
+        String environment = System.getProperty("socrata.env");
 
         if ("test".equals(environment))
-        {*/
+        {
+            log.debug("Retrieving a MapDataStore instance.");
             return MapDataStore.getInstance();
-        /*}
+        }
         else
         {
-            return new CassandraDataStore(new String[] {"localhost:9160"}, "Metrics");*/
-        //}
+            log.debug("Retrieving a CassandraDataStore instance.");
+            return new CassandraDataStore(new String[] {"localhost:9160"}, "Metrics");
+        }
     }
 }

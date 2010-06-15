@@ -17,7 +17,6 @@
           </activation>
           <properties>
             <socrata.env>test</socrata.env>
-            <something>foo</something>
           </properties>
         </profile>
     </profiles>
@@ -153,6 +152,20 @@
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.4.2</version>
+                <configuration>
+                  <systemProperties>
+                    <property>
+                      <name>socrata.env</name>
+                      <value>test</value>
+                    </property>
+                  </systemProperties>
+                </configuration>
+            </plugin>
+            
             <plugin>
                 <groupId>org.mortbay.jetty</groupId>
                 <artifactId>maven-jetty-plugin</artifactId>

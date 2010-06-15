@@ -1,17 +1,14 @@
 package com.socrata.balboa.metrics.data.impl;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.HashSet;
-import java.util.Set;
 import me.prettyprint.cassandra.testutils.EmbeddedServerHelper;
 import org.apache.cassandra.config.DatabaseDescriptor;
 import org.apache.cassandra.io.util.FileUtils;
 import org.apache.cassandra.service.EmbeddedCassandraService;
 import org.apache.thrift.transport.TTransportException;
+
+import java.io.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Mostly ripped off from the EmbeddedCassandraServiceHelper in Hector, but

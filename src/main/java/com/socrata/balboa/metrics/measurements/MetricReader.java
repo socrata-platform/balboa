@@ -74,6 +74,11 @@ public class MetricReader
 
     public Map<String, Object> read(String entityId, Configuration config, Type type, DateRange range, DataStore ds) throws IOException
     {
+        return read(entityId, config, type, range, ds, true);
+    }
+
+    public Map<String, Object> read(String entityId, Configuration config, Type type, DateRange range, DataStore ds, boolean cache) throws IOException
+    {
         // Start with the best possible summary and try to find it. If there's no items in the best possible summary,
         // then move on to the next best.
         Iterator<Summary> best = ds.find(entityId, type, range.start, range.end);
@@ -120,16 +125,19 @@ public class MetricReader
 
             // Summarize this time period permanently by writing it to the datastore. Subsequent reads will no longer
             // recurse to it's next best type summary.
-            if (range.start.before(new Date()) && range.end.after(new Date()))
+            if (cache == true)
             {
-                log.debug("Range includes today so I can't summarize yet (patience, young one).");
-            }
-            else
-            {
-                log.debug("Summarizing the range '" + range + "' in the type '" + type + "'");
+                if (range.start.before(new Date()) && range.end.after(new Date()))
+                {
+                    log.debug("Range includes today so I can't summarize yet (patience, young one).");
+                }
+                else
+                {
+                    log.debug("Summarizing the range '" + range + "' in the type '" + type + "'");
 
-                Summary summary = new Summary(type, range.start.getTime(), postprocess(config, current));
-                ds.persist(entityId, summary);
+                    Summary summary = new Summary(type, range.start.getTime(), postprocess(config, current));
+                    ds.persist(entityId, summary);
+                }
             }
 
             // And at the end: We're done and we've got our metric.
