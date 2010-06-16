@@ -1,6 +1,6 @@
 package com.socrata.balboa.metrics.data.impl;
 
-import com.socrata.balboa.exceptions.InternalException;
+import com.socrata.balboa.server.exceptions.InternalException;
 import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.Summary.Type;
 import com.socrata.balboa.metrics.data.DataStore;

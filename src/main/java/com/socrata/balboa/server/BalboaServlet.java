@@ -1,15 +1,12 @@
 package com.socrata.balboa.server;
 
-import com.socrata.balboa.exceptions.InternalException;
 import com.socrata.balboa.metrics.Summary;
-import com.socrata.balboa.metrics.data.DataStore;
-import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.measurements.MetricReader;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
-import com.socrata.balboa.metrics.measurements.combining.Sum;
-import com.socrata.balboa.metrics.measurements.preprocessing.JsonPreprocessor;
-import com.socrata.balboa.metrics.measurements.preprocessing.Preprocessor;
+import com.socrata.balboa.metrics.messaging.Receiver;
+import com.socrata.balboa.metrics.messaging.ReceiverFactory;
+import com.socrata.balboa.server.exceptions.HttpException;
+import com.socrata.balboa.server.exceptions.InvalidRequestException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -20,12 +17,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
 import java.util.Map;
 
 public class BalboaServlet extends HttpServlet
 {
     private static Log log = LogFactory.getLog(BalboaServlet.class);
+    private Receiver receiver;
     
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -38,67 +35,83 @@ public class BalboaServlet extends HttpServlet
             String[] path = request.getPathInfo().split("/");
             String entityId = path[1];
 
-            if ("GET".equals(request.getMethod()))
+            if (!"GET".equals(request.getMethod()))
             {
-                fulfillGet(entityId, request, response);
+                throw new InvalidRequestException("Unsupported method '" + request.getMethod() + "'.");
             }
-            else
-            {
-                throw new Exception("Unsupported method '" + request.getMethod() + "'.");
-            }
+
+            Object result = fulfillGet(entityId, request, response);
+
+            // Write the response out.
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.writeValue(response.getOutputStream(), result);
+        }
+        catch (HttpException e)
+        {
+            // Write out any "expected" errors.
+            log.debug("Unable to fullfil request because there was an HTTP error.", e);
+            response.setStatus(e.getStatus());
+            response.getOutputStream().write(e.getMessage().getBytes());
         }
         catch (Throwable e)
         {
+            // Any other problems were things we weren't expecting.
             log.fatal("Unexpected exception handling a request.", e);
             response.setStatus(500);
+            response.getOutputStream().write("Internal error.".getBytes());
         }
     }
 
-    void fulfillGet(String id, HttpServletRequest request, HttpServletResponse response)
+    @Override
+    public void init() throws ServletException
     {
-        Map params = request.getParameterMap();
+        super.init();
 
-        String field = ((String[])params.get("field"))[0];
-        String type = "realtime";
+        // Initialize our receiver and it will automatically connect.
+        receiver = ReceiverFactory.get();
+    }
 
-        DateRange range = null;
-        if (params.containsKey("type") && params.containsKey("date"))
+    Object fulfillGet(String id, HttpServletRequest request, HttpServletResponse response) throws IOException, InvalidRequestException
+    {
+        MetricsService service = new MetricsService();
+        Map<String, String> params = ServiceUtils.getParameters(request);
+        
+        ServiceUtils.validateRequired(params, new String[] {"type", "date"});
+
+        Summary.Type type = Summary.Type.valueOf(params.get("type"));
+        DateTime date = DateTime.parse(params.get("date"));
+
+        if (date == null)
         {
-            type = ((String[])params.get("type"))[0];
-            Date date = DateTime.parse(((String[])params.get("date"))[0]).toDate();
-            range = DateRange.create(Summary.Type.valueOf(type), date);
+            throw new InvalidRequestException("Unrecognized date format '" + params.get("date") + "'.");
         }
-        else if (params.containsKey("type"))
+
+        DateRange range = DateRange.create(type, date.toDate());
+
+        if (params.containsKey("field"))
         {
-            // If no date is provided, then just use today along with the type.
-            type = ((String[])params.get("type"))[0];
-            range = DateRange.create(Summary.Type.valueOf(type), new Date());
+            return service.get(id, type, (String)params.get("field"), getCombinator(params), range);
         }
         else
         {
-            throw new InternalException("Invalid request. Parameter 'type' is required.");
+            // TODO: Where is this configuration coming from?
+            return service.get(id, type, null, range);
         }
+    }
 
-        // TODO: Support other preprocessors.
-        Preprocessor preprocessor = new JsonPreprocessor();
-
-        // TODO: Support other combinators.
-        Combinator combinator = new Sum();
+    Combinator getCombinator(Map<String, String> params) throws InvalidRequestException
+    {
+        ServiceUtils.validateRequired(params, new String[] {"combinator"});
+        String combinatorClass = "com.socrata.balboa.metrics.measurements.combining." + params.get("combinator");
 
         try
         {
-            // Query for the metric.
-            DataStore ds = DataStoreFactory.get();
-            MetricReader reader = new MetricReader();
-            Object metrics = reader.read(id, field, Summary.Type.valueOf(type), range, ds, preprocessor, combinator);
-
-            // And now write result to the response.
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue(response.getOutputStream(), metrics);
+            Class klass = Class.forName(combinatorClass);
+            return (Combinator)klass.getConstructor().newInstance();
         }
         catch (Exception e)
         {
-            throw new InternalException("There was an error processing the request.", e);
+            throw new InvalidRequestException("Invalid combinator '" + combinatorClass + "'.");
         }
     }
 }

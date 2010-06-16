@@ -10,7 +10,7 @@ current = 18000000
 class SummaryKey(Key):
     def __init__(self):
         global current
-        current += 1
+        current += 1000
         Key.__init__(self, keyspace="Metrics", column_family="realtime", key="bugs-bugs", super_column=struct.pack(">q", current))
 
 class Summary(record.Record):
@@ -21,10 +21,14 @@ class Summary(record.Record):
 def populate():
     data = {"narf": "1", "jess": "2"}
 
-    for i in xrange(100000):
-        print "Inserting %d" % current
-        s = Summary(data)
-        s.save()
+    records = RecordSet()
+    for i in xrange(0, 1000000):
+        records.append(Summary(data))
+        if (i % 50000) == 0:
+            print "Inserting %d" % i
+            records.save()
+            records = RecordSet()
+    records.save()
 
 if __name__ == "__main__":
     populate()

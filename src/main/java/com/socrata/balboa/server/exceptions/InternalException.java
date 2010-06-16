@@ -1,4 +1,4 @@
-package com.socrata.balboa.exceptions;
+package com.socrata.balboa.server.exceptions;
 
 public class InternalException extends RuntimeException
 {
