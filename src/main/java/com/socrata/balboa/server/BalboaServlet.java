@@ -121,7 +121,7 @@ public class BalboaServlet extends HttpServlet
 
     Configuration getConfiguration(String name) throws IOException
     {
-        InputStream stream = BalboaServlet.class.getClassLoader().getResourceAsStream("configuration.json");
+        InputStream stream = BalboaServlet.class.getClassLoader().getResourceAsStream("resources/configuration.json");
 
         return Configuration.load(stream);
     }
