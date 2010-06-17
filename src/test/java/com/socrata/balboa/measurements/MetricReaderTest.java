@@ -7,8 +7,8 @@ import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.data.impl.MapDataStore;
 import com.socrata.balboa.metrics.measurements.Configuration;
 import com.socrata.balboa.metrics.measurements.MetricReader;
-import com.socrata.balboa.metrics.measurements.combining.FrequencyMap;
-import com.socrata.balboa.metrics.measurements.combining.Sum;
+import com.socrata.balboa.metrics.measurements.combining.frequency;
+import com.socrata.balboa.metrics.measurements.combining.sum;
 import com.socrata.balboa.metrics.measurements.preprocessing.JsonPreprocessor;
 import org.junit.After;
 import org.junit.Assert;
@@ -45,7 +45,7 @@ public class MetricReaderTest
         ds.persist("bugs-bugs", summary);
 
         MetricReader reader = new MetricReader();
-        Object result = reader.read("bugs-bugs", "referrals", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new FrequencyMap());
+        Object result = reader.read("bugs-bugs", "referrals", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new frequency());
 
         Map<String, Number> real = (Map<String, Number>)result;
         Assert.assertEquals(35, real.get("http://socrata/wherever"));
@@ -72,7 +72,7 @@ public class MetricReaderTest
 
         MetricReader reader = new MetricReader();
         range.end = new Date();
-        Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new Sum());
+        Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new sum());
 
         Assert.assertEquals(1, result);
     }
@@ -83,8 +83,8 @@ public class MetricReaderTest
         DataStore ds = DataStoreFactory.get();
 
         Configuration config = new Configuration();
-        config.add("views", new JsonPreprocessor(), new Sum());
-        config.add("hits", new JsonPreprocessor(), new Sum());
+        config.add("views", new JsonPreprocessor(), new sum());
+        config.add("hits", new JsonPreprocessor(), new sum());
         
         Map<String, String> data = new HashMap<String, String>();
         data.put("views", "1");
@@ -99,7 +99,7 @@ public class MetricReaderTest
 
         MetricReader reader = new MetricReader();
         range.end = new Date();
-        //Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new Sum());
+        //Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new sum());
         Map<String, Object> results = reader.read("bugs-bugs", config, Summary.Type.DAILY, range, ds);
 
         Assert.assertEquals(2, results.get("views"));
@@ -127,7 +127,7 @@ public class MetricReaderTest
 
         // Read the summary and make sure that we don't summarize on the monthly level yet since it hasn't ended.
         MetricReader reader = new MetricReader();
-        Object result = reader.read("bugs-bugs", "views", Summary.Type.MONTHLY, range, ds, new JsonPreprocessor(), new Sum());
+        Object result = reader.read("bugs-bugs", "views", Summary.Type.MONTHLY, range, ds, new JsonPreprocessor(), new sum());
 
         MapDataStore mds = (MapDataStore)ds;
         Assert.assertFalse(mds.data.containsKey(Summary.Type.MONTHLY));
@@ -153,7 +153,7 @@ public class MetricReaderTest
 
         // Read the summary and make sure that we don't summarize on the monthly level yet since it hasn't ended.
         MetricReader reader = new MetricReader();
-        Object result = reader.read("bugs-bugs", "views", Summary.Type.MONTHLY, range, ds, new JsonPreprocessor(), new Sum());
+        Object result = reader.read("bugs-bugs", "views", Summary.Type.MONTHLY, range, ds, new JsonPreprocessor(), new sum());
 
         MapDataStore mds = (MapDataStore)ds;
         Assert.assertFalse(mds.data.containsKey(Summary.Type.MONTHLY));
@@ -179,7 +179,7 @@ public class MetricReaderTest
 
         // Read the summary and make sure that we don't summarize on the monthly level yet since it hasn't ended.
         MetricReader reader = new MetricReader();
-        Object result = reader.read("bugs-bugs", "views", Summary.Type.MONTHLY, range, ds, new JsonPreprocessor(), new Sum());
+        Object result = reader.read("bugs-bugs", "views", Summary.Type.MONTHLY, range, ds, new JsonPreprocessor(), new sum());
 
         MapDataStore mds = (MapDataStore)ds;
         Assert.assertFalse(mds.data.containsKey(Summary.Type.MONTHLY));
@@ -196,7 +196,7 @@ public class MetricReaderTest
         DataStore ds = DataStoreFactory.get();
 
         MetricReader reader = new MetricReader();
-        Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, DateRange.create(Summary.Type.DAILY, new Date()), ds, new JsonPreprocessor(), new Sum());
+        Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, DateRange.create(Summary.Type.DAILY, new Date()), ds, new JsonPreprocessor(), new sum());
 
         Assert.assertEquals(null, result);
     }
@@ -218,7 +218,7 @@ public class MetricReaderTest
         ds.persist("bugs-bugs", summary);
 
         MetricReader reader = new MetricReader();
-        Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new Sum());
+        Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new sum());
 
         Assert.assertEquals(1, result);
     }
@@ -240,7 +240,7 @@ public class MetricReaderTest
         ds.persist("bugs-bugs", summary);
 
         MetricReader reader = new MetricReader();
-        Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new Sum());
+        Object result = reader.read("bugs-bugs", "views", Summary.Type.DAILY, range, ds, new JsonPreprocessor(), new sum());
 
         Assert.assertEquals(2, result);
     }

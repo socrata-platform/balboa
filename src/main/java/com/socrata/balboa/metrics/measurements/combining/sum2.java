@@ -3,7 +3,7 @@ package com.socrata.balboa.metrics.measurements.combining;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-public class Sum implements Combinator<Number>
+public class sum implements Combinator<Number>
 {
     private BigDecimal sumBigDecimalWithOther(BigDecimal first, Number second)
     {

@@ -5,12 +5,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class FrequencyMap implements Combinator<Map<String, Number>>
+public class frequency implements Combinator<Map<String, Number>>
 {
     @Override
     public Map<String, Number> combine(Map<String, Number> first, Map<String, Number> second)
     {
-        Sum summer = new Sum();
+        sum summer = new sum();
 
         if (first == null)
         {

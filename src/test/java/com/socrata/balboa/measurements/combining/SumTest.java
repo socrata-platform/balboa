@@ -1,15 +1,15 @@
 package com.socrata.balboa.measurements.combining;
 
-import com.socrata.balboa.metrics.measurements.combining.Sum;
+import com.socrata.balboa.metrics.measurements.combining.sum;
 import junit.framework.Assert;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-public class SumTest
+public class sumTest
 {
-    Sum sum = new Sum();
+    sum sum = new sum();
 
     @Test
     public void testIntegerLikeObjects() throws Exception

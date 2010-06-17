@@ -1,0 +1,10 @@
+[
+    {
+        "field": "favorite",
+        "combinator": "sum"
+    },
+    {
+        "field": "referral",
+        "combinator": "frequency"
+    }
+]

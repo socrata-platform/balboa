@@ -2,6 +2,7 @@ package com.socrata.balboa.server;
 
 import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.measurements.Configuration;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.messaging.Receiver;
 import com.socrata.balboa.metrics.messaging.ReceiverFactory;
@@ -17,6 +18,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 
 public class BalboaServlet extends HttpServlet
@@ -94,8 +96,10 @@ public class BalboaServlet extends HttpServlet
         }
         else
         {
-            // TODO: Where is this configuration coming from?
-            return service.get(id, type, null, range);
+            ServiceUtils.validateRequired(params, new String[] {"config"});
+            
+            String config = (String)params.get("config");
+            return service.get(id, type, getConfiguration(config), range);
         }
     }
 
@@ -113,5 +117,12 @@ public class BalboaServlet extends HttpServlet
         {
             throw new InvalidRequestException("Invalid combinator '" + combinatorClass + "'.");
         }
+    }
+
+    Configuration getConfiguration(String name) throws IOException
+    {
+        InputStream stream = BalboaServlet.class.getClassLoader().getResourceAsStream("configuration.json");
+
+        return Configuration.load(stream);
     }
 }

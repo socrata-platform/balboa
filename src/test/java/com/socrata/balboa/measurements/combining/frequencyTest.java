@@ -1,18 +1,18 @@
 package com.socrata.balboa.measurements.combining;
 
-import com.socrata.balboa.metrics.measurements.combining.FrequencyMap;
+import com.socrata.balboa.metrics.measurements.combining.frequency;
 import junit.framework.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class FrequencyMapTest
+public class frequencyTest
 {
     @Test
     public void testFirstNull() throws Exception
     {
-        FrequencyMap m = new FrequencyMap();
+        frequency m = new frequency();
         Map<String, Number> second = new HashMap<String, Number>();
         second.put("http://socrata", 10);
         Map<String, Number> results = m.combine(null, second);
@@ -23,7 +23,7 @@ public class FrequencyMapTest
     @Test
     public void testSecondNull() throws Exception
     {
-        FrequencyMap m = new FrequencyMap();
+        frequency m = new frequency();
         Map<String, Number> first = new HashMap<String, Number>();
         first.put("http://socrata", 10);
         Map<String, Number> results = m.combine(first, null);
@@ -34,7 +34,7 @@ public class FrequencyMapTest
     @Test
     public void testMergeAdds() throws Exception
     {
-        FrequencyMap m = new FrequencyMap();
+        frequency m = new frequency();
         Map<String, Number> first = new HashMap<String, Number>();
         Map<String, Number> second = new HashMap<String, Number>();
 
