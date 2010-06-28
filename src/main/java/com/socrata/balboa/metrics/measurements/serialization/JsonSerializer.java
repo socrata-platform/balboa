@@ -1,12 +1,11 @@
-package com.socrata.balboa.metrics.measurements.preprocessing;
+package com.socrata.balboa.metrics.measurements.serialization;
 
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Map;
 
-public class JsonPreprocessor implements Preprocessor<Object>
+public class JsonSerializer implements Serializer<Object>
 {
     @Override
     public String toString(Object value) throws IOException

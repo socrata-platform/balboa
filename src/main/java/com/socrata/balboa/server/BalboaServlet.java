@@ -2,7 +2,6 @@ package com.socrata.balboa.server;
 
 import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.measurements.Configuration;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.messaging.Receiver;
 import com.socrata.balboa.metrics.messaging.ReceiverFactory;
@@ -13,6 +12,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
 import org.pojava.datetime.DateTime;
 
 import javax.servlet.ServletException;
@@ -20,7 +20,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 
 public class BalboaServlet extends HttpServlet
@@ -48,6 +47,7 @@ public class BalboaServlet extends HttpServlet
 
             // Write the response out.
             ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
             mapper.writeValue(response.getOutputStream(), result);
         }
         catch (HttpException e)
@@ -100,10 +100,7 @@ public class BalboaServlet extends HttpServlet
         }
         else
         {
-            ServiceUtils.validateRequired(params, new String[] {"config"});
-            
-            String config = (String)params.get("config");
-            return service.get(id, type, getConfiguration(config), range);
+            return service.get(id, type, range);
         }
     }
 
@@ -121,12 +118,5 @@ public class BalboaServlet extends HttpServlet
         {
             throw new InvalidRequestException("Invalid combinator '" + combinatorClass + "'.");
         }
-    }
-
-    Configuration getConfiguration(String name) throws IOException
-    {
-        InputStream stream = BalboaServlet.class.getClassLoader().getResourceAsStream("/configuration.json");
-
-        return Configuration.load(stream);
     }
 }

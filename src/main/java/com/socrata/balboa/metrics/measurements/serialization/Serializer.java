@@ -1,8 +1,8 @@
-package com.socrata.balboa.metrics.measurements.preprocessing;
+package com.socrata.balboa.metrics.measurements.serialization;
 
 import java.io.IOException;
 
-public interface Preprocessor<T>
+public interface Serializer<T>
 {
     public String toString(T value) throws IOException;
     public T toValue(String serialized) throws IOException;

@@ -5,7 +5,9 @@ import com.socrata.balboa.metrics.Summary.Type;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
-import com.socrata.balboa.metrics.measurements.preprocessing.Preprocessor;
+import com.socrata.balboa.metrics.measurements.combining.sum;
+import com.socrata.balboa.metrics.measurements.serialization.JsonSerializer;
+import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -16,13 +18,16 @@ public class MetricReader
 {
     private static Log log = LogFactory.getLog(MetricReader.class);
 
-    Map<String, Object> summarize(Configuration config, Type type, Iterator<Summary> iter) throws IOException
+    Map<String, Object> summarize(Type type, Iterator<Summary> iter) throws IOException
     {
         log.debug("Summarizing configuration for type '" + type + "'.");
 
         int count = 0;
         
-        Map<String, Object> results = new HashMap<String, Object>(config.getMeasurements().size());
+        Map<String, Object> results = new HashMap<String, Object>();
+
+        Serializer serializer = new JsonSerializer();
+        Combinator com = new sum();
 
         while (iter.hasNext())
         {
@@ -30,15 +35,12 @@ public class MetricReader
 
             count += 1;
 
-            for (Configuration.Measurement m : config.getMeasurements())
+            for (String key : summary.getValues().keySet())
             {
-                if (summary.getValues().containsKey(m.getField()))
-                {
-                    String serializedValue = summary.getValues().get(m.getField());
+                String serializedValue = summary.getValues().get(key);
 
-                    Object value = m.getPreprocessor().toValue(serializedValue);
-                    results.put(m.getField(), m.getCombinator().combine(results.get(m.getField()), value));
-                }
+                Object value = serializer.toValue(serializedValue);
+                results.put(key, com.combine(results.get(key), value));
             }
         }
 
@@ -47,45 +49,50 @@ public class MetricReader
         return results;
     }
 
-    Map<String, Object> merge(Configuration config, Map<String, Object> first, Map<String, Object> second)
+    Map<String, Object> merge(Map<String, Object> first, Map<String, Object> second)
     {
-        for (Configuration.Measurement m : config.getMeasurements())
+        Set<String> unionKeys = new HashSet<String>(first.keySet());
+        unionKeys.addAll(second.keySet());
+
+        sum com = new sum();
+
+        for (String key : unionKeys)
         {
-            first.put(m.getField(), m.getCombinator().combine(first.get(m.getField()), second.get(m.getField())));
+            first.put(key, com.combine((Number)first.get(key), (Number)second.get(key)));
         }
         return first;
     }
 
-    Map<String, String> postprocess(Configuration config, Map<String, Object> map) throws IOException
+    Map<String, String> postprocess(Map<String, Object> map) throws IOException
     {
         Map<String, String> results = new HashMap<String, String>();
-        for (Configuration.Measurement m : config.getMeasurements())
+        Serializer serializer = new JsonSerializer();
+
+        for (String key : map.keySet())
         {
-            results.put(m.getField(), m.getPreprocessor().toString(map.get(m.getField())));
+            results.put(key, serializer.toString(map.get(key)));
         }
         return results;
     }
 
-    public Object read(String entityId, String field, Type type, DateRange range, DataStore ds, Preprocessor pre, Combinator com) throws IOException
+    public Object read(String entityId, String field, Type type, DateRange range, DataStore ds, boolean cache) throws IOException
     {
-        Configuration conf = new Configuration();
-        conf.add(field, pre, com);
-        Map<String, Object> results = read(entityId, conf, type, range, ds, false);
+        Map<String, Object> results = read(entityId, type, range, ds, cache);
 
-        for (String key : results.keySet())
-        {
-            return results.get(key);
-        }
-
-        return null;
+        return results.get(field);
     }
 
-    public Map<String, Object> read(String entityId, Configuration config, Type type, DateRange range, DataStore ds) throws IOException
+    public Object read(String entityId, String field, Type type, DateRange range, DataStore ds) throws IOException
     {
-        return read(entityId, config, type, range, ds, true);
+        return read(entityId, field, type, range, ds, false);
     }
 
-    public Map<String, Object> read(String entityId, Configuration config, Type type, DateRange range, DataStore ds, boolean cache) throws IOException
+    public Map<String, Object> read(String entityId, Type type, DateRange range, DataStore ds) throws IOException
+    {
+        return read(entityId, type, range, ds, true);
+    }
+
+    public Map<String, Object> read(String entityId, Type type, DateRange range, DataStore ds, boolean cache) throws IOException
     {
         // Start with the best possible summary and try to find it. If there's no items in the best possible summary,
         // then move on to the next best.
@@ -95,7 +102,7 @@ public class MetricReader
         {
             // If there are already items in the best summary, then it's the best possible summary we could have.
             // Compute those results and be done with them.
-            return summarize(config, type, best);
+            return summarize(type, best);
         }
         else if (type.nextBest() != null)
         {
@@ -113,11 +120,11 @@ public class MetricReader
             Map<String, Object> current = new HashMap<String, Object>();
             while (piece.start.before(range.end))
             {
-                Map<String, Object> summaries = read(entityId, config, type.nextBest(), piece, ds, cache);
+                Map<String, Object> summaries = read(entityId, type.nextBest(), piece, ds, cache);
 
                 if (summaries != null)
                 {
-                    merge(config, current, summaries);
+                    merge(current, summaries);
                 }
 
                 // Move to the next possible time slice and create that.
@@ -141,9 +148,9 @@ public class MetricReader
                 }
                 else
                 {
-                    log.debug("Summarizing the range '" + range + "' in the type '" + type + "'");
+                    log.debug("Caching the summary range '" + range + "' in the type '" + type + "'");
 
-                    Summary summary = new Summary(type, range.start.getTime(), postprocess(config, current));
+                    Summary summary = new Summary(type, range.start.getTime(), postprocess(current));
                     ds.persist(entityId, summary);
                 }
             }
