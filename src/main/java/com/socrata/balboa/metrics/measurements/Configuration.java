@@ -72,7 +72,7 @@ public class Configuration
             String combinatorName = (String)m.get("combinator");
             try
             {
-                Combinator com = (Combinator)Class.forName("com.socrata.balboa.measurements.combining." + combinatorName).
+                Combinator com = (Combinator)Class.forName("com.socrata.balboa.metrics.measurements.combining." + combinatorName).
                         getConstructor().
                         newInstance();
                 

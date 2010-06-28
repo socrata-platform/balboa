@@ -96,16 +96,23 @@ public class CassandraDataStore implements DataStore
 
                 // Update the range so that the next time we fill the buffer, we
                 // do it starting from the last of the returned results.
-                SuperColumn last = results.get(results.size() - 1);
+                if (results.size() > 0)
+                {
+                    SuperColumn last = results.get(results.size() - 1);
 
-                // Add one to the last result's timestamp. This should never
-                // cause any summary to be skipped over since we have a quantum
-                // of time (1 nano/mill/whatever second) that's our highest
-                // resolution. In practice, for anything other than the realtime
-                // type, there should only be one summary per period.
-                range.start = new Date(CassandraUtils.unpackLong(last.getName()) + 1);
+                    // Add one to the last result's timestamp. This should never
+                    // cause any summary to be skipped over since we have a quantum
+                    // of time (1 nano/mill/whatever second) that's our highest
+                    // resolution. In practice, for anything other than the realtime
+                    // type, there should only be one summary per period.
+                    range.start = new Date(CassandraUtils.unpackLong(last.getName()) + 1);
 
-                return results;
+                    return results;
+                }
+                else
+                {
+                    return null;
+                }
             }
             catch (Exception e)
             {

@@ -10,6 +10,8 @@ import com.socrata.balboa.server.exceptions.HttpException;
 import com.socrata.balboa.server.exceptions.InvalidRequestException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.pojava.datetime.DateTime;
 
@@ -69,6 +71,8 @@ public class BalboaServlet extends HttpServlet
     {
         super.init();
 
+        Logger.getLogger("com.socrata.balboa").setLevel(Level.DEBUG);
+
         // Initialize our receiver and it will automatically connect.
         receiver = ReceiverFactory.get();
     }
@@ -121,7 +125,7 @@ public class BalboaServlet extends HttpServlet
 
     Configuration getConfiguration(String name) throws IOException
     {
-        InputStream stream = BalboaServlet.class.getClassLoader().getResourceAsStream("resources/configuration.json");
+        InputStream stream = BalboaServlet.class.getClassLoader().getResourceAsStream("/configuration.json");
 
         return Configuration.load(stream);
     }

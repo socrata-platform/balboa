@@ -1,10 +1,42 @@
 [
     {
-        "field": "favorite",
+        "field": "favorites",
         "combinator": "sum"
     },
     {
-        "field": "referral",
-        "combinator": "frequency"
+        "field": "comments",
+        "combinator": "sum"
+    },
+    {
+        "field": "shares",
+        "combinator": "sum"
+    },
+    {
+        "field": "ratings",
+        "combinator": "sum"
+    },
+    {
+        "field": "view-loaded-download",
+        "combinator": "sum"
+    },
+    {
+        "field": "view-loaded-website",
+        "combinator": "sum"
+    },
+    {
+        "field": "view-loaded-api",
+        "combinator": "sum"
+    },
+    {
+        "field": "view-loaded-widget",
+        "combinator": "sum"
+    },
+    {
+        "field": "view-loaded-rss",
+        "combinator": "sum"
+    },
+    {
+        "field": "view-loaded-email",
+        "combinator": "sum"
     }
 ]

@@ -18,11 +18,17 @@ public class MetricReader
 
     Map<String, Object> summarize(Configuration config, Type type, Iterator<Summary> iter) throws IOException
     {
+        log.debug("Summarizing configuration for type '" + type + "'.");
+
+        int count = 0;
+        
         Map<String, Object> results = new HashMap<String, Object>(config.getMeasurements().size());
 
         while (iter.hasNext())
         {
             Summary summary = iter.next();
+
+            count += 1;
 
             for (Configuration.Measurement m : config.getMeasurements())
             {
@@ -35,6 +41,8 @@ public class MetricReader
                 }
             }
         }
+
+        log.debug("Summarized " + Integer.toString(count) + " columns.");
 
         return results;
     }
@@ -62,7 +70,7 @@ public class MetricReader
     {
         Configuration conf = new Configuration();
         conf.add(field, pre, com);
-        Map<String, Object> results = read(entityId, conf, type, range, ds);
+        Map<String, Object> results = read(entityId, conf, type, range, ds, false);
 
         for (String key : results.keySet())
         {
@@ -105,7 +113,7 @@ public class MetricReader
             Map<String, Object> current = new HashMap<String, Object>();
             while (piece.start.before(range.end))
             {
-                Map<String, Object> summaries = read(entityId, config, type.nextBest(), piece, ds);
+                Map<String, Object> summaries = read(entityId, config, type.nextBest(), piece, ds, cache);
 
                 if (summaries != null)
                 {
