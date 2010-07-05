@@ -1,20 +1,19 @@
 package com.socrata.balboa.server;
 
 import com.socrata.balboa.metrics.Summary;
+import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
-import com.socrata.balboa.metrics.messaging.Receiver;
 import com.socrata.balboa.metrics.messaging.ReceiverFactory;
 import com.socrata.balboa.server.exceptions.HttpException;
 import com.socrata.balboa.server.exceptions.InvalidRequestException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.pojava.datetime.DateTime;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -25,7 +24,6 @@ import java.util.Map;
 public class BalboaServlet extends HttpServlet
 {
     private static Log log = LogFactory.getLog(BalboaServlet.class);
-    private Receiver receiver;
     
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -67,14 +65,22 @@ public class BalboaServlet extends HttpServlet
     }
 
     @Override
-    public void init() throws ServletException
+    public void init(ServletConfig config) throws ServletException
     {
-        super.init();
+        super.init(config);
 
-        Logger.getLogger("com.socrata.balboa").setLevel(Level.DEBUG);
+        try
+        {
+            // Initialize the configuration so that we set any log4j or external configuration values properly.
+            Configuration.get();
+        }
+        catch (IOException e)
+        {
+            throw new ServletException("Unable to load the configuration.", e);
+        }
 
         // Initialize our receiver and it will automatically connect.
-        receiver = ReceiverFactory.get();
+        ReceiverFactory.get();
     }
 
     Object fulfillGet(String id, HttpServletRequest request, HttpServletResponse response) throws IOException, InvalidRequestException

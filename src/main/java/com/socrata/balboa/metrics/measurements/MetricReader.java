@@ -8,11 +8,15 @@ import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.measurements.combining.sum;
 import com.socrata.balboa.metrics.measurements.serialization.JsonSerializer;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
+import com.socrata.balboa.metrics.utils.MetricUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class MetricReader
 {
@@ -47,20 +51,6 @@ public class MetricReader
         log.debug("Summarized " + Integer.toString(count) + " columns.");
 
         return results;
-    }
-
-    Map<String, Object> merge(Map<String, Object> first, Map<String, Object> second)
-    {
-        Set<String> unionKeys = new HashSet<String>(first.keySet());
-        unionKeys.addAll(second.keySet());
-
-        sum com = new sum();
-
-        for (String key : unionKeys)
-        {
-            first.put(key, com.combine((Number)first.get(key), (Number)second.get(key)));
-        }
-        return first;
     }
 
     Map<String, String> postprocess(Map<String, Object> map) throws IOException
@@ -124,7 +114,7 @@ public class MetricReader
 
                 if (summaries != null)
                 {
-                    merge(current, summaries);
+                    MetricUtils.merge(current, summaries);
                 }
 
                 // Move to the next possible time slice and create that.
@@ -142,7 +132,7 @@ public class MetricReader
             // recurse to it's next best type summary.
             if (cache == true)
             {
-                if (range.start.before(new Date()) && range.end.after(new Date()))
+                if (range.includesToday())
                 {
                     log.debug("Range includes today so I can't summarize yet (patience, young one).");
                 }

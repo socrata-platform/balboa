@@ -1,5 +1,6 @@
 package com.socrata.balboa.metrics.messaging;
 
+import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.messaging.impl.ActiveMQReceiver;
 import com.socrata.balboa.metrics.messaging.impl.ListReceiver;
 import com.socrata.balboa.server.exceptions.InternalException;
@@ -28,8 +29,12 @@ public class ReceiverFactory
             
             try
             {
-                ConnectionFactory factory = new ActiveMQConnectionFactory("tcp://localhost:61616");
-                return new ActiveMQReceiver(factory, "Metrics");
+                Configuration config = Configuration.get();
+                String server = config.getProperty("activemq.url");
+                String channel = config.getProperty("activemq.channel");
+
+                ConnectionFactory factory = new ActiveMQConnectionFactory(server);
+                return new ActiveMQReceiver(factory, channel);
             }
             catch (Exception e)
             {

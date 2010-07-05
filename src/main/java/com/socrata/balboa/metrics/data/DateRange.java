@@ -129,6 +129,11 @@ public class DateRange
         }
     }
 
+    public boolean includesToday()
+    {
+        return start.before(new Date()) && end.after(new Date());
+    }
+
     @Override
     public String toString()
     {
