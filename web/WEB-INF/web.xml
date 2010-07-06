@@ -3,6 +3,7 @@
     <servlet>
         <servlet-name>BalboaServlet</servlet-name>
         <servlet-class>com.socrata.balboa.server.BalboaServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
         <servlet-name>BalboaServlet</servlet-name>
