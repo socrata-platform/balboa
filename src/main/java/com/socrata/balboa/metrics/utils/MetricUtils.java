@@ -1,13 +1,61 @@
 package com.socrata.balboa.metrics.utils;
 
+import com.socrata.balboa.metrics.Summary;
+import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.measurements.combining.sum;
+import com.socrata.balboa.metrics.measurements.serialization.JsonSerializer;
+import com.socrata.balboa.metrics.measurements.serialization.Serializer;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.io.IOException;
+import java.util.*;
 
 public class MetricUtils
 {
+    private static Log log = LogFactory.getLog(MetricUtils.class);
+
+    public static Map<String, String> postprocess(Map<String, Object> map) throws IOException
+    {
+        Map<String, String> results = new HashMap<String, String>();
+        Serializer serializer = new JsonSerializer();
+
+        for (String key : map.keySet())
+        {
+            results.put(key, serializer.toString(map.get(key)));
+        }
+        return results;
+    }
+
+    public static Map<String, Object> summarize(Iterator<Summary> iter) throws IOException
+    {
+        int count = 0;
+
+        Map<String, Object> results = new HashMap<String, Object>();
+
+        Serializer serializer = new JsonSerializer();
+        Combinator com = new sum();
+
+        while (iter.hasNext())
+        {
+            Summary summary = iter.next();
+
+            count += 1;
+
+            for (String key : summary.getValues().keySet())
+            {
+                String serializedValue = summary.getValues().get(key);
+
+                Object value = serializer.toValue(serializedValue);
+                results.put(key, com.combine(results.get(key), value));
+            }
+        }
+
+        log.debug("Combined " + Integer.toString(count) + " columns.");
+
+        return results;
+    }
+
     /**
      * Merge two maps into one another and place the results in the first map.
      * The exclusion is just added to the first map while the intersection is

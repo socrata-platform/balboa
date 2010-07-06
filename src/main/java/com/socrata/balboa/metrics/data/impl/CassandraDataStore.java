@@ -1,14 +1,12 @@
 package com.socrata.balboa.metrics.data.impl;
 
-import com.socrata.balboa.server.exceptions.InternalException;
 import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.Summary.Type;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
-import me.prettyprint.cassandra.service.CassandraClient;
-import me.prettyprint.cassandra.service.CassandraClientPool;
-import me.prettyprint.cassandra.service.CassandraClientPoolFactory;
-import me.prettyprint.cassandra.service.Keyspace;
+import com.socrata.balboa.metrics.utils.MetricUtils;
+import com.socrata.balboa.server.exceptions.InternalException;
+import me.prettyprint.cassandra.service.*;
 import org.apache.cassandra.thrift.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -200,11 +198,50 @@ public class CassandraDataStore implements DataStore
         return new QueryRobot(entityId, type, range);
     }
 
+    void lock(String key)
+    {
+        // We don't actually implement locking right now, so this doesn't have
+        // to do anything. Before we start running a cluster of metrics servers,
+        // we'll have to implement some kind of distributed lock (ZooKeeper)
+    }
+
+    void unlock(String key)
+    {
+        // We don't actually implement locking right now, so this doesn't have
+        // to do anything. Before we start running a cluster of metrics servers,
+        // we'll have to implement some kind of distributed lock (ZooKeeper)
+    }
+
+    SuperColumn getSuperColumnMutation(Summary summary) throws IOException
+    {
+        List<Column> columns = new ArrayList<Column>(summary.getValues().size());
+        for (String key : summary.getValues().keySet())
+        {
+            Column column = new Column(
+                    key.getBytes(),
+                    summary.getValues().get(key).getBytes(),
+                    TimestampResolution.MICROSECONDS.createTimestamp()
+            );
+
+            columns.add(column);
+        }
+
+        SuperColumn superColumn = new SuperColumn(CassandraUtils.packLong(summary.getTimestamp()), columns);
+
+        return superColumn;
+    }
+
     @Override
     public void persist(String entityId, Summary summary)
     {
-        CassandraClient client;
+        if (summary.getType() != Type.REALTIME)
+        {
+            // TODO: Necessary? Could I just summarize above the current? Doing
+            // that could result in potentially inconsistent data, though...
+            throw new InternalException("Unable to persist anything but realtime events with this data store.");
+        }
 
+        CassandraClient client;
         try
         {
             client = pool.borrowClient(hosts);
@@ -212,20 +249,45 @@ public class CassandraDataStore implements DataStore
         catch (Exception e)
         {
             throw new InternalException("Unknown exception trying to borrow a cassandra client.", e);
-        }        
+        }
 
         try
         {
             Keyspace keyspace = client.getKeyspace(keyspaceName);
 
-            for (String key : summary.getValues().keySet())
-            {
-                ColumnPath path = new ColumnPath(summary.getType().toString());
-                path.setColumn(key.getBytes());
-                path.setSuper_column(CassandraUtils.packLong(summary.getTimestamp()));
+            Map<String, List<SuperColumn>> superColumnOperations = new HashMap<String, List<SuperColumn>>();
 
-                keyspace.insert(entityId, path, summary.getValues().get(key).getBytes());
+            // For every type that can be summarized read/increment/update
+            // their summary.
+            Type type = Type.YEARLY;
+            while (type != Type.REALTIME)
+            {
+                // Read the old data.
+                DateRange range = DateRange.create(type, new Date(summary.getTimestamp()));
+                Iterator<Summary> iter = find(entityId, type, range.start, range.end);
+                Map<String, Object> values = MetricUtils.summarize(iter);
+
+                // Update/merge with the values that we'd like to insert.
+                MetricUtils.merge(values, summary.getProcessedValues());
+
+                // Insert the newly updated summary.
+                log.debug("Inserting a newly updated summary for entity '" + entityId + "', type '" + type + "'");
+                Summary replacement = new Summary(type, range.start.getTime(), MetricUtils.postprocess(values));
+
+                // Add the mutation to the list of batch stuffs
+                List<SuperColumn> superColumns = new ArrayList<SuperColumn>(1);
+                superColumns.add(getSuperColumnMutation(replacement));
+                superColumnOperations.put(replacement.getType().toString(), superColumns);
+
+                type = type.nextBest();
             }
+
+            // Save the original realtime event.
+            List<SuperColumn> superColumns = new ArrayList<SuperColumn>(1);
+            superColumns.add(getSuperColumnMutation(summary));
+            superColumnOperations.put(summary.getType().toString(), superColumns);
+
+            keyspace.batchInsert(entityId, null, superColumnOperations);
         }
         catch (NotFoundException e)
         {

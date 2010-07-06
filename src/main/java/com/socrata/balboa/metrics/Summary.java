@@ -1,8 +1,12 @@
 package com.socrata.balboa.metrics;
 
+import com.socrata.balboa.metrics.measurements.serialization.JsonSerializer;
+import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Summary
@@ -68,6 +72,21 @@ public class Summary
     public Map<String, String> getValues()
     {
         return values;
+    }
+
+    public Map<String, Object> getProcessedValues() throws IOException
+    {
+        // TODO: Memoize?
+        // TODO: Replace getValues() with this? I think after this large
+        //       refactor we won't need getValues() at all.
+        Map<String, Object> results = new HashMap<String, Object>();
+        Serializer serializer = new JsonSerializer();
+
+        for (String key : getValues().keySet())
+        {
+            results.put(key, serializer.toValue(getValues().get(key)));
+        }
+        return results;
     }
 
     long timestamp;

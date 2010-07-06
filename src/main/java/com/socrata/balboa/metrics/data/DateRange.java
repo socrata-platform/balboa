@@ -16,6 +16,35 @@ public class DateRange
         this.end = end;
     }
 
+    static DateRange createYearly(Date date)
+    {
+        Calendar start = new GregorianCalendar();
+        start.setTime(date);
+
+        // Trim the day of the year off the requested date.
+        start.set(start.get(Calendar.YEAR),
+                  start.getActualMinimum(Calendar.MONTH),
+                  start.getActualMinimum(Calendar.DATE),
+                  start.getActualMinimum(Calendar.HOUR_OF_DAY),
+                  start.getActualMinimum(Calendar.MINUTE),
+                  start.getActualMinimum(Calendar.SECOND));
+        start.set(Calendar.MILLISECOND, 0);
+
+        Calendar end = new GregorianCalendar();
+        end.setTime(date);
+
+        // Set the day to the end of the year of the requested date.
+        end.set(end.get(Calendar.YEAR),
+                end.getActualMaximum(Calendar.MONTH),
+                end.getActualMaximum(Calendar.DATE),
+                end.getActualMaximum(Calendar.HOUR_OF_DAY),
+                end.getActualMaximum(Calendar.MINUTE),
+                end.getActualMaximum(Calendar.SECOND));
+        end.set(Calendar.MILLISECOND, 999);
+
+        return new DateRange(start.getTime(), end.getTime());
+    }
+
     /**
      * Create a monthly date range for a given date for the month to which
      * the date belongs. For example, if the input date is "2010-05-28", the
@@ -33,6 +62,7 @@ public class DateRange
                   start.getActualMinimum(Calendar.HOUR_OF_DAY),
                   start.getActualMinimum(Calendar.MINUTE),
                   start.getActualMinimum(Calendar.SECOND));
+        start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
         end.setTime(date);
@@ -67,6 +97,7 @@ public class DateRange
                   start.getActualMinimum(Calendar.HOUR_OF_DAY),
                   start.getActualMinimum(Calendar.MINUTE),
                   start.getActualMinimum(Calendar.SECOND));
+        start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
         end.setTime(date);
@@ -100,6 +131,7 @@ public class DateRange
                   start.getActualMinimum(Calendar.HOUR_OF_DAY),
                   start.getActualMinimum(Calendar.MINUTE),
                   start.getActualMinimum(Calendar.SECOND));
+        start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
         end.setTime(date);
@@ -124,6 +156,8 @@ public class DateRange
                 return createWeekly(date);
             case MONTHLY:
                 return createMonthly(date);
+            case YEARLY:
+                return createYearly(date);
             default:
                 return createDaily(date);
         }

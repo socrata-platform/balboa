@@ -4,6 +4,7 @@ import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
+import com.socrata.balboa.metrics.messaging.Receiver;
 import com.socrata.balboa.metrics.messaging.ReceiverFactory;
 import com.socrata.balboa.server.exceptions.HttpException;
 import com.socrata.balboa.server.exceptions.InvalidRequestException;
@@ -24,6 +25,11 @@ import java.util.Map;
 public class BalboaServlet extends HttpServlet
 {
     private static Log log = LogFactory.getLog(BalboaServlet.class);
+
+    /** Not used, but assigned so that the receiver doesn't get garbage
+     * collected.
+     */
+    Receiver receiver;
     
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -80,7 +86,7 @@ public class BalboaServlet extends HttpServlet
         }
 
         // Initialize our receiver and it will automatically connect.
-        ReceiverFactory.get();
+        receiver = ReceiverFactory.get();
     }
 
     Object fulfillGet(String id, HttpServletRequest request, HttpServletResponse response) throws IOException, InvalidRequestException
