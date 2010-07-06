@@ -32,8 +32,6 @@ public class MetricUtils
         int count = 0;
 
         Map<String, Object> results = new HashMap<String, Object>();
-
-        Serializer serializer = new JsonSerializer();
         Combinator com = new sum();
 
         while (iter.hasNext())
@@ -44,9 +42,7 @@ public class MetricUtils
 
             for (String key : summary.getValues().keySet())
             {
-                String serializedValue = summary.getValues().get(key);
-
-                Object value = serializer.toValue(serializedValue);
+                Object value = summary.getValues().get(key);
                 results.put(key, com.combine(results.get(key), value));
             }
         }

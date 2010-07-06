@@ -16,6 +16,11 @@ public class DateRange
         this.end = end;
     }
 
+    /**
+     * Create a yearly date range for a given date for the year to which
+     * the date belongs. For example, if the input date is "2010-05-28", the
+     * range returned would be (2010-01-01 -> 2010-12-31).
+     */
     static DateRange createYearly(Date date)
     {
         Calendar start = new GregorianCalendar();

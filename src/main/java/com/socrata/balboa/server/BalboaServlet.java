@@ -3,7 +3,6 @@ package com.socrata.balboa.server;
 import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.messaging.Receiver;
 import com.socrata.balboa.metrics.messaging.ReceiverFactory;
 import com.socrata.balboa.server.exceptions.HttpException;
@@ -108,27 +107,11 @@ public class BalboaServlet extends HttpServlet
 
         if (params.containsKey("field"))
         {
-            return service.get(id, type, (String)params.get("field"), getCombinator(params), range);
+            return service.get(id, type, (String)params.get("field"), range);
         }
         else
         {
             return service.get(id, type, range);
-        }
-    }
-
-    Combinator getCombinator(Map<String, String> params) throws InvalidRequestException
-    {
-        ServiceUtils.validateRequired(params, new String[] {"combinator"});
-        String combinatorClass = "com.socrata.balboa.metrics.measurements.combining." + params.get("combinator");
-
-        try
-        {
-            Class klass = Class.forName(combinatorClass);
-            return (Combinator)klass.getConstructor().newInstance();
-        }
-        catch (Exception e)
-        {
-            throw new InvalidRequestException("Invalid combinator '" + combinatorClass + "'.");
         }
     }
 }

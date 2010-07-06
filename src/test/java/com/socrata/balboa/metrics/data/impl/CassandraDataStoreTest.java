@@ -42,8 +42,8 @@ public class CassandraDataStoreTest extends DataStoreTest
     {
         DataStore ds = get();
 
-        Map<String, String> data = new HashMap<String, String>();
-        data.put("test1", "1");
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("test1", 1);
 
         for (int i=0; i < CassandraDataStore.QueryRobot.QUERYBUFFER * 2; i++)
         {

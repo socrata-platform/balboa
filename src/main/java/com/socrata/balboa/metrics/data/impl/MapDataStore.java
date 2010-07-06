@@ -7,9 +7,12 @@ import com.socrata.balboa.metrics.data.DateRange;
 import java.util.*;
 
 /**
- * A simple datastore that uses an in memory hash instead of an external service. Can be used for testing without
- * having to launch a background cassandra instance. This should never be used for anything but testing. This is
- * probably embarrassingly slow and horrible so just don't use it.
+ * A simple datastore that uses an in memory hash instead of an external
+ * service. Can be used for testing without having to launch a background
+ * cassandra instance. This should never be used for anything but testing. This
+ * is probably embarrassingly slow and horrible so just don't use it.
+ *
+ * p.s. I'm not thread safe either.
  */
 public class MapDataStore implements DataStore
 {
@@ -28,7 +31,8 @@ public class MapDataStore implements DataStore
     public Map<Summary.Type, Map<String, List<Summary>>> data = new HashMap<Summary.Type, Map<String, List<Summary>>>();
 
     /**
-     * An iterator that filters out all summaries from a list that aren't within the date range.
+     * An iterator that filters out all summaries from a list that aren't within
+     * the date range.
      */
     static class DateFilter implements Iterator<Summary>
     {

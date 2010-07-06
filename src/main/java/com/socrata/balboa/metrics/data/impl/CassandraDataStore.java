@@ -4,6 +4,8 @@ import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.Summary.Type;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.measurements.serialization.JsonSerializer;
+import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import com.socrata.balboa.metrics.utils.MetricUtils;
 import com.socrata.balboa.server.exceptions.InternalException;
 import me.prettyprint.cassandra.service.*;
@@ -16,6 +18,10 @@ import java.util.*;
 
 public class CassandraDataStore implements DataStore
 {
+    /**
+     * An iterator that continues loading cassandra rows over a range until
+     * there are no more left.
+     */
     public class QueryRobot implements Iterator<Summary>
     {
         static final int QUERYBUFFER = 5000;
@@ -25,7 +31,14 @@ public class CassandraDataStore implements DataStore
         DateRange range;
 
         List<SuperColumn> buffer;
-        
+
+        /**
+         *
+         * @param rowId The row id to query.
+         * @param type The type to look for. This determines which super column
+         * should be searched for rows.
+         * @param range The date range to constrain the search to.
+         */
         QueryRobot(String rowId, Type type, DateRange range)
         {
             this.type = type;
@@ -73,6 +86,10 @@ public class CassandraDataStore implements DataStore
             }
         }
 
+        /**
+         * Fill the buffer after it's empty with new items from a cassandra
+         * query.
+         */
         public List<SuperColumn> nextBuffer()
         {
             // Make sure that we're not executing a query when we've still got
@@ -151,11 +168,33 @@ public class CassandraDataStore implements DataStore
             else
             {
                 SuperColumn column = buffer.remove(0);
-                
-                Map<String, String> values = new HashMap<String, String>(column.getColumnsSize());
+                Serializer ser = new JsonSerializer();
+
+                // When we query cassandra we get back a set of columns (the
+                // children of the super column -- type -- on which we queried).
+                // We need to take all of these columns and map them into a hash
+                // which the summary uses as its values.
+                Map<String, Object> values = new HashMap<String, Object>(column.getColumnsSize());
+
                 for (Column subColumn : column.getColumns())
                 {
-                    values.put(new String(subColumn.getName()), new String(subColumn.getValue()));
+                    String name = new String(subColumn.getName());
+
+                    // All of the column values are serialized and have to be
+                    // deserialized into their numeric values.
+                    String serializedValue = new String(subColumn.getValue());
+
+                    try
+                    {
+                        values.put(name, ser.toValue(serializedValue));
+                    }
+                    catch (IOException e)
+                    {
+                        log.error("(" + rowId + " -> " + range + ") Unable " +
+                                "to deserialize the value '" + serializedValue +
+                                "' in the column '" + name + "'. Ignoring " +
+                                "this metric.");
+                    }
                 }
 
                 return new Summary(type, CassandraUtils.unpackLong(column.getName()), values);
@@ -215,11 +254,12 @@ public class CassandraDataStore implements DataStore
     SuperColumn getSuperColumnMutation(Summary summary) throws IOException
     {
         List<Column> columns = new ArrayList<Column>(summary.getValues().size());
+        Serializer ser = new JsonSerializer();
         for (String key : summary.getValues().keySet())
         {
             Column column = new Column(
                     key.getBytes(),
-                    summary.getValues().get(key).getBytes(),
+                    ser.toString(summary.getValues().get(key)).getBytes(),
                     TimestampResolution.MICROSECONDS.createTimestamp()
             );
 
@@ -268,11 +308,11 @@ public class CassandraDataStore implements DataStore
                 Map<String, Object> values = MetricUtils.summarize(iter);
 
                 // Update/merge with the values that we'd like to insert.
-                MetricUtils.merge(values, summary.getProcessedValues());
+                MetricUtils.merge(values, summary.getValues());
 
                 // Insert the newly updated summary.
                 log.debug("Inserting a newly updated summary for entity '" + entityId + "', type '" + type + "'");
-                Summary replacement = new Summary(type, range.start.getTime(), MetricUtils.postprocess(values));
+                Summary replacement = new Summary(type, range.start.getTime(), values);
 
                 // Add the mutation to the list of batch stuffs
                 List<SuperColumn> superColumns = new ArrayList<SuperColumn>(1);
@@ -281,11 +321,6 @@ public class CassandraDataStore implements DataStore
 
                 type = type.nextBest();
             }
-
-            // Save the original realtime event.
-            List<SuperColumn> superColumns = new ArrayList<SuperColumn>(1);
-            superColumns.add(getSuperColumnMutation(summary));
-            superColumnOperations.put(summary.getType().toString(), superColumns);
 
             keyspace.batchInsert(entityId, null, superColumnOperations);
         }

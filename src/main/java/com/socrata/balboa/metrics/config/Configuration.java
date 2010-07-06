@@ -7,6 +7,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+/**
+ * Cascading properties. The default "config.properties" is always loaded first
+ * and then a second "config.<environment>.properties" file is loaded
+ * (potentially overwriting values in the first) if available.
+ */
 public class Configuration extends Properties
 {
     private static Log log = LogFactory.getLog(Configuration.class);

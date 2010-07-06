@@ -1,12 +1,8 @@
 package com.socrata.balboa.metrics;
 
-import com.socrata.balboa.metrics.measurements.serialization.JsonSerializer;
-import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class Summary
@@ -35,9 +31,8 @@ public class Summary
                     return MONTHLY;
                 case MONTHLY:
                 case WEEKLY:
-                    // Because weeks don't fall on month boundaries we can't use them as a "next best" for months. At
-                    // most we're talking about reading 31 values for the daily summaries anyway which isn't really that
-                    // bad.
+                    // Because weeks don't fall on month boundaries we can't
+                    // summarize them as the next best of months.
                     return DAILY;
                 case DAILY:
                     return REALTIME;
@@ -47,14 +42,9 @@ public class Summary
         }
     };
 
-    public Summary(Type type, long timestamp, Map<String, String> values)
+    public Summary(Type type, long timestamp, Map<String, Object> values)
     {
-        this(timestamp, values);
         this.type = type;
-    }
-
-    public Summary(long timestamp, Map<String, String> values)
-    {
         this.timestamp = timestamp;
         this.values = values;
     }
@@ -69,27 +59,12 @@ public class Summary
         return type;
     }
 
-    public Map<String, String> getValues()
+    public Map<String, Object> getValues()
     {
         return values;
     }
 
-    public Map<String, Object> getProcessedValues() throws IOException
-    {
-        // TODO: Memoize?
-        // TODO: Replace getValues() with this? I think after this large
-        //       refactor we won't need getValues() at all.
-        Map<String, Object> results = new HashMap<String, Object>();
-        Serializer serializer = new JsonSerializer();
-
-        for (String key : getValues().keySet())
-        {
-            results.put(key, serializer.toValue(getValues().get(key)));
-        }
-        return results;
-    }
-
     long timestamp;
-    Map<String, String> values;
+    Map<String, Object> values;
     Type type;
 }

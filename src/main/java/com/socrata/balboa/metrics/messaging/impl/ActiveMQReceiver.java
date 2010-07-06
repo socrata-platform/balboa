@@ -10,9 +10,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.jms.*;
 import javax.naming.NamingException;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 public class ActiveMQReceiver implements Receiver, MessageListener
@@ -51,18 +49,8 @@ public class ActiveMQReceiver implements Receiver, MessageListener
             String entityId = (String)data.remove("entityId");
             Long timestamp = (Long)data.remove("timestamp");
 
-            // Re-serialize the rest of the values.
-            Map<String, String> values = new HashMap<String, String>();
-            for (String key : data.keySet())
-            {
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                mapper.writeValue(stream, data.get(key));
-
-                values.put(key, stream.toString());
-            }
-
             // Create an actual summary.
-            Summary summary = new Summary(Summary.Type.REALTIME, timestamp, values);
+            Summary summary = new Summary(Summary.Type.REALTIME, timestamp, data);
 
             received(entityId, summary);
         }
