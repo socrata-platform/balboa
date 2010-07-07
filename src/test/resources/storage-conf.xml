@@ -4,10 +4,9 @@
 
   <Keyspaces>
     <Keyspace Name="Metrics">
-      <ColumnFamily Name="realtime" ColumnType="Super" CompareWith="LongType" CompareSubColumnsWith="UTF8Type" />
       <ColumnFamily Name="daily" ColumnType="Super" CompareWith="LongType" CompareSubColumnsWith="UTF8Type"/>
-      <ColumnFamily Name="weekly" ColumnType="Super" CompareWith="LongType" CompareSubColumnsWith="UTF8Type"/>
       <ColumnFamily Name="monthly" ColumnType="Super" CompareWith="LongType" CompareSubColumnsWith="UTF8Type"/>
+      <ColumnFamily Name="yearly" ColumnType="Super" CompareWith="LongType" CompareSubColumnsWith="UTF8Type"/>
 
       <ReplicaPlacementStrategy>org.apache.cassandra.locator.RackUnawareStrategy</ReplicaPlacementStrategy>
       <ReplicationFactor>1</ReplicationFactor>

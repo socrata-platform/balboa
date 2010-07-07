@@ -17,6 +17,7 @@ public class DateRangeTest
         DateRange range = DateRange.createMonthly(cal.getTime());
 
         cal.set(2010, 1, 1, 0, 0, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 1, 28, 23, 59, 59);
@@ -33,6 +34,7 @@ public class DateRangeTest
         DateRange range = DateRange.createWeekly(cal.getTime());
 
         cal.set(2010, 1, 7, 0, 0, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 1, 13, 23, 59, 59);
@@ -49,6 +51,7 @@ public class DateRangeTest
         DateRange range = DateRange.createWeekly(cal.getTime());
 
         cal.set(2010, 4, 30, 0, 0, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 5, 5, 23, 59, 59);
@@ -65,6 +68,7 @@ public class DateRangeTest
         DateRange range = DateRange.createDaily(cal.getTime());
 
         cal.set(2010, 5, 2, 0, 0, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 5, 2, 23, 59, 59);
@@ -81,6 +85,7 @@ public class DateRangeTest
         DateRange range = DateRange.createMonthly(cal.getTime());
 
         cal.set(2010, 1, 1, 0, 0, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 1, 28, 23, 59, 59);
@@ -97,6 +102,7 @@ public class DateRangeTest
         DateRange range = DateRange.createMonthly(cal.getTime());
 
         cal.set(2010, 1, 1, 0, 0, 0);
+        cal.set(Calendar.MILLISECOND, 0);
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 1, 28, 23, 59, 59);

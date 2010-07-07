@@ -23,10 +23,10 @@ public abstract class DataStoreTest
         data.put("test2", 2);
 
         DateRange range = DateRange.create(Summary.Type.MONTHLY, new Date(0));
-        Summary summary = new Summary(Summary.Type.MONTHLY, range.start.getTime(), data);
-        ds.persist("123", summary);
+        Summary summary = new Summary(Summary.Type.REALTIME, range.start.getTime(), data);
+        ds.persist("testCreate", summary);
 
-        Iterator<Summary> iter = ds.find("123", Summary.Type.MONTHLY, new Date(0));
+        Iterator<Summary> iter = ds.find("testCreate", Summary.Type.MONTHLY, new Date(0));
 
         Assert.assertTrue(iter.hasNext());
 
@@ -48,20 +48,24 @@ public abstract class DataStoreTest
         data.put("test2", 2);
 
         DateRange range = DateRange.create(Summary.Type.MONTHLY, new Date(0));
-        Summary summary = new Summary(Summary.Type.MONTHLY, range.start.getTime(), data);
-        ds.persist("123", summary);
+        Summary summary = new Summary(Summary.Type.REALTIME, range.start.getTime(), data);
+        ds.persist("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", summary);
 
+        data = new HashMap<String, Object>();
+        data.put("test1", 1);
+        data.put("test2", 2);
         data.put("test3", 3);
-        ds.persist("123", summary);
+        summary = new Summary(Summary.Type.REALTIME, range.start.getTime(), data);
+        ds.persist("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", summary);
 
-        Iterator<Summary> iter = ds.find("123", Summary.Type.MONTHLY, new Date(0));
+        Iterator<Summary> iter = ds.find("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", Summary.Type.MONTHLY, new Date(0));
 
         Assert.assertTrue(iter.hasNext());
 
         summary = iter.next();
 
-        Assert.assertEquals(1, summary.getValues().get("test1"));
-        Assert.assertEquals(2, summary.getValues().get("test2"));
+        Assert.assertEquals(2, summary.getValues().get("test1"));
+        Assert.assertEquals(4, summary.getValues().get("test2"));
         Assert.assertEquals(3, summary.getValues().get("test3"));
 
         Assert.assertFalse(iter.hasNext());

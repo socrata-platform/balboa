@@ -38,7 +38,7 @@ public class CassandraDataStoreTest extends DataStoreTest
     }
 
     @Test
-    public void testIteratorOverABufferLargerThanTheDefault() throws Exception
+    public void testMakeSureThatManyWritesOnlySummarizeToOne() throws Exception
     {
         DataStore ds = get();
 
@@ -51,17 +51,9 @@ public class CassandraDataStoreTest extends DataStoreTest
             ds.persist("123", summary);
         }
 
-        CassandraDataStore.QueryRobot iter = (CassandraDataStore.QueryRobot)ds.find("123", Type.REALTIME, new Date(0), new Date());
-
+        CassandraDataStore.QueryRobot iter = (CassandraDataStore.QueryRobot)ds.find("123", Type.DAILY, new Date(-86400000), new Date());
+        
         Assert.assertTrue(iter.hasNext());
-        Assert.assertEquals(CassandraDataStore.QueryRobot.QUERYBUFFER, iter.buffer.size());
-
-        while (iter.buffer.size() > 0)
-        {
-            iter.next();
-        }
-
-        Assert.assertTrue(iter.hasNext());
-        Assert.assertEquals(CassandraDataStore.QueryRobot.QUERYBUFFER, iter.buffer.size());
+        Assert.assertEquals(1, iter.buffer.size());
     }
 }

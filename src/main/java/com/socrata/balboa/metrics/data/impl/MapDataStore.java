@@ -3,6 +3,7 @@ package com.socrata.balboa.metrics.data.impl;
 import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.utils.MetricUtils;
 
 import java.util.*;
 
@@ -28,7 +29,7 @@ public class MapDataStore implements DataStore
         return instance;
     }
 
-    public Map<Summary.Type, Map<String, List<Summary>>> data = new HashMap<Summary.Type, Map<String, List<Summary>>>();
+    public Map<String, List<Summary>> data = new HashMap<String, List<Summary>>();
 
     /**
      * An iterator that filters out all summaries from a list that aren't within
@@ -106,9 +107,9 @@ public class MapDataStore implements DataStore
     @Override
     public Iterator<Summary> find(String entityId, Summary.Type type, Date date)
     {
-        if (data.containsKey(type) && data.get(type).containsKey(entityId))
+        if (data.containsKey(entityId))
         {
-            return new DateFilter(data.get(type).get(entityId), DateRange.create(type, date));
+            return new DateFilter(data.get(entityId), DateRange.create(type, date));
         }
         else
         {
@@ -120,9 +121,9 @@ public class MapDataStore implements DataStore
     @Override
     public Iterator<Summary> find(String entityId, Summary.Type type, Date start, Date end)
     {
-        if (data.containsKey(type) && data.get(type).containsKey(entityId))
+        if (data.containsKey(entityId))
         {
-            return new DateFilter(data.get(type).get(entityId), new DateRange(start, end));
+            return new DateFilter(data.get(entityId), new DateRange(start, end));
         }
         else
         {
@@ -134,20 +135,15 @@ public class MapDataStore implements DataStore
     @Override
     public void persist(String entityId, Summary summary)
     {
-        if (!data.containsKey(summary.getType()))
+        if (!data.containsKey(entityId))
         {
-            data.put(summary.getType(), new HashMap<String, List<Summary>>());
+            data.put(entityId, new ArrayList<Summary>());
         }
 
-        Map<String, List<Summary>> entities = data.get(summary.getType());
-
-        if (!entities.containsKey(entityId))
-        {
-            entities.put(entityId, new ArrayList<Summary>());
-        }
-
-        List<Summary> summaries = entities.get(entityId);
+        List<Summary> summaries = data.get(entityId);
         Iterator<Summary> iter = summaries.iterator();
+
+        boolean merged = false;
 
         while (iter.hasNext())
         {
@@ -155,11 +151,15 @@ public class MapDataStore implements DataStore
 
             if (maybeTheSame.getTimestamp() == summary.getTimestamp())
             {
-                iter.remove();
+                MetricUtils.merge(maybeTheSame.getValues(), summary.getValues());
+                merged = true;
             }
         }
 
-        summaries.add(summary);
+        if (!merged)
+        {
+            summaries.add(summary);
+        }
     }
 
     public static void destroy()
