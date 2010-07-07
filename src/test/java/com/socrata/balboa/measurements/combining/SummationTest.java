@@ -1,15 +1,15 @@
 package com.socrata.balboa.measurements.combining;
 
-import com.socrata.balboa.metrics.measurements.combining.sum;
+import com.socrata.balboa.metrics.measurements.combining.Summation;
 import junit.framework.Assert;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-public class sumTest
+public class SummationTest
 {
-    sum sum = new sum();
+    Summation sum = new Summation();
 
     @Test
     public void testIntegerLikeObjects() throws Exception
@@ -77,7 +77,7 @@ public class sumTest
     {
         Number result = sum.combine(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
-        Assert.assertTrue(result instanceof BigDecimal);
-        Assert.assertEquals(new BigDecimal(Integer.MAX_VALUE).multiply(new BigDecimal(2)), result);
+        Assert.assertTrue(result instanceof Long);
+        Assert.assertEquals(new Long(Integer.MAX_VALUE) * 2, result);
     }
 }

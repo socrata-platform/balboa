@@ -2,7 +2,7 @@ package com.socrata.balboa.metrics.utils;
 
 import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
-import com.socrata.balboa.metrics.measurements.combining.sum;
+import com.socrata.balboa.metrics.measurements.combining.Summation;
 import com.socrata.balboa.metrics.measurements.serialization.JsonSerializer;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import org.apache.commons.logging.Log;
@@ -32,7 +32,7 @@ public class MetricUtils
         int count = 0;
 
         Map<String, Object> results = new HashMap<String, Object>();
-        Combinator com = new sum();
+        Combinator com = new Summation();
 
         while (iter.hasNext())
         {
@@ -55,7 +55,7 @@ public class MetricUtils
     /**
      * Merge two maps into one another and place the results in the first map.
      * The exclusion is just added to the first map while the intersection is
-     * combined using the "sum" combinator.
+     * combined using the "Summation" combinator.
      *
      * @param first The first map and the map into which the results are placed
      * @param second The second map to merge.
@@ -68,7 +68,7 @@ public class MetricUtils
         Set<String> unionKeys = new HashSet<String>(first.keySet());
         unionKeys.addAll(second.keySet());
 
-        sum com = new sum();
+        Summation com = new Summation();
 
         // Combine the two maps.
         for (String key : unionKeys)

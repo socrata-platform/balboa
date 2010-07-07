@@ -3,7 +3,7 @@ package com.socrata.balboa.metrics.measurements.combining;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-public class sum implements Combinator<Number>
+public class Summation implements Combinator<Number>
 {
     private BigDecimal sumBigDecimalWithOther(BigDecimal first, Number second)
     {
@@ -82,7 +82,9 @@ public class sum implements Combinator<Number>
             }
             else
             {
-                return sum(new BigDecimal(first.intValue()), new BigDecimal(second.intValue()));
+                // Since int + int should never be an overflow of a long, we
+                // can feel confident not overflow checking this.
+                return first.longValue() + second.longValue();
             }
         }
     }
