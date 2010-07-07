@@ -5,10 +5,26 @@ import org.apache.commons.logging.LogFactory;
 
 import java.util.Map;
 
+/**
+ * A summary is a collection of metrics data covering some time range. The
+ * metric data is in the values hash and the date range that the summary covers
+ * (or will cover) is the type.
+ *
+ * Multiple summaries can be combined so they cover a date range outside of
+ * their type.
+ *
+ * The timestamp on summaries should generally be the first millisecond in the
+ * time area that it covers, but can technically be any time within the range
+ * itself.
+ */
 public class Summary
 {
     private static Log log = LogFactory.getLog(Summary.class);
 
+    /**
+     * The type of summary. Types fall on boundaries that are convenient and
+     * easily queried.
+     */
     public static enum Type
     {
         YEARLY,
@@ -23,6 +39,11 @@ public class Summary
             return this.name().toLowerCase();
         }
 
+        /**
+         * Retrieve the adjacent type that is more granular than the current.
+         * For example, "day" is slightly more granular than "month" which is
+         * slightly more granular than "year".
+         */
         public Type nextBest()
         {
             switch(this)

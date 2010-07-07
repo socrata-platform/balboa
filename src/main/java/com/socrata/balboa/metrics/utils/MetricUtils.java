@@ -3,8 +3,6 @@ package com.socrata.balboa.metrics.utils;
 import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.measurements.combining.Summation;
-import com.socrata.balboa.metrics.measurements.serialization.JsonSerializer;
-import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -14,18 +12,6 @@ import java.util.*;
 public class MetricUtils
 {
     private static Log log = LogFactory.getLog(MetricUtils.class);
-
-    public static Map<String, String> postprocess(Map<String, Object> map) throws IOException
-    {
-        Map<String, String> results = new HashMap<String, String>();
-        Serializer serializer = new JsonSerializer();
-
-        for (String key : map.keySet())
-        {
-            results.put(key, serializer.toString(map.get(key)));
-        }
-        return results;
-    }
 
     public static Map<String, Object> summarize(Iterator<Summary> iter) throws IOException
     {
