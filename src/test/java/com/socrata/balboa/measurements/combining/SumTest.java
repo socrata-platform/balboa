@@ -53,4 +53,31 @@ public class sumTest
         Assert.assertEquals(100.0d, sum.combine(new Double("50"), 50));
         Assert.assertEquals(100.0d, sum.combine(50, new Double("50")));
     }
+
+    @Test
+    public void testSumDoublesWithOverflow() throws Exception
+    {
+        Number result = sum.combine(Double.MAX_VALUE, Double.MAX_VALUE);
+
+        Assert.assertTrue(result instanceof BigDecimal);
+        Assert.assertEquals(new BigDecimal(Double.MAX_VALUE).multiply(new BigDecimal(2)), result);
+    }
+
+    @Test
+    public void testSumLongsWithOverflow() throws Exception
+    {
+        Number result = sum.combine(Long.MAX_VALUE, Long.MAX_VALUE);
+
+        Assert.assertTrue(result instanceof BigDecimal);
+        Assert.assertEquals(new BigDecimal(Long.MAX_VALUE).multiply(new BigDecimal(2)), result);
+    }
+
+    @Test
+    public void testSumIntsWithOverflow() throws Exception
+    {
+        Number result = sum.combine(Integer.MAX_VALUE, Integer.MAX_VALUE);
+
+        Assert.assertTrue(result instanceof BigDecimal);
+        Assert.assertEquals(new BigDecimal(Integer.MAX_VALUE).multiply(new BigDecimal(2)), result);
+    }
 }

@@ -46,17 +46,44 @@ public class sum implements Combinator<Number>
         // Next we try doubles.
         if (first instanceof Double || first instanceof Float || second instanceof Double || second instanceof Float)
         {
-            return first.doubleValue() + second.doubleValue();
+            // Check for overflow first to see if we actually need to use a big
+            // decimal for this.
+            if (first.doubleValue() <= (Double.MAX_VALUE - second.doubleValue()))
+            {
+                return first.doubleValue() + second.doubleValue();
+            }
+            else
+            {
+                return sum(new BigDecimal(first.doubleValue()), new BigDecimal(second.doubleValue()));
+            }
         }
 
         // If we've made it here, we know that we're looking a long or an integer. Add those badboys.
         if (first instanceof Long || second instanceof Long)
         {
-            return first.longValue() + second.longValue();
+            // Check for overflow first to see if we actually need to use a big
+            // decimal for this.
+            if (first.longValue() <= (Long.MAX_VALUE - second.longValue()))
+            {
+                return first.longValue() + second.longValue();
+            }
+            else
+            {
+                return sum(new BigDecimal(first.longValue()), new BigDecimal(second.longValue()));
+            }
         }
         else
         {
-            return first.intValue() + second.intValue();
+            // Check for overflow first to see if we actually need to use a big
+            // decimal for this.
+            if (first.intValue() <= (Integer.MAX_VALUE - second.intValue()))
+            {
+                return first.intValue() + second.intValue();
+            }
+            else
+            {
+                return sum(new BigDecimal(first.intValue()), new BigDecimal(second.intValue()));
+            }
         }
     }
 
