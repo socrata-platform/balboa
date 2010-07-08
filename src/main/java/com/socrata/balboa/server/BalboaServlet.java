@@ -25,7 +25,8 @@ public class BalboaServlet extends HttpServlet
 {
     private static Log log = LogFactory.getLog(BalboaServlet.class);
 
-    /** Not used, but assigned so that the receiver doesn't get garbage
+    /**
+     * Not used, but assigned so that the receiver doesn't get garbage
      * collected.
      */
     Receiver receiver;
@@ -39,14 +40,18 @@ public class BalboaServlet extends HttpServlet
         try
         {
             String[] path = request.getPathInfo().split("/");
-            String entityId = path[1];
 
-            if (!"GET".equals(request.getMethod()))
+            if (path.length < 2)
+            {
+                throw new InvalidRequestException("Unknown resource '" + request.getPathInfo() + "'.");
+            }
+            else if (!"GET".equals(request.getMethod()))
             {
                 throw new InvalidRequestException("Unsupported method '" + request.getMethod() + "'.");
             }
 
-            Object result = fulfillGet(entityId, request, response);
+            String entityId = path[1];
+            Object result = fulfillGet(entityId, ServiceUtils.getParameters(request));
 
             // Write the response out.
             ObjectMapper mapper = new ObjectMapper();
@@ -76,7 +81,8 @@ public class BalboaServlet extends HttpServlet
 
         try
         {
-            // Initialize the configuration so that we set any log4j or external configuration values properly.
+            // Initialize the configuration so that we set any log4j or external
+            // configuration values properly.
             Configuration.get();
         }
         catch (IOException e)
@@ -88,11 +94,9 @@ public class BalboaServlet extends HttpServlet
         receiver = ReceiverFactory.get();
     }
 
-    Object fulfillGet(String id, HttpServletRequest request, HttpServletResponse response) throws IOException, InvalidRequestException
+    Object single(String id, Map<String, String> params) throws InvalidRequestException, IOException
     {
         MetricsService service = new MetricsService();
-        Map<String, String> params = ServiceUtils.getParameters(request);
-        
         ServiceUtils.validateRequired(params, new String[] {"type", "date"});
 
         Summary.Type type = Summary.Type.valueOf(params.get("type"));
@@ -112,6 +116,43 @@ public class BalboaServlet extends HttpServlet
         else
         {
             return service.get(id, type, range);
+        }
+    }
+
+    Object series(String id, Map<String, String> params) throws InvalidRequestException, IOException
+    {
+        MetricsService service = new MetricsService();
+        ServiceUtils.validateRequired(params, new String[] {"series", "start", "end"});
+
+        Summary.Type type = Summary.Type.valueOf(params.get("series"));
+
+        DateTime nominalStart = DateTime.parse(params.get("start"));
+        DateTime nominalEnd = DateTime.parse(params.get("end"));
+
+        DateRange range = new DateRange(
+                DateRange.create(type, nominalStart.toDate()).start,
+                DateRange.create(type, nominalEnd.toDate()).end
+        );
+
+        if (params.containsKey("field"))
+        {
+            return service.series(id, type, (String)params.get("field"), range);
+        }
+        else
+        {
+            return service.series(id, type, range);
+        }
+    }
+
+    Object fulfillGet(String id, Map<String, String> params) throws IOException, InvalidRequestException
+    {
+        if (params.containsKey("series"))
+        {
+            return series(id, params);
+        }
+        else
+        {
+            return single(id, params);
         }
     }
 }
