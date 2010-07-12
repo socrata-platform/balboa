@@ -4,6 +4,7 @@
 
   <Keyspaces>
     <Keyspace Name="Metrics">
+      <ColumnFamily Name="hourly" ColumnType="Super" CompareWith="LongType" CompareSubColumnsWith="UTF8Type"/>
       <ColumnFamily Name="daily" ColumnType="Super" CompareWith="LongType" CompareSubColumnsWith="UTF8Type"/>
       <ColumnFamily Name="monthly" ColumnType="Super" CompareWith="LongType" CompareSubColumnsWith="UTF8Type"/>
       <ColumnFamily Name="yearly" ColumnType="Super" CompareWith="LongType" CompareSubColumnsWith="UTF8Type"/>

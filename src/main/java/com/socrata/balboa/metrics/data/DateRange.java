@@ -153,10 +153,46 @@ public class DateRange
         return new DateRange(start.getTime(), end.getTime());
     }
 
+    /**
+     * Create an hourly date range for a given day to which the date belongs.
+     * So if the date is "2010-05-28 16:14:08" then the returned range would be
+     * (2010-05-28 16:00:00 -> 2010-05-28 16:59:59).
+     */
+    static DateRange createHourly(Date date)
+    {
+        Calendar start = new GregorianCalendar();
+        start.setTime(date);
+
+        // Set the time to the beginning of the hour of the requested date.
+        start.set(start.get(Calendar.YEAR),
+                  start.get(Calendar.MONTH),
+                  start.get(Calendar.DATE),
+                  start.get(Calendar.HOUR_OF_DAY),
+                  start.getActualMinimum(Calendar.MINUTE),
+                  start.getActualMinimum(Calendar.SECOND));
+        start.set(Calendar.MILLISECOND, 0);
+
+        Calendar end = new GregorianCalendar();
+        end.setTime(date);
+
+        // Set the day to the end of the day of the requested date.
+        end.set(end.get(Calendar.YEAR),
+                end.get(Calendar.MONTH),
+                end.get(Calendar.DATE),
+                end.get(Calendar.HOUR_OF_DAY),
+                end.getActualMaximum(Calendar.MINUTE),
+                end.getActualMaximum(Calendar.SECOND));
+        end.set(Calendar.MILLISECOND, 999);
+
+        return new DateRange(start.getTime(), end.getTime());
+    }
+
     public static DateRange create(Type type, Date date)
     {
         switch(type)
         {
+            case HOURLY:
+                return createHourly(date);
             case WEEKLY:
                 return createWeekly(date);
             case MONTHLY:

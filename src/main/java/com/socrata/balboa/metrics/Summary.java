@@ -31,6 +31,7 @@ public class Summary
         MONTHLY,
         WEEKLY,
         DAILY,
+        HOURLY,
         REALTIME;
 
         @Override
@@ -56,6 +57,8 @@ public class Summary
                     // summarize them as the next best of months.
                     return DAILY;
                 case DAILY:
+                    return HOURLY;
+                case HOURLY:
                     return REALTIME;
                 default:
                     return null;
