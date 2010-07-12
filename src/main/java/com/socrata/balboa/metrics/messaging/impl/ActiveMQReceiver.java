@@ -4,6 +4,7 @@ import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.messaging.Receiver;
+import com.socrata.balboa.server.exceptions.InternalException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -12,6 +13,7 @@ import javax.jms.*;
 import javax.naming.NamingException;
 import java.io.IOException;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class ActiveMQReceiver implements Receiver, MessageListener
 {
@@ -38,6 +40,13 @@ public class ActiveMQReceiver implements Receiver, MessageListener
     @Override
     public void onMessage(Message message)
     {
+        // Make sure that we never consume messages unless we're in UTC.
+        if (!TimeZone.getDefault().equals(TimeZone.getTimeZone("UTC")))
+        {
+            throw new InternalException("Default timezone is not UTC so this " +
+                    "request will not be serviced so our data stays consistent.");
+        }
+        
         try
         {
             TextMessage text = (TextMessage)message;

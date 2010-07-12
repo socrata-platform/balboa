@@ -6,6 +6,7 @@ import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.messaging.Receiver;
 import com.socrata.balboa.metrics.messaging.ReceiverFactory;
 import com.socrata.balboa.server.exceptions.HttpException;
+import com.socrata.balboa.server.exceptions.InternalException;
 import com.socrata.balboa.server.exceptions.InvalidRequestException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -20,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class BalboaServlet extends HttpServlet
 {
@@ -36,6 +38,12 @@ public class BalboaServlet extends HttpServlet
     {
         // We're always JSON, no matter what.
         response.setContentType("application/json; charset=utf-8");
+
+        if (!TimeZone.getDefault().equals(TimeZone.getTimeZone("UTC")))
+        {
+            throw new InternalException("Default timezone is not UTC so this " +
+                    "request will not be serviced so our data stays consistent.");
+        }
 
         try
         {
@@ -78,6 +86,9 @@ public class BalboaServlet extends HttpServlet
     public void init(ServletConfig config) throws ServletException
     {
         super.init(config);
+
+        // Force our timezone to always be UTC
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 
         try
         {
