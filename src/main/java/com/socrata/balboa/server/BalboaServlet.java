@@ -129,8 +129,20 @@ public class BalboaServlet extends HttpServlet
         DateTime end = DateTime.parse(params.get("end"));
 
         DateRange range = new DateRange(start.toDate(), end.toDate());
-        
-        return service.range(id, range);
+
+        if (params.containsKey("field"))
+        {
+            return service.range(id, (String)params.get("field"), range);
+        }
+        else if (params.containsKey("combine"))
+        {
+            String[] fields = ((String)params.get("combine")).split(",");
+            return service.range(id, fields, range);
+        }
+        else
+        {
+            return service.range(id, range);
+        }
     }
 
     Object single(String id, Map<String, String> params) throws InvalidRequestException, IOException
@@ -151,6 +163,11 @@ public class BalboaServlet extends HttpServlet
         if (params.containsKey("field"))
         {
             return service.get(id, type, (String)params.get("field"), range);
+        }
+        else if (params.containsKey("combine"))
+        {
+            String[] fields = ((String)params.get("combine")).split(",");
+            return service.get(id, type, fields, range);
         }
         else
         {
@@ -176,6 +193,11 @@ public class BalboaServlet extends HttpServlet
         if (params.containsKey("field"))
         {
             return service.series(id, type, (String)params.get("field"), range);
+        }
+        else if (params.containsKey("combine"))
+        {
+            String[] fields = ((String)params.get("combine")).split(",");
+            return service.series(id, type, fields, range);
         }
         else
         {

@@ -1,2 +1,2 @@
-Allow wildcard field queries. For example "rows-loaded-*", maybe do regex's?
-Do some simple combinations on the server. For example, the use case: "Sum all metrics that start with 'url-' and return the value." Should be something that balboa can handle instead of pushing it to the client.
+Support more complication combinations.
+
