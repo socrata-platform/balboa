@@ -88,6 +88,13 @@ public class MetricsService
     private List<DateRange> findToBoundary(Date start, Date end, Summary.Type type)
     {
         List<DateRange> ranges = new ArrayList<DateRange>();
+
+        Date endMin = null;
+        Date endMax = null;
+
+        Date startMin = null;
+        Date startMax = null;
+
         Date startUpgradeTime = DateRange.create(type.lessGranular(), start).end;
         Date endUpgradeTime = DateRange.create(type.lessGranular(), end).start;
 
@@ -96,7 +103,16 @@ public class MetricsService
             if (end.after(endUpgradeTime) && end.after(start))
             {
                 DateRange range = DateRange.create(type, end);
-                ranges.add(range);
+
+                if (endMin == null || range.start.before(endMin))
+                {
+                    endMin = range.start;
+                }
+
+                if (endMax == null || range.end.after(endMax))
+                {
+                    endMax = range.end;
+                }
 
                 // Move to the next discrete segment.
                 end = new Date(range.start.getTime() - 1);
@@ -105,7 +121,16 @@ public class MetricsService
             if (start.before(startUpgradeTime) && start.before(end))
             {
                 DateRange range = DateRange.create(type, start);
-                ranges.add(range);
+
+                if (startMin == null || range.start.before(startMin))
+                {
+                    startMin = range.start;
+                }
+
+                if (startMax == null || range.end.after(startMax))
+                {
+                    startMax = range.end;
+                }
 
                 // Move to the next discrete segment.
                 start = new Date(range.end.getTime() + 1);
@@ -122,6 +147,29 @@ public class MetricsService
             {
                 // Hopefully at this point we're done :-)
                 break;
+            }
+        }
+
+        if
+        (
+            (startMax != null && endMin != null) &&
+            (startMax.equals(endMin) || (startMax.getTime() + 1 == endMin.getTime()))
+        )
+        {
+            // If the ranges are adjacent, combine them.
+            ranges.add(new DateRange(startMin, endMax));
+        }
+        else
+        {
+            // If the ranges aren't adjacent, add both of them separately.
+            if (startMin != null && startMax != null)
+            {
+                ranges.add(new DateRange(startMin, startMax));
+            }
+
+            if (endMin != null && endMax != null)
+            {
+                ranges.add(new DateRange(endMin, endMax));
             }
         }
 
