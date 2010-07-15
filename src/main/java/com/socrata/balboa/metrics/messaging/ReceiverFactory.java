@@ -38,7 +38,7 @@ public class ReceiverFactory
             }
             catch (Exception e)
             {
-                log.fatal("Unable to create an ActiveMQReceiver.", e);
+                log.warn("Unable to create an ActiveMQReceiver.", e);
                 throw new InternalException("Unable to create an ActiveMQReceiver.", e);
             }
         }

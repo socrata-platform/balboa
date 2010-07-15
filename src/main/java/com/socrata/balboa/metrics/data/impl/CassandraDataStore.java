@@ -319,7 +319,7 @@ public class CassandraDataStore implements DataStore
                 superColumns.add(getSuperColumnMutation(replacement));
                 superColumnOperations.put(replacement.getType().toString(), superColumns);
 
-                type = type.nextBest();
+                type = type.moreGranular();
             }
 
             keyspace.batchInsert(entityId, null, superColumnOperations);

@@ -1,6 +1,7 @@
 package com.socrata.balboa.metrics.data;
 
 import com.socrata.balboa.metrics.Summary.Type;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -12,8 +13,45 @@ public class DateRange
 
     public DateRange(Date start, Date end)
     {
+        if (start.after(end))
+        {
+            throw new IllegalArgumentException("The start time must be before the end time '" + start + "' !< '" + end + "'.");
+        }
+        
         this.start = start;
         this.end = end;
+    }
+
+    /**
+     * Get a date range that covers everything in the past/present/future. Kind
+     * of like Timecop.
+     */
+    static DateRange createForever(Date date)
+    {
+        Calendar start = new GregorianCalendar();
+
+        // Trim the day of the year off the requested date.
+        start.set(start.getActualMinimum(Calendar.YEAR),
+                  start.getActualMinimum(Calendar.MONTH),
+                  start.getActualMinimum(Calendar.DATE),
+                  start.getActualMinimum(Calendar.HOUR_OF_DAY),
+                  start.getActualMinimum(Calendar.MINUTE),
+                  start.getActualMinimum(Calendar.SECOND));
+        start.set(Calendar.MILLISECOND, 0);
+
+        Calendar end = new GregorianCalendar();
+        end.setTime(date);
+
+        // Set the day to the end of the year of the requested date.
+        end.set(end.getActualMaximum(Calendar.YEAR) - 1,
+                end.getActualMaximum(Calendar.MONTH),
+                end.getActualMaximum(Calendar.DATE),
+                end.getActualMaximum(Calendar.HOUR_OF_DAY),
+                end.getActualMaximum(Calendar.MINUTE),
+                end.getActualMaximum(Calendar.SECOND));
+        end.set(Calendar.MILLISECOND, 999);
+
+        return new DateRange(start.getTime(), end.getTime());
     }
 
     /**
@@ -37,6 +75,14 @@ public class DateRange
 
         Calendar end = new GregorianCalendar();
         end.setTime(date);
+
+        // Obnoxiously, before we can fetch the maximum number of days in a
+        // month we have to first set the calendar to that month (since each
+        // month has a different number of days). So, first set the calendar
+        // to december, then do the normal getActualMaximum spiel.
+        end.set(end.get(Calendar.YEAR),
+                end.getActualMaximum(Calendar.MONTH),
+                1);
 
         // Set the day to the end of the year of the requested date.
         end.set(end.get(Calendar.YEAR),
@@ -199,19 +245,38 @@ public class DateRange
                 return createMonthly(date);
             case YEARLY:
                 return createYearly(date);
+            case FOREVER:
+                return createForever(date);
             default:
                 return createDaily(date);
         }
     }
 
+    public boolean includes(Date suspect)
+    {
+        return start.before(suspect) && end.after(suspect);
+    }
+
     public boolean includesToday()
     {
-        return start.before(new Date()) && end.after(new Date());
+        return includes(new Date());
     }
 
     @Override
     public String toString()
     {
         return start + " -> " + end;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (!(obj instanceof DateRange))
+        {
+            return false;
+        }
+
+        DateRange other = (DateRange)obj;
+        return other.start.equals(start) && other.end.equals(end);
     }
 }

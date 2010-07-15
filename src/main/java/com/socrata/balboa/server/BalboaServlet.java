@@ -36,6 +36,14 @@ public class BalboaServlet extends HttpServlet
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
+        log.debug("Servicing request '" + request.getPathInfo() + "'.");
+        log.debug("\tParameters {");
+        for (Object k : request.getParameterMap().keySet())
+        {
+            log.debug("\t\t" + k + " => " + request.getParameter((String)k));
+        }
+        log.debug("\t}");
+        
         // We're always JSON, no matter what.
         response.setContentType("application/json; charset=utf-8");
 
@@ -69,7 +77,7 @@ public class BalboaServlet extends HttpServlet
         catch (HttpException e)
         {
             // Write out any "expected" errors.
-            log.debug("Unable to fullfil request because there was an HTTP error.", e);
+            log.warn("Unable to fullfil request because there was an HTTP error.", e);
             response.setStatus(e.getStatus());
             response.getOutputStream().write(e.getMessage().getBytes());
         }
@@ -102,7 +110,27 @@ public class BalboaServlet extends HttpServlet
         }
 
         // Initialize our receiver and it will automatically connect.
-        receiver = ReceiverFactory.get();
+        try
+        {
+            receiver = ReceiverFactory.get();
+        }
+        catch (InternalException e)
+        {
+            log.warn("Unable to create an ActiveMQReceiver. New items will not be consumed.");
+        }
+    }
+
+    Object range(String id, Map<String, String> params) throws InvalidRequestException, IOException
+    {
+        MetricsService service = new MetricsService();
+        ServiceUtils.validateRequired(params, new String[] {"start", "end"});
+
+        DateTime start = DateTime.parse(params.get("start"));
+        DateTime end = DateTime.parse(params.get("end"));
+
+        DateRange range = new DateRange(start.toDate(), end.toDate());
+        
+        return service.range(id, range);
     }
 
     Object single(String id, Map<String, String> params) throws InvalidRequestException, IOException
@@ -160,6 +188,10 @@ public class BalboaServlet extends HttpServlet
         if (params.containsKey("series"))
         {
             return series(id, params);
+        }
+        else if (params.containsKey("range"))
+        {
+            return range(id, params);
         }
         else
         {

@@ -4,10 +4,34 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.GregorianCalendar;
 
 public class DateRangeTest
 {
+    @Test
+    public void testForever() throws Exception
+    {
+        DateRange range = DateRange.createForever(new Date(0));
+    }
+    
+    @Test
+    public void testDatRangeStartCantBeBeforeEnd() throws Exception
+    {
+        Calendar start = new GregorianCalendar();
+        start.set(2010, 1, 1);
+
+        Calendar end = new GregorianCalendar();
+        end.set(2009, 1, 1);
+
+        try
+        {
+            new DateRange(start.getTime(), end.getTime());
+            Assert.fail("Invalid date range was constructed.");
+        }
+        catch (IllegalArgumentException e) {}
+    }
+
     @Test
     public void testHourly() throws Exception
     {

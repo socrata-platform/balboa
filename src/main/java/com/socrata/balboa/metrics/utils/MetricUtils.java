@@ -13,23 +13,26 @@ public class MetricUtils
 {
     private static Log log = LogFactory.getLog(MetricUtils.class);
 
-    public static Map<String, Object> summarize(Iterator<Summary> iter) throws IOException
+    public static Map<String, Object> summarize(Iterator<Summary> ... everything) throws IOException
     {
         int count = 0;
 
         Map<String, Object> results = new HashMap<String, Object>();
         Combinator com = new Summation();
 
-        while (iter.hasNext())
+        for (Iterator<Summary> iter : everything)
         {
-            Summary summary = iter.next();
-
-            count += 1;
-
-            for (String key : summary.getValues().keySet())
+            while (iter.hasNext())
             {
-                Object value = summary.getValues().get(key);
-                results.put(key, com.combine(results.get(key), value));
+                Summary summary = iter.next();
+
+                count += 1;
+
+                for (String key : summary.getValues().keySet())
+                {
+                    Object value = summary.getValues().get(key);
+                    results.put(key, com.combine(results.get(key), value));
+                }
             }
         }
 

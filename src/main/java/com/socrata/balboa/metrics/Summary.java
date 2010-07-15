@@ -27,6 +27,7 @@ public class Summary
      */
     public static enum Type
     {
+        FOREVER,
         YEARLY,
         MONTHLY,
         WEEKLY,
@@ -40,15 +41,37 @@ public class Summary
             return this.name().toLowerCase();
         }
 
+        public Type lessGranular()
+        {
+            switch(this)
+            {
+                case REALTIME:
+                    return HOURLY;
+                case HOURLY:
+                    return DAILY;
+                case DAILY:
+                case WEEKLY:
+                    return MONTHLY;
+                case MONTHLY:
+                    return YEARLY;
+                case YEARLY:
+                    return FOREVER;
+                default:
+                    return null;
+            }
+        }
+
         /**
          * Retrieve the adjacent type that is more granular than the current.
          * For example, "day" is slightly more granular than "month" which is
          * slightly more granular than "year".
          */
-        public Type nextBest()
+        public Type moreGranular()
         {
             switch(this)
             {
+                case FOREVER:
+                    return YEARLY;
                 case YEARLY:
                     return MONTHLY;
                 case MONTHLY:
@@ -86,6 +109,11 @@ public class Summary
     public Map<String, Object> getValues()
     {
         return values;
+    }
+
+    public void setValue(Map<String, Object> values)
+    {
+        this.values = values;
     }
 
     long timestamp;

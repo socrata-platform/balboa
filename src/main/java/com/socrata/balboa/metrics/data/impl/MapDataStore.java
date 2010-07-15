@@ -4,6 +4,7 @@ import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.utils.MetricUtils;
+import com.socrata.balboa.server.exceptions.InternalException;
 
 import java.util.*;
 
@@ -29,7 +30,62 @@ public class MapDataStore implements DataStore
         return instance;
     }
 
-    public Map<String, List<Summary>> data = new HashMap<String, List<Summary>>();
+    public Map<Summary.Type, Tier> data = new HashMap<Summary.Type, Tier>(Summary.Type.values().length);
+
+
+    public MapDataStore()
+    {
+        for (Summary.Type tier : Summary.Type.values())
+        {
+            data.put(tier, new Tier());
+        }
+    }
+
+    static class Tier
+    {
+        public Map<String, List<Summary>> data = new HashMap<String, List<Summary>>();
+
+        public List<Summary> get(String entityId)
+        {
+            return data.get(entityId);
+        }
+
+        public void add(String entityId, Summary summary)
+        {
+            if (!data.containsKey(entityId))
+            {
+                data.put(entityId, new ArrayList<Summary>());
+            }
+
+            List<Summary> summaries = data.get(entityId);
+            Iterator<Summary> iter = summaries.iterator();
+
+            boolean merged = false;
+
+            while (iter.hasNext())
+            {
+                Summary maybeTheSame = iter.next();
+
+                if (maybeTheSame.getTimestamp() == summary.getTimestamp())
+                {
+                    // Make sure we make a copy of the values so I don't have to
+                    // worry about changing them or anything.
+                    MetricUtils.merge(
+                            maybeTheSame.getValues(),
+                            new HashMap<String, Object>(summary.getValues())
+                    );
+                    merged = true;
+                }
+            }
+
+            if (!merged)
+            {
+                summaries.add(
+                        new Summary(summary.getType(), summary.getTimestamp(), new HashMap<String, Object>(summary.getValues()))
+                );
+            }
+        }
+    }
 
     /**
      * An iterator that filters out all summaries from a list that aren't within
@@ -107,9 +163,9 @@ public class MapDataStore implements DataStore
     @Override
     public Iterator<Summary> find(String entityId, Summary.Type type, Date date)
     {
-        if (data.containsKey(entityId))
+        if (data.containsKey(type))
         {
-            return new DateFilter(data.get(entityId), DateRange.create(type, date));
+            return new DateFilter(data.get(type).get(entityId), DateRange.create(type, date));
         }
         else
         {
@@ -121,9 +177,9 @@ public class MapDataStore implements DataStore
     @Override
     public Iterator<Summary> find(String entityId, Summary.Type type, Date start, Date end)
     {
-        if (data.containsKey(entityId))
+        if (data.containsKey(type))
         {
-            return new DateFilter(data.get(entityId), new DateRange(start, end));
+            return new DateFilter(data.get(type).get(entityId), new DateRange(start, end));
         }
         else
         {
@@ -135,30 +191,18 @@ public class MapDataStore implements DataStore
     @Override
     public void persist(String entityId, Summary summary)
     {
-        if (!data.containsKey(entityId))
+        if (summary.getType() != Summary.Type.REALTIME)
         {
-            data.put(entityId, new ArrayList<Summary>());
+            // TODO: Necessary? Could I just summarize above the current? Doing
+            // that could result in potentially inconsistent data, though...
+            throw new InternalException("Unable to persist anything but realtime events with this data store.");
         }
 
-        List<Summary> summaries = data.get(entityId);
-        Iterator<Summary> iter = summaries.iterator();
-
-        boolean merged = false;
-
-        while (iter.hasNext())
+        Summary.Type type = Summary.Type.YEARLY;
+        while (type != Summary.Type.REALTIME)
         {
-            Summary maybeTheSame = iter.next();
-
-            if (maybeTheSame.getTimestamp() == summary.getTimestamp())
-            {
-                MetricUtils.merge(maybeTheSame.getValues(), summary.getValues());
-                merged = true;
-            }
-        }
-
-        if (!merged)
-        {
-            summaries.add(summary);
+            data.get(type).add(entityId, summary);
+            type = type.moreGranular();
         }
     }
 
