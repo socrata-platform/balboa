@@ -4,8 +4,8 @@ import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.Summary.Type;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.measurements.serialization.ProtocolBuffersSerializer;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
+import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
 import com.socrata.balboa.metrics.utils.MetricUtils;
 import com.socrata.balboa.server.exceptions.InternalException;
 import me.prettyprint.cassandra.service.*;
@@ -171,7 +171,7 @@ public class CassandraDataStore implements DataStore
             else
             {
                 SuperColumn column = buffer.remove(0);
-                Serializer ser = new ProtocolBuffersSerializer();
+                Serializer ser = SerializerFactory.get();
 
                 // When we query cassandra we get back a set of columns (the
                 // children of the super column -- type -- on which we queried).
@@ -257,7 +257,7 @@ public class CassandraDataStore implements DataStore
     SuperColumn getSuperColumnMutation(Summary summary) throws IOException
     {
         List<Column> columns = new ArrayList<Column>(summary.getValues().size());
-        Serializer ser = new ProtocolBuffersSerializer();
+        Serializer ser = SerializerFactory.get();
         for (String key : summary.getValues().keySet())
         {
             Column column = new Column(

@@ -29,7 +29,7 @@ public class DataStoreFactory
             {
                 Configuration config = Configuration.get();
                 String serverConfig = config.getProperty("cassandra.servers");
-                String keyspace = config.getProperty("metrics.keyspace");
+                String keyspace = config.getProperty("cassandra.keyspace");
 
                 if (serverConfig == null || keyspace == null)
                 {
