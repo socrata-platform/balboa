@@ -53,10 +53,12 @@ public class ProtocolBuffersSerializer implements Serializer
         else if (value instanceof BigDecimal)
         {
             BigDecimal v = (BigDecimal)value;
+            BigInteger unscaled = v.movePointRight(v.scale()).toBigInteger();
+
             NumbersProtos.PBBigInteger bigpapa = NumbersProtos.
                     PBBigInteger.
                     newBuilder().
-                    setValue(ByteString.copyFrom(v.toBigInteger().toByteArray())).
+                    setValue(ByteString.copyFrom(unscaled.toByteArray())).
                     build();
 
             NumbersProtos.PBBigDecimal bigmomma = NumbersProtos.
