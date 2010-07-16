@@ -4,6 +4,6 @@ import java.io.IOException;
 
 public interface Serializer<T>
 {
-    public String toString(T value) throws IOException;
-    public T toValue(String serialized) throws IOException;
+    public byte[] serialize(Object value) throws IOException;
+    public Object deserialize(byte[] serialized) throws IOException;
 }

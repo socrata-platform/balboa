@@ -103,6 +103,13 @@
           <version>0.6.0-14</version>
         </dependency>
 
+        <!-- protocol buffers -->
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+
         <!-- 
              Dependencies for testing cassandra not in maven repos (side note: 
              cassandra's dependencies are all kinds of fucked up who does this?)

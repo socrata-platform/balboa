@@ -8,21 +8,21 @@ import java.io.IOException;
 public class JsonSerializer implements Serializer<Object>
 {
     @Override
-    public String toString(Object value) throws IOException
+    public byte[] serialize(Object value) throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
-        
+
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         mapper.writeValue(stream, value);
-        
-        return stream.toString();
+
+        return stream.toByteArray();
     }
 
     @Override
-    public Object toValue(String serialized) throws IOException
+    public Object deserialize(byte[] serialized) throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
 
-        return mapper.readValue(serialized, Object.class);
+        return mapper.readValue(serialized.toString(), Object.class);
     }
 }

@@ -1,0 +1,23 @@
+package com.socrata.balboa;
+
+option java_package = "com.socrata.balboa.metrics.measurements.serialization.impl";
+option java_outer_classname = "NumbersProtos";
+
+message PBNumber {
+    enum Type { INT = 1; DOUBLE = 2; LONG = 3; BIG_DECIMAL = 4; }
+
+    required Type type = 1;
+    optional int32 int_value = 2;
+    optional double double_value = 3;
+    optional int64 long_value = 4;
+    optional PBBigDecimal big_decimal_value = 5;
+}
+
+message PBBigDecimal {
+    required int32 scale = 1;
+    required PBBigInteger value = 2;
+}
+
+message PBBigInteger {
+    required bytes value = 1;
+}

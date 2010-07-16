@@ -92,7 +92,7 @@ public class BalboaServlet extends HttpServlet
         }
         finally
         {
-            log.info("Fulfilled request " + (System.nanoTime() - startTime) / Math.pow(10,6) + " (ms)");
+            log.debug("Fulfilled request " + (System.nanoTime() - startTime) / Math.pow(10,6) + " (ms)");
         }
     }
 
