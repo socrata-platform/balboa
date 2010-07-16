@@ -110,7 +110,7 @@ public class CassandraDataStore implements DataStore
 
                 double startTime = System.nanoTime();
                 List<SuperColumn> results = executeQuery(predicate);
-                log.info("Queried cassandra " + (System.nanoTime() - startTime) / Math.pow(10,6) + " (ms)");
+                log.debug("Queried cassandra " + (System.nanoTime() - startTime) / Math.pow(10,6) + " (ms)");
 
                 // Update the range so that the next time we fill the buffer, we
                 // do it starting from the last of the returned results.
@@ -294,9 +294,10 @@ public class CassandraDataStore implements DataStore
             throw new InternalException("Unknown exception trying to borrow a cassandra client.", e);
         }
 
+        Keyspace keyspace = null;
         try
         {
-            Keyspace keyspace = client.getKeyspace(keyspaceName);
+            keyspace = client.getKeyspace(keyspaceName);
 
             Map<String, List<SuperColumn>> superColumnOperations = new HashMap<String, List<SuperColumn>>();
 
@@ -339,7 +340,7 @@ public class CassandraDataStore implements DataStore
         {
             try
             {
-                pool.releaseClient(client);
+                pool.releaseClient(keyspace == null ? client : keyspace.getClient());
             }
             catch (Exception e)
             {
