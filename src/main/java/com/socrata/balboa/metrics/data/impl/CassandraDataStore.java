@@ -107,7 +107,10 @@ public class CassandraDataStore implements DataStore
             {
                 // Create the predicate and execute the query.
                 SlicePredicate predicate = createPredicate(range);
+
+                double startTime = System.nanoTime();
                 List<SuperColumn> results = executeQuery(predicate);
+                log.info("Queried cassandra " + (System.nanoTime() - startTime) / Math.pow(10,6) + " (ms)");
 
                 // Update the range so that the next time we fill the buffer, we
                 // do it starting from the last of the returned results.

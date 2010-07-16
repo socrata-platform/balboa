@@ -36,6 +36,8 @@ public class BalboaServlet extends HttpServlet
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
+        double startTime = System.nanoTime();
+        
         log.debug("Servicing request '" + request.getPathInfo() + "'.");
         log.debug("\tParameters {");
         for (Object k : request.getParameterMap().keySet())
@@ -87,6 +89,10 @@ public class BalboaServlet extends HttpServlet
             log.fatal("Unexpected exception handling a request.", e);
             response.setStatus(500);
             response.getOutputStream().write("Internal error.".getBytes());
+        }
+        finally
+        {
+            log.info("Fulfilled request " + (System.nanoTime() - startTime) / Math.pow(10,6) + " (ms)");
         }
     }
 
