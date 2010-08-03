@@ -229,6 +229,13 @@ public class CassandraDataStore implements DataStore
     {
         DateRange range = new DateRange(start, end);
 
+        if (type == Type.WEEKLY)
+        {
+            // Because there is no weekly summarization, we have to use daily
+            // summaries over the course of the weekly timespan.
+            type = Type.DAILY;
+        }
+        
         return new QueryRobot(entityId, type, range);
     }
     
@@ -236,6 +243,13 @@ public class CassandraDataStore implements DataStore
     public Iterator<Summary> find(String entityId, Type type, Date date)
     {
         DateRange range = DateRange.create(type, date);
+
+        if (type == Type.WEEKLY)
+        {
+            // Because there is no weekly summarization, we have to use daily
+            // summaries over the course of the weekly timespan.
+            type = Type.DAILY;
+        }
         
         return new QueryRobot(entityId, type, range);
     }
