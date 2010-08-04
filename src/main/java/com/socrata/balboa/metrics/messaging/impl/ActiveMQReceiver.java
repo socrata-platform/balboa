@@ -56,10 +56,10 @@ public class ActiveMQReceiver implements Receiver, MessageListener
 
             Map<String, Object> data = (Map<String, Object>)mapper.readValue(serialized, Object.class);
             String entityId = (String)data.remove("entityId");
-            Long timestamp = (Long)data.remove("timestamp");
+            Number timestamp = (Number)data.remove("timestamp");
 
             // Create an actual summary.
-            Summary summary = new Summary(Summary.Type.REALTIME, timestamp, data);
+            Summary summary = new Summary(Summary.Type.REALTIME, timestamp.longValue(), data);
 
             received(entityId, summary);
         }
@@ -77,6 +77,14 @@ public class ActiveMQReceiver implements Receiver, MessageListener
     public void received(String entityId, Summary summary)
     {
         DataStore ds = DataStoreFactory.get();
-        ds.persist(entityId, summary);
+
+        try
+        {
+            ds.persist(entityId, summary);
+        }
+        catch (IOException e)
+        {
+            throw new InternalException("Unable to persist a message to the datastore.", e);
+        }
     }
 }

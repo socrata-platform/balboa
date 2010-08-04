@@ -4,6 +4,8 @@ import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.Summary.Type;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.Lock;
+import com.socrata.balboa.metrics.data.LockFactory;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
 import com.socrata.balboa.metrics.utils.MetricUtils;
@@ -18,6 +20,31 @@ import java.util.*;
 
 public class CassandraDataStore implements DataStore
 {
+    private static final int MAX_RETRIES = 5;
+
+    public class CassandraQueryException extends RuntimeException
+    {
+        public CassandraQueryException()
+        {
+            super();
+        }
+
+        public CassandraQueryException(String msg)
+        {
+            super(msg);
+        }
+
+        public CassandraQueryException(String msg, Throwable cause)
+        {
+            super(msg, cause);
+        }
+
+        public CassandraQueryException(Throwable cause)
+        {
+            super("Internal error", cause);
+        }
+    }
+    
     /**
      * An iterator that continues loading cassandra rows over a range until
      * there are no more left.
@@ -141,7 +168,7 @@ public class CassandraDataStore implements DataStore
 
                 // Well, no matter what happened that caused an exception, we
                 // don't have any items to iterate over.
-                return null;
+                throw new CassandraQueryException("There was some serious problem reading from cassandra.", e);
             }
         }
         
@@ -254,20 +281,6 @@ public class CassandraDataStore implements DataStore
         return new QueryRobot(entityId, type, range);
     }
 
-    void lock(String key)
-    {
-        // We don't actually implement locking right now, so this doesn't have
-        // to do anything. Before we start running a cluster of metrics servers,
-        // we'll have to implement some kind of distributed lock (ZooKeeper)
-    }
-
-    void unlock(String key)
-    {
-        // We don't actually implement locking right now, so this doesn't have
-        // to do anything. Before we start running a cluster of metrics servers,
-        // we'll have to implement some kind of distributed lock (ZooKeeper)
-    }
-
     SuperColumn getSuperColumnMutation(Summary summary) throws IOException
     {
         List<Column> columns = new ArrayList<Column>(summary.getValues().size());
@@ -288,8 +301,40 @@ public class CassandraDataStore implements DataStore
         return superColumn;
     }
 
+    public Map<String, List<SuperColumn>> update(String entityId, Summary summary) throws IOException
+    {
+        Map<String, List<SuperColumn>> superColumnOperations = new HashMap<String, List<SuperColumn>>();
+
+        // For every type that can be summarized read/increment/update
+        // their summary.
+        Type type = Type.YEARLY;
+        while (type != Type.REALTIME)
+        {
+            // Read the old data.
+            DateRange range = DateRange.create(type, new Date(summary.getTimestamp()));
+            Iterator<Summary> iter = find(entityId, type, range.start, range.end);
+            Map<String, Object> values = MetricUtils.summarize(iter);
+
+            // Update/merge with the values that we'd like to insert.
+            MetricUtils.merge(values, summary.getValues());
+
+            // Insert the newly updated summary.
+            log.debug("Inserting a newly updated summary for entity '" + entityId + "', type '" + type + "'");
+            Summary replacement = new Summary(type, range.start.getTime(), values);
+
+            // Add the mutation to the list of batch stuffs
+            List<SuperColumn> superColumns = new ArrayList<SuperColumn>(1);
+            superColumns.add(getSuperColumnMutation(replacement));
+            superColumnOperations.put(replacement.getType().toString(), superColumns);
+
+            type = type.moreGranular();
+        }
+
+        return superColumnOperations;
+    }
+
     @Override
-    public void persist(String entityId, Summary summary)
+    public void persist(String entityId, Summary summary) throws IOException
     {
         if (summary.getType() != Type.REALTIME)
         {
@@ -309,49 +354,62 @@ public class CassandraDataStore implements DataStore
         }
 
         Keyspace keyspace = null;
+        Lock lock = LockFactory.get();
         try
         {
             keyspace = client.getKeyspace(keyspaceName);
 
-            Map<String, List<SuperColumn>> superColumnOperations = new HashMap<String, List<SuperColumn>>();
-
-            // For every type that can be summarized read/increment/update
-            // their summary.
-            Type type = Type.YEARLY;
-            while (type != Type.REALTIME)
+            // Because we're updating in a batch, the best lock we can do is to
+            // lock the whole row. This kind of sucks, but hopefully the same
+            // entity isn't concurrently written to extremely often.
+            int attempts = 0;
+            while (attempts < MAX_RETRIES)
             {
-                // Read the old data.
-                DateRange range = DateRange.create(type, new Date(summary.getTimestamp()));
-                Iterator<Summary> iter = find(entityId, type, range.start, range.end);
-                Map<String, Object> values = MetricUtils.summarize(iter);
+                if (lock.acquire(entityId))
+                {
+                    try
+                    {
+                        Map<String, List<SuperColumn>> superColumnOperations = update(entityId, summary);
+                        keyspace.batchInsert(entityId, null, superColumnOperations);
+                        break;
+                    }
+                    finally
+                    {
+                        lock.release(entityId);
+                    }
+                }
+                else
+                {
+                    // This row is already locked and being written to. Wait it out.
+                    attempts += 1;
+                    log.debug("'" + entityId + "' is already locked, waiting for it to free up (this was attempt " + attempts + " of " + MAX_RETRIES + ").");
 
-                // Update/merge with the values that we'd like to insert.
-                MetricUtils.merge(values, summary.getValues());
-
-                // Insert the newly updated summary.
-                log.debug("Inserting a newly updated summary for entity '" + entityId + "', type '" + type + "'");
-                Summary replacement = new Summary(type, range.start.getTime(), values);
-
-                // Add the mutation to the list of batch stuffs
-                List<SuperColumn> superColumns = new ArrayList<SuperColumn>(1);
-                superColumns.add(getSuperColumnMutation(replacement));
-                superColumnOperations.put(replacement.getType().toString(), superColumns);
-
-                type = type.moreGranular();
+                    // Do a linear backoff and sleep until wee try to acquire
+                    // the lock again.
+                    Thread.sleep(200 * attempts);
+                }
             }
 
-            keyspace.batchInsert(entityId, null, superColumnOperations);
+            if (attempts == MAX_RETRIES)
+            {
+                // We failed to acquire a lock to write the row and we've
+                // exceeded the allowable number of retries. We're really borked
+                // in a serious way, so throw an exception.
+                throw new IOException("Unable to acquire a lock on the '" + entityId + "' row after " + MAX_RETRIES + " attempts. Aborting this write.");
+            }
         }
         catch (NotFoundException e)
         {
-            throw new InternalException("Keyspace '" + keyspaceName + "' not found.");
+            throw new IOException("Keyspace '" + keyspaceName + "' not found.");
         }
         catch (Exception e)
         {
-            throw new InternalException("Unknown exception saving summary.", e);
+            throw new IOException("Unknown exception saving summary.", e);
         }
         finally
         {
+            IOException possiblyThrown = null;
+
             try
             {
                 pool.releaseClient(keyspace == null ? client : keyspace.getClient());
@@ -359,6 +417,15 @@ public class CassandraDataStore implements DataStore
             catch (Exception e)
             {
                 log.warn("Unable to release the cassandra client for some reason (not good).", e);
+                possiblyThrown = new IOException(e);
+            }
+
+            if (possiblyThrown != null)
+            {
+                // Doesn't really matter which one is thrown, we just want to
+                // chuck out any exceptions and let someone smarter than us
+                // deal with them.
+                throw possiblyThrown;
             }
         }
     }

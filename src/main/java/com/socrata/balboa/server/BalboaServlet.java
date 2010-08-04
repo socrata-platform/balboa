@@ -10,6 +10,8 @@ import com.socrata.balboa.server.exceptions.InternalException;
 import com.socrata.balboa.server.exceptions.InvalidRequestException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.pojava.datetime.DateTime;
@@ -20,6 +22,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -88,7 +91,14 @@ public class BalboaServlet extends HttpServlet
             // Any other problems were things we weren't expecting.
             log.fatal("Unexpected exception handling a request.", e);
             response.setStatus(500);
-            response.getOutputStream().write("Internal error.".getBytes());
+
+            Map<String, Object> error = new HashMap<String, Object>();
+            error.put("error", true);
+            error.put("message", "Internal error.");
+            
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+            mapper.writeValue(response.getOutputStream(), error);
         }
         finally
         {
@@ -100,6 +110,8 @@ public class BalboaServlet extends HttpServlet
     public void init(ServletConfig config) throws ServletException
     {
         super.init(config);
+
+        Logger.getLogger("com.socrata.balboa").setLevel(Level.DEBUG);
 
         // Force our timezone to always be UTC
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
