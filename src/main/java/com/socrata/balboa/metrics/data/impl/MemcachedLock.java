@@ -9,6 +9,20 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * A simple distributed lock mechanism to allow multiple balboa "write" nodes to
+ * run concurrently.
+ *
+ * Memcache guarantees that a call to "add" is atomic and will fail if the key
+ * already exists in the cache. Because of this we can use it as a simple
+ * distributed lock.
+ *
+ * WARNING: Technically it is possible for memcached to evict our lock key while
+ * the lock is still held, causing our entire house of cards to come tumbling
+ * down. However, in practice if the memcache server is evicting keys after
+ * only two minutes, there's bigger problems. This can also be alleviated by
+ * running a memcached cluster solely for the lock services.
+ */
 public class MemcachedLock implements Lock
 {
     private static Log log = LogFactory.getLog(MemcachedLock.class);

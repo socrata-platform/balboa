@@ -1,10 +1,9 @@
 package com.socrata.balboa.metrics.data.impl;
 
-import com.socrata.balboa.metrics.data.Lock;
 import net.spy.memcached.*;
 import net.spy.memcached.transcoders.Transcoder;
-import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Test;
 
 import java.net.SocketAddress;
 import java.util.Collection;
@@ -142,19 +141,19 @@ public class MemcachedLockTest
         @Override
         public Future<Boolean> add(String s, int i, Object o)
         {
-            TheNotSoDistantFuture<Boolean> f = new TheNotSoDistantFuture<Boolean>();
+            TheNotSoDistantFuture<Boolean> nextSundayAd = new TheNotSoDistantFuture<Boolean>();
 
             if (cache.containsKey(s))
             {
-                f.value = false;
+                nextSundayAd.value = false;
             }
             else
             {
                 cache.put(s, o);
-                f.value = true;
+                nextSundayAd.value = true;
             }
 
-            return f;
+            return nextSundayAd;
         }
 
         @Override
@@ -346,19 +345,19 @@ public class MemcachedLockTest
         @Override
         public Future<Boolean> delete(String s)
         {
-            TheNotSoDistantFuture<Boolean> f = new TheNotSoDistantFuture<Boolean>();
+            TheNotSoDistantFuture<Boolean> nextSundayAD = new TheNotSoDistantFuture<Boolean>();
 
             if (cache.containsKey(s))
             {
                 cache.remove(s);
-                f.value = true;
+                nextSundayAD.value = true;
             }
             else
             {
-                f.value = false;
+                nextSundayAD.value = false;
             }
 
-            return f;
+            return nextSundayAD;
         }
 
         @Override
