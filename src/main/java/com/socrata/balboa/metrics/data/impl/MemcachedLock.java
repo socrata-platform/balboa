@@ -1,14 +1,11 @@
 package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.data.Lock;
-import net.spy.memcached.AddrUtil;
-import net.spy.memcached.MemcachedClient;
+import net.spy.memcached.MemcachedClientIF;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
@@ -19,13 +16,12 @@ public class MemcachedLock implements Lock
     // Set the lock timeout to 2 minutes.
     private static final int LOCK_TIMEOUT = 120;
 
-    MemcachedClient client;
+    MemcachedClientIF client;
     UUID id = UUID.randomUUID();
 
-    public MemcachedLock(String server) throws IOException
+    public MemcachedLock(MemcachedClientIF client) throws IOException
     {
-        List<InetSocketAddress> address = AddrUtil.getAddresses(server);
-        client = new MemcachedClient(address);
+        this.client = client;
     }
 
     @Override
@@ -66,13 +62,20 @@ public class MemcachedLock implements Lock
 
         String ownerId = (String)client.get("balboa:lock:" + name);
 
-        if (ownerId.equals(id.toString()))
+        if (ownerId == null)
         {
-            client.delete("balboa:lock:" + name);
+            log.warn("There's not lock with the key '" + name + "' acquired. Ignoring.");
         }
         else
         {
-            throw new IOException("The lock that I thought was mine turns out to have been someone else's. Not going to release it.");
+            if (ownerId.equals(id.toString()))
+            {
+                client.delete("balboa:lock:" + name);
+            }
+            else
+            {
+                throw new IOException("The lock that I thought was mine turns out to have been someone else's. Not going to release it.");
+            }
         }
     }
 }
