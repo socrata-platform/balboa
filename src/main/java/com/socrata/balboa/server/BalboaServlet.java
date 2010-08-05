@@ -10,8 +10,7 @@ import com.socrata.balboa.server.exceptions.InternalException;
 import com.socrata.balboa.server.exceptions.InvalidRequestException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.pojava.datetime.DateTime;
@@ -111,8 +110,6 @@ public class BalboaServlet extends HttpServlet
     {
         super.init(config);
 
-        Logger.getLogger("com.socrata.balboa").setLevel(Level.DEBUG);
-
         // Force our timezone to always be UTC
         TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
 
@@ -120,7 +117,8 @@ public class BalboaServlet extends HttpServlet
         {
             // Initialize the configuration so that we set any log4j or external
             // configuration values properly.
-            Configuration.get();
+            Configuration properties = Configuration.get();
+            PropertyConfigurator.configure(properties);
         }
         catch (IOException e)
         {
