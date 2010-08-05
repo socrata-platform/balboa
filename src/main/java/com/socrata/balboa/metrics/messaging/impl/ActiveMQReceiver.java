@@ -28,7 +28,7 @@ public class ActiveMQReceiver implements Receiver, MessageListener
     {
         connection = connFactory.createConnection();
 
-        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        session = connection.createSession(true, Session.SESSION_TRANSACTED);
         queue = session.createQueue(queueName);
 
         consumer = session.createConsumer(queue);
@@ -46,7 +46,7 @@ public class ActiveMQReceiver implements Receiver, MessageListener
             throw new InternalException("Default timezone is not UTC so this " +
                     "request will not be serviced so our data stays consistent.");
         }
-        
+
         try
         {
             TextMessage text = (TextMessage)message;
@@ -54,7 +54,17 @@ public class ActiveMQReceiver implements Receiver, MessageListener
             String serialized = text.getText();
             ObjectMapper mapper = new ObjectMapper();
 
-            Map<String, Object> data = (Map<String, Object>)mapper.readValue(serialized, Object.class);
+            Map<String, Object> data;
+            try
+            {
+                data = (Map<String, Object>)mapper.readValue(serialized, Object.class);
+            }
+            catch (IOException e)
+            {
+                log.error("There was a problem parsing the JSON into a summary. Ignoring this message.", e);
+                return;
+            }
+
             String entityId = (String)data.remove("entityId");
             Number timestamp = (Number)data.remove("timestamp");
 
@@ -62,14 +72,19 @@ public class ActiveMQReceiver implements Receiver, MessageListener
             Summary summary = new Summary(Summary.Type.REALTIME, timestamp.longValue(), data);
 
             received(entityId, summary);
+            session.commit();
         }
-        catch (IOException e)
+        catch (Throwable e)
         {
-            log.error("There was a problem parsing the JSON into a summary. Ignoring.", e);
-        }
-        catch (JMSException e)
-        {
-            log.error("The was a problem reading text from the message. Are you connected to the right channel? Ignoring.");
+            log.error("There weas some problem processing a message. Marking it as needing redelivery.", e);
+            try
+            {
+                session.rollback();
+            }
+            catch (JMSException e1)
+            {
+                e1.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
         }
     }
 
