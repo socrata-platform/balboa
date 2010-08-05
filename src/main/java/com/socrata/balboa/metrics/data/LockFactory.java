@@ -2,7 +2,7 @@ package com.socrata.balboa.metrics.data;
 
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.impl.MemcachedLock;
-import com.socrata.balboa.metrics.data.impl.NoopLock;
+import com.socrata.balboa.metrics.data.impl.MapLock;
 import com.socrata.balboa.server.exceptions.InternalException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -19,8 +19,8 @@ public class LockFactory
 
         if ("test".equals(environment))
         {
-            log.debug("Retrieving a NoopLock instance.");
-            return new NoopLock();
+            log.debug("Retrieving a MapLock instance.");
+            return new MapLock();
         }
         else
         {

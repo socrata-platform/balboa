@@ -4,6 +4,8 @@ import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.Summary.Type;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreTest;
+import com.socrata.balboa.metrics.data.Lock;
+import com.socrata.balboa.metrics.data.LockFactory;
 import org.apache.thrift.transport.TTransportException;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -35,6 +37,28 @@ public class CassandraDataStoreTest extends DataStoreTest
     public static void teardown() throws IOException
     {
         embedded.teardown();
+    }
+
+    @Test(expected=java.io.IOException.class)
+    public void testLockingAKeyWontWriteIt() throws Exception
+    {
+        DataStore ds = get();
+
+        Lock lock = LockFactory.get();
+        lock.acquire("123");
+
+        try
+        {
+            Map<String, Object> data = new HashMap<String, Object>();
+            data.put("test1", 1);
+
+            Summary summary = new Summary(Type.REALTIME, new Date(0).getTime(), data);
+            ds.persist("123", summary);
+        }
+        finally
+        {
+            lock.release("123");
+        }
     }
 
     @Test
