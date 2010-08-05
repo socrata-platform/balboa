@@ -1,12 +1,11 @@
-package com.socrata.balboa.server;
+package com.socrata.balboa.metrics.data;
 
-import com.socrata.balboa.metrics.data.DateRange;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.*;
 
-public class MetricsServiceTest
+public class QueryOptimizerTest
 {
     @Test
     public void testRangeLessThanOneHourReturnsOneHour() throws Exception
@@ -18,8 +17,8 @@ public class MetricsServiceTest
         cal.set(2010, 1, 1, 1, 55);
         Date end = cal.getTime();
 
-        MetricsService service = new MetricsService();
-        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        QueryOptimizer o  = new QueryOptimizer();
+        Map<DateRange.Type, List<DateRange>> result = o.optimalSlices(start, end);
         Assert.assertEquals(1, result.size());
     }
 
@@ -33,8 +32,8 @@ public class MetricsServiceTest
         cal.set(2010, 1, 1, 3, 55);
         Date end = cal.getTime();
 
-        MetricsService service = new MetricsService();
-        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        QueryOptimizer o  = new QueryOptimizer();
+        Map<DateRange.Type, List<DateRange>> result = o.optimalSlices(start, end);
         
         Assert.assertTrue(result.containsKey(DateRange.Type.HOURLY));
         Assert.assertEquals(1, result.get(DateRange.Type.HOURLY).size());
@@ -59,8 +58,8 @@ public class MetricsServiceTest
         cal.set(2010, 1, 2, 1, 55);
         Date end = cal.getTime();
 
-        MetricsService service = new MetricsService();
-        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        QueryOptimizer o  = new QueryOptimizer();
+        Map<DateRange.Type, List<DateRange>> result = o.optimalSlices(start, end);
 
         Assert.assertTrue(result.containsKey(DateRange.Type.HOURLY));
         Assert.assertEquals(1, result.get(DateRange.Type.HOURLY).size());
@@ -78,8 +77,8 @@ public class MetricsServiceTest
         cal.set(2010, 6, 1, 0, 55);
         Date end = cal.getTime();
 
-        MetricsService service = new MetricsService();
-        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        QueryOptimizer o  = new QueryOptimizer();
+        Map<DateRange.Type, List<DateRange>> result = o.optimalSlices(start, end);
 
         Assert.assertTrue(result.containsKey(DateRange.Type.HOURLY));
         Assert.assertEquals(2, result.get(DateRange.Type.HOURLY).size());
@@ -109,8 +108,8 @@ public class MetricsServiceTest
         cal.set(2012, 6, 1, 0, 55);
         Date end = cal.getTime();
 
-        MetricsService service = new MetricsService();
-        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        QueryOptimizer o  = new QueryOptimizer();
+        Map<DateRange.Type, List<DateRange>> result = o.optimalSlices(start, end);
 
         Assert.assertTrue(result.containsKey(DateRange.Type.HOURLY));
         Assert.assertEquals(2, result.get(DateRange.Type.HOURLY).size());
@@ -135,8 +134,8 @@ public class MetricsServiceTest
         cal.set(2011, 6, 1, 0, 55);
         Date end = cal.getTime();
 
-        MetricsService service = new MetricsService();
-        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        QueryOptimizer o  = new QueryOptimizer();
+        Map<DateRange.Type, List<DateRange>> result = o.optimalSlices(start, end);
 
         Assert.assertTrue(result.containsKey(DateRange.Type.HOURLY));
         Assert.assertEquals(2, result.get(DateRange.Type.HOURLY).size());
@@ -160,8 +159,8 @@ public class MetricsServiceTest
         cal.set(2013, 6, 1, 0, 55);
         Date end = cal.getTime();
 
-        MetricsService service = new MetricsService();
-        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        QueryOptimizer o  = new QueryOptimizer();
+        Map<DateRange.Type, List<DateRange>> result = o.optimalSlices(start, end);
 
         Assert.assertTrue(result.containsKey(DateRange.Type.HOURLY));
         Assert.assertEquals(2, result.get(DateRange.Type.HOURLY).size());
