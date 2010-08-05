@@ -30,12 +30,12 @@ public class MapDataStore implements DataStore
         return instance;
     }
 
-    public Map<Summary.Type, Tier> data = new HashMap<Summary.Type, Tier>(Summary.Type.values().length);
+    public Map<DateRange.Type, Tier> data = new HashMap<DateRange.Type, Tier>(DateRange.Type.values().length);
 
 
     public MapDataStore()
     {
-        for (Summary.Type tier : Summary.Type.values())
+        for (DateRange.Type tier : DateRange.Type.values())
         {
             data.put(tier, new Tier());
         }
@@ -161,7 +161,7 @@ public class MapDataStore implements DataStore
     }
     
     @Override
-    public Iterator<Summary> find(String entityId, Summary.Type type, Date date)
+    public Iterator<Summary> find(String entityId, DateRange.Type type, Date date)
     {
         if (data.containsKey(type))
         {
@@ -175,7 +175,7 @@ public class MapDataStore implements DataStore
     }
 
     @Override
-    public Iterator<Summary> find(String entityId, Summary.Type type, Date start, Date end)
+    public Iterator<Summary> find(String entityId, DateRange.Type type, Date start, Date end)
     {
         if (data.containsKey(type))
         {
@@ -191,15 +191,15 @@ public class MapDataStore implements DataStore
     @Override
     public void persist(String entityId, Summary summary)
     {
-        if (summary.getType() != Summary.Type.REALTIME)
+        if (summary.getType() != DateRange.Type.REALTIME)
         {
             // TODO: Necessary? Could I just summarize above the current? Doing
             // that could result in potentially inconsistent data, though...
             throw new InternalException("Unable to persist anything but realtime events with this data store.");
         }
 
-        Summary.Type type = Summary.Type.YEARLY;
-        while (type != Summary.Type.REALTIME)
+        DateRange.Type type = DateRange.Type.YEARLY;
+        while (type != DateRange.Type.REALTIME)
         {
             data.get(type).add(entityId, summary);
             type = type.moreGranular();

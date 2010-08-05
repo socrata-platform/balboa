@@ -1,6 +1,5 @@
 package com.socrata.balboa.server;
 
-import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.messaging.Receiver;
@@ -166,7 +165,7 @@ public class BalboaServlet extends HttpServlet
         MetricsService service = new MetricsService();
         ServiceUtils.validateRequired(params, new String[] {"type", "date"});
 
-        Summary.Type type = Summary.Type.valueOf(params.get("type"));
+        DateRange.Type type = DateRange.Type.valueOf(params.get("type"));
         DateTime date = DateTime.parse(params.get("date"));
 
         if (date == null)
@@ -196,7 +195,7 @@ public class BalboaServlet extends HttpServlet
         MetricsService service = new MetricsService();
         ServiceUtils.validateRequired(params, new String[] {"series", "start", "end"});
 
-        Summary.Type type = Summary.Type.valueOf(params.get("series"));
+        DateRange.Type type = DateRange.Type.valueOf(params.get("series"));
 
         DateTime nominalStart = DateTime.parse(params.get("start"));
         DateTime nominalEnd = DateTime.parse(params.get("end"));

@@ -1,7 +1,7 @@
 package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.Summary;
-import com.socrata.balboa.metrics.Summary.Type;
+import com.socrata.balboa.metrics.data.DateRange.Type;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.data.Lock;
@@ -54,7 +54,7 @@ public class CassandraDataStore implements DataStore
         static final int QUERYBUFFER = 5000;
         
         String rowId;
-        Type type;
+        DateRange.Type type;
         DateRange range;
 
         List<SuperColumn> buffer;
@@ -252,30 +252,30 @@ public class CassandraDataStore implements DataStore
     }
 
     @Override
-    public Iterator<Summary> find(String entityId, Type type, Date start, Date end)
+    public Iterator<Summary> find(String entityId, DateRange.Type type, Date start, Date end)
     {
         DateRange range = new DateRange(start, end);
 
-        if (type == Type.WEEKLY)
+        if (type == DateRange.Type.WEEKLY)
         {
             // Because there is no weekly summarization, we have to use daily
             // summaries over the course of the weekly timespan.
-            type = Type.DAILY;
+            type = DateRange.Type.DAILY;
         }
         
         return new QueryRobot(entityId, type, range);
     }
     
     @Override
-    public Iterator<Summary> find(String entityId, Type type, Date date)
+    public Iterator<Summary> find(String entityId, DateRange.Type type, Date date)
     {
         DateRange range = DateRange.create(type, date);
 
-        if (type == Type.WEEKLY)
+        if (type == DateRange.Type.WEEKLY)
         {
             // Because there is no weekly summarization, we have to use daily
             // summaries over the course of the weekly timespan.
-            type = Type.DAILY;
+            type = DateRange.Type.DAILY;
         }
         
         return new QueryRobot(entityId, type, range);
@@ -307,8 +307,8 @@ public class CassandraDataStore implements DataStore
 
         // For every type that can be summarized read/increment/update
         // their summary.
-        Type type = Type.YEARLY;
-        while (type != Type.REALTIME)
+        DateRange.Type type = DateRange.Type.YEARLY;
+        while (type != DateRange.Type.REALTIME)
         {
             // Read the old data.
             DateRange range = DateRange.create(type, new Date(summary.getTimestamp()));
@@ -336,7 +336,7 @@ public class CassandraDataStore implements DataStore
     @Override
     public void persist(String entityId, Summary summary) throws IOException
     {
-        if (summary.getType() != Type.REALTIME)
+        if (summary.getType() != DateRange.Type.REALTIME)
         {
             // TODO: Necessary? Could I just summarize above the current? Doing
             // that could result in potentially inconsistent data, though...

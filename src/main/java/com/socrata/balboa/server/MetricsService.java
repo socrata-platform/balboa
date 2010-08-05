@@ -17,17 +17,17 @@ public class MetricsService
 {
     private static Log log = LogFactory.getLog(MetricsService.class);
 
-    public Map<Summary.Type, List<DateRange>> optimalSlices(Date start, Date end)
+    public Map<DateRange.Type, List<DateRange>> optimalSlices(Date start, Date end)
     {
-        Map<Summary.Type, List<DateRange>> ranges = new HashMap<Summary.Type, List<DateRange>>();
+        Map<DateRange.Type, List<DateRange>> ranges = new HashMap<DateRange.Type, List<DateRange>>();
 
         // The best summary that we do is hourly, so use that as the base unit
         // and align on the hourly borders.
-        start = DateRange.create(Summary.Type.HOURLY, start).start;
-        end = DateRange.create(Summary.Type.HOURLY, end).end;
+        start = DateRange.create(DateRange.Type.HOURLY, start).start;
+        end = DateRange.create(DateRange.Type.HOURLY, end).end;
 
-        Summary.Type current = Summary.Type.HOURLY;
-        while (current != Summary.Type.FOREVER)
+        DateRange.Type current = DateRange.Type.HOURLY;
+        while (current != DateRange.Type.FOREVER)
         {
             if (start.getTime() + 1 < end.getTime())
             {
@@ -40,7 +40,7 @@ public class MetricsService
                 Date startUpgradeTime = DateRange.create(current.lessGranular(), start).end;
                 Date endUpgradeTime = DateRange.create(current.lessGranular(), end).start;
 
-                if (current == Summary.Type.YEARLY)
+                if (current == DateRange.Type.YEARLY)
                 {
                     // If we've done our yearly summaries, that's the best we
                     // can do, so just get out of here. (woop woop woop)
@@ -87,7 +87,7 @@ public class MetricsService
         return ranges;
     }
 
-    private List<DateRange> findToBoundary(Date start, Date end, Summary.Type type)
+    private List<DateRange> findToBoundary(Date start, Date end, DateRange.Type type)
     {
         List<DateRange> ranges = new ArrayList<DateRange>();
 
@@ -180,7 +180,7 @@ public class MetricsService
 
     public Object range(String entityId, String[] combine, DateRange range) throws IOException
     {
-        Map<Summary.Type,  List<DateRange>> slices = optimalSlices(range.start, range.end);
+        Map<DateRange.Type,  List<DateRange>> slices = optimalSlices(range.start, range.end);
 
         int numberOfQueries = 0;
         for (List<DateRange> ranges : slices.values())
@@ -197,7 +197,7 @@ public class MetricsService
         Date min = null;
         Date max = null;
 
-        for (Summary.Type type : slices.keySet())
+        for (DateRange.Type type : slices.keySet())
         {
             List<DateRange> ranges = slices.get(type);
             for (DateRange slice : ranges)
@@ -237,7 +237,7 @@ public class MetricsService
 
     public Object range(String entityId, String field, DateRange range) throws IOException
     {
-        Map<Summary.Type,  List<DateRange>> slices = optimalSlices(range.start, range.end);
+        Map<DateRange.Type,  List<DateRange>> slices = optimalSlices(range.start, range.end);
 
         int numberOfQueries = 0;
         for (List<DateRange> ranges : slices.values())
@@ -252,7 +252,7 @@ public class MetricsService
         Date min = null;
         Date max = null;
 
-        for (Summary.Type type : slices.keySet())
+        for (DateRange.Type type : slices.keySet())
         {
             List<DateRange> ranges = slices.get(type);
             for (DateRange slice : ranges)
@@ -289,7 +289,7 @@ public class MetricsService
 
     public Map<String, Object> range(String entityId, DateRange range) throws IOException
     {
-        Map<Summary.Type,  List<DateRange>> slices = optimalSlices(range.start, range.end);
+        Map<DateRange.Type,  List<DateRange>> slices = optimalSlices(range.start, range.end);
 
         int numberOfQueries = 0;
         for (List<DateRange> ranges : slices.values())
@@ -304,7 +304,7 @@ public class MetricsService
         Date min = null;
         Date max = null;
 
-        for (Summary.Type type : slices.keySet())
+        for (DateRange.Type type : slices.keySet())
         {
             List<DateRange> ranges = slices.get(type);
             for (DateRange slice : ranges)
@@ -330,7 +330,7 @@ public class MetricsService
         return results;
     }
 
-    public List<Object> series(String entityId, Summary.Type type, String[] combine, DateRange range) throws IOException
+    public List<Object> series(String entityId, DateRange.Type type, String[] combine, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
@@ -374,7 +374,7 @@ public class MetricsService
         return list;
     }
 
-    public List<Object> series(String entityId, Summary.Type type, String field, DateRange range) throws IOException
+    public List<Object> series(String entityId, DateRange.Type type, String field, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
@@ -410,7 +410,7 @@ public class MetricsService
         return list;
     }
 
-    public List<Map<String, Object>> series(String entityId, Summary.Type type, DateRange range) throws IOException
+    public List<Map<String, Object>> series(String entityId, DateRange.Type type, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
@@ -435,7 +435,7 @@ public class MetricsService
         return list;
     }
 
-    public Object get(String entityId, Summary.Type type, String[] combine, DateRange range) throws IOException
+    public Object get(String entityId, DateRange.Type type, String[] combine, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
@@ -465,7 +465,7 @@ public class MetricsService
         return data;
     }
     
-    public Object get(String entityId, Summary.Type type, String field, DateRange range) throws IOException
+    public Object get(String entityId, DateRange.Type type, String field, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
@@ -488,7 +488,7 @@ public class MetricsService
         return data;
     }
 
-    public Map<String, Object> get(String entityId, Summary.Type type, DateRange range) throws IOException
+    public Map<String, Object> get(String entityId, DateRange.Type type, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 

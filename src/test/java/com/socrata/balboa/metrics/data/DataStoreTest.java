@@ -22,11 +22,11 @@ public abstract class DataStoreTest
         data.put("test1", 1);
         data.put("test2", 2);
 
-        DateRange range = DateRange.create(Summary.Type.MONTHLY, new Date(0));
-        Summary summary = new Summary(Summary.Type.REALTIME, range.start.getTime(), data);
+        DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        Summary summary = new Summary(DateRange.Type.REALTIME, range.start.getTime(), data);
         ds.persist("testCreate", summary);
 
-        Iterator<Summary> iter = ds.find("testCreate", Summary.Type.MONTHLY, new Date(0));
+        Iterator<Summary> iter = ds.find("testCreate", DateRange.Type.MONTHLY, new Date(0));
 
         Assert.assertTrue(iter.hasNext());
 
@@ -47,18 +47,18 @@ public abstract class DataStoreTest
         data.put("test1", 1);
         data.put("test2", 2);
 
-        DateRange range = DateRange.create(Summary.Type.MONTHLY, new Date(0));
-        Summary summary = new Summary(Summary.Type.REALTIME, range.start.getTime(), data);
+        DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        Summary summary = new Summary(DateRange.Type.REALTIME, range.start.getTime(), data);
         ds.persist("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", summary);
 
         data = new HashMap<String, Object>();
         data.put("test1", 1);
         data.put("test2", 2);
         data.put("test3", 3);
-        summary = new Summary(Summary.Type.REALTIME, range.start.getTime(), data);
+        summary = new Summary(DateRange.Type.REALTIME, range.start.getTime(), data);
         ds.persist("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", summary);
 
-        Iterator<Summary> iter = ds.find("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", Summary.Type.MONTHLY, new Date(0));
+        Iterator<Summary> iter = ds.find("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", DateRange.Type.MONTHLY, new Date(0));
 
         Assert.assertTrue(iter.hasNext());
 

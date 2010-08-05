@@ -1,5 +1,6 @@
 package com.socrata.balboa.metrics;
 
+import com.socrata.balboa.metrics.data.DateRange;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -21,75 +22,7 @@ public class Summary
 {
     private static Log log = LogFactory.getLog(Summary.class);
 
-    /**
-     * The type of summary. Types fall on boundaries that are convenient and
-     * easily queried.
-     */
-    public static enum Type
-    {
-        FOREVER,
-        YEARLY,
-        MONTHLY,
-        WEEKLY,
-        DAILY,
-        HOURLY,
-        REALTIME;
-
-        @Override
-        public String toString()
-        {
-            return this.name().toLowerCase();
-        }
-
-        public Type lessGranular()
-        {
-            switch(this)
-            {
-                case REALTIME:
-                    return HOURLY;
-                case HOURLY:
-                    return DAILY;
-                case DAILY:
-                case WEEKLY:
-                    return MONTHLY;
-                case MONTHLY:
-                    return YEARLY;
-                case YEARLY:
-                    return FOREVER;
-                default:
-                    return null;
-            }
-        }
-
-        /**
-         * Retrieve the adjacent type that is more granular than the current.
-         * For example, "day" is slightly more granular than "month" which is
-         * slightly more granular than "year".
-         */
-        public Type moreGranular()
-        {
-            switch(this)
-            {
-                case FOREVER:
-                    return YEARLY;
-                case YEARLY:
-                    return MONTHLY;
-                case MONTHLY:
-                case WEEKLY:
-                    // Because weeks don't fall on month boundaries we can't
-                    // summarize them as the next best of months.
-                    return DAILY;
-                case DAILY:
-                    return HOURLY;
-                case HOURLY:
-                    return REALTIME;
-                default:
-                    return null;
-            }
-        }
-    };
-
-    public Summary(Type type, long timestamp, Map<String, Object> values)
+    public Summary(DateRange.Type type, long timestamp, Map<String, Object> values)
     {
         this.type = type;
         this.timestamp = timestamp;
@@ -101,7 +34,7 @@ public class Summary
         return timestamp;
     }
 
-    public Type getType()
+    public DateRange.Type getType()
     {
         return type;
     }
@@ -118,5 +51,5 @@ public class Summary
 
     long timestamp;
     Map<String, Object> values;
-    Type type;
+    DateRange.Type type;
 }

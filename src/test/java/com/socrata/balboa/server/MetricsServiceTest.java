@@ -1,6 +1,5 @@
 package com.socrata.balboa.server;
 
-import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.data.DateRange;
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,7 +19,7 @@ public class MetricsServiceTest
         Date end = cal.getTime();
 
         MetricsService service = new MetricsService();
-        Map<Summary.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
         Assert.assertEquals(1, result.size());
     }
 
@@ -35,19 +34,19 @@ public class MetricsServiceTest
         Date end = cal.getTime();
 
         MetricsService service = new MetricsService();
-        Map<Summary.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
         
-        Assert.assertTrue(result.containsKey(Summary.Type.HOURLY));
-        Assert.assertEquals(1, result.get(Summary.Type.HOURLY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.HOURLY));
+        Assert.assertEquals(1, result.get(DateRange.Type.HOURLY).size());
 
         cal.set(2010, 1, 1, 1, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
 
-        Assert.assertEquals(cal.getTime(), result.get(Summary.Type.HOURLY).get(0).start);
+        Assert.assertEquals(cal.getTime(), result.get(DateRange.Type.HOURLY).get(0).start);
 
         cal.set(2010, 1, 1, 3, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), result.get(Summary.Type.HOURLY).get(0).end);
+        Assert.assertEquals(cal.getTime(), result.get(DateRange.Type.HOURLY).get(0).end);
     }
 
     @Test
@@ -61,12 +60,12 @@ public class MetricsServiceTest
         Date end = cal.getTime();
 
         MetricsService service = new MetricsService();
-        Map<Summary.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
 
-        Assert.assertTrue(result.containsKey(Summary.Type.HOURLY));
-        Assert.assertEquals(1, result.get(Summary.Type.HOURLY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.HOURLY));
+        Assert.assertEquals(1, result.get(DateRange.Type.HOURLY).size());
 
-        Assert.assertFalse(result.containsKey(Summary.Type.DAILY));
+        Assert.assertFalse(result.containsKey(DateRange.Type.DAILY));
     }
 
     @Test
@@ -80,24 +79,24 @@ public class MetricsServiceTest
         Date end = cal.getTime();
 
         MetricsService service = new MetricsService();
-        Map<Summary.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
 
-        Assert.assertTrue(result.containsKey(Summary.Type.HOURLY));
-        Assert.assertEquals(2, result.get(Summary.Type.HOURLY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.HOURLY));
+        Assert.assertEquals(2, result.get(DateRange.Type.HOURLY).size());
 
-        Assert.assertTrue(result.containsKey(Summary.Type.DAILY));
-        Assert.assertEquals(1, result.get(Summary.Type.DAILY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.DAILY));
+        Assert.assertEquals(1, result.get(DateRange.Type.DAILY).size());
 
-        Assert.assertTrue(result.containsKey(Summary.Type.MONTHLY));
-        Assert.assertEquals(1, result.get(Summary.Type.MONTHLY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.MONTHLY));
+        Assert.assertEquals(1, result.get(DateRange.Type.MONTHLY).size());
 
         cal.set(2010, 1, 1, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), result.get(Summary.Type.MONTHLY).get(0).start);
+        Assert.assertEquals(cal.getTime(), result.get(DateRange.Type.MONTHLY).get(0).start);
 
         cal.set(2010, 5, 30, 23, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), result.get(Summary.Type.MONTHLY).get(0).end);
+        Assert.assertEquals(cal.getTime(), result.get(DateRange.Type.MONTHLY).get(0).end);
     }
 
     @Test
@@ -111,19 +110,19 @@ public class MetricsServiceTest
         Date end = cal.getTime();
 
         MetricsService service = new MetricsService();
-        Map<Summary.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
 
-        Assert.assertTrue(result.containsKey(Summary.Type.HOURLY));
-        Assert.assertEquals(2, result.get(Summary.Type.HOURLY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.HOURLY));
+        Assert.assertEquals(2, result.get(DateRange.Type.HOURLY).size());
 
-        Assert.assertTrue(result.containsKey(Summary.Type.DAILY));
-        Assert.assertEquals(1, result.get(Summary.Type.DAILY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.DAILY));
+        Assert.assertEquals(1, result.get(DateRange.Type.DAILY).size());
 
-        Assert.assertTrue(result.containsKey(Summary.Type.MONTHLY));
-        Assert.assertEquals(2, result.get(Summary.Type.MONTHLY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.MONTHLY));
+        Assert.assertEquals(2, result.get(DateRange.Type.MONTHLY).size());
 
-        Assert.assertTrue(result.containsKey(Summary.Type.YEARLY));
-        Assert.assertEquals(1, result.get(Summary.Type.YEARLY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.YEARLY));
+        Assert.assertEquals(1, result.get(DateRange.Type.YEARLY).size());
     }
 
     @Test
@@ -137,18 +136,18 @@ public class MetricsServiceTest
         Date end = cal.getTime();
 
         MetricsService service = new MetricsService();
-        Map<Summary.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
 
-        Assert.assertTrue(result.containsKey(Summary.Type.HOURLY));
-        Assert.assertEquals(2, result.get(Summary.Type.HOURLY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.HOURLY));
+        Assert.assertEquals(2, result.get(DateRange.Type.HOURLY).size());
 
-        Assert.assertTrue(result.containsKey(Summary.Type.DAILY));
-        Assert.assertEquals(1, result.get(Summary.Type.DAILY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.DAILY));
+        Assert.assertEquals(1, result.get(DateRange.Type.DAILY).size());
 
-        Assert.assertTrue(result.containsKey(Summary.Type.MONTHLY));
-        Assert.assertEquals(1, result.get(Summary.Type.MONTHLY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.MONTHLY));
+        Assert.assertEquals(1, result.get(DateRange.Type.MONTHLY).size());
 
-        Assert.assertFalse(result.containsKey(Summary.Type.YEARLY));
+        Assert.assertFalse(result.containsKey(DateRange.Type.YEARLY));
     }
 
     @Test
@@ -162,29 +161,29 @@ public class MetricsServiceTest
         Date end = cal.getTime();
 
         MetricsService service = new MetricsService();
-        Map<Summary.Type, List<DateRange>> result = service.optimalSlices(start, end);
+        Map<DateRange.Type, List<DateRange>> result = service.optimalSlices(start, end);
 
-        Assert.assertTrue(result.containsKey(Summary.Type.HOURLY));
-        Assert.assertEquals(2, result.get(Summary.Type.HOURLY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.HOURLY));
+        Assert.assertEquals(2, result.get(DateRange.Type.HOURLY).size());
 
-        Assert.assertTrue(result.containsKey(Summary.Type.DAILY));
-        Assert.assertEquals(1, result.get(Summary.Type.DAILY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.DAILY));
+        Assert.assertEquals(1, result.get(DateRange.Type.DAILY).size());
 
-        Assert.assertTrue(result.containsKey(Summary.Type.MONTHLY));
-        Assert.assertEquals(2, result.get(Summary.Type.MONTHLY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.MONTHLY));
+        Assert.assertEquals(2, result.get(DateRange.Type.MONTHLY).size());
 
-        Assert.assertTrue(result.containsKey(Summary.Type.YEARLY));
-        Assert.assertEquals(1, result.get(Summary.Type.YEARLY).size());
+        Assert.assertTrue(result.containsKey(DateRange.Type.YEARLY));
+        Assert.assertEquals(1, result.get(DateRange.Type.YEARLY).size());
 
         // First check that the hourly is correct. We should have the final hour
         // of Jan 30th, 2010 and the first hour of May 1st, 2013
         cal.set(2010, 0, 30, 23, 50);
-        DateRange h1 = DateRange.create(Summary.Type.HOURLY, cal.getTime());
+        DateRange h1 = DateRange.create(DateRange.Type.HOURLY, cal.getTime());
 
         cal.set(2013, 6, 1, 0, 55);
-        DateRange h2 = DateRange.create(Summary.Type.HOURLY, cal.getTime());
+        DateRange h2 = DateRange.create(DateRange.Type.HOURLY, cal.getTime());
 
-        List<DateRange> hours = result.get(Summary.Type.HOURLY);
+        List<DateRange> hours = result.get(DateRange.Type.HOURLY);
 
         Assert.assertTrue(hours.contains(h1));
         Assert.assertTrue(hours.contains(h2));
@@ -192,9 +191,9 @@ public class MetricsServiceTest
         // Next check that the daily is correct. We should have only one day:
         // Jan 31st, 2010.
         cal.set(2010, 0, 31, 1, 0);
-        DateRange d1 = DateRange.create(Summary.Type.DAILY, cal.getTime());
+        DateRange d1 = DateRange.create(DateRange.Type.DAILY, cal.getTime());
 
-        List<DateRange> days = result.get(Summary.Type.DAILY);
+        List<DateRange> days = result.get(DateRange.Type.DAILY);
 
         Assert.assertTrue(days.contains(d1));
 
@@ -216,7 +215,7 @@ public class MetricsServiceTest
         Date e = cal.getTime();
         DateRange m1 = new DateRange(s, e);
 
-        Assert.assertTrue(result.get(Summary.Type.MONTHLY).contains(m1));
+        Assert.assertTrue(result.get(DateRange.Type.MONTHLY).contains(m1));
 
         cal.set(2013, 0, 1, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
@@ -227,18 +226,18 @@ public class MetricsServiceTest
         e = cal.getTime();
         DateRange m2 = new DateRange(s, e);
 
-        Assert.assertTrue(result.get(Summary.Type.MONTHLY).contains(m2));
+        Assert.assertTrue(result.get(DateRange.Type.MONTHLY).contains(m2));
 
         // Finally we just have two years that we have to verify. 2011, and 2012
         cal.set(2011, 0, 1);
-        DateRange y1 = DateRange.create(Summary.Type.YEARLY, cal.getTime());
+        DateRange y1 = DateRange.create(DateRange.Type.YEARLY, cal.getTime());
 
         cal.set(2012, 0, 1);
-        DateRange y2 = DateRange.create(Summary.Type.YEARLY, cal.getTime());
+        DateRange y2 = DateRange.create(DateRange.Type.YEARLY, cal.getTime());
 
         DateRange ys = new DateRange(y1.start, y2.end);
 
-        List<DateRange> years = result.get(Summary.Type.YEARLY);
+        List<DateRange> years = result.get(DateRange.Type.YEARLY);
         Assert.assertTrue(years.contains(ys));
     }
 }

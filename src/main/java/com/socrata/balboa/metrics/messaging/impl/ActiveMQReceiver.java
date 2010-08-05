@@ -3,6 +3,7 @@ package com.socrata.balboa.metrics.messaging.impl;
 import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
+import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.messaging.Receiver;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -94,7 +95,7 @@ public class ActiveMQReceiver implements Receiver, MessageListener
             Number timestamp = (Number)data.remove("timestamp");
 
             // Create an actual summary.
-            Summary summary = new Summary(Summary.Type.REALTIME, timestamp.longValue(), data);
+            Summary summary = new Summary(DateRange.Type.REALTIME, timestamp.longValue(), data);
 
             received(entityId, summary);
             session.commit();
