@@ -1,9 +1,10 @@
 package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.Summary;
-import com.socrata.balboa.metrics.data.DateRange.Type;
+import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.DateRange.Type;
 import com.socrata.balboa.metrics.data.Lock;
 import com.socrata.balboa.metrics.data.LockFactory;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
@@ -307,8 +308,9 @@ public class CassandraDataStore implements DataStore
 
         // For every type that can be summarized read/increment/update
         // their summary.
-        DateRange.Type type = DateRange.Type.YEARLY;
-        while (type != DateRange.Type.REALTIME)
+        List<DateRange.Type> types = Configuration.get().getSupportedTypes();
+        DateRange.Type type = Type.leastGranular(types);
+        while (type != null && type != DateRange.Type.REALTIME)
         {
             // Read the old data.
             DateRange range = DateRange.create(type, new Date(summary.getTimestamp()));
@@ -328,6 +330,10 @@ public class CassandraDataStore implements DataStore
             superColumnOperations.put(replacement.getType().toString(), superColumns);
 
             type = type.moreGranular();
+            while (type != null && !types.contains(type))
+            {
+                type = type.moreGranular();
+            }
         }
 
         return superColumnOperations;

@@ -1,14 +1,11 @@
 package com.socrata.balboa.metrics.data;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
 
 public class DateRange
 {
     /**
-     * The type of summary. Types fall on boundaries that are convenient and
-     * easily queried.
+     * A type of time span.
      */
     public static enum Type
     {
@@ -18,6 +15,8 @@ public class DateRange
         WEEKLY,
         DAILY,
         HOURLY,
+        MINUTELY,
+        SECONDLY,
         REALTIME;
 
         @Override
@@ -26,11 +25,30 @@ public class DateRange
             return this.name().toLowerCase();
         }
 
+        public static DateRange.Type leastGranular(Collection<Type> col)
+        {
+            return Collections.min(col);
+        }
+
+        public static DateRange.Type mostGranular(Collection<DateRange.Type> col)
+        {
+            return Collections.max(col);
+        }
+
+        /**
+         * Retrieve the adjacent type that is less granular that the current.
+         * For example, "day" is less granular than "hour" which is slightly
+         * less granular than "minute".
+         */
         public Type lessGranular()
         {
             switch(this)
             {
                 case REALTIME:
+                    return SECONDLY;
+                case SECONDLY:
+                    return MINUTELY;
+                case MINUTELY:
                     return HOURLY;
                 case HOURLY:
                     return DAILY;
@@ -67,6 +85,10 @@ public class DateRange
                 case DAILY:
                     return HOURLY;
                 case HOURLY:
+                    return MINUTELY;
+                case MINUTELY:
+                    return SECONDLY;
+                case SECONDLY:
                     return REALTIME;
                 default:
                     return null;
@@ -299,12 +321,70 @@ public class DateRange
         return new DateRange(start.getTime(), end.getTime());
     }
 
+    /**
+     * Create a minute range for a given time. So if the date is
+     * "2010-05-28 16:14:08" then the returned range would be
+     * (2010-05-28 16:14:00 -> 2010-05-28 16:14:59).
+     */
+    static DateRange createMinutely(Date date)
+    {
+        Calendar start = new GregorianCalendar();
+        start.setTime(date);
+
+        // Set the time to the beginning of the hour of the requested date.
+        start.set(start.get(Calendar.YEAR),
+                  start.get(Calendar.MONTH),
+                  start.get(Calendar.DATE),
+                  start.get(Calendar.HOUR_OF_DAY),
+                  start.get(Calendar.MINUTE),
+                  start.getActualMinimum(Calendar.SECOND));
+        start.set(Calendar.MILLISECOND, 0);
+
+        Calendar end = new GregorianCalendar();
+        end.setTime(date);
+
+        // Set the day to the end of the day of the requested date.
+        end.set(end.get(Calendar.YEAR),
+                end.get(Calendar.MONTH),
+                end.get(Calendar.DATE),
+                end.get(Calendar.HOUR_OF_DAY),
+                end.get(Calendar.MINUTE),
+                end.getActualMaximum(Calendar.SECOND));
+        end.set(Calendar.MILLISECOND, 999);
+
+        return new DateRange(start.getTime(), end.getTime());
+    }
+
+    /**
+     * Create a second range for a given time. So if the date is
+     * "2010-05-28 16:14:08:594" then the returned range would be
+     * (2010-05-28 16:14:08:000 -> 2010-05-28 16:14:08:000).
+     */
+    static DateRange createSecondly(Date date)
+    {
+        Calendar start = new GregorianCalendar();
+        start.setTime(date);
+        start.set(Calendar.MILLISECOND, 0);
+
+        Calendar end = new GregorianCalendar();
+        end.setTime(date);
+        end.set(Calendar.MILLISECOND, 999);
+
+        return new DateRange(start.getTime(), end.getTime());
+    }
+
     public static DateRange create(Type type, Date date)
     {
         switch(type)
         {
+            case SECONDLY:
+                return createSecondly(date);
+            case MINUTELY:
+                return createMinutely(date);
             case HOURLY:
                 return createHourly(date);
+            case DAILY:
+                return createDaily(date);
             case WEEKLY:
                 return createWeekly(date);
             case MONTHLY:
@@ -314,7 +394,7 @@ public class DateRange
             case FOREVER:
                 return createForever(date);
             default:
-                return createDaily(date);
+                throw new IllegalArgumentException("Unsupported date range '" + type + "'.");
         }
     }
 

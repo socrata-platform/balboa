@@ -3,12 +3,30 @@ package com.socrata.balboa.metrics.data;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.*;
 
 public class DateRangeTest
 {
+    @Test
+    public void testLeastGranular() throws Exception
+    {
+        List<DateRange.Type> types = Arrays.asList(DateRange.Type.values());
+
+        DateRange.Type t = DateRange.Type.leastGranular(types);
+
+        Assert.assertEquals(DateRange.Type.FOREVER, t);
+    }
+
+    @Test
+    public void testMostGranular() throws Exception
+    {
+        List<DateRange.Type> types = Arrays.asList(DateRange.Type.values());
+
+        DateRange.Type t = DateRange.Type.mostGranular(types);
+
+        Assert.assertEquals(DateRange.Type.REALTIME, t);
+    }
+
     @Test
     public void testForever() throws Exception
     {

@@ -65,7 +65,7 @@ public class CassandraDataStoreTest extends DataStoreTest
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("test1", 1);
 
-        for (int i=0; i < CassandraDataStore.QueryRobot.QUERYBUFFER * 2; i++)
+        for (int i=0; i < 25; i++)
         {
             Summary summary = new Summary(DateRange.Type.REALTIME, new Date(0).getTime() + i, data);
             ds.persist("123", summary);

@@ -1,10 +1,13 @@
 package com.socrata.balboa.metrics.config;
 
+import com.socrata.balboa.metrics.data.DateRange;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -17,6 +20,8 @@ public class Configuration extends Properties
     private static Log log = LogFactory.getLog(Configuration.class);
 
     static Configuration instance;
+
+    private List<DateRange.Type> supportedTypes;
 
     public static synchronized Configuration get() throws IOException
     {
@@ -55,5 +60,26 @@ public class Configuration extends Properties
             log.warn("Unable to load environment specific configuration file for '" + environment + "', but it's not " +
                     "required so I'll just ignore this error.");
         }
+    }
+
+    void setSupportedTypes(List<DateRange.Type> supportedTypes)
+    {
+        this.supportedTypes = supportedTypes;
+    }
+
+    synchronized public List<DateRange.Type> getSupportedTypes()
+    {
+        if (supportedTypes == null)
+        {
+            String[] types = ((String)getProperty("balboa.summaries")).split(",");
+
+            supportedTypes = new ArrayList<DateRange.Type>(types.length);
+            for (String t : types)
+            {
+                supportedTypes.add(DateRange.Type.valueOf(t.toUpperCase()));
+            }
+        }
+
+        return supportedTypes;
     }
 }

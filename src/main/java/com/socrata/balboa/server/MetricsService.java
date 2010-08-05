@@ -1,12 +1,14 @@
 package com.socrata.balboa.server;
 
 import com.socrata.balboa.metrics.Summary;
+import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.measurements.combining.Summation;
 import com.socrata.balboa.metrics.utils.MetricUtils;
+import com.socrata.balboa.server.exceptions.InternalException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -21,13 +23,25 @@ public class MetricsService
     {
         Map<DateRange.Type, List<DateRange>> ranges = new HashMap<DateRange.Type, List<DateRange>>();
 
-        // The best summary that we do is hourly, so use that as the base unit
-        // and align on the hourly borders.
-        start = DateRange.create(DateRange.Type.HOURLY, start).start;
-        end = DateRange.create(DateRange.Type.HOURLY, end).end;
+        List<DateRange.Type> types;
+        try
+        {
+            types = Configuration.get().getSupportedTypes();
+        }
+        catch (IOException e)
+        {
+            throw new InternalException("Unable to load configuration for some reason.", e);
+        }
 
-        DateRange.Type current = DateRange.Type.HOURLY;
-        while (current != DateRange.Type.FOREVER)
+        DateRange.Type mostGranular = DateRange.Type.mostGranular(types);
+        DateRange.Type leastGranular = DateRange.Type.leastGranular(types);
+
+        // Align our base unit along the most granular type that is configured
+        start = DateRange.create(mostGranular, start).start;
+        end = DateRange.create(mostGranular, end).end;
+
+        DateRange.Type current = mostGranular;
+        while (current != null && current != DateRange.Type.FOREVER)
         {
             if (start.getTime() + 1 < end.getTime())
             {
@@ -40,9 +54,9 @@ public class MetricsService
                 Date startUpgradeTime = DateRange.create(current.lessGranular(), start).end;
                 Date endUpgradeTime = DateRange.create(current.lessGranular(), end).start;
 
-                if (current == DateRange.Type.YEARLY)
+                if (current == leastGranular)
                 {
-                    // If we've done our yearly summaries, that's the best we
+                    // If we've done our leas gran summaries, that's the best we
                     // can do, so just get out of here. (woop woop woop)
                     break;
                 }
@@ -74,6 +88,10 @@ public class MetricsService
                 }
 
                 current = current.lessGranular();
+                while (current != null && !types.contains(current))
+                {
+                    current = current.lessGranular();
+                }
             }
             else
             {
