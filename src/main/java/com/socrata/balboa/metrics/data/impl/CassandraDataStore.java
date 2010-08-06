@@ -19,10 +19,76 @@ import org.apache.commons.logging.LogFactory;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * A DataStore implementation using <a href="http://cassandra.apache.org/">
+ * cassandra</a> as the storage backend.
+ *
+ * The cassandra data model defines a keyspace in the balboa configuration file
+ * (cassandra.keyspace). Underneath the keyspace, this datastore expects there
+ * to be some super column ColumnFamilies. There should be a ColumnFamily for
+ * each configured summary date range type (<code>DateRange.Type</code>).
+ *
+ * e.g.
+ *
+ * <code>
+ *     &lt;ColumnFamily Name="hourly" ColumnType="Super" CompareWith="LongType" /&gt;
+ *     &lt;ColumnFamily Name="daily" ColumnType="Super" CompareWith="LongType" /&gt;
+ * </code>
+ *
+ * The keys for the ColumnFamily should be packed longs that are the timestamp
+ * for the summary in milliseconds. The timestamp for the summary period should,
+ * by convention always be the first millisecond of the time period, but in
+ * practice the data store doesn't care as log as the timestamp is within the
+ * time period.
+ *
+ * The organization of the data is most easily illustrated by some pseudo json:
+ *
+ * <code>
+ *     {
+ *         // The entity id (the thing for which you're storing stats) is the
+ *         // cassandra row id.
+ *         #{entityId}: {
+ *             // Under the entity id is the super columns which are the various
+ *             // summary tiers (i.e. hourly, secondly, yearly, etc.)
+ *             hourly: { ... },
+ *             daily: {
+ *                 // The keys for each super column is the timestamp for the
+ *                 // summary of items for that time slice...
+ *                 1111111111: {
+ *                     // The keys of the sub columns are the metric names and
+ *                     // their value is the accumulated metric value.
+ *                     metric1: 123,
+ *                     metric2: 1,
+ *                     metric3: 8239.32
+ *                 }
+ *             }
+ *         }
+ *     }
+ * </code>
+ *
+ * When a set of data gets persisted, the datastore first locks the row that its
+ * going to persist to then walks up each summary level and combines the values
+ * to be written with the current values. Because of this, summary tiers are
+ * always as up to date as the events that have been written are and reads are
+ * extremely cheap (typically, even over a long range query with the default
+ * summary range type configuration, balboa won't need to read more than seven
+ * items). Writes on the other hand are relatively expensive, since each write
+ * requires 'n' updates (where 'n' is the number of summary range types that are
+ * enabled).
+ *
+ * Writes also have to lock the entire row because of the way column writes are
+ * batched so some write nodes will block on writing until they can acquire a
+ * lock and lock contention could be a problem on very active entity's. 
+ */
 public class CassandraDataStore implements DataStore
 {
+    /** The maximum number of retries to acquire a lock before giving up */
     private static final int MAX_RETRIES = 5;
 
+    /**
+     * Thrown in the event that there's a problem with the QueryRobot speaking
+     * to cassandra.
+     */
     public class CassandraQueryException extends RuntimeException
     {
         public CassandraQueryException()
@@ -52,6 +118,7 @@ public class CassandraDataStore implements DataStore
      */
     public class QueryRobot implements Iterator<Summary>
     {
+        /** The maxiumum number of super columns to read in one query. */
         static final int QUERYBUFFER = 5000;
         
         String rowId;
