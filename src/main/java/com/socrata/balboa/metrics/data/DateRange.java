@@ -400,7 +400,8 @@ public class DateRange
 
     public boolean includes(Date suspect)
     {
-        return start.before(suspect) && end.after(suspect);
+        return (start.equals(suspect) || start.before(suspect)) &&
+               (end.equals(suspect) || end.after(suspect));
     }
 
     public boolean includesToday()

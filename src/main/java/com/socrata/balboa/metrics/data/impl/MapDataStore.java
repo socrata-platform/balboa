@@ -1,8 +1,10 @@
 package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.Summary;
+import com.socrata.balboa.metrics.data.CompoundIterator;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.QueryOptimizer;
 import com.socrata.balboa.metrics.utils.MetricUtils;
 import com.socrata.balboa.server.exceptions.InternalException;
 
@@ -99,6 +101,11 @@ public class MapDataStore implements DataStore
 
         DateFilter(List<Summary> list, DateRange range)
         {
+            if (list == null)
+            {
+                list = new ArrayList<Summary>();
+            }
+            
             this.internal = list.iterator();
             this.range = range;
         }
@@ -159,7 +166,26 @@ public class MapDataStore implements DataStore
             throw new UnsupportedOperationException("Not supported.");
         }
     }
-    
+
+    @Override
+    public Iterator<Summary> find(String entityId, Date start, Date end)
+    {
+        DateRange range = new DateRange(start, end);
+        QueryOptimizer optimizer = new QueryOptimizer();
+        Map<DateRange.Type,  List<DateRange>> slices = optimizer.optimalSlices(range.start, range.end);
+
+        CompoundIterator iter = new CompoundIterator();
+        for (Map.Entry<DateRange.Type,  List<DateRange>> slice : slices.entrySet())
+        {
+            for (DateRange r : slice.getValue())
+            {
+                iter.add(new DateFilter(data.get(slice.getKey()).get(entityId), r));
+            }
+        }
+
+        return iter;
+    }
+
     @Override
     public Iterator<Summary> find(String entityId, DateRange.Type type, Date date)
     {

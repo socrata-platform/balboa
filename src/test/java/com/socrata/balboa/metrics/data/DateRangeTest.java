@@ -28,6 +28,66 @@ public class DateRangeTest
     }
 
     @Test
+    public void testEquals() throws Exception
+    {
+        DateRange r1 = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        DateRange r2 = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+
+        Assert.assertEquals(r1, r2);
+        r2.end = new Date(r2.end.getTime() + 1);
+        Assert.assertFalse(r1.equals(r2));
+        r2.start = new Date(r2.start.getTime() + 1);
+        Assert.assertFalse(r1.equals(r2));
+    }
+
+    @Test
+    public void testInclude() throws Exception
+    {
+        DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+
+        Assert.assertFalse(range.includes(new Date(range.start.getTime() - 1)));
+        Assert.assertTrue(range.includes(range.start));
+        Assert.assertTrue(range.includes(range.end));
+        Assert.assertTrue(range.includes(new Date(range.start.getTime() + 1)));
+        Assert.assertFalse(range.includes(new Date(range.end.getTime() + 1)));
+    }
+
+    @Test
+    public void testSecondly() throws Exception
+    {
+        Calendar cal = new GregorianCalendar();
+        cal.set(2010, 1, 12, 16, 59, 12);
+
+        DateRange range = DateRange.createSecondly(cal.getTime());
+
+        cal.set(2010, 1, 12, 16, 59, 12);
+        cal.set(Calendar.MILLISECOND, 0);
+        Assert.assertEquals(cal.getTime(), range.start);
+
+        cal.set(2010, 1, 12, 16, 59, 12);
+        cal.set(Calendar.MILLISECOND, 999);
+        Assert.assertEquals(cal.getTime(), range.end);
+    }
+
+
+    @Test
+    public void testMinutely() throws Exception
+    {
+        Calendar cal = new GregorianCalendar();
+        cal.set(2010, 1, 12, 16, 59, 12);
+
+        DateRange range = DateRange.createMinutely(cal.getTime());
+
+        cal.set(2010, 1, 12, 16, 59, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Assert.assertEquals(cal.getTime(), range.start);
+
+        cal.set(2010, 1, 12, 16, 59, 59);
+        cal.set(Calendar.MILLISECOND, 999);
+        Assert.assertEquals(cal.getTime(), range.end);
+    }
+
+    @Test
     public void testForever() throws Exception
     {
         DateRange range = DateRange.createForever(new Date(0));

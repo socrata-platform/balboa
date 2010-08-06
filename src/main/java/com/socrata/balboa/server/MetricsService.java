@@ -1,6 +1,7 @@
 package com.socrata.balboa.server;
 
 import com.socrata.balboa.metrics.Summary;
+import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
@@ -20,43 +21,9 @@ public class MetricsService
 
     public Object range(String entityId, String[] combine, DateRange range) throws IOException
     {
-        QueryOptimizer optimizer = new QueryOptimizer();
-        Map<DateRange.Type,  List<DateRange>> slices = optimizer.optimalSlices(range.start, range.end);
-
-        int numberOfQueries = 0;
-        for (List<DateRange> ranges : slices.values())
-        {
-            numberOfQueries += ranges.size();
-        }
-        log.info("Range scanning with " + numberOfQueries + " queries (lower is better).");
-
         Combinator sum = new Summation();
-
-        List<Iterator<Summary>> queries = new ArrayList<Iterator<Summary>>(numberOfQueries);
-        DataStore ds = DataStoreFactory.get();
-
-        Date min = null;
-        Date max = null;
-
-        for (DateRange.Type type : slices.keySet())
-        {
-            List<DateRange> ranges = slices.get(type);
-            for (DateRange slice : ranges)
-            {
-                if (min == null || slice.start.before(min))
-                {
-                    min = slice.start;
-                }
-                if (max == null || slice.end.after(max))
-                {
-                    max = slice.end;
-                }
-
-                queries.add(ds.find(entityId, type, slice.start, slice.end));
-            }
-        }
-
-        Map<String, Object> results = MetricUtils.summarize(queries.toArray(new Iterator[0]));
+        Map<String, Object> results = range(entityId, range);
+        
         Map<String, Object> data = new HashMap<String, Object>();
 
         for (String key : results.keySet())
@@ -70,49 +37,13 @@ public class MetricsService
             }
         }
 
-        data.put("__start__", min);
-        data.put("__end__", max);
-
         return data;
     }
 
     public Object range(String entityId, String field, DateRange range) throws IOException
     {
-        QueryOptimizer optimizer = new QueryOptimizer();
-        Map<DateRange.Type,  List<DateRange>> slices = optimizer.optimalSlices(range.start, range.end);
-
-        int numberOfQueries = 0;
-        for (List<DateRange> ranges : slices.values())
-        {
-            numberOfQueries += ranges.size();
-        }
-        log.info("Range scanning with " + numberOfQueries + " queries (lower is better).");
-
-        List<Iterator<Summary>> queries = new ArrayList<Iterator<Summary>>(numberOfQueries);
-        DataStore ds = DataStoreFactory.get();
-
-        Date min = null;
-        Date max = null;
-
-        for (DateRange.Type type : slices.keySet())
-        {
-            List<DateRange> ranges = slices.get(type);
-            for (DateRange slice : ranges)
-            {
-                if (min == null || slice.start.before(min))
-                {
-                    min = slice.start;
-                }
-                if (max == null || slice.end.after(max))
-                {
-                    max = slice.end;
-                }
-
-                queries.add(ds.find(entityId, type, slice.start, slice.end));
-            }
-        }
-
-        Map<String, Object> results = MetricUtils.summarize(queries.toArray(new Iterator[0]));
+        Map<String, Object> results = range(entityId, range);
+        
         Map<String, Object> data = new HashMap<String, Object>();
 
         for (String key : results.keySet())
@@ -123,49 +54,17 @@ public class MetricsService
             }
         }
 
-        data.put("__start__", min);
-        data.put("__end__", max);
-
         return data;
     }
 
     public Map<String, Object> range(String entityId, DateRange range) throws IOException
     {
-        QueryOptimizer optimizer = new QueryOptimizer();
-        Map<DateRange.Type,  List<DateRange>> slices = optimizer.optimalSlices(range.start, range.end);
-
-        int numberOfQueries = 0;
-        for (List<DateRange> ranges : slices.values())
-        {
-            numberOfQueries += ranges.size();
-        }
-        log.info("Range scanning with " + numberOfQueries + " queries (lower is better).");
-
-        List<Iterator<Summary>> queries = new ArrayList<Iterator<Summary>>(numberOfQueries);
         DataStore ds = DataStoreFactory.get();
 
-        Date min = null;
-        Date max = null;
+        Date min = DateRange.create(DateRange.Type.mostGranular(Configuration.get().getSupportedTypes()), range.start).start;
+        Date max = DateRange.create(DateRange.Type.mostGranular(Configuration.get().getSupportedTypes()), range.end).end;
 
-        for (DateRange.Type type : slices.keySet())
-        {
-            List<DateRange> ranges = slices.get(type);
-            for (DateRange slice : ranges)
-            {
-                if (min == null || slice.start.before(min))
-                {
-                    min = slice.start;
-                }
-                if (max == null || slice.end.after(max))
-                {
-                    max = slice.end;
-                }
-                
-                queries.add(ds.find(entityId, type, slice.start, slice.end));
-            }
-        }
-
-        Map<String, Object> results = MetricUtils.summarize(queries.toArray(new Iterator[0]));
+        Map<String, Object> results = MetricUtils.summarize(ds.find(entityId, range.start, range.end));
 
         results.put("__start__", min);
         results.put("__end__", max);

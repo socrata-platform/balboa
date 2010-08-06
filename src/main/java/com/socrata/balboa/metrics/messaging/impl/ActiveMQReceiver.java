@@ -86,6 +86,10 @@ public class ActiveMQReceiver implements Receiver, MessageListener
             catch (IOException e)
             {
                 log.error("There was a problem parsing the JSON into a summary. Ignoring this message.", e);
+
+                // If there was a problem parsing the JSON in a message,
+                // we can never possibly recover, so just commit that this
+                // message was received and move on.
                 session.commit();
                 
                 return;
@@ -98,6 +102,9 @@ public class ActiveMQReceiver implements Receiver, MessageListener
             Summary summary = new Summary(DateRange.Type.REALTIME, timestamp.longValue(), data);
 
             received(entityId, summary);
+
+            // Provided there were no exceptions receiving the message and
+            // persisting it, commit the result.
             session.commit();
         }
         catch (Exception e)
@@ -106,6 +113,12 @@ public class ActiveMQReceiver implements Receiver, MessageListener
             
             try
             {
+                // If there was some problem receiving the message or commiting
+                // it or, really, any problem in the processing that's not
+                // expected, we should rollback the results (which marks the
+                // message as not-delivered). The JMS provider will try to
+                // redeliver as it sees fit and hopefully things will be working
+                // for the next node that gets it.
                 session.rollback();
             }
             catch (JMSException e1)

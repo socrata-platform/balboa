@@ -2,11 +2,8 @@ package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.metrics.data.DataStore;
-import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.*;
 import com.socrata.balboa.metrics.data.DateRange.Type;
-import com.socrata.balboa.metrics.data.Lock;
-import com.socrata.balboa.metrics.data.LockFactory;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
 import com.socrata.balboa.metrics.utils.MetricUtils;
@@ -189,7 +186,10 @@ public class CassandraDataStore implements DataStore
         {
             // Make sure that we're not executing a query when we've still got
             // some unprocessed buffer left.
-            assert(buffer.size() == 0);
+            if (buffer != null)
+            {
+                assert(buffer.size() == 0);
+            }
 
             // Don't perform the query if we're already past the end of the
             // buffer.
@@ -347,6 +347,31 @@ public class CassandraDataStore implements DataStore
         }
         
         return new QueryRobot(entityId, type, range);
+    }
+
+    @Override
+    public Iterator<Summary> find(String entityId, Date start, Date end)
+    {
+        DateRange range = new DateRange(start, end);
+        QueryOptimizer optimizer = new QueryOptimizer();
+        Map<DateRange.Type,  List<DateRange>> slices = optimizer.optimalSlices(range.start, range.end);
+
+        int numberOfQueries = 0;
+
+        CompoundIterator iter = new CompoundIterator();
+        for (Map.Entry<DateRange.Type,  List<DateRange>> slice : slices.entrySet())
+        {
+            numberOfQueries += slice.getValue().size();
+            
+            for (DateRange r : slice.getValue())
+            {
+                iter.add(new QueryRobot(entityId, slice.getKey(), r));
+            }
+        }
+
+        log.debug("Range scanned with " + numberOfQueries + " queries (lower is better).");
+
+        return iter;
     }
 
     SuperColumn getSuperColumnMutation(Summary summary) throws IOException

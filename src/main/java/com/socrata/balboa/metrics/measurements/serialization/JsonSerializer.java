@@ -23,6 +23,6 @@ public class JsonSerializer implements Serializer<Object>
     {
         ObjectMapper mapper = new ObjectMapper();
 
-        return mapper.readValue(serialized.toString(), Object.class);
+        return mapper.readValue(new String(serialized), Object.class);
     }
 }
