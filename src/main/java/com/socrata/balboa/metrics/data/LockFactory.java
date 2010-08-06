@@ -1,8 +1,8 @@
 package com.socrata.balboa.metrics.data;
 
 import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.metrics.data.impl.MemcachedLock;
 import com.socrata.balboa.metrics.data.impl.MapLock;
+import com.socrata.balboa.metrics.data.impl.MemcachedLock;
 import com.socrata.balboa.server.exceptions.InternalException;
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.MemcachedClient;

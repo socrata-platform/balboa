@@ -7,8 +7,15 @@ public class ConfigurationTest
     @Test
     public void testInvalidEnvironmentNoCrash() throws Exception
     {
-        Configuration.instance = null;
-        System.setProperty("socrata.env", "snuffleupadata");
-        Configuration.get();
+        try
+        {
+            Configuration.instance = null;
+            System.setProperty("socrata.env", "snuffleupadata");
+            Configuration.get();
+        }
+        finally
+        {
+            System.setProperty("socrata.env", "test");
+        }
     }
 }
