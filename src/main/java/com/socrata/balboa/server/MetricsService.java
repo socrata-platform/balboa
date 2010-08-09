@@ -5,7 +5,6 @@ import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.data.QueryOptimizer;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.measurements.combining.Summation;
 import com.socrata.balboa.metrics.utils.MetricUtils;
@@ -30,7 +29,7 @@ public class MetricsService
         {
             for (String field : combine)
             {
-                if (key.matches(field))
+                if (!key.startsWith("__") && key.matches(field))
                 {
                     data.put("result", sum.combine(results.get(key), data.get("result")));
                 }
@@ -48,7 +47,7 @@ public class MetricsService
 
         for (String key : results.keySet())
         {
-            if (key.matches(field))
+            if (!key.startsWith("__") && key.matches(field))
             {
                 data.put(key, results.get(key));
             }
