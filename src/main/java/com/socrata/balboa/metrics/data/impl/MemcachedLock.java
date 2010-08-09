@@ -27,8 +27,8 @@ public class MemcachedLock implements Lock
 {
     private static Log log = LogFactory.getLog(MemcachedLock.class);
 
-    // Set the lock timeout to 2 minutes.
-    private static final int LOCK_TIMEOUT = 120;
+    // Set the lock timeout to 20 seconds.
+    private static final int LOCK_TIMEOUT = 20;
 
     MemcachedClientIF client;
     UUID id = UUID.randomUUID();

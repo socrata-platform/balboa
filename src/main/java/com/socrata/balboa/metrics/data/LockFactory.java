@@ -16,6 +16,28 @@ import java.util.List;
 public class LockFactory
 {
     private static Log log = LogFactory.getLog(LockFactory.class);
+    private static MemcachedClient client;
+
+    static synchronized MemcachedClient getCacheClient() throws IOException
+    {
+        if (client == null)
+        {
+            Configuration config = Configuration.get();
+            String serverConfig = config.getProperty("memcached.servers");
+
+            if (serverConfig == null)
+            {
+                throw new InternalException("memcached.servers must be configured in order to enable locking.");
+            }
+
+            log.debug("Retrieving a MemcachedLock instance for the '" + serverConfig + "' memcache servers.");
+
+            List<InetSocketAddress> address = AddrUtil.getAddresses(serverConfig);
+            client = new MemcachedClient(address);
+        }
+
+        return client;
+    }
 
     public static Lock get() throws IOException
     {
@@ -30,19 +52,7 @@ public class LockFactory
         {
             try
             {
-                Configuration config = Configuration.get();
-                String serverConfig = config.getProperty("memcached.servers");
-
-                if (serverConfig == null)
-                {
-                    throw new InternalException("memcached.servers must be configured in order to enable locking.");
-                }
-
-                log.debug("Retrieving a MemcachedLock instance for the '" + serverConfig + "' memcache servers.");
-                List<InetSocketAddress> address = AddrUtil.getAddresses(serverConfig);
-                MemcachedClient client = new MemcachedClient(address);
-                
-                return new MemcachedLock(client);
+                return new MemcachedLock(getCacheClient());
             }
             catch (IOException e)
             {
