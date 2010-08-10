@@ -10,6 +10,14 @@ import java.math.BigDecimal;
 public class ProtocolBuffersSerializerTest
 {
     @Test
+    public void testIntOverflow() throws Exception
+    {
+        Serializer ser = new ProtocolBuffersSerializer();
+        int hopefullyTheSame = (Integer)ser.deserialize(ser.serialize(128));
+        Assert.assertEquals(128, hopefullyTheSame);
+    }
+
+    @Test
     public void testInt() throws Exception
     {
         Serializer ser = new ProtocolBuffersSerializer();
