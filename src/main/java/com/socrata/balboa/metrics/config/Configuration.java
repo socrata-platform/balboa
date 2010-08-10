@@ -27,12 +27,10 @@ public class Configuration extends Properties
     {
         if (instance == null)
         {
-            return new Configuration();
+            instance = new Configuration();
         }
-        else
-        {
-            return instance;
-        }
+        
+        return instance;
     }
 
     public Configuration() throws IOException
