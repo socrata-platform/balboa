@@ -12,6 +12,12 @@ public class SummationTest
     Summation sum = new Summation();
 
     @Test
+    public void testShort() throws Exception
+    {
+        Assert.assertEquals(128, sum.combine(new Short("127"), 1));
+    }
+
+    @Test
     public void testIntegerLikeObjects() throws Exception
     {
         Assert.assertEquals(20, sum.combine(new Integer(10), new Integer(10)));

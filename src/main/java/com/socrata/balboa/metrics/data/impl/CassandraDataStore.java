@@ -12,6 +12,7 @@ import me.prettyprint.cassandra.service.*;
 import org.apache.cassandra.thrift.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.util.*;
@@ -405,15 +406,20 @@ public class CassandraDataStore implements DataStore
         while (type != null && type != DateRange.Type.REALTIME)
         {
             // Read the old data.
+            log.debug("Reading existing records for " + type + ".");
             DateRange range = DateRange.create(type, new Date(summary.getTimestamp()));
             Iterator<Summary> iter = find(entityId, type, range.start, range.end);
+            log.debug("Summarizing existing records.");
             Map<String, Object> values = MetricUtils.summarize(iter);
 
             // Update/merge with the values that we'd like to insert.
+            log.debug("Merging existing records with new values.");
+            log.debug("    => " + new ObjectMapper().writeValueAsString(values) + " / " + new ObjectMapper().writeValueAsString(summary.getValues()));
             MetricUtils.merge(values, summary.getValues());
 
             // Insert the newly updated summary.
             log.debug("Inserting a newly updated summary for entity '" + entityId + "', type '" + type + "'");
+            log.debug("    => " + new ObjectMapper().writeValueAsString(values));
             Summary replacement = new Summary(type, range.start.getTime(), values);
 
             // Add the mutation to the list of batch stuffs
