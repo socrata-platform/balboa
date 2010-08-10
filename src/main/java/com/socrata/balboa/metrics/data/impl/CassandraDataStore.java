@@ -382,11 +382,12 @@ public class CassandraDataStore implements DataStore
         Serializer ser = SerializerFactory.get();
         for (String key : summary.getValues().keySet())
         {
-            log.debug("WRITE: Writing byte array to cassandra " + Arrays.toString(ser.serialize(summary.getValues().get(key))));
+            long timestamp = TimestampResolution.MICROSECONDS.createTimestamp();
+            log.debug("WRITE: Writing byte array to cassandra (" + timestamp + ")" + Arrays.toString(ser.serialize(summary.getValues().get(key))));
             Column column = new Column(
                     key.getBytes(),
                     ser.serialize(summary.getValues().get(key)),
-                    TimestampResolution.MICROSECONDS.createTimestamp()
+                    timestamp
             );
 
             columns.add(column);
