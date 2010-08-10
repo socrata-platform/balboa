@@ -206,6 +206,7 @@ public class CassandraDataStore implements DataStore
 
                 double startTime = System.nanoTime();
                 List<SuperColumn> results = executeQuery(predicate);
+
                 log.debug("Queried cassandra " + (System.nanoTime() - startTime) / Math.pow(10,6) + " (ms)");
 
                 // Update the range so that the next time we fill the buffer, we
@@ -279,19 +280,15 @@ public class CassandraDataStore implements DataStore
                 {
                     String name = new String(subColumn.getName());
 
-                    // All of the column values are serialized and have to be
-                    // deserialized into their numeric values.
-                    String serializedValue = new String(subColumn.getValue());
-
                     try
                     {
-                        log.debug("READ: Raw serialized value from cassandra (" + subColumn.getTimestamp() + ") " + Arrays.toString(serializedValue.getBytes()));
-                        values.put(name, ser.deserialize(serializedValue.getBytes()));
+                        log.debug("READ: Raw serialized value from cassandra (" + subColumn.getTimestamp() + ") " + Arrays.toString(subColumn.getValue()));
+                        values.put(name, ser.deserialize(subColumn.getValue()));
                     }
                     catch (IOException e)
                     {
                         log.error("(" + rowId + " -> " + range + ") Unable " +
-                                "to deserialize the value '" + serializedValue +
+                                "to deserialize the value '" + subColumn.getValue() +
                                 "' in the column '" + name + "'. Ignoring " +
                                 "this metric.");
                     }
