@@ -285,7 +285,7 @@ public class CassandraDataStore implements DataStore
 
                     try
                     {
-                        log.debug("READ: Raw serialized value from cassandra " + Arrays.toString(serializedValue.getBytes()));
+                        log.debug("READ: Raw serialized value from cassandra (" + subColumn.getTimestamp() + ") " + Arrays.toString(serializedValue.getBytes()));
                         values.put(name, ser.deserialize(serializedValue.getBytes()));
                     }
                     catch (IOException e)
