@@ -2,6 +2,8 @@ package com.socrata.balboa.metrics.measurements.serialization;
 
 import com.google.protobuf.ByteString;
 import com.socrata.balboa.metrics.measurements.serialization.impl.NumbersProtos;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -9,6 +11,8 @@ import java.math.BigInteger;
 
 public class ProtocolBuffersSerializer implements Serializer
 {
+    private static Log log = LogFactory.getLog(ProtocolBuffersSerializer.class);
+
     @Override
     public byte[] serialize(Object value) throws IOException
     {
@@ -16,6 +20,8 @@ public class ProtocolBuffersSerializer implements Serializer
         {
             throw new IllegalArgumentException("Serializing null values is unsupported in protocol buffers.");
         }
+
+        log.debug("Preparing to serialize " + value + ":" + value.getClass().getSimpleName() + ".");
 
         if (value instanceof Double || value instanceof Float)
         {
