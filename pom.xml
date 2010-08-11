@@ -12,12 +12,12 @@
     <profiles>
         <profile>
           <id>test</id>
-          <properties>
-            <socrata.env>test</socrata.env>
-          </properties>
           <activation>
             <activeByDefault>true</activeByDefault>
           </activation>
+          <properties>
+            <socrata.env>test</socrata.env>
+          </properties>
         </profile>
     </profiles>
 
@@ -58,35 +58,11 @@
           <scope>test</scope>
         </dependency>
 
+        <!-- pojava for fuzzy date parsing -->
         <dependency>
           <groupId>org.pojava</groupId>
           <artifactId>pojava</artifactId>
           <version>2.3.0</version>
-        </dependency>
-
-        <dependency>
-          <groupId>org.codehaus.jackson</groupId>
-          <artifactId>jackson-core-lgpl</artifactId>
-          <version>1.5.5</version>
-        </dependency>
-
-        <dependency>
-          <groupId>org.codehaus.jackson</groupId>
-          <artifactId>jackson-mapper-lgpl</artifactId>
-          <version>1.5.5</version>
-        </dependency>
-
-        <!-- activemq -->
-        <dependency>
-            <groupId>javax.jms</groupId>
-            <artifactId>jms</artifactId>
-            <version>1.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-core</artifactId>
-            <version>5.2.0</version>
         </dependency>
 
         <!-- jetty -->
@@ -129,10 +105,20 @@
           <version>2.5</version>
         </dependency>
 
-        <!-- 
-             Dependencies for testing cassandra not in maven repos (side note: 
-             cassandra's dependencies are all kinds of fucked up who does this?)
-        -->
+        <!-- json serialization/deserialization -->
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-core-lgpl</artifactId>
+            <version>1.5.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.codehaus.jackson</groupId>
+            <artifactId>jackson-mapper-lgpl</artifactId>
+            <version>1.5.5</version>
+        </dependency>
+
+        <!-- various other misc requirements -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -140,35 +126,36 @@
         </dependency>
 
         <dependency>
-            <groupId>org.perf4j</groupId>
-            <artifactId>perf4j</artifactId>
-            <version>0.9.13</version>
-        </dependency>
-        
-        <dependency>
-          <groupId>commons-collections</groupId>
-          <artifactId>commons-collections</artifactId>
-          <version>3.2.1</version>
-        </dependency>
-
-        <dependency>
             <groupId>commons-dbcp</groupId>
             <artifactId>commons-dbcp</artifactId>
             <version>1.2.2</version>
         </dependency>
-        
+
         <dependency>
-            <groupId>com.google.collections</groupId>
-            <artifactId>google-collections</artifactId>
-            <version>1.0</version>
+            <groupId>org.perf4j</groupId>
+            <artifactId>perf4j</artifactId>
+            <version>0.9.13</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.apache.thrift</groupId>
             <artifactId>libthrift</artifactId>
             <version>r917130</version>
         </dependency>
-        
+
+        <!-- activemq -->
+        <dependency>
+            <groupId>javax.jms</groupId>
+            <artifactId>jms</artifactId>
+            <version>1.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-core</artifactId>
+            <version>5.2.0</version>
+        </dependency>
+
         <dependency>
             <groupId>reardencommerce</groupId>
             <artifactId>reardencommerce</artifactId>
@@ -220,6 +207,20 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.4.2</version>
+                <configuration>
+                  <systemProperties>
+                    <property>
+                      <name>socrata.env</name>
+                      <value>test</value>
+                    </property>
+                  </systemProperties>
+                </configuration>
+            </plugin>
+            
+            <plugin>
                 <groupId>org.mortbay.jetty</groupId>
                 <artifactId>maven-jetty-plugin</artifactId>
                 <configuration>
@@ -244,16 +245,6 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
-
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
-            </plugin>
-            
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
