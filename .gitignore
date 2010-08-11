@@ -1,6 +1,7 @@
 *.iws
 *.imp
 *.ipr
+*.swp
 balboa.i*
 target
 tmp

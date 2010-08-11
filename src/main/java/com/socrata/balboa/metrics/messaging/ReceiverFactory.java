@@ -8,8 +8,6 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import javax.jms.ConnectionFactory;
-
 public class ReceiverFactory
 {
     private static Log log = LogFactory.getLog(ReceiverFactory.class);
@@ -33,7 +31,9 @@ public class ReceiverFactory
                 String server = config.getProperty("activemq.url");
                 String channel = config.getProperty("activemq.channel");
 
-                ConnectionFactory factory = new ActiveMQConnectionFactory(server);
+                ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(server);
+                factory.setTransportListener(new ActiveMQReceiver.TransportLogger());
+                
                 return new ActiveMQReceiver(factory, channel);
             }
             catch (Exception e)

@@ -5,6 +5,7 @@ import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.messaging.Receiver;
+import org.apache.activemq.transport.TransportListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -54,6 +55,32 @@ public class ActiveMQReceiver implements Receiver, MessageListener
     private Queue queue;
     private MessageConsumer consumer;
     private Connection connection;
+
+    public static class TransportLogger implements TransportListener
+    {
+        @Override
+        public void onCommand(Object o)
+        {
+        }
+
+        @Override
+        public void onException(IOException e)
+        {
+            log.error("There was an exception on the ActiveMQReceiver's transport.", e);
+        }
+
+        @Override
+        public void transportInterupted()
+        {
+            log.error("ActiveMQ transport interrupted.");
+        }
+
+        @Override
+        public void transportResumed()
+        {
+            log.info("ActiveMQ transport resumed.");
+        }
+    }
 
     public ActiveMQReceiver(ConnectionFactory connFactory, String queueName) throws NamingException, JMSException
     {
