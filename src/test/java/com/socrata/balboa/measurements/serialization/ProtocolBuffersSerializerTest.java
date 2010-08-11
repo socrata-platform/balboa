@@ -9,14 +9,6 @@ import java.math.BigDecimal;
 
 public class ProtocolBuffersSerializerTest
 {
-    @Test public void testIntDeser2() throws Exception
-    {
-        Serializer ser = new ProtocolBuffersSerializer();
-        byte[] whoKnows = {8, 1, 16, -17, -65, -67, 1};
-
-        Assert.assertEquals(128, ser.deserialize(whoKnows));
-    }
-
     @Test
     public void testIntDeser() throws Exception
     {

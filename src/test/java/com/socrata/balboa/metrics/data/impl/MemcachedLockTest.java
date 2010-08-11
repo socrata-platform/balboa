@@ -9,6 +9,7 @@ import java.net.SocketAddress;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -55,6 +56,12 @@ public class MemcachedLockTest
     static class FakeMCClient implements MemcachedClientIF
     {
         Map<String, Object> cache = new HashMap<String, Object>();
+
+        @Override
+        public Set<String> listSaslMechanisms()
+        {
+            return null;
+        }
 
         @Override
         public Collection<SocketAddress> getAvailableServers()

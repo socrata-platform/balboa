@@ -288,7 +288,7 @@ public class CassandraDataStore implements DataStore
                     catch (IOException e)
                     {
                         log.error("(" + rowId + " -> " + range + ") Unable " +
-                                "to deserialize the value '" + subColumn.getValue() +
+                                "to deserialize the value '" + Arrays.toString(subColumn.getValue()) +
                                 "' in the column '" + name + "'. Ignoring " +
                                 "this metric.");
                     }

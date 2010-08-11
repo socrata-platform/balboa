@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+  <groupId>org.apache.thrift</groupId>
+  <artifactId>libthrift</artifactId>
+  <version>r917130</version>
+  <versioning>
+    <versions>
+      <version>r917130</version>
+    </versions>
+    <lastUpdated>20100810232751</lastUpdated>
+  </versioning>
+</metadata>
