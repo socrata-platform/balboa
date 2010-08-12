@@ -33,6 +33,7 @@ public class BalboaServlet extends HttpServlet
      * collected.
      */
     Receiver receiver;
+    Thread writer;
     
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -127,7 +128,16 @@ public class BalboaServlet extends HttpServlet
         // Initialize our receiver and it will automatically connect.
         try
         {
-            receiver = ReceiverFactory.get();
+            Runnable r = new Runnable() {
+                @Override
+                public void run()
+                {
+                    receiver = ReceiverFactory.get();
+                }
+            };
+
+            writer = new Thread(r);
+            writer.start();
         }
         catch (InternalException e)
         {
