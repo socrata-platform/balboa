@@ -5,6 +5,7 @@ import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.messaging.Receiver;
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.transport.TransportListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -13,6 +14,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import javax.jms.*;
 import javax.naming.NamingException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,14 +50,10 @@ import java.util.Map;
  * If for some reason a message cannot be persisted, it will be rejected and
  * redelivered as the JMS provider sees fit.
  */
-public class ActiveMQReceiver implements Receiver, MessageListener
+public class ActiveMQReceiver implements Receiver
 {
     private static Log log = LogFactory.getLog(ActiveMQReceiver.class);
-
-    private Session session;
-    private Queue queue;
-    private MessageConsumer consumer;
-    private Connection connection;
+    private List<Listener> listeners;
 
     public static class TransportLogger implements TransportListener
     {
@@ -82,76 +81,97 @@ public class ActiveMQReceiver implements Receiver, MessageListener
         }
     }
 
-    public ActiveMQReceiver(ConnectionFactory connFactory, String queueName) throws NamingException, JMSException
+    class Listener implements MessageListener
     {
-        connection = connFactory.createConnection();
+        private Session session;
+        private Queue queue;
+        private MessageConsumer consumer;
+        private Connection connection;
 
-        session = connection.createSession(true, Session.SESSION_TRANSACTED);
-        queue = session.createQueue(queueName);
+        public Listener(ConnectionFactory connFactory, String queueName) throws NamingException, JMSException
+        {
+            connection = connFactory.createConnection();
 
-        consumer = session.createConsumer(queue);
-        consumer.setMessageListener(this);
+            session = connection.createSession(true, Session.SESSION_TRANSACTED);
+            queue = session.createQueue(queueName);
 
-        connection.start();
+            consumer = session.createConsumer(queue);
+            consumer.setMessageListener(this);
+
+            connection.start();
+        }
+
+        @Override
+        public void onMessage(Message message)
+        {
+            try
+            {
+                TextMessage text = (TextMessage)message;
+
+                String serialized = text.getText();
+                ObjectMapper mapper = new ObjectMapper();
+
+                Map<String, Object> data;
+                try
+                {
+                    data = (Map<String, Object>)mapper.readValue(serialized, Object.class);
+                }
+                catch (IOException e)
+                {
+                    log.error("There was a problem parsing the JSON into a summary. Ignoring this message.", e);
+
+                    // If there was a problem parsing the JSON in a message,
+                    // we can never possibly recover, so just commit that this
+                    // message was received and move on.
+                    session.commit();
+
+                    return;
+                }
+
+                String entityId = (String)data.remove("entityId");
+                Number timestamp = (Number)data.remove("timestamp");
+
+                // Create an actual summary.
+                Summary summary = new Summary(DateRange.Type.REALTIME, timestamp.longValue(), data);
+
+                received(entityId, summary);
+
+                // Provided there were no exceptions receiving the message and
+                // persisting it, commit the result.
+                session.commit();
+            }
+            catch (Exception e)
+            {
+                log.error("There was some problem processing a message. Marking it as needing redelivery.", e);
+
+                try
+                {
+                    // If there was some problem receiving the message or commiting
+                    // it or, really, any problem in the processing that's not
+                    // expected, we should rollback the results (which marks the
+                    // message as not-delivered). The JMS provider will try to
+                    // redeliver as it sees fit and hopefully things will be working
+                    // for the next node that gets it.
+                    session.rollback();
+                }
+                catch (JMSException e1)
+                {
+                    log.error("There was a problem rolling back the session. This is really bad.", e1);
+                }
+            }
+        }
     }
 
-    @Override
-    public void onMessage(Message message)
+    public ActiveMQReceiver(String[] servers, String channel) throws NamingException, JMSException
     {
-        try
+        listeners = new ArrayList<Listener>(servers.length);
+
+        for (String server : servers)
         {
-            TextMessage text = (TextMessage)message;
+            ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(server);
+            factory.setTransportListener(new ActiveMQReceiver.TransportLogger());
 
-            String serialized = text.getText();
-            ObjectMapper mapper = new ObjectMapper();
-
-            Map<String, Object> data;
-            try
-            {
-                data = (Map<String, Object>)mapper.readValue(serialized, Object.class);
-            }
-            catch (IOException e)
-            {
-                log.error("There was a problem parsing the JSON into a summary. Ignoring this message.", e);
-
-                // If there was a problem parsing the JSON in a message,
-                // we can never possibly recover, so just commit that this
-                // message was received and move on.
-                session.commit();
-                
-                return;
-            }
-
-            String entityId = (String)data.remove("entityId");
-            Number timestamp = (Number)data.remove("timestamp");
-
-            // Create an actual summary.
-            Summary summary = new Summary(DateRange.Type.REALTIME, timestamp.longValue(), data);
-
-            received(entityId, summary);
-
-            // Provided there were no exceptions receiving the message and
-            // persisting it, commit the result.
-            session.commit();
-        }
-        catch (Exception e)
-        {
-            log.error("There was some problem processing a message. Marking it as needing redelivery.", e);
-            
-            try
-            {
-                // If there was some problem receiving the message or commiting
-                // it or, really, any problem in the processing that's not
-                // expected, we should rollback the results (which marks the
-                // message as not-delivered). The JMS provider will try to
-                // redeliver as it sees fit and hopefully things will be working
-                // for the next node that gets it.
-                session.rollback();
-            }
-            catch (JMSException e1)
-            {
-                log.error("There was a problem rolling back the session. This is really bad.", e1);
-            }
+            listeners.add(new Listener(factory, channel));
         }
     }
 
