@@ -440,6 +440,11 @@ public class CassandraDataStore implements DataStore
     @Override
     public void persist(String entityId, Summary summary) throws IOException
     {
+        if (entityId.startsWith("__") && entityId.endsWith("__"))
+        {
+            throw new InternalException("Unable to persist entities that start and end with two underscores '__'. These entities are reserved for meta data.");
+        }
+        
         if (summary.getType() != DateRange.Type.REALTIME)
         {
             // TODO: Necessary? Could I just summarize above the current? Doing
