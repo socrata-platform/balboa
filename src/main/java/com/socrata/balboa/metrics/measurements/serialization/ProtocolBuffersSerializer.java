@@ -21,7 +21,7 @@ public class ProtocolBuffersSerializer implements Serializer
             throw new IllegalArgumentException("Serializing null values is unsupported in protocol buffers.");
         }
 
-        log.debug("Preparing to serialize " + value + ":" + value.getClass().getSimpleName() + ".");
+        log.trace("Preparing to serialize " + value + ":" + value.getClass().getSimpleName() + ".");
 
         if (value instanceof Double || value instanceof Float)
         {

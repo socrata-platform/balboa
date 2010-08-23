@@ -282,7 +282,7 @@ public class CassandraDataStore implements DataStore
 
                     try
                     {
-                        log.debug("READ: Raw serialized value from cassandra (" + subColumn.getTimestamp() + ") " + Arrays.toString(subColumn.getValue()));
+                        log.trace("READ: Raw serialized value from cassandra (" + subColumn.getTimestamp() + ") " + Arrays.toString(subColumn.getValue()));
                         values.put(name, ser.deserialize(subColumn.getValue()));
                     }
                     catch (IOException e)
@@ -380,7 +380,7 @@ public class CassandraDataStore implements DataStore
         for (String key : summary.getValues().keySet())
         {
             long timestamp = TimestampResolution.MICROSECONDS.createTimestamp();
-            log.debug("WRITE: Writing byte array to cassandra (" + timestamp + ")" + Arrays.toString(ser.serialize(summary.getValues().get(key))));
+            log.trace("WRITE: Writing byte array to cassandra (" + timestamp + ")" + Arrays.toString(ser.serialize(summary.getValues().get(key))));
             Column column = new Column(
                     key.getBytes(),
                     ser.serialize(summary.getValues().get(key)),
