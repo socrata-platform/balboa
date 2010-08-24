@@ -78,7 +78,7 @@ public class MemcachedLock implements Lock
 
         if (ownerId == null)
         {
-            log.warn("There's not lock with the key '" + name + "' acquired. Ignoring.");
+            log.warn("There's not a lock with the key '" + name + "' acquired. Ignoring.");
         }
         else
         {

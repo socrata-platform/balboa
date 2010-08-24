@@ -478,8 +478,14 @@ public class CassandraDataStore implements DataStore
                 {
                     try
                     {
+                        long startTime = System.currentTimeMillis();
+
                         Map<String, List<SuperColumn>> superColumnOperations = update(entityId, summary);
                         keyspace.batchInsert(entityId, null, superColumnOperations);
+
+                        long totalTime = System.currentTimeMillis() - startTime;
+                        log.debug("Total write time for '" + entityId + "' to cassandra (not including lock) " + totalTime);
+
                         break;
                     }
                     finally
