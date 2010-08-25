@@ -28,6 +28,8 @@ public class BalboaServlet extends HttpServlet
 {
     private static Log log = LogFactory.getLog(BalboaServlet.class);
 
+    private static final long REQUEST_TIME_WARN_THRESHOLD = 2000;
+
     /**
      * Not used, but assigned so that the receiver doesn't get garbage
      * collected.
@@ -38,15 +40,16 @@ public class BalboaServlet extends HttpServlet
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
     {
-        double startTime = System.nanoTime();
-        
-        log.debug("Servicing request '" + request.getPathInfo() + "'.");
-        log.debug("\tParameters {");
+        long startTime = System.currentTimeMillis();
+
+        String requestInfo = "Servicing request '" + request.getPathInfo() + "'.\n";
+        requestInfo +=  "\tParameters {\n";
         for (Object k : request.getParameterMap().keySet())
         {
-            log.debug("\t\t" + k + " => " + request.getParameter((String)k));
+            requestInfo += "\t\t" + k + " => " + request.getParameter((String)k) + "\n";
         }
-        log.debug("\t}");
+        requestInfo += "\t}";
+        log.info(requestInfo);
         
         // We're always JSON, no matter what.
         response.setContentType("application/json; charset=utf-8");
@@ -59,18 +62,15 @@ public class BalboaServlet extends HttpServlet
 
         try
         {
-            String[] path = request.getPathInfo().split("/");
+            String entityId = request.getPathInfo().replaceFirst("/", "");
 
-            if (path.length < 2)
-            {
-                throw new InvalidRequestException("Unknown resource '" + request.getPathInfo() + "'.");
-            }
-            else if (!"GET".equals(request.getMethod()))
+            if (!"GET".equals(request.getMethod()))
             {
                 throw new InvalidRequestException("Unsupported method '" + request.getMethod() + "'.");
             }
 
-            String entityId = path[1];
+            log.debug("Request path info: " + request.getPathInfo());
+
             Object result = fulfillGet(entityId, ServiceUtils.getParameters(request));
 
             // Write the response out.
@@ -101,7 +101,13 @@ public class BalboaServlet extends HttpServlet
         }
         finally
         {
-            log.debug("Fulfilled request " + (System.nanoTime() - startTime) / Math.pow(10,6) + " (ms)");
+            long requestTime = System.currentTimeMillis() - startTime;
+            log.debug("Fulfilled request " + requestTime + " (ms)");
+
+            if (requestTime > REQUEST_TIME_WARN_THRESHOLD)
+            {
+                log.warn("Slow request (" + request.getPathInfo() + ").");
+            }
         }
     }
 

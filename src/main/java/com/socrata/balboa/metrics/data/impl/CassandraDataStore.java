@@ -406,20 +406,20 @@ public class CassandraDataStore implements DataStore
         while (type != null && type != DateRange.Type.REALTIME)
         {
             // Read the old data.
-            log.debug("Reading existing records for " + type + ".");
+            log.trace("Reading existing records for " + type + ".");
             DateRange range = DateRange.create(type, new Date(summary.getTimestamp()));
             Iterator<Summary> iter = find(entityId, type, range.start, range.end);
-            log.debug("Summarizing existing records.");
+            log.trace("Summarizing existing records.");
             Map<String, Object> values = MetricUtils.summarize(iter);
 
             // Update/merge with the values that we'd like to insert.
-            log.debug("Merging existing records with new values.");
-            log.debug("    => " + new ObjectMapper().writeValueAsString(values) + " / " + new ObjectMapper().writeValueAsString(summary.getValues()));
+            log.trace("Merging existing records with new values.");
+            log.trace("    => " + new ObjectMapper().writeValueAsString(values) + " / " + new ObjectMapper().writeValueAsString(summary.getValues()));
             MetricUtils.merge(values, summary.getValues());
 
             // Insert the newly updated summary.
-            log.debug("Inserting a newly updated summary for entity '" + entityId + "', type '" + type + "'");
-            log.debug("    => " + new ObjectMapper().writeValueAsString(values));
+            log.trace("Inserting a newly updated summary for entity '" + entityId + "', type '" + type + "'");
+            log.trace("    => " + new ObjectMapper().writeValueAsString(values));
             Summary replacement = new Summary(type, range.start.getTime(), values);
 
             // Add the mutation to the list of batch stuffs
