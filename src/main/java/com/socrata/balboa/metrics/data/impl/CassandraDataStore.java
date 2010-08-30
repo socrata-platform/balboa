@@ -166,7 +166,11 @@ public class CassandraDataStore implements DataStore
          */
         public List<SuperColumn> executeQuery(SlicePredicate predicate) throws Exception
         {
+            long startTime = System.currentTimeMillis();
+            log.debug("Borrowing a cassandra client.");
             CassandraClient client = pool.borrowClient(hosts);
+            log.debug("Borrowed cassandra client in " + (System.currentTimeMillis() - startTime) + " ms.");
+
 
             try
             {
@@ -205,6 +209,7 @@ public class CassandraDataStore implements DataStore
                 SlicePredicate predicate = createPredicate(range);
 
                 double startTime = System.nanoTime();
+
                 List<SuperColumn> results = executeQuery(predicate);
 
                 log.debug("Queried cassandra " + (System.nanoTime() - startTime) / Math.pow(10,6) + " (ms)");

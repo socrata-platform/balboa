@@ -12,7 +12,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.PropertyConfigurator;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
-import org.pojava.datetime.DateTime;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -20,9 +19,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimeZone;
 
 public class BalboaServlet extends HttpServlet
 {
@@ -53,12 +52,6 @@ public class BalboaServlet extends HttpServlet
         
         // We're always JSON, no matter what.
         response.setContentType("application/json; charset=utf-8");
-
-        if (!TimeZone.getDefault().equals(TimeZone.getTimeZone("UTC")))
-        {
-            throw new InternalException("Default timezone is not UTC so this " +
-                    "request will not be serviced so our data stays consistent.");
-        }
 
         try
         {
@@ -116,9 +109,6 @@ public class BalboaServlet extends HttpServlet
     {
         super.init(config);
 
-        // Force our timezone to always be UTC
-        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
-
         try
         {
             // Initialize the configuration so that we set any log4j or external
@@ -156,10 +146,10 @@ public class BalboaServlet extends HttpServlet
         MetricsService service = new MetricsService();
         ServiceUtils.validateRequired(params, new String[] {"start", "end"});
 
-        DateTime start = DateTime.parse(params.get("start"));
-        DateTime end = DateTime.parse(params.get("end"));
+        Date start = ServiceUtils.parseDate(params.get("start"));
+        Date end = ServiceUtils.parseDate(params.get("end"));
 
-        DateRange range = new DateRange(start.toDate(), end.toDate());
+        DateRange range = new DateRange(start, end);
 
         if (params.containsKey("field"))
         {
@@ -182,14 +172,14 @@ public class BalboaServlet extends HttpServlet
         ServiceUtils.validateRequired(params, new String[] {"type", "date"});
 
         DateRange.Type type = DateRange.Type.valueOf(params.get("type"));
-        DateTime date = DateTime.parse(params.get("date"));
+        Date date = ServiceUtils.parseDate(params.get("date"));
 
         if (date == null)
         {
             throw new InvalidRequestException("Unrecognized date format '" + params.get("date") + "'.");
         }
 
-        DateRange range = DateRange.create(type, date.toDate());
+        DateRange range = DateRange.create(type, date);
 
         if (params.containsKey("field"))
         {
@@ -213,12 +203,12 @@ public class BalboaServlet extends HttpServlet
 
         DateRange.Type type = DateRange.Type.valueOf(params.get("series"));
 
-        DateTime nominalStart = DateTime.parse(params.get("start"));
-        DateTime nominalEnd = DateTime.parse(params.get("end"));
+        Date nominalStart = ServiceUtils.parseDate(params.get("start"));
+        Date nominalEnd = ServiceUtils.parseDate(params.get("end"));
 
         DateRange range = new DateRange(
-                DateRange.create(type, nominalStart.toDate()).start,
-                DateRange.create(type, nominalEnd.toDate()).end
+                DateRange.create(type, nominalStart).start,
+                DateRange.create(type, nominalEnd).end
         );
 
         if (params.containsKey("field"))
