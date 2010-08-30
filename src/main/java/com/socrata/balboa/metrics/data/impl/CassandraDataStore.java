@@ -171,15 +171,16 @@ public class CassandraDataStore implements DataStore
             CassandraClient client = pool.borrowClient(hosts);
             log.debug("Borrowed cassandra client in " + (System.currentTimeMillis() - startTime) + " ms.");
 
+            Keyspace keyspace = null;
 
             try
             {
-                Keyspace keyspace = client.getKeyspace(keyspaceName);
+                keyspace = client.getKeyspace(keyspaceName);
                 return keyspace.getSuperSlice(rowId, new ColumnParent(type.toString()), predicate);
             }
             finally
             {
-                pool.releaseClient(client);
+                pool.releaseClient(keyspace == null ? client : keyspace.getClient());
             }
         }
 
