@@ -20,7 +20,7 @@ public interface DataStore
      *
      * @see DateRange
      */
-    public Iterator<Summary> find(String entityId, DateRange.Type type, Date date);
+    public Iterator<Summary> find(String entityId, DateRange.Type type, Date date) throws IOException;
 
     /**
      * Find all the summaries of a particular tier between start and end. This
@@ -28,7 +28,7 @@ public interface DataStore
      * and should only be used when you need to query a specific tier for some
      * reason.
      */
-    public Iterator<Summary> find(String entityId, DateRange.Type type, Date start, Date end);
+    public Iterator<Summary> find(String entityId, DateRange.Type type, Date start, Date end) throws IOException;
 
     /**
      * Find the total summaries between two particular dates. The query
@@ -37,7 +37,7 @@ public interface DataStore
      *
      * @see com.socrata.balboa.metrics.data.DateRange.Type 
      */
-    public Iterator<Summary> find(String entityId, Date start, Date end);
+    public Iterator<Summary> find(String entityId, Date start, Date end) throws IOException;
 
     /**
      * Save a summary. The datastore is responsible for making sure the persist

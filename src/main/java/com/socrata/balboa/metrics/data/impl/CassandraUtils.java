@@ -17,17 +17,10 @@ class CassandraUtils
         return bos.toByteArray();
     }
 
-    public static Long unpackLong(byte[] data)
+    public static Long unpackLong(byte[] data) throws IOException
     {
         ByteArrayInputStream bis = new ByteArrayInputStream(data);
         DataInputStream dis = new DataInputStream(bis);
-        try
-        {
-            return dis.readLong();
-        }
-        catch (IOException e)
-        {
-            return null;
-        }
+        return dis.readLong();
     }
 }

@@ -17,6 +17,12 @@ public class MapLock implements Lock
     UUID id = UUID.randomUUID();
 
     @Override
+    public int delay()
+    {
+        return 0;
+    }
+
+    @Override
     public boolean acquire(String name) throws IOException
     {
         if (locks.containsKey(name))

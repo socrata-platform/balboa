@@ -44,7 +44,7 @@ public class Summary
         return values;
     }
 
-    public void setValue(Map<String, Object> values)
+    public void setValues(Map<String, Object> values)
     {
         this.values = values;
     }

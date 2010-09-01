@@ -62,6 +62,11 @@ public class MetricUtils
         // Combine the two maps.
         for (String key : unionKeys)
         {
+            if (key.startsWith("__") && key.endsWith("__"))
+            {
+                throw new IllegalArgumentException("Unable to persist stats that start and end with two underscores '__'. These entities are reserved for meta data.");
+            }
+            
             first.put(key, com.combine((Number)first.get(key), (Number)second.get(key)));
         }
         

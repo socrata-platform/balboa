@@ -39,6 +39,12 @@ public class MemcachedLock implements Lock
     }
 
     @Override
+    public int delay()
+    {
+        return 200;
+    }
+
+    @Override
     public boolean acquire(String name) throws IOException
     {
         try

@@ -13,4 +13,5 @@ public interface Lock
 {
     public boolean acquire(String name) throws IOException;
     public void release(String name) throws IOException;
+    public int delay();
 }
