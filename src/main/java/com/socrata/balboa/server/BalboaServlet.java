@@ -122,22 +122,30 @@ public class BalboaServlet extends HttpServlet
         }
 
         // Initialize our receiver and it will automatically connect.
-        try
+        String readOnly = System.getProperty("socrata.readonly");
+        if (!"true".equals(readOnly))
         {
-            Runnable r = new Runnable() {
-                @Override
-                public void run()
-                {
-                    receiver = ReceiverFactory.get();
-                }
-            };
+            try
+            {
+                Runnable r = new Runnable() {
+                    @Override
+                    public void run()
+                    {
+                        receiver = ReceiverFactory.get();
+                    }
+                };
 
-            writer = new Thread(r);
-            writer.start();
+                writer = new Thread(r);
+                writer.start();
+            }
+            catch (InternalException e)
+            {
+                log.warn("Unable to create an ActiveMQReceiver. New items will not be consumed.");
+            }
         }
-        catch (InternalException e)
+        else
         {
-            log.warn("Unable to create an ActiveMQReceiver. New items will not be consumed.");
+            log.warn("System set to read only, Not starting a receiver thread.");
         }
     }
 
