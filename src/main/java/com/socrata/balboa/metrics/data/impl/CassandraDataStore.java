@@ -101,7 +101,7 @@ public class CassandraDataStore implements DataStore
      * An iterator that pages cassandra rows in memory and loops over all of them
      * until there are no more remaining.
      */
-    class CassandraIterator implements Iterator<Summary>
+    static class CassandraIterator implements Iterator<Summary>
     {
         /** The maxiumum number of super columns to read in one query. */
         static final int QUERYBUFFER = 500;

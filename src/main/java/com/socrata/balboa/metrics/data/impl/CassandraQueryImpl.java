@@ -24,15 +24,15 @@ public class CassandraQueryImpl implements CassandraQuery
 
     String keyspaceName;
     CassandraClientPool pool;
+    String[] servers;
 
     public CassandraQueryImpl() throws IOException
     {
         Configuration config = Configuration.get();
-        String serverConfig = config.getProperty("cassandra.servers");
+        servers = config.getProperty("cassandra.servers").split(",");
         keyspaceName = config.getProperty("cassandra.keyspace");
 
-        CassandraHostConfigurator hosts = new CassandraHostConfigurator(serverConfig);
-        pool = CassandraClientPoolFactory.getInstance().createNew(hosts);
+        pool = CassandraClientPoolFactory.getInstance().get();
     }
 
     @Override
@@ -43,7 +43,7 @@ public class CassandraQueryImpl implements CassandraQuery
         CassandraClient client;
         try
         {
-            client = pool.borrowClient();
+            client = pool.borrowClient(servers);
         }
         catch (Exception e)
         {
@@ -100,7 +100,7 @@ public class CassandraQueryImpl implements CassandraQuery
         CassandraClient client;
         try
         {
-            client = pool.borrowClient();
+            client = pool.borrowClient(servers);
         }
         catch (Exception e)
         {
