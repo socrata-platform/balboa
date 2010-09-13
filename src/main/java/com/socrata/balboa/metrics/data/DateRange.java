@@ -117,6 +117,7 @@ public class DateRange
     static DateRange createForever(Date date)
     {
         Calendar start = new GregorianCalendar();
+        start.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // Trim the day of the year off the requested date.
         start.set(start.getActualMinimum(Calendar.YEAR),
@@ -128,6 +129,7 @@ public class DateRange
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
+        end.setTimeZone(TimeZone.getTimeZone("UTC"));
         end.setTime(date);
 
         // Set the day to the end of the year of the requested date.
@@ -150,6 +152,7 @@ public class DateRange
     static DateRange createYearly(Date date)
     {
         Calendar start = new GregorianCalendar();
+        start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
 
         // Trim the day of the year off the requested date.
@@ -162,6 +165,7 @@ public class DateRange
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
+        end.setTimeZone(TimeZone.getTimeZone("UTC"));
         end.setTime(date);
 
         // Obnoxiously, before we can fetch the maximum number of days in a
@@ -192,6 +196,7 @@ public class DateRange
     static DateRange createMonthly(Date date)
     {
         Calendar start = new GregorianCalendar();
+        start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
 
         // Trim the day of the month off the requested date.
@@ -204,6 +209,7 @@ public class DateRange
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
+        end.setTimeZone(TimeZone.getTimeZone("UTC"));
         end.setTime(date);
 
         // Set the day to the end of the month of the requested date.
@@ -227,6 +233,7 @@ public class DateRange
     static DateRange createWeekly(Date date)
     {
         Calendar start = new GregorianCalendar();
+        start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
 
         // Set the day to the beginning of the week of the reqeusted date.
@@ -239,6 +246,7 @@ public class DateRange
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
+        end.setTimeZone(TimeZone.getTimeZone("UTC"));
         end.setTime(date);
 
         // Set the day to the end of the week of the requested date.
@@ -261,6 +269,7 @@ public class DateRange
     static DateRange createDaily(Date date)
     {
         Calendar start = new GregorianCalendar();
+        start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
 
         // Set the day to the beginning of the day of the reqeusted date.
@@ -273,6 +282,7 @@ public class DateRange
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
+        end.setTimeZone(TimeZone.getTimeZone("UTC"));
         end.setTime(date);
 
         // Set the day to the end of the day of the requested date.
@@ -295,6 +305,7 @@ public class DateRange
     static DateRange createHourly(Date date)
     {
         Calendar start = new GregorianCalendar();
+        start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
 
         // Set the time to the beginning of the hour of the requested date.
@@ -307,6 +318,7 @@ public class DateRange
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
+        end.setTimeZone(TimeZone.getTimeZone("UTC"));
         end.setTime(date);
 
         // Set the day to the end of the day of the requested date.
@@ -329,6 +341,7 @@ public class DateRange
     static DateRange createMinutely(Date date)
     {
         Calendar start = new GregorianCalendar();
+        start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
 
         // Set the time to the beginning of the hour of the requested date.
@@ -341,6 +354,7 @@ public class DateRange
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
+        end.setTimeZone(TimeZone.getTimeZone("UTC"));
         end.setTime(date);
 
         // Set the day to the end of the day of the requested date.
@@ -363,10 +377,12 @@ public class DateRange
     static DateRange createSecondly(Date date)
     {
         Calendar start = new GregorianCalendar();
+        start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
+        end.setTimeZone(TimeZone.getTimeZone("UTC"));
         end.setTime(date);
         end.set(Calendar.MILLISECOND, 999);
 

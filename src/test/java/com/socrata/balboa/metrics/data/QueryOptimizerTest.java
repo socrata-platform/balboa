@@ -10,7 +10,7 @@ public class QueryOptimizerTest
     @Test
     public void testRangeLessThanOneHourReturnsOneHour() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 1, 1, 1, 50);
         Date start = cal.getTime();
 
@@ -25,7 +25,7 @@ public class QueryOptimizerTest
     @Test
     public void testRangeLessThanADayButMoreThanAnHour() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 1, 1, 1, 50);
         Date start = cal.getTime();
 
@@ -51,7 +51,7 @@ public class QueryOptimizerTest
     @Test
     public void testRangeLessThanADayButSpanningMoreThanADay() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 1, 1, 23, 50);
         Date start = cal.getTime();
 
@@ -70,7 +70,7 @@ public class QueryOptimizerTest
     @Test
     public void testRangeSpansMonths() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 0, 30, 23, 50);
         Date start = cal.getTime();
 
@@ -101,7 +101,7 @@ public class QueryOptimizerTest
     @Test
     public void testRangeSpansYears() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 0, 30, 23, 50);
         Date start = cal.getTime();
 
@@ -127,7 +127,7 @@ public class QueryOptimizerTest
     @Test
     public void testRangeSpansYearsButDoesntIncludeYears() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 0, 30, 23, 50);
         Date start = cal.getTime();
 
@@ -152,7 +152,7 @@ public class QueryOptimizerTest
     @Test
     public void testRangeExhaustivelyLookAtAllTheRangesToMakeSureTheyreRight() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 0, 30, 23, 50);
         Date start = cal.getTime();
 

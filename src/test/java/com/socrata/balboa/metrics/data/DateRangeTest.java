@@ -55,7 +55,7 @@ public class DateRangeTest
     @Test
     public void testSecondly() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 1, 12, 16, 59, 12);
 
         DateRange range = DateRange.createSecondly(cal.getTime());
@@ -73,7 +73,7 @@ public class DateRangeTest
     @Test
     public void testMinutely() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 1, 12, 16, 59, 12);
 
         DateRange range = DateRange.createMinutely(cal.getTime());
@@ -96,10 +96,10 @@ public class DateRangeTest
     @Test
     public void testDatRangeStartCantBeBeforeEnd() throws Exception
     {
-        Calendar start = new GregorianCalendar();
+        Calendar start = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         start.set(2010, 1, 1);
 
-        Calendar end = new GregorianCalendar();
+        Calendar end = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         end.set(2009, 1, 1);
 
         try
@@ -113,7 +113,7 @@ public class DateRangeTest
     @Test
     public void testHourly() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 1, 12, 16, 59, 12);
 
         DateRange range = DateRange.createHourly(cal.getTime());
@@ -130,7 +130,7 @@ public class DateRangeTest
     @Test
     public void testMonthly() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 1, 12);
 
         DateRange range = DateRange.createMonthly(cal.getTime());
@@ -147,7 +147,7 @@ public class DateRangeTest
     @Test
     public void testWeekly() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 1, 12);
 
         DateRange range = DateRange.createWeekly(cal.getTime());
@@ -164,7 +164,7 @@ public class DateRangeTest
     @Test
     public void testWeeklyCrossingMonthlyBorder() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 5, 2);
 
         DateRange range = DateRange.createWeekly(cal.getTime());
@@ -181,7 +181,7 @@ public class DateRangeTest
     @Test
     public void testDaily() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 5, 2, 12, 12, 12);
 
         DateRange range = DateRange.createDaily(cal.getTime());
@@ -198,7 +198,7 @@ public class DateRangeTest
     @Test
     public void testMonthlyOnStartingBorder() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 1, 1, 0, 0, 0);
 
         DateRange range = DateRange.createMonthly(cal.getTime());
@@ -215,7 +215,7 @@ public class DateRangeTest
     @Test
     public void testMonthlyOnEndBorder() throws Exception
     {
-        Calendar cal = new GregorianCalendar();
+        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 1, 28, 23, 59, 59);
 
         DateRange range = DateRange.createMonthly(cal.getTime());
