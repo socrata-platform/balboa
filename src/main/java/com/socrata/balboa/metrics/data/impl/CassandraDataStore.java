@@ -418,7 +418,18 @@ public class CassandraDataStore implements DataStore
                     }
                     finally
                     {
-                        lock.release(entityId);
+                        try
+                        {
+                            lock.release(entityId);
+                        }
+                        catch (IOException e)
+                        {
+                            log.error("Unable to release the lock that I " +
+                                    "acquired. Summary took too long " +
+                                    "processing, or memcached has " +
+                                    "disappeared. Marking the message as " +
+                                    "processed and not redelivering it.");
+                        }
                     }
                 }
                 else
