@@ -3,11 +3,11 @@ package com.socrata.balboa.metrics.data.impl;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.server.exceptions.InternalException;
-import me.prettyprint.cassandra.service.*;
-import org.apache.cassandra.thrift.ColumnParent;
-import org.apache.cassandra.thrift.NotFoundException;
-import org.apache.cassandra.thrift.SlicePredicate;
-import org.apache.cassandra.thrift.SuperColumn;
+import me.prettyprint.cassandra.service.CassandraClient;
+import me.prettyprint.cassandra.service.CassandraClientPool;
+import me.prettyprint.cassandra.service.CassandraClientPoolFactory;
+import me.prettyprint.cassandra.service.Keyspace;
+import org.apache.cassandra.thrift.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -21,6 +21,9 @@ import java.util.Map;
 public class CassandraQueryImpl implements CassandraQuery
 {
     private static Log log = LogFactory.getLog(CassandraQueryImpl.class);
+
+    private static final int CLIENT_BORROW_THRESHOLD = 1000;
+    private static final int KEYSPACE_BORROW_THRESHOLD = 1000;
 
     String keyspaceName;
     CassandraClientPool pool;
@@ -43,7 +46,13 @@ public class CassandraQueryImpl implements CassandraQuery
         CassandraClient client;
         try
         {
+            long clientStartTime = System.currentTimeMillis();
             client = pool.borrowClient(servers);
+            long totalClientTime = System.currentTimeMillis() - clientStartTime;
+            if (totalClientTime >= CLIENT_BORROW_THRESHOLD)
+            {
+                log.warn("Slow borrowing a client from the pool " + totalClientTime + " (ms).");
+            }
         }
         catch (Exception e)
         {
@@ -54,7 +63,14 @@ public class CassandraQueryImpl implements CassandraQuery
 
         try
         {
-            keyspace = client.getKeyspace(keyspaceName);
+            long keyspaceStartTime = System.currentTimeMillis();
+            keyspace = client.getKeyspace(keyspaceName, ConsistencyLevel.QUORUM, CassandraClient.FailoverPolicy.FAIL_FAST);
+            long totalKeyspaceTime = System.currentTimeMillis() - keyspaceStartTime;
+            if (totalKeyspaceTime >= KEYSPACE_BORROW_THRESHOLD)
+            {
+                log.warn("Slow getting a keyspace for reading from cassandra " + totalKeyspaceTime + " (ms).");
+            }
+
             return keyspace.getSuperSlice(entityId, new ColumnParent(type.toString()), predicate);
         }
         catch (NotFoundException e)
@@ -111,7 +127,13 @@ public class CassandraQueryImpl implements CassandraQuery
 
         try
         {
-            keyspace = client.getKeyspace(keyspaceName);
+            long keyspaceStartTime = System.currentTimeMillis();
+            keyspace = client.getKeyspace(keyspaceName, ConsistencyLevel.QUORUM, CassandraClient.FailoverPolicy.FAIL_FAST);
+            long totalKeyspaceTime = System.currentTimeMillis() - keyspaceStartTime;
+            if (totalKeyspaceTime >= KEYSPACE_BORROW_THRESHOLD)
+            {
+                log.warn("Slow getting a keyspace for writing from cassandra " + totalKeyspaceTime + " (ms).");
+            }
             keyspace.batchInsert(entityId, null, superColumnOperations);
         }
         catch (NotFoundException e)
