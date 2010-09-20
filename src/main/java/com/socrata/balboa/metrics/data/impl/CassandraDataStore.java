@@ -276,20 +276,52 @@ public class CassandraDataStore implements DataStore
         return new CassandraIterator(entityId, type, range);
     }
 
+    Type getClosestTypeOrError(Type type) throws IOException
+    {
+        Type originalType = type;
+        
+        List<DateRange.Type> types;
+        try
+        {
+            types = Configuration.get().getSupportedTypes();
+        }
+        catch (IOException e)
+        {
+            throw new InternalException("Unable to load configuration for some reason.", e);
+        }
+
+        while (!types.contains(type) && type != null)
+        {
+            type = type.moreGranular();
+        }
+
+        if (type == null)
+        {
+            throw new IOException("There are no supported summarization types.");
+        }
+
+        if (type != originalType)
+        {
+            log.debug("Originally requested a " + originalType + " summary, but the closest supported level is " + type + ". Range scanning that instead.");
+        }
+
+        return type;
+    }
+
     @Override
     public Iterator<Summary> find(String entityId, DateRange.Type type, Date start, Date end) throws IOException
     {
         DateRange range = new DateRange(start, end);
         
-        return query(entityId, type, range);
+        return query(entityId, getClosestTypeOrError(type), range);
     }
     
     @Override
     public Iterator<Summary> find(String entityId, DateRange.Type type, Date date) throws IOException
     {
         DateRange range = DateRange.create(type, date);
-        
-        return query(entityId, type, range);
+
+        return query(entityId, getClosestTypeOrError(type), range);
     }
 
     @Override

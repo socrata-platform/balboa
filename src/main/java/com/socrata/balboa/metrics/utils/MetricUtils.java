@@ -7,6 +7,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.*;
 
 public class MetricUtils
@@ -36,7 +37,7 @@ public class MetricUtils
             }
         }
 
-        log.debug("Combined " + Integer.toString(count) + " columns.");
+        log.trace("Combined " + Integer.toString(count) + " columns.");
 
         return results;
     }

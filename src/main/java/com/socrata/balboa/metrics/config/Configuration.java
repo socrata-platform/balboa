@@ -60,7 +60,10 @@ public class Configuration extends Properties
         }
     }
 
-    void setSupportedTypes(List<DateRange.Type> supportedTypes)
+    /**
+     * Don't use this, it's only for mocking.
+     */
+    synchronized public void setSupportedTypes(List<DateRange.Type> supportedTypes)
     {
         this.supportedTypes = supportedTypes;
     }
