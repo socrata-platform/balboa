@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<mapper namespace="com.socrata.metrics.Summary">
+    <select id="lock" parameterType="Map">
+        select
+          *
+        from 
+          #{tier}
+        where 
+          timestamp = #{timestamp} and
+          entity = #{entity}
+        for update
+    </select>
+
+    <select id="findEntityInTier" parameterType="Map"> 
+        select 
+          * 
+        from 
+          #{tier}
+        where 
+          timestamp = #{timestamp} and
+          entity = #{entity}
+    </select> 
+
+    <select id="findEntityRangeInTier" parameterType="Map">
+        select
+          *
+        from 
+          #{tier}
+        where
+          timestamp between #{start} and #{end} and
+          entity = #{entity}
+    </select>
+
+    <update id="updateMetric" parameterType="Map">
+        update 
+          #{tier}
+        set
+          value = value + #{value}
+        where
+          entity = #{entity} and
+          metric = #{metric} and
+          timestamp = #{timestamp}
+    </update>
+
+    <insert id="persistMetric" parameterType="Map">
+        insert into 
+          #{tier} (entity, metric, value, timestamp) 
+        values
+          (#{entity}, #{metric}, #{value}, #{timestamp})
+    </insert>
+</mapper>
+

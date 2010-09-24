@@ -78,7 +78,7 @@ import java.util.*;
  * batched so some write nodes will block on writing until they can acquire a
  * lock and lock contention could be a problem on very active entity's. 
  */
-public class CassandraDataStore implements DataStore
+public class CassandraDataStore extends DataStoreImpl implements DataStore
 {
     /** The maximum number of retries to acquire a lock before giving up */
     private static final int MAX_RETRIES = 5;
@@ -274,38 +274,6 @@ public class CassandraDataStore implements DataStore
     Iterator<Summary> query(String entityId, DateRange.Type type, DateRange range) throws IOException
     {
         return new CassandraIterator(entityId, type, range);
-    }
-
-    Type getClosestTypeOrError(Type type) throws IOException
-    {
-        Type originalType = type;
-        
-        List<DateRange.Type> types;
-        try
-        {
-            types = Configuration.get().getSupportedTypes();
-        }
-        catch (IOException e)
-        {
-            throw new InternalException("Unable to load configuration for some reason.", e);
-        }
-
-        while (!types.contains(type) && type != null)
-        {
-            type = type.moreGranular();
-        }
-
-        if (type == null)
-        {
-            throw new IOException("There are no supported summarization types.");
-        }
-
-        if (type != originalType)
-        {
-            log.debug("Originally requested a " + originalType + " summary, but the closest supported level is " + type + ". Range scanning that instead.");
-        }
-
-        return type;
     }
 
     @Override
