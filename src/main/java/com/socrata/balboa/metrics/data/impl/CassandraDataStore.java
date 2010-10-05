@@ -324,7 +324,14 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         for (String key : summary.getValues().keySet())
         {
             long timestamp = TimestampResolution.MICROSECONDS.createTimestamp();
-            log.trace("WRITE: Writing byte array to cassandra (" + timestamp + ")" + Arrays.toString(ser.serialize(summary.getValues().get(key))));
+
+            if (log.isTraceEnabled())
+            {
+                // Serializing objects is kind of expensive so only do it if we
+                // really really need to.
+                log.trace("WRITE: Writing byte array to cassandra (" + timestamp + ")" + Arrays.toString(ser.serialize(summary.getValues().get(key))));
+            }
+            
             Column column = new Column(
                     key.getBytes(),
                     ser.serialize(summary.getValues().get(key)),
@@ -356,14 +363,24 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
             log.trace("Summarizing existing records.");
             Map<String, Object> values = MetricUtils.summarize(iter);
 
+            if (log.isTraceEnabled())
+            {
+                // Serializing objects is kind of expensive so only do it if we
+                // really really need to.
+                log.trace("Merging existing records with new values.");
+                log.trace("    => " + new ObjectMapper().writeValueAsString(values) + " / " + new ObjectMapper().writeValueAsString(summary.getValues()));
+            }
             // Update/merge with the values that we'd like to insert.
-            log.trace("Merging existing records with new values.");
-            log.trace("    => " + new ObjectMapper().writeValueAsString(values) + " / " + new ObjectMapper().writeValueAsString(summary.getValues()));
             MetricUtils.merge(values, summary.getValues());
 
+            if (log.isTraceEnabled())
+            {
+                // Serializing objects is kind of expensive so only do it if we
+                // really really need to.
+                log.trace("Inserting a newly updated summary for entity '" + entityId + "', type '" + type + "'");
+                log.trace("    => " + new ObjectMapper().writeValueAsString(values));
+            }
             // Insert the newly updated summary.
-            log.trace("Inserting a newly updated summary for entity '" + entityId + "', type '" + type + "'");
-            log.trace("    => " + new ObjectMapper().writeValueAsString(values));
             Summary replacement = new Summary(type, range.start.getTime(), values);
 
             // Add the mutation to the list of batch stuffs
