@@ -1,7 +1,7 @@
 package com.socrata.balboa.metrics.messaging;
 
 import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.metrics.messaging.impl.AsyncActiveMQReceiver;
+import com.socrata.balboa.metrics.messaging.impl.ActiveMQReceiver;
 import com.socrata.balboa.metrics.messaging.impl.ListReceiver;
 import com.socrata.balboa.server.exceptions.InternalException;
 import org.apache.commons.logging.Log;
@@ -22,7 +22,7 @@ public class ReceiverFactory
         }
         else
         {
-            log.debug("Retrieving a AsyncActiveMQReceiver instance.");
+            log.debug("Retrieving a ActiveMQReceiver instance.");
             
             try
             {
@@ -30,7 +30,7 @@ public class ReceiverFactory
                 String[] servers = config.getProperty("activemq.urls").split(" ");
                 String channel = config.getProperty("activemq.channel");
                 
-                return new AsyncActiveMQReceiver(servers, channel);
+                return new ActiveMQReceiver(servers, channel);
             }
             catch (Exception e)
             {

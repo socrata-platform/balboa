@@ -81,17 +81,15 @@ public class ActiveMQReceiver implements Receiver
         }
     }
 
-    static class Listener implements MessageListener
+    class Listener implements MessageListener
     {
         private Session session;
         private Queue queue;
         private MessageConsumer consumer;
         private Connection connection;
-        private Receiver receiver;
 
-        public Listener(Receiver receiver, ConnectionFactory connFactory, String queueName) throws NamingException, JMSException
+        public Listener(ConnectionFactory connFactory, String queueName) throws NamingException, JMSException
         {
-            this.receiver = receiver;
             connection = connFactory.createConnection();
 
             session = connection.createSession(true, Session.SESSION_TRANSACTED);
@@ -136,7 +134,7 @@ public class ActiveMQReceiver implements Receiver
                 // Create an actual summary.
                 Summary summary = new Summary(DateRange.Type.REALTIME, timestamp.longValue(), data);
 
-                receiver.received(entityId, summary);
+                received(entityId, summary);
 
                 // Provided there were no exceptions receiving the message and
                 // persisting it, commit the result.
@@ -173,7 +171,7 @@ public class ActiveMQReceiver implements Receiver
             ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(server);
             factory.setTransportListener(new ActiveMQReceiver.TransportLogger());
 
-            listeners.add(new Listener(this, factory, channel));
+            listeners.add(new Listener(factory, channel));
         }
     }
 
