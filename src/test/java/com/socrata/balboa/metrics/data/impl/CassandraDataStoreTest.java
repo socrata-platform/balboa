@@ -1,13 +1,13 @@
 package com.socrata.balboa.metrics.data.impl;
 
-import com.socrata.balboa.metrics.Summary;
+import com.socrata.balboa.metrics.Metric;
+import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.data.Lock;
 import com.socrata.balboa.metrics.data.LockFactory;
 import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
-import com.socrata.balboa.metrics.utils.MetricUtils;
 import org.apache.cassandra.thrift.Column;
 import org.apache.cassandra.thrift.SlicePredicate;
 import org.apache.cassandra.thrift.SuperColumn;
@@ -32,49 +32,16 @@ public class CassandraDataStoreTest
     }
 
     @Test
-    public void testCantPersistSummariesThatArentRealtime() throws Exception
-    {
-        DataStore ds = get();
-
-        final DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
-
-        CassandraQueryFactory.setTestMock(
-                new CassandraQuery() {
-                    @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
-                    {
-                        return new ArrayList<SuperColumn>(0);
-                    }
-
-                    @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException {}
-                }
-        );
-
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("narfnarfnarf", 1);
-
-        Summary summary = new Summary(DateRange.Type.MONTHLY, range.start.getTime(), data);
-
-        try
-        {
-            ds.persist("testCantPersistSummariesThatArentRealtime", summary);
-            Assert.fail();
-        }
-        catch (IllegalArgumentException e) {}
-    }
-
-    @Test
     public void testCantPersistUnderscoredColumns() throws Exception
     {
         DataStore ds = get();
 
-        final DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         return new ArrayList<SuperColumn>(0);
                     }
@@ -84,14 +51,12 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("__chompa__", 1);
-
-        Summary summary = new Summary(DateRange.Type.REALTIME, range.start.getTime(), data);
+        Metrics data = new Metrics();
+        data.put("__chompa__", new Metric(Metric.RecordType.AGGREGATE, 1));
 
         try
         {
-            ds.persist("testCantPersistUnderscoredColumns", summary);
+            ds.persist("testCantPersistUnderscoredColumns", range.start.getTime(), data);
             Assert.fail();
         }
         catch (IllegalArgumentException e){}
@@ -102,12 +67,12 @@ public class CassandraDataStoreTest
     {
         DataStore ds = get();
 
-        final DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         return new ArrayList<SuperColumn>(0);
                     }
@@ -117,14 +82,12 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("test1", 1);
-
-        Summary summary = new Summary(DateRange.Type.REALTIME, range.start.getTime(), data);
+        Metrics data = new Metrics();
+        data.put("test1", new Metric(Metric.RecordType.AGGREGATE, 1));
 
         try
         {
-            ds.persist("__illegal.key.name__", summary);
+            ds.persist("__illegal.key.name__", range.start.getTime(), data);
             Assert.fail();
         }
         catch (IllegalArgumentException e){}
@@ -135,12 +98,12 @@ public class CassandraDataStoreTest
     {
         DataStore ds = get();
 
-        final DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         throw new IOException("Oh Cody. This is so wrong.");
                     }
@@ -150,7 +113,7 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Iterator<Summary> iter = ds.find("testRemoveFails", range.start, range.end);
+        Iterator<Metrics> iter = ds.find("testRemoveFails", range.start, range.end);
 
         try
         {
@@ -165,12 +128,12 @@ public class CassandraDataStoreTest
     {
         DataStore ds = get();
 
-        final DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         long start = CassandraUtils.unpackLong(predicate.getSlice_range().getStart());
                         if (start > range.start.getTime())
@@ -193,7 +156,7 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Iterator<Summary> iter = ds.find("testRemoveFails", range.start, range.end);
+        Iterator<Metrics> iter = ds.find("testRemoveFails", range.start, range.end);
 
         Assert.assertTrue(iter.hasNext());
 
@@ -211,12 +174,12 @@ public class CassandraDataStoreTest
     {
         DataStore ds = get();
 
-        final DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         return new ArrayList<SuperColumn>(0);
                     }
@@ -224,7 +187,7 @@ public class CassandraDataStoreTest
                     @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException
                     {
-                        String t = DateRange.Type.HOURLY.toString();
+                        String t = DateRange.Period.HOURLY.toString();
                         
                         Assert.assertTrue(inserts.get(t).size() == 1);
 
@@ -233,30 +196,29 @@ public class CassandraDataStoreTest
 
                         Assert.assertNotSame(range.start.getTime() + 31337, timestamp);
 
-                        DateRange boundary = DateRange.create(DateRange.Type.HOURLY, new Date(timestamp));
+                        DateRange boundary = DateRange.create(DateRange.Period.HOURLY, new Date(timestamp));
                         Assert.assertEquals(boundary.start.getTime(), timestamp);
                     }
                 }
         );
 
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("test1", 1);
-        data.put("test2", 2);
+        Metrics data = new Metrics();
+        data.put("test1", new Metric(Metric.RecordType.AGGREGATE, 1));
+        data.put("test2", new Metric(Metric.RecordType.AGGREGATE, 2));
 
-        Summary summary = new Summary(DateRange.Type.REALTIME, range.start.getTime() + 31337, data);
-        ds.persist("testCreate", summary);
+        ds.persist("testCreate", range.start.getTime() + 31337, data);
     }
 
     @Test
     public void testNoSummariesNextCallThrowsException() throws Exception
     {
         DataStore ds = get();
-        DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         return null;
                     }
@@ -266,7 +228,7 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Iterator<Summary> iter = ds.find("testRangeScan4", range.start, range.end);
+        Iterator<Metrics> iter = ds.find("testRangeScan4", range.start, range.end);
 
         Assert.assertNotNull(iter);
 
@@ -283,12 +245,12 @@ public class CassandraDataStoreTest
     {
         DataStore ds = get();
 
-        final DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         long start = CassandraUtils.unpackLong(predicate.getSlice_range().getStart());
                         if (start > range.start.getTime())
@@ -310,25 +272,25 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Iterator<Summary> iter = ds.find("evil", range.start, range.end);
+        Iterator<Metrics> iter = ds.find("evil", range.start, range.end);
 
         Assert.assertTrue(iter.hasNext());
 
-        Summary sum = iter.next();
+        Metrics sum = iter.next();
 
-        Assert.assertEquals(0, sum.getValues().size());
+        Assert.assertEquals(0, sum.size());
     }
 
     @Test
     public void testNullResultMeansEmptySummary() throws Exception
     {
         DataStore ds = get();
-        DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         return null;
                     }
@@ -338,7 +300,7 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Iterator<Summary> iter = ds.find("testRangeScan4", range.start, range.end);
+        Iterator<Metrics> iter = ds.find("testRangeScan4", range.start, range.end);
 
         Assert.assertNotNull(iter);
         Assert.assertFalse(iter.hasNext());
@@ -349,12 +311,12 @@ public class CassandraDataStoreTest
     {
         DataStore ds = get();
 
-        final DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         long start = CassandraUtils.unpackLong(predicate.getSlice_range().getStart());
                         
@@ -392,14 +354,14 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Iterator<Summary> iter = ds.find("testRangeScan1", range.start, range.end);
+        Iterator<Metrics> iter = ds.find("testRangeScan1", range.start, range.end);
 
         Assert.assertTrue(iter.hasNext());
 
-        Map<String, Object> results = MetricUtils.summarize(iter);
+        Metrics results = Metrics.summarize(iter);
 
-        Assert.assertEquals(CassandraDataStore.CassandraIterator.QUERYBUFFER, results.get("test1"));
-        Assert.assertEquals(2, results.get("test2"));
+        Assert.assertEquals(CassandraDataStore.CassandraIterator.QUERYBUFFER, results.get("test1").getValue());
+        Assert.assertEquals(2, results.get("test2").getValue());
 
         Assert.assertFalse(iter.hasNext());
     }
@@ -409,12 +371,12 @@ public class CassandraDataStoreTest
     {
         DataStore ds = get();
 
-        final DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         long start = CassandraUtils.unpackLong(predicate.getSlice_range().getStart());
                         if (start > range.start.getTime())
@@ -441,15 +403,15 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Iterator<Summary> iter = ds.find("testRangeScan1", range.start, range.end);
+        Iterator<Metrics> iter = ds.find("testRangeScan1", range.start, range.end);
 
         Assert.assertTrue(iter.hasNext());
 
-        Map<String, Object> results = MetricUtils.summarize(iter);
+        Metrics results = Metrics.summarize(iter);
 
-        Assert.assertEquals(1, results.get("test1"));
-        Assert.assertEquals(2, results.get("test2"));
-        Assert.assertEquals(3, results.get("test3"));
+        Assert.assertEquals(1, results.get("test1").getValue());
+        Assert.assertEquals(2, results.get("test2").getValue());
+        Assert.assertEquals(3, results.get("test3").getValue());
 
         Assert.assertFalse(iter.hasNext());
     }
@@ -459,12 +421,12 @@ public class CassandraDataStoreTest
     {
         DataStore ds = get();
 
-        final DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         long start = CassandraUtils.unpackLong(predicate.getSlice_range().getStart());
                         if (start > range.start.getTime())
@@ -487,14 +449,14 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Iterator<Summary> iter = ds.find("testRangeScan1", range.start, range.end);
+        Iterator<Metrics> iter = ds.find("testRangeScan1", range.start, range.end);
 
         Assert.assertTrue(iter.hasNext());
 
-        Map<String, Object> results = MetricUtils.summarize(iter);
+        Metrics results = Metrics.summarize(iter);
 
-        Assert.assertEquals(1, results.get("test1"));
-        Assert.assertEquals(2, results.get("test2"));
+        Assert.assertEquals(1, results.get("test1").getValue());
+        Assert.assertEquals(2, results.get("test2").getValue());
 
         Assert.assertFalse(iter.hasNext());
     }
@@ -503,12 +465,12 @@ public class CassandraDataStoreTest
     public void testRangeScanNoItems() throws Exception
     {
         DataStore ds = get();
-        DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         return new ArrayList<SuperColumn>(0);
                     }
@@ -518,7 +480,7 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Iterator<Summary> iter = ds.find("testRangeScan4", range.start, range.end);
+        Iterator<Metrics> iter = ds.find("testRangeScan4", range.start, range.end);
 
         Assert.assertFalse(iter.hasNext());
     }
@@ -531,7 +493,7 @@ public class CassandraDataStoreTest
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         return new ArrayList<SuperColumn>(0);
                     }
@@ -542,7 +504,7 @@ public class CassandraDataStoreTest
                         Assert.assertEquals("testCreate", entityId);
                         Assert.assertTrue(Configuration.get().getSupportedTypes().size() > 0);
 
-                        for (DateRange.Type t : Configuration.get().getSupportedTypes())
+                        for (DateRange.Period t : Configuration.get().getSupportedTypes())
                         {
                             Assert.assertTrue(inserts.containsKey(t.toString()));
                         }
@@ -559,13 +521,12 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("test1", 1);
-        data.put("test2", 2);
+        Metrics data = new Metrics();
+        data.put("test1", new Metric(Metric.RecordType.AGGREGATE, 1));
+        data.put("test2", new Metric(Metric.RecordType.AGGREGATE, 2));
 
-        DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
-        Summary summary = new Summary(DateRange.Type.REALTIME, range.start.getTime(), data);
-        ds.persist("testCreate", summary);
+        DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
+        ds.persist("testCreate", range.start.getTime(), data);
     }
 
     @Test
@@ -573,12 +534,12 @@ public class CassandraDataStoreTest
     {
         DataStore ds = get();
 
-        final DateRange range = DateRange.create(DateRange.Type.MONTHLY, new Date(0));
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
 
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         long start = CassandraUtils.unpackLong(predicate.getSlice_range().getStart());
                         if (start > range.start.getTime())
@@ -602,7 +563,7 @@ public class CassandraDataStoreTest
                         Assert.assertEquals("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", entityId);
                         Assert.assertTrue(Configuration.get().getSupportedTypes().size() > 0);
 
-                        for (DateRange.Type t : Configuration.get().getSupportedTypes())
+                        for (DateRange.Period t : Configuration.get().getSupportedTypes())
                         {
                             Assert.assertTrue(inserts.containsKey(t.toString()));
                         }
@@ -624,13 +585,12 @@ public class CassandraDataStoreTest
                 }
         );
 
-        Map<String, Object> data = new HashMap<String, Object>();
-        data.put("test1", 1);
-        data.put("test2", 2);
-        data.put("test3", 3);
+        Metrics data = new Metrics();
+        data.put("test1", new Metric(Metric.RecordType.AGGREGATE, 1));
+        data.put("test2", new Metric(Metric.RecordType.AGGREGATE, 2));
+        data.put("test3", new Metric(Metric.RecordType.AGGREGATE, 3));
 
-        Summary summary = new Summary(DateRange.Type.REALTIME, range.start.getTime(), data);
-        ds.persist("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", summary);
+        ds.persist("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", range.start.getTime(), data);
     }
 
     @Test(expected=java.io.IOException.class)
@@ -641,7 +601,7 @@ public class CassandraDataStoreTest
         CassandraQueryFactory.setTestMock(
                 new CassandraQuery() {
                     @Override
-                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
                     {
                         return new ArrayList<SuperColumn>(0);
                     }
@@ -659,11 +619,10 @@ public class CassandraDataStoreTest
 
         try
         {
-            Map<String, Object> data = new HashMap<String, Object>();
-            data.put("test1", 1);
+            Metrics data = new Metrics();
+            data.put("test1", new Metric(Metric.RecordType.AGGREGATE, 1));
 
-            Summary summary = new Summary(DateRange.Type.REALTIME, new Date(0).getTime(), data);
-            ds.persist("123", summary);
+            ds.persist("123", new Date(0).getTime(), data);
         }
         finally
         {

@@ -132,7 +132,7 @@ public class ActiveMQReceiver implements Receiver
                 Number timestamp = (Number)data.remove("timestamp");
 
                 // Create an actual summary.
-                Summary summary = new Summary(DateRange.Type.REALTIME, timestamp.longValue(), data);
+                Summary summary = new Summary(DateRange.Period.REALTIME, timestamp.longValue(), data);
 
                 received(entityId, summary);
 
@@ -179,6 +179,6 @@ public class ActiveMQReceiver implements Receiver
     public void received(String entityId, Summary summary) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
-        ds.persist(entityId, summary);
+        //ds.persist(entityId, summary);
     }
 }

@@ -1,17 +1,27 @@
 package com.socrata.balboa.metrics.data;
 
-import com.socrata.balboa.metrics.Summary;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-public class CompoundIterator implements Iterator<Summary>
+public class CompoundIterator<T> implements Iterator<T>
 {
-    List<Iterator<Summary>> iters = new ArrayList<Iterator<Summary>>();
+    List<Iterator<T>> iters = new ArrayList<Iterator<T>>();
 
-    public void add(Iterator<Summary> robo)
+    public CompoundIterator()
+    {
+    }
+
+    public CompoundIterator(Iterator<T>... everything)
+    {
+        for (Iterator<T> iter : everything)
+        {
+            add(iter);
+        }
+    }
+
+    public void add(Iterator<T> robo)
     {
         iters.add(robo);
     }
@@ -35,7 +45,7 @@ public class CompoundIterator implements Iterator<Summary>
     }
 
     @Override
-    public Summary next()
+    public T next()
     {
         if (!hasNext())
         {

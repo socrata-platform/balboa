@@ -46,7 +46,7 @@
     <insert id="persistMetric" parameterType="Map">
         insert into 
           #{tier} (entity, metric, value, timestamp) 
-        values
+        existing
           (#{entity}, #{metric}, #{value}, #{timestamp})
     </insert>
 </mapper>

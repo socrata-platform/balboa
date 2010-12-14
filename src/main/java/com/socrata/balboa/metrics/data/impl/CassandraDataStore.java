@@ -1,14 +1,12 @@
 package com.socrata.balboa.metrics.data.impl;
 
-import com.socrata.balboa.metrics.Summary;
+import com.socrata.balboa.metrics.Metric;
+import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.*;
-import com.socrata.balboa.metrics.data.DateRange.Type;
+import com.socrata.balboa.metrics.data.DateRange.Period;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
-import com.socrata.balboa.metrics.utils.MetricUtils;
-import com.socrata.balboa.server.exceptions.InternalException;
-import me.prettyprint.cassandra.service.*;
 import org.apache.cassandra.thrift.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,7 +22,7 @@ import java.util.*;
  * The cassandra data model defines a keyspace in the balboa configuration file
  * (cassandra.keyspace). Underneath the keyspace, this datastore expects there
  * to be some super column ColumnFamilies. There should be a ColumnFamily for
- * each configured summary date range type (<code>DateRange.Type</code>).
+ * each configured summary date range period (<code>DateRange.Period</code>).
  *
  * e.g.
  *
@@ -69,7 +67,7 @@ import java.util.*;
  * to be written with the current values. Because of this, summary tiers are
  * always as up to date as the events that have been written are and reads are
  * extremely cheap (typically, even over a long range query with the default
- * summary range type configuration, balboa won't need to read more than seven
+ * summary range period configuration, balboa won't need to read more than seven
  * items). Writes on the other hand are relatively expensive, since each write
  * requires 'n' updates (where 'n' is the number of summary range types that are
  * enabled).
@@ -101,13 +99,13 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
      * An iterator that pages cassandra rows in memory and loops over all of them
      * until there are no more remaining.
      */
-    static class CassandraIterator implements Iterator<Summary>
+    static class CassandraIterator implements Iterator<Metrics>
     {
         /** The maxiumum number of super columns to read in one query. */
         static final int QUERYBUFFER = 500;
 
         String entityId;
-        DateRange.Type type;
+        Period period;
         DateRange range;
 
         List<SuperColumn> buffer;
@@ -115,13 +113,13 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         /**
          *
          * @param entityId The row id to query.
-         * @param type The type to look for. This determines which super column
+         * @param period The period to look for. This determines which super column
          * should be searched for rows.
          * @param range The date range to constrain the search to.
          */
-        CassandraIterator(String entityId, DateRange.Type type, DateRange range) throws IOException
+        CassandraIterator(String entityId, DateRange.Period period, DateRange range) throws IOException
         {
-            this.type = type;
+            this.period = period;
             this.range = range;
             this.entityId = entityId;
 
@@ -171,7 +169,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                 // Create the predicate and execute the query.
                 SlicePredicate predicate = createPredicate(range);
 
-                List<SuperColumn> results = CassandraQueryFactory.get().find(entityId, predicate, type);
+                List<SuperColumn> results = CassandraQueryFactory.get().find(entityId, predicate, period);
 
                 // Update the range so that the next time we fill the buffer, we
                 // do it starting from the last of the returned results.
@@ -183,7 +181,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                     // cause any summary to be skipped over since we have a quantum
                     // of time (1 nano/mill/whatever second) that's our highest
                     // resolution. In practice, for anything other than the realtime
-                    // type, there should only be one summary per period.
+                    // period, there should only be one summary per period.
                     range.start = new Date(CassandraUtils.unpackLong(last.getName()) + 1);
 
                     return results;
@@ -218,7 +216,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         }
 
         @Override
-        public Summary next()
+        public Metrics next()
         {
             if (!hasNext())
             {
@@ -230,10 +228,10 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                 Serializer ser = SerializerFactory.get();
 
                 // When we query cassandra we get back a set of columns (the
-                // children of the super column -- type -- on which we queried).
+                // children of the super column -- period -- on which we queried).
                 // We need to take all of these columns and map them into a hash
                 // which the summary uses as its values.
-                Map<String, Object> values = new HashMap<String, Object>(column.getColumnsSize());
+                Metrics metrics = new Metrics(column.getColumnsSize());
 
                 for (Column subColumn : column.getColumns())
                 {
@@ -241,8 +239,19 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
 
                     try
                     {
-                        log.trace("READ: Raw serialized value from cassandra (" + subColumn.getTimestamp() + ") " + Arrays.toString(subColumn.getValue()));
-                        values.put(name, ser.deserialize(subColumn.getValue()));
+                        if (log.isTraceEnabled())
+                        {
+                            log.trace("READ: Raw serialized value from cassandra (" +
+                                    subColumn.getTimestamp() + ") " +
+                                    Arrays.toString(subColumn.getValue()));
+                        }
+                        
+                        Metric m = new Metric(
+                                Metric.RecordType.AGGREGATE,
+                                (Number)ser.deserialize(subColumn.getValue())
+                        );
+                        
+                        metrics.put(name, m);
                     }
                     catch (IOException e)
                     {
@@ -253,14 +262,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                     }
                 }
 
-                try
-                {
-                    return new Summary(type, CassandraUtils.unpackLong(column.getName()), values);
-                }
-                catch (IOException e)
-                {
-                    throw new InternalException("Invalid column name, unable to unpack it.", e);
-                }
+                return metrics;
             }
         }
 
@@ -271,38 +273,38 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         }
     }
 
-    Iterator<Summary> query(String entityId, DateRange.Type type, DateRange range) throws IOException
+    Iterator<Metrics> query(String entityId, DateRange.Period period, DateRange range) throws IOException
     {
-        return new CassandraIterator(entityId, type, range);
+        return new CassandraIterator(entityId, period, range);
     }
 
     @Override
-    public Iterator<Summary> find(String entityId, DateRange.Type type, Date start, Date end) throws IOException
+    public Iterator<Metrics> find(String entityId, DateRange.Period period, Date start, Date end) throws IOException
     {
         DateRange range = new DateRange(start, end);
         
-        return query(entityId, getClosestTypeOrError(type), range);
+        return query(entityId, getClosestTypeOrError(period), range);
     }
     
     @Override
-    public Iterator<Summary> find(String entityId, DateRange.Type type, Date date) throws IOException
+    public Iterator<Metrics> find(String entityId, Period period, Date date) throws IOException
     {
-        DateRange range = DateRange.create(type, date);
+        DateRange range = DateRange.create(period, date);
 
-        return query(entityId, getClosestTypeOrError(type), range);
+        return query(entityId, getClosestTypeOrError(period), range);
     }
 
     @Override
-    public Iterator<Summary> find(String entityId, Date start, Date end) throws IOException
+    public Iterator<Metrics> find(String entityId, Date start, Date end) throws IOException
     {
         DateRange range = new DateRange(start, end);
         QueryOptimizer optimizer = new QueryOptimizer();
-        Map<DateRange.Type,  List<DateRange>> slices = optimizer.optimalSlices(range.start, range.end);
+        Map<Period,  List<DateRange>> slices = optimizer.optimalSlices(range.start, range.end);
 
         int numberOfQueries = 0;
 
-        CompoundIterator iter = new CompoundIterator();
-        for (Map.Entry<DateRange.Type,  List<DateRange>> slice : slices.entrySet())
+        CompoundIterator<Metrics> iter = new CompoundIterator();
+        for (Map.Entry<DateRange.Period,  List<DateRange>> slice : slices.entrySet())
         {
             numberOfQueries += slice.getValue().size();
             
@@ -317,64 +319,91 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         return iter;
     }
 
-    SuperColumn getSuperColumnMutation(Summary summary) throws IOException
+    SuperColumn getSuperColumnMutation(long timestamp, Map<String, Metric> metrics) throws IOException
     {
-        List<Column> columns = new ArrayList<Column>(summary.getValues().size());
+        List<Column> columns = new ArrayList<Column>(metrics.size());
         Serializer ser = SerializerFactory.get();
-        for (String key : summary.getValues().keySet())
+        for (String metricName : metrics.keySet())
         {
-            long timestamp = TimestampResolution.MICROSECONDS.createTimestamp();
-            log.trace("WRITE: Writing byte array to cassandra (" + timestamp + ")" + Arrays.toString(ser.serialize(summary.getValues().get(key))));
+            if (metricName.startsWith("__") && metricName.endsWith("__"))
+            {
+                throw new IllegalArgumentException("Unable to persist metrics " +
+                    "that start and end with two underscores '__'. These " +
+                    "entities are reserved for meta data.");
+            }
+
+            // This is terribly confusing, unfortunately: We have two concepts
+            // of timestamps: The first is the timestamp that the metric
+            // occurred on (adjusted to be on the period-barrier). The second is
+            // the internal timestamp that Cassandra uses on all of it it's
+            // columns. THIS IS THAT TIMESTAMP. We cannot backdate that
+            // timestamp and it's in microseconds instead of milliseconds.
+            long cassandraTimestamp = System.currentTimeMillis() * 1000;
+            
+            if (log.isTraceEnabled())
+            {
+                log.trace("WRITE: Writing byte array to cassandra (" +
+                        cassandraTimestamp + ")" +
+                        Arrays.toString(ser.serialize(metrics.get(metricName).getValue())));
+            }
             Column column = new Column(
-                    key.getBytes(),
-                    ser.serialize(summary.getValues().get(key)),
-                    timestamp
+                    metricName.getBytes(),
+                    ser.serialize(metrics.get(metricName).getValue()),
+                    cassandraTimestamp
             );
 
             columns.add(column);
         }
 
-        SuperColumn superColumn = new SuperColumn(CassandraUtils.packLong(summary.getTimestamp()), columns);
+        SuperColumn superColumn = new SuperColumn(CassandraUtils.packLong(timestamp), columns);
 
         return superColumn;
     }
 
-    public Map<String, List<SuperColumn>> update(String entityId, Summary summary) throws IOException
+    public Map<String, List<SuperColumn>> update(String entityId, long timestamp, Metrics metrics) throws IOException
     {
         Map<String, List<SuperColumn>> superColumnOperations = new HashMap<String, List<SuperColumn>>();
 
-        // For every type that can be summarized read/increment/update
+        // For every period that can be summarized read/increment/update
         // their summary.
-        List<DateRange.Type> types = Configuration.get().getSupportedTypes();
-        DateRange.Type type = Type.leastGranular(types);
-        while (type != null && type != DateRange.Type.REALTIME)
+        List<DateRange.Period> periods = Configuration.get().getSupportedTypes();
+        Period period = DateRange.Period.leastGranular(periods);
+        while (period != null && period != Period.REALTIME)
         {
             // Read the old data.
-            log.trace("Reading existing records for " + type + ".");
-            DateRange range = DateRange.create(type, new Date(summary.getTimestamp()));
-            Iterator<Summary> iter = find(entityId, type, range.start, range.end);
-            log.trace("Summarizing existing records.");
-            Map<String, Object> values = MetricUtils.summarize(iter);
+            log.trace("Reading existing records for " + period + ".");
+            DateRange range = DateRange.create(period, new Date(timestamp));
+            Iterator<Metrics> iter = find(entityId, period, range.start, range.end);
 
-            // Update/merge with the values that we'd like to insert.
-            log.trace("Merging existing records with new values.");
-            log.trace("    => " + new ObjectMapper().writeValueAsString(values) + " / " + new ObjectMapper().writeValueAsString(summary.getValues()));
-            MetricUtils.merge(values, summary.getValues());
+            log.trace("Summarizing existing records.");
+            Metrics existing = Metrics.summarize(iter);
+
+            // Update/merge with the existing that we'd like to insert.
+            if (log.isTraceEnabled())
+            {
+                log.trace("Merging existing records with new values.");
+                log.trace("    => " + new ObjectMapper().writeValueAsString(existing) + " / " + new ObjectMapper().writeValueAsString(metrics));
+            }
+            existing.merge(metrics);
 
             // Insert the newly updated summary.
-            log.trace("Inserting a newly updated summary for entity '" + entityId + "', type '" + type + "'");
-            log.trace("    => " + new ObjectMapper().writeValueAsString(values));
-            Summary replacement = new Summary(type, range.start.getTime(), values);
+            if (log.isTraceEnabled())
+            {
+                log.trace("Inserting a newly updated summary for entity '" + entityId + "', period '" + period + "'");
+                log.trace("    => " + new ObjectMapper().writeValueAsString(existing));
+            }
+
+            Metrics replacement = existing;
 
             // Add the mutation to the list of batch stuffs
             List<SuperColumn> superColumns = new ArrayList<SuperColumn>(1);
-            superColumns.add(getSuperColumnMutation(replacement));
-            superColumnOperations.put(replacement.getType().toString(), superColumns);
+            superColumns.add(getSuperColumnMutation(range.start.getTime(), replacement));
+            superColumnOperations.put(period.toString(), superColumns);
 
-            type = type.moreGranular();
-            while (type != null && !types.contains(type))
+            period = period.moreGranular();
+            while (period != null && !periods.contains(period))
             {
-                type = type.moreGranular();
+                period = period.moreGranular();
             }
         }
 
@@ -382,20 +411,14 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     }
 
     @Override
-    public void persist(String entityId, Summary summary) throws IOException
+    public void persist(String entityId, long timestamp, Metrics metrics) throws IOException
     {
         if (entityId.startsWith("__") && entityId.endsWith("__"))
         {
-            throw new IllegalArgumentException("Unable to persist entities that start and end with two underscores '__'. These entities are reserved for meta data.");
+            throw new IllegalArgumentException("Unable to persist entities " +
+                    "that start and end with two underscores '__'. These " +
+                    "entities are reserved for meta data.");
         }
-        
-        if (summary.getType() != DateRange.Type.REALTIME)
-        {
-            // TODO: Necessary? Could I just summarize above the current? Doing
-            // that could result in potentially inconsistent data, though...
-            throw new IllegalArgumentException("Unable to persist anything but realtime events with this data store.");
-        }
-
 
         Lock lock = LockFactory.get();
 
@@ -411,7 +434,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                 {
                     try
                     {
-                        Map<String, List<SuperColumn>> superColumnOperations = update(entityId, summary);
+                        Map<String, List<SuperColumn>> superColumnOperations = update(entityId, timestamp, metrics);
                         CassandraQueryFactory.get().persist(entityId, superColumnOperations);
 
                         break;

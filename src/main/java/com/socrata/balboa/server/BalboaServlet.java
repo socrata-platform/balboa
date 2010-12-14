@@ -177,9 +177,9 @@ public class BalboaServlet extends HttpServlet
     Object single(String id, Map<String, String> params) throws InvalidRequestException, IOException
     {
         MetricsService service = new MetricsService();
-        ServiceUtils.validateRequired(params, new String[] {"type", "date"});
+        ServiceUtils.validateRequired(params, new String[] {"period", "date"});
 
-        DateRange.Type type = DateRange.Type.valueOf(params.get("type"));
+        DateRange.Period period = DateRange.Period.valueOf(params.get("period"));
         Date date = ServiceUtils.parseDate(params.get("date"));
 
         if (date == null)
@@ -187,20 +187,20 @@ public class BalboaServlet extends HttpServlet
             throw new InvalidRequestException("Unrecognized date format '" + params.get("date") + "'.");
         }
 
-        DateRange range = DateRange.create(type, date);
+        DateRange range = DateRange.create(period, date);
 
         if (params.containsKey("field"))
         {
-            return service.get(id, type, (String)params.get("field"), range);
+            return service.get(id, period, (String)params.get("field"), range);
         }
         else if (params.containsKey("combine"))
         {
             String[] fields = ((String)params.get("combine")).split(",");
-            return service.get(id, type, fields, range);
+            return service.get(id, period, fields, range);
         }
         else
         {
-            return service.get(id, type, range);
+            return service.get(id, period, range);
         }
     }
 
@@ -209,28 +209,28 @@ public class BalboaServlet extends HttpServlet
         MetricsService service = new MetricsService();
         ServiceUtils.validateRequired(params, new String[] {"series", "start", "end"});
 
-        DateRange.Type type = DateRange.Type.valueOf(params.get("series"));
+        DateRange.Period period = DateRange.Period.valueOf(params.get("series"));
 
         Date nominalStart = ServiceUtils.parseDate(params.get("start"));
         Date nominalEnd = ServiceUtils.parseDate(params.get("end"));
 
         DateRange range = new DateRange(
-                DateRange.create(type, nominalStart).start,
-                DateRange.create(type, nominalEnd).end
+                DateRange.create(period, nominalStart).start,
+                DateRange.create(period, nominalEnd).end
         );
 
         if (params.containsKey("field"))
         {
-            return service.series(id, type, (String)params.get("field"), range);
+            return service.series(id, period, (String)params.get("field"), range);
         }
         else if (params.containsKey("combine"))
         {
             String[] fields = ((String)params.get("combine")).split(",");
-            return service.series(id, type, fields, range);
+            return service.series(id, period, fields, range);
         }
         else
         {
-            return service.series(id, type, range);
+            return service.series(id, period, range);
         }
     }
 

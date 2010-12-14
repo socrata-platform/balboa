@@ -21,7 +21,7 @@ public class Configuration extends Properties
 
     static Configuration instance;
 
-    private List<DateRange.Type> supportedTypes;
+    private List<DateRange.Period> supportedPeriods;
 
     public static synchronized Configuration get() throws IOException
     {
@@ -63,24 +63,24 @@ public class Configuration extends Properties
     /**
      * Don't use this, it's only for mocking.
      */
-    synchronized public void setSupportedTypes(List<DateRange.Type> supportedTypes)
+    synchronized public void setSupportedTypes(List<DateRange.Period> supportedPeriods)
     {
-        this.supportedTypes = supportedTypes;
+        this.supportedPeriods = supportedPeriods;
     }
 
-    synchronized public List<DateRange.Type> getSupportedTypes()
+    synchronized public List<DateRange.Period> getSupportedTypes()
     {
-        if (supportedTypes == null)
+        if (supportedPeriods == null)
         {
             String[] types = ((String)getProperty("balboa.summaries")).split(",");
 
-            supportedTypes = new ArrayList<DateRange.Type>(types.length);
+            supportedPeriods = new ArrayList<DateRange.Period>(types.length);
             for (String t : types)
             {
-                supportedTypes.add(DateRange.Type.valueOf(t.toUpperCase()));
+                supportedPeriods.add(DateRange.Period.valueOf(t.toUpperCase()));
             }
         }
 
-        return supportedTypes;
+        return supportedPeriods;
     }
 }

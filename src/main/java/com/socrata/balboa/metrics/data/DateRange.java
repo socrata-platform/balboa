@@ -7,7 +7,7 @@ public class DateRange
     /**
      * A type of time span.
      */
-    public static enum Type
+    public static enum Period
     {
         FOREVER,
         YEARLY,
@@ -25,12 +25,12 @@ public class DateRange
             return this.name().toLowerCase();
         }
 
-        public static DateRange.Type leastGranular(Collection<Type> col)
+        public static Period leastGranular(Collection<Period> col)
         {
             return Collections.min(col);
         }
 
-        public static DateRange.Type mostGranular(Collection<DateRange.Type> col)
+        public static Period mostGranular(Collection<Period> col)
         {
             return Collections.max(col);
         }
@@ -40,7 +40,7 @@ public class DateRange
          * For example, "day" is less granular than "hour" which is slightly
          * less granular than "minute".
          */
-        public Type lessGranular()
+        public Period lessGranular()
         {
             switch(this)
             {
@@ -69,7 +69,7 @@ public class DateRange
          * For example, "day" is slightly more granular than "month" which is
          * slightly more granular than "year".
          */
-        public Type moreGranular()
+        public Period moreGranular()
         {
             switch(this)
             {
@@ -389,9 +389,9 @@ public class DateRange
         return new DateRange(start.getTime(), end.getTime());
     }
 
-    public static DateRange create(Type type, Date date)
+    public static DateRange create(Period period, Date date)
     {
-        switch(type)
+        switch(period)
         {
             case SECONDLY:
                 return createSecondly(date);
@@ -410,7 +410,7 @@ public class DateRange
             case FOREVER:
                 return createForever(date);
             default:
-                throw new IllegalArgumentException("Unsupported date range '" + type + "'.");
+                throw new IllegalArgumentException("Unsupported date range '" + period + "'.");
         }
     }
 

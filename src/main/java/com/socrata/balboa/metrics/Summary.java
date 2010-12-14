@@ -9,10 +9,10 @@ import java.util.Map;
 /**
  * A summary is a collection of metrics data covering some time range. The
  * metric data is in the values hash and the date range that the summary covers
- * (or will cover) is the type.
+ * (or will cover) is the period.
  *
  * Multiple summaries can be combined so they cover a date range outside of
- * their type.
+ * their period.
  *
  * The timestamp on summaries should generally be the first millisecond in the
  * time area that it covers, but can technically be any time within the range
@@ -22,9 +22,9 @@ public class Summary
 {
     private static Log log = LogFactory.getLog(Summary.class);
 
-    public Summary(DateRange.Type type, long timestamp, Map<String, Object> values)
+    public Summary(DateRange.Period period, long timestamp, Map<String, Object> values)
     {
-        this.type = type;
+        this.period = period;
         this.timestamp = timestamp;
         this.values = values;
     }
@@ -34,9 +34,9 @@ public class Summary
         return timestamp;
     }
 
-    public DateRange.Type getType()
+    public DateRange.Period getType()
     {
-        return type;
+        return period;
     }
 
     public Map<String, Object> getValues()
@@ -51,5 +51,5 @@ public class Summary
 
     long timestamp;
     Map<String, Object> values;
-    DateRange.Type type;
+    DateRange.Period period;
 }

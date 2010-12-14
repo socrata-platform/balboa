@@ -10,6 +10,6 @@ import java.util.Map;
 
 public interface CassandraQuery
 {
-    List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException;
+    List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException;
     void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException;
 }

@@ -8,29 +8,29 @@ import java.util.*;
 
 public class QueryOptimizer
 {
-    public Map<DateRange.Type, List<DateRange>> optimalSlices(Date start, Date end)
+    public Map<DateRange.Period, List<DateRange>> optimalSlices(Date start, Date end)
     {
-        Map<DateRange.Type, List<DateRange>> ranges = new HashMap<DateRange.Type, List<DateRange>>();
+        Map<DateRange.Period, List<DateRange>> ranges = new HashMap<DateRange.Period, List<DateRange>>();
 
-        List<DateRange.Type> types;
+        List<DateRange.Period> periods;
         try
         {
-            types = Configuration.get().getSupportedTypes();
+            periods = Configuration.get().getSupportedTypes();
         }
         catch (IOException e)
         {
             throw new InternalException("Unable to load configuration for some reason.", e);
         }
 
-        DateRange.Type mostGranular = DateRange.Type.mostGranular(types);
-        DateRange.Type leastGranular = DateRange.Type.leastGranular(types);
+        DateRange.Period mostGranular = DateRange.Period.mostGranular(periods);
+        DateRange.Period leastGranular = DateRange.Period.leastGranular(periods);
 
         // Align our base unit along the most granular type that is configured
         start = DateRange.create(mostGranular, start).start;
         end = DateRange.create(mostGranular, end).end;
 
-        DateRange.Type current = mostGranular;
-        while (current != null && current != DateRange.Type.FOREVER)
+        DateRange.Period current = mostGranular;
+        while (current != null && current != DateRange.Period.FOREVER)
         {
             if (start.getTime() + 1 < end.getTime())
             {
@@ -77,7 +77,7 @@ public class QueryOptimizer
                 }
 
                 current = current.lessGranular();
-                while (current != null && !types.contains(current))
+                while (current != null && !periods.contains(current))
                 {
                     current = current.lessGranular();
                 }
@@ -94,7 +94,7 @@ public class QueryOptimizer
         return ranges;
     }
 
-    static List<DateRange> findToBoundary(Date start, Date end, DateRange.Type type)
+    static List<DateRange> findToBoundary(Date start, Date end, DateRange.Period period)
     {
         List<DateRange> ranges = new ArrayList<DateRange>();
 
@@ -104,14 +104,14 @@ public class QueryOptimizer
         Date startMin = null;
         Date startMax = null;
 
-        Date startUpgradeTime = DateRange.create(type.lessGranular(), start).end;
-        Date endUpgradeTime = DateRange.create(type.lessGranular(), end).start;
+        Date startUpgradeTime = DateRange.create(period.lessGranular(), start).end;
+        Date endUpgradeTime = DateRange.create(period.lessGranular(), end).start;
 
         while (true)
         {
             if (end.after(endUpgradeTime) && end.after(start))
             {
-                DateRange range = DateRange.create(type, end);
+                DateRange range = DateRange.create(period, end);
 
                 if (endMin == null || range.start.before(endMin))
                 {
@@ -129,7 +129,7 @@ public class QueryOptimizer
 
             if (start.before(startUpgradeTime) && start.before(end))
             {
-                DateRange range = DateRange.create(type, start);
+                DateRange range = DateRange.create(period, start);
 
                 if (startMin == null || range.start.before(startMin))
                 {

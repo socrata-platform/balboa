@@ -39,7 +39,7 @@ public class CassandraQueryImpl implements CassandraQuery
     }
 
     @Override
-    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Type type) throws IOException
+    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
     {
         long startTime = System.currentTimeMillis();
         
@@ -71,7 +71,7 @@ public class CassandraQueryImpl implements CassandraQuery
                 log.warn("Slow getting a keyspace for reading from cassandra " + totalKeyspaceTime + " (ms).");
             }
 
-            return keyspace.getSuperSlice(entityId, new ColumnParent(type.toString()), predicate);
+            return keyspace.getSuperSlice(entityId, new ColumnParent(period.toString()), predicate);
         }
         catch (NotFoundException e)
         {

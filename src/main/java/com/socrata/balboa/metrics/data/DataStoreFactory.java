@@ -2,7 +2,6 @@ package com.socrata.balboa.metrics.data;
 
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.impl.CassandraDataStore;
-import com.socrata.balboa.metrics.data.impl.SqlDataStore;
 import com.socrata.balboa.server.exceptions.InternalException;
 
 import java.io.IOException;
@@ -26,10 +25,6 @@ public class DataStoreFactory
         if (datastore.equals("cassandra"))
         {
             return new CassandraDataStore();
-        }
-        else if (datastore.equals("sql"))
-        {
-            return new SqlDataStore();
         }
         else
         {

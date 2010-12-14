@@ -1,13 +1,12 @@
 package com.socrata.balboa.server;
 
-import com.socrata.balboa.metrics.Summary;
+import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.measurements.combining.Summation;
-import com.socrata.balboa.metrics.utils.MetricUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -21,7 +20,7 @@ public class MetricsService
     public Object range(String entityId, String[] combine, DateRange range) throws IOException
     {
         Combinator sum = new Summation();
-        Map<String, Object> results = range(entityId, range);
+        Metrics results = range(entityId, range);
         
         Map<String, Object> data = new HashMap<String, Object>();
 
@@ -41,7 +40,7 @@ public class MetricsService
 
     public Object range(String entityId, String field, DateRange range) throws IOException
     {
-        Map<String, Object> results = range(entityId, range);
+        Metrics results = range(entityId, range);
         
         Map<String, Object> data = new HashMap<String, Object>();
 
@@ -56,29 +55,26 @@ public class MetricsService
         return data;
     }
 
-    public Map<String, Object> range(String entityId, DateRange range) throws IOException
+    public Metrics range(String entityId, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
-        Date min = DateRange.create(DateRange.Type.mostGranular(Configuration.get().getSupportedTypes()), range.start).start;
-        Date max = DateRange.create(DateRange.Type.mostGranular(Configuration.get().getSupportedTypes()), range.end).end;
+        Date min = DateRange.create(DateRange.Period.mostGranular(Configuration.get().getSupportedTypes()), range.start).start;
+        Date max = DateRange.create(DateRange.Period.mostGranular(Configuration.get().getSupportedTypes()), range.end).end;
 
-        Map<String, Object> results = MetricUtils.summarize(ds.find(entityId, range.start, range.end));
-
-        results.put("__start__", min);
-        results.put("__end__", max);
+        Metrics results = Metrics.summarize(ds.find(entityId, range.start, range.end));
 
         return results;
     }
 
-    public List<Object> series(String entityId, DateRange.Type type, String[] combine, DateRange range) throws IOException
+    public List<Object> series(String entityId, DateRange.Period period, String[] combine, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
-        // TODO: Some way of making this a lazy eval type of list so we don't
+        // TODO: Some way of making this a lazy eval period of list so we don't
         // suck up memory unless we really have to?
         List<Object> list = new ArrayList<Object>();
-        Iterator<Summary> iter = ds.find(entityId, type, range.start, range.end);
+        /*Iterator<Summary> iter = ds.find(entityId, period, range.start, range.end);
         Combinator sum = new Summation();
 
         while (iter.hasNext())
@@ -86,7 +82,7 @@ public class MetricsService
             Summary summary = iter.next();
             Map<String, Object> data = new HashMap<String, Object>(3);
 
-            DateRange slice = DateRange.create(type, new Date(summary.getTimestamp()));
+            DateRange slice = DateRange.create(period, new Date(summary.getTimestamp()));
 
             for (String key : summary.getValues().keySet())
             {
@@ -110,26 +106,26 @@ public class MetricsService
                 data.put("__end__", slice.end);
                 list.add(data);
             }
-        }
+        }*/
 
         return list;
     }
 
-    public List<Object> series(String entityId, DateRange.Type type, String field, DateRange range) throws IOException
+    public List<Object> series(String entityId, DateRange.Period period, String field, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
-        // TODO: Some way of making this a lazy eval type of list so we don't
+        // TODO: Some way of making this a lazy eval period of list so we don't
         // suck up memory unless we really have to?
         List<Object> list = new ArrayList<Object>();
-        Iterator<Summary> iter = ds.find(entityId, type, range.start, range.end);
+        /*Iterator<Summary> iter = ds.find(entityId, period, range.start, range.end);
 
         while (iter.hasNext())
         {
             Summary summary = iter.next();
             Map<String, Object> data = new HashMap<String, Object>(3);
 
-            DateRange slice = DateRange.create(type, new Date(summary.getTimestamp()));
+            DateRange slice = DateRange.create(period, new Date(summary.getTimestamp()));
 
             for (String key : summary.getValues().keySet())
             {
@@ -146,43 +142,43 @@ public class MetricsService
             
             data.put("__start__", slice.start);
             data.put("__end__", slice.end);
-        }
+        }*/
 
         return list;
     }
 
-    public List<Map<String, Object>> series(String entityId, DateRange.Type type, DateRange range) throws IOException
+    public List<Map<String, Object>> series(String entityId, DateRange.Period period, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
-        // TODO: Some way of making this a lazy eval type of list so we don't
+        // TODO: Some way of making this a lazy eval period of list so we don't
         // suck up memory unless we really have to?
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-        Iterator<Summary> iter = ds.find(entityId, type, range.start, range.end);
+        /*Iterator<Summary> iter = ds.find(entityId, period, range.start, range.end);
 
         while (iter.hasNext())
         {
             Summary summary = iter.next();
             Map<String, Object> data = new HashMap<String, Object>(3);
 
-            DateRange slice = DateRange.create(type, new Date(summary.getTimestamp()));
+            DateRange slice = DateRange.create(period, new Date(summary.getTimestamp()));
             data.put("__start__", slice.start);
             data.put("__end__", slice.end);
 
             data.put("metrics", summary.getValues());
             list.add(data);
-        }
+        }*/
 
         return list;
     }
 
-    public Object get(String entityId, DateRange.Type type, String[] combine, DateRange range) throws IOException
+    public Object get(String entityId, DateRange.Period period, String[] combine, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
-        Iterator<Summary> best = ds.find(entityId, type, range.start, range.end);
+        Iterator<Metrics> best = ds.find(entityId, period, range.start, range.end);
 
-        Map<String, Object> results = MetricUtils.summarize(best);
+        Metrics results = Metrics.summarize(best);
 
         Combinator sum = new Summation();
 
@@ -206,13 +202,13 @@ public class MetricsService
         return data;
     }
     
-    public Object get(String entityId, DateRange.Type type, String field, DateRange range) throws IOException
+    public Object get(String entityId, DateRange.Period period, String field, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
-        Iterator<Summary> best = ds.find(entityId, type, range.start, range.end);
+        Iterator<Metrics> best = ds.find(entityId, period, range.start, range.end);
 
-        Map<String, Object> results = MetricUtils.summarize(best);
+        Metrics results = Metrics.summarize(best);
 
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("__start__", range.start);
@@ -229,14 +225,12 @@ public class MetricsService
         return data;
     }
 
-    public Map<String, Object> get(String entityId, DateRange.Type type, DateRange range) throws IOException
+    public Metrics get(String entityId, DateRange.Period period, DateRange range) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
-        Iterator<Summary> best = ds.find(entityId, type, range.start, range.end);
-        Map<String, Object> data = MetricUtils.summarize(best);
-        data.put("__start__", range.start);
-        data.put("__end__", range.end);
+        Iterator<Metrics> best = ds.find(entityId, period, range.start, range.end);
+        Metrics data = Metrics.summarize(best);
 
         return data;
     }

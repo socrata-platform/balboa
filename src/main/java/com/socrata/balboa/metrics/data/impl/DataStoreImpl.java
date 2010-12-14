@@ -13,35 +13,35 @@ public abstract class DataStoreImpl
 {
     private static Log log = LogFactory.getLog(DataStoreImpl.class);
 
-    DateRange.Type getClosestTypeOrError(DateRange.Type type) throws IOException
+    DateRange.Period getClosestTypeOrError(DateRange.Period period) throws IOException
     {
-        DateRange.Type originalType = type;
+        DateRange.Period originalPeriod = period;
 
-        List<DateRange.Type> types;
+        List<DateRange.Period> periods;
         try
         {
-            types = Configuration.get().getSupportedTypes();
+            periods = Configuration.get().getSupportedTypes();
         }
         catch (IOException e)
         {
             throw new InternalException("Unable to load configuration for some reason.", e);
         }
 
-        while (!types.contains(type) && type != null)
+        while (!periods.contains(period) && period != null)
         {
-            type = type.moreGranular();
+            period = period.moreGranular();
         }
 
-        if (type == null)
+        if (period == null)
         {
-            throw new IOException("There are no supported summarization types.");
+            throw new IOException("There are no supported summarization periods.");
         }
 
-        if (type != originalType)
+        if (period != originalPeriod)
         {
-            log.debug("Originally requested a " + originalType + " summary, but the closest supported level is " + type + ". Range scanning that instead.");
+            log.debug("Originally requested a " + originalPeriod + " summary, but the closest supported level is " + period + ". Range scanning that instead.");
         }
 
-        return type;
+        return period;
     }
 }
