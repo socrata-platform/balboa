@@ -7,12 +7,16 @@ import com.socrata.balboa.metrics.data.*;
 import com.socrata.balboa.metrics.data.DateRange.Period;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
-import org.apache.cassandra.thrift.*;
+import org.apache.cassandra.thrift.Column;
+import org.apache.cassandra.thrift.SlicePredicate;
+import org.apache.cassandra.thrift.SliceRange;
+import org.apache.cassandra.thrift.SuperColumn;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.*;
 
 /**
@@ -83,6 +87,41 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
 
     private static Log log = LogFactory.getLog(CassandraDataStore.class);
 
+    public static class CassandraEntityMeta implements EntityMeta
+    {
+        Map<String, String> data;
+
+        public CassandraEntityMeta()
+        {
+            data = new HashMap<String, String>();
+        }
+
+        public CassandraEntityMeta(SuperColumn superColumn)
+        {
+            data = new HashMap<String, String>(superColumn.getColumnsSize());
+
+            for (Column column : superColumn.getColumns())
+            {
+                data.put(
+                    new String(column.getName(), Charset.forName("UTF-8")),
+                    new String(column.getValue(), Charset.forName("UTF-8"))
+                );
+            }
+        }
+
+        @Override
+        public boolean containsKey(String metric)
+        {
+            return data.containsKey(metric);
+        }
+
+        @Override
+        public String get(String metric)
+        {
+            return data.get(metric);
+        }
+    }
+
     /**
      * Thrown in the event that there's a problem with the query speaking
      * to cassandra.
@@ -107,6 +146,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         String entityId;
         Period period;
         DateRange range;
+        EntityMeta meta;
 
         List<SuperColumn> buffer;
 
@@ -122,8 +162,24 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
             this.period = period;
             this.range = range;
             this.entityId = entityId;
+            this.meta = getEntityMeta(entityId); 
 
             buffer = new ArrayList<SuperColumn>(0);
+        }
+
+        EntityMeta getEntityMeta(String entityId) throws IOException
+        {
+            // TODO: Cachinate.
+            SuperColumn data = CassandraQueryFactory.get().getMeta(entityId);
+
+            if (data != null)
+            {
+                return new CassandraEntityMeta(data);
+            }
+            else
+            {
+                return new CassandraEntityMeta();
+            }
         }
 
         /**
@@ -245,9 +301,15 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                                     subColumn.getTimestamp() + ") " +
                                     Arrays.toString(subColumn.getValue()));
                         }
-                        
+
+                        Metric.RecordType type = Metric.RecordType.AGGREGATE;
+                        if (meta.containsKey(name))
+                        {
+                            type = Metric.RecordType.valueOf(meta.get(name).toUpperCase());
+                        }
+
                         Metric m = new Metric(
-                                Metric.RecordType.AGGREGATE,
+                                type,
                                 (Number)ser.deserialize(subColumn.getValue())
                         );
                         

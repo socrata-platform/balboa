@@ -47,6 +47,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+
+                    @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException {}
                 }
         );
@@ -78,6 +81,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+
+                    @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException {}
                 }
         );
@@ -107,6 +113,9 @@ public class CassandraDataStoreTest
                     {
                         throw new IOException("Oh Cody. This is so wrong.");
                     }
+
+                    @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
@@ -152,6 +161,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+
+                    @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
@@ -183,6 +195,9 @@ public class CassandraDataStoreTest
                     {
                         return new ArrayList<SuperColumn>(0);
                     }
+
+                    @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException
@@ -222,6 +237,9 @@ public class CassandraDataStoreTest
                     {
                         return null;
                     }
+
+                    @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
@@ -268,6 +286,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+
+                    @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
@@ -294,6 +315,9 @@ public class CassandraDataStoreTest
                     {
                         return null;
                     }
+
+                    @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
@@ -350,6 +374,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+
+                    @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
@@ -399,6 +426,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+
+                    @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
@@ -445,6 +475,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+
+                    @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
@@ -476,6 +509,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+
+                    @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
@@ -497,6 +533,9 @@ public class CassandraDataStoreTest
                     {
                         return new ArrayList<SuperColumn>(0);
                     }
+
+                    @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException
@@ -530,6 +569,80 @@ public class CassandraDataStoreTest
     }
 
     @Test
+    public void testCreateAbsoluteMetricDoesntAggregate() throws Exception
+    {
+        DataStore ds = get();
+
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
+
+        CassandraQueryFactory.setTestMock(
+                new CassandraQuery() {
+                    @Override
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
+                    {
+                        long start = CassandraUtils.unpackLong(predicate.getSlice_range().getStart());
+                        if (start > range.start.getTime())
+                        {
+                            return new ArrayList<SuperColumn>(0);
+                        }
+
+                        List<SuperColumn> items = new ArrayList<SuperColumn>(2);
+                        List<Column> columns = new ArrayList<Column>(1);
+
+                        columns.add(new Column("test1".getBytes(), SerializerFactory.get().serialize(1), 0));
+                        columns.add(new Column("test2".getBytes(), SerializerFactory.get().serialize(2), 0));
+                        items.add(new SuperColumn(CassandraUtils.packLong(start), columns));
+
+                        return items;
+                    }
+
+                    @Override
+                    public SuperColumn getMeta(String entityId) throws IOException
+                    {
+                        List<Column> columns = new ArrayList<Column>();
+                        columns.add(new Column("test1".getBytes("UTF-8"), "absolute".getBytes("UTF-8"), 0));
+                        columns.add(new Column("test2".getBytes("UTF-8"), "aggregate".getBytes("UTF-8"), 0));
+                        return new SuperColumn("view.uid".getBytes("UTF-8"), columns);
+                    }
+
+                    @Override
+                    public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException
+                    {
+                        Assert.assertEquals("testCreateAbsoluteMetricDoesntAggregate", entityId);
+                        Assert.assertTrue(Configuration.get().getSupportedTypes().size() > 0);
+
+                        for (DateRange.Period t : Configuration.get().getSupportedTypes())
+                        {
+                            Assert.assertTrue(inserts.containsKey(t.toString()));
+                        }
+
+                        String t = Configuration.get().getSupportedTypes().get(0).toString();
+
+                        Assert.assertTrue(inserts.get(t).size() == 1);
+
+                        List<Column> cols = inserts.get(t).get(0).getColumns();
+                        Assert.assertTrue(cols.size() == 3);
+                        Assert.assertTrue("test1".equals(new String(cols.get(0).getName())));
+                        Assert.assertTrue("test2".equals(new String(cols.get(1).getName())));
+                        Assert.assertTrue("test3".equals(new String(cols.get(2).getName())));
+
+                        Assert.assertEquals(1, SerializerFactory.get().deserialize(cols.get(0).getValue()));
+                        Assert.assertEquals(4, SerializerFactory.get().deserialize(cols.get(1).getValue()));
+                        Assert.assertEquals(3, SerializerFactory.get().deserialize(cols.get(2).getValue()));
+                    }
+                }
+        );
+
+        Metrics data = new Metrics();
+        data.put("test1", new Metric(Metric.RecordType.ABSOLUTE, 1));
+        data.put("test2", new Metric(Metric.RecordType.AGGREGATE, 2));
+        data.put("test3", new Metric(Metric.RecordType.AGGREGATE, 3));
+
+        ds.persist("testCreateAbsoluteMetricDoesntAggregate", range.start.getTime(), data);
+    }
+
+
+    @Test
     public void testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists() throws Exception
     {
         DataStore ds = get();
@@ -556,6 +669,9 @@ public class CassandraDataStoreTest
 
                         return items;
                     }
+
+                    @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException
@@ -593,6 +709,177 @@ public class CassandraDataStoreTest
         ds.persist("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", range.start.getTime(), data);
     }
 
+    @Test
+    public void testAggregatingAbsoluteKey() throws Exception
+    {
+        DataStore ds = get();
+
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
+
+        CassandraQueryFactory.setTestMock(
+                new CassandraQuery() {
+                    @Override
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
+                    {
+                        long start = CassandraUtils.unpackLong(predicate.getSlice_range().getStart());
+                        if (start > range.start.getTime())
+                        {
+                            return new ArrayList<SuperColumn>(0);
+                        }
+
+                        List<SuperColumn> items = new ArrayList<SuperColumn>(2);
+                        List<Column> columns = new ArrayList<Column>(1);
+
+                        columns.add(new Column("test1".getBytes(), SerializerFactory.get().serialize(1), 0));
+                        columns.add(new Column("test2".getBytes(), SerializerFactory.get().serialize(2), 0));
+                        
+                        items.add(new SuperColumn(CassandraUtils.packLong(range.start.getTime()), columns));
+
+                        return items;
+                    }
+
+                    @Override
+                    public SuperColumn getMeta(String entityId) throws IOException
+                    {
+                        List<Column> columns = new ArrayList<Column>();
+                        columns.add(new Column("test1".getBytes("UTF-8"), "absolute".getBytes("UTF-8"), 0));
+                        columns.add(new Column("test2".getBytes("UTF-8"), "absolute".getBytes("UTF-8"), 0));
+                        return new SuperColumn("view.uid".getBytes("UTF-8"), columns);
+                    }
+
+                    @Override
+                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                }
+        );
+
+        Iterator<Metrics> iter1 = ds.find("view.uid", DateRange.Period.MONTHLY, new Date(0));
+        Iterator<Metrics> iter2 = ds.find("view.uid", DateRange.Period.MONTHLY, new Date(0));
+
+        Metrics metrics = Metrics.summarize(iter1, iter2);
+        Assert.assertEquals(1, metrics.get("test1").getValue());
+        Assert.assertEquals(2, metrics.get("test2").getValue());
+        Assert.assertEquals(Metric.RecordType.ABSOLUTE, metrics.get("test1").getType());
+        Assert.assertEquals(Metric.RecordType.ABSOLUTE, metrics.get("test2").getType());
+    }
+
+    @Test
+    public void testPartAggregatePartAbsolute() throws Exception
+    {
+        DataStore ds = get();
+
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
+
+        CassandraQueryFactory.setTestMock(
+                new CassandraQuery() {
+                    @Override
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
+                    {
+                        long start = CassandraUtils.unpackLong(predicate.getSlice_range().getStart());
+                        if (start > range.start.getTime())
+                        {
+                            return new ArrayList<SuperColumn>(0);
+                        }
+
+                        List<SuperColumn> items = new ArrayList<SuperColumn>(2);
+                        List<Column> columns = new ArrayList<Column>(1);
+
+                        columns.add(new Column("test1".getBytes(), SerializerFactory.get().serialize(1), 0));
+                        columns.add(new Column("test2".getBytes(), SerializerFactory.get().serialize(2), 0));
+
+                        items.add(new SuperColumn(CassandraUtils.packLong(range.start.getTime()), columns));
+
+                        return items;
+                    }
+
+                    @Override
+                    public SuperColumn getMeta(String entityId) throws IOException
+                    {
+                        List<Column> columns = new ArrayList<Column>();
+                        columns.add(new Column("test1".getBytes("UTF-8"), "absolute".getBytes("UTF-8"), 0));
+                        return new SuperColumn("view.uid".getBytes("UTF-8"), columns);
+                    }
+
+                    @Override
+                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                }
+        );
+
+        Iterator<Metrics> iter1 = ds.find("view.uid", DateRange.Period.MONTHLY, new Date(0));
+        Iterator<Metrics> iter2 = ds.find("view.uid", DateRange.Period.MONTHLY, new Date(0));
+
+        Metrics metrics = Metrics.summarize(iter1, iter2);
+        Assert.assertEquals(1, metrics.get("test1").getValue());
+        Assert.assertEquals(4, metrics.get("test2").getValue());
+        Assert.assertEquals(Metric.RecordType.ABSOLUTE, metrics.get("test1").getType());
+        Assert.assertEquals(Metric.RecordType.AGGREGATE, metrics.get("test2").getType());
+    }
+
+    @Test
+    public void testAggregatingAbsoluteKeyUsesLastItem() throws Exception
+    {
+        DataStore ds = get();
+
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
+
+        CassandraQueryFactory.setTestMock(
+                new CassandraQuery() {
+                    int call = 0;
+                    @Override
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
+                    {
+                        call += 1;
+
+                        long start = CassandraUtils.unpackLong(predicate.getSlice_range().getStart());
+                        if (start > range.start.getTime())
+                        {
+                            return new ArrayList<SuperColumn>(0);
+                        }
+
+                        List<SuperColumn> items = new ArrayList<SuperColumn>(2);
+                        List<Column> columns = new ArrayList<Column>(1);
+
+                        if (call == 1)
+                        {
+                            columns.add(new Column("test1".getBytes(), SerializerFactory.get().serialize(1), 0));
+                            columns.add(new Column("test2".getBytes(), SerializerFactory.get().serialize(2), 0));   
+                        }
+                        else
+                        {
+                            columns.add(new Column("test1".getBytes(), SerializerFactory.get().serialize(51), 1));
+                            columns.add(new Column("test2".getBytes(), SerializerFactory.get().serialize(52), 1));
+                        }
+
+
+                        items.add(new SuperColumn(CassandraUtils.packLong(range.start.getTime()), columns));
+
+                        return items;
+                    }
+
+                    @Override
+                    public SuperColumn getMeta(String entityId) throws IOException
+                    {
+                        List<Column> columns = new ArrayList<Column>();
+                        columns.add(new Column("test1".getBytes("UTF-8"), "absolute".getBytes("UTF-8"), 0));
+                        columns.add(new Column("test2".getBytes("UTF-8"), "absolute".getBytes("UTF-8"), 0));
+                        return new SuperColumn("view.uid".getBytes("UTF-8"), columns);
+                    }
+
+                    @Override
+                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                }
+        );
+
+        Iterator<Metrics> iter1 = ds.find("view.uid", DateRange.Period.MONTHLY, new Date(0));
+        Iterator<Metrics> iter2 = ds.find("view.uid", DateRange.Period.MONTHLY, new Date(0));
+
+        Metrics metrics = Metrics.summarize(iter1, iter2);
+        Assert.assertEquals(51, metrics.get("test1").getValue());
+        Assert.assertEquals(52, metrics.get("test2").getValue());
+        
+        Assert.assertEquals(Metric.RecordType.ABSOLUTE, metrics.get("test1").getType());
+        Assert.assertEquals(Metric.RecordType.ABSOLUTE, metrics.get("test2").getType());
+    }
+
     @Test(expected=java.io.IOException.class)
     public void testLockingAKeyWontWriteIt() throws Exception
     {
@@ -605,6 +892,9 @@ public class CassandraDataStoreTest
                     {
                         return new ArrayList<SuperColumn>(0);
                     }
+                    
+                    @Override
+                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
                     public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException

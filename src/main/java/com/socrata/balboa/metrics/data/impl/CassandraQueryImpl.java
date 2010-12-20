@@ -39,6 +39,78 @@ public class CassandraQueryImpl implements CassandraQuery
     }
 
     @Override
+    public SuperColumn getMeta(String entityId) throws IOException
+    {
+        String metaId = "__" + entityId + "__";
+        
+        long startTime = System.currentTimeMillis();
+
+        CassandraClient client;
+        try
+        {
+            long clientStartTime = System.currentTimeMillis();
+            client = pool.borrowClient(servers);
+            long totalClientTime = System.currentTimeMillis() - clientStartTime;
+            if (totalClientTime >= CLIENT_BORROW_THRESHOLD)
+            {
+                log.warn("Slow borrowing a client from the pool " + totalClientTime + " (ms).");
+            }
+        }
+        catch (Exception e)
+        {
+            throw new InternalException("Unknown exception trying to borrow a cassandra client.", e);
+        }
+
+        Keyspace keyspace = null;
+
+        try
+        {
+            long keyspaceStartTime = System.currentTimeMillis();
+            keyspace = client.getKeyspace(keyspaceName, ConsistencyLevel.QUORUM, CassandraClient.FailoverPolicy.FAIL_FAST);
+            long totalKeyspaceTime = System.currentTimeMillis() - keyspaceStartTime;
+            if (totalKeyspaceTime >= KEYSPACE_BORROW_THRESHOLD)
+            {
+                log.warn("Slow getting a keyspace for reading from cassandra " + totalKeyspaceTime + " (ms).");
+            }
+
+            return keyspace.getSuperColumn(metaId, new ColumnPath("meta"));
+        }
+        catch (NotFoundException e)
+        {
+            throw new IOException("Keyspace '" + keyspaceName + "' not found.");
+        }
+        catch (Exception e)
+        {
+            throw new IOException("Unknown exception reading from cassandra.", e);
+        }
+        finally
+        {
+            IOException possiblyThrown = null;
+
+            try
+            {
+                pool.releaseClient(keyspace == null ? client : keyspace.getClient());
+            }
+            catch (Exception e)
+            {
+                log.warn("Unable to release the cassandra client for some reason (not good).", e);
+                possiblyThrown = new IOException(e);
+            }
+
+            long totalTime = System.currentTimeMillis() - startTime;
+            log.debug("Total read time for '" + entityId + "' to cassandra " + totalTime + " (ms).");
+
+            if (possiblyThrown != null)
+            {
+                // Doesn't really matter which one is thrown, we just want to
+                // chuck out any exceptions and let someone smarter than us
+                // deal with them.
+                throw possiblyThrown;
+            }
+        }
+    }
+
+    @Override
     public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
     {
         long startTime = System.currentTimeMillis();

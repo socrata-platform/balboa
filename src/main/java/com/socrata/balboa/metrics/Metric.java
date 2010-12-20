@@ -15,11 +15,6 @@ public class Metric
         {
             return super.toString().toLowerCase();
         }
-
-        public String tag()
-        {
-            return "[" + toString() + "]";
-        }
     }
 
     Number value;
