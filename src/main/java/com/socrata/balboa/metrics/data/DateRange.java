@@ -110,6 +110,13 @@ public class DateRange
         this.end = end;
     }
 
+    public static boolean liesOnBoundary(Date date, Type typeOfBoundary)
+    {
+        DateRange range = DateRange.create(typeOfBoundary, date);
+        
+        return range.start.equals(date) || range.end.equals(date);
+    }
+
     /**
      * Get a date range that covers everything in the past/present/future. Kind
      * of like Timecop.
@@ -429,6 +436,12 @@ public class DateRange
     public String toString()
     {
         return start + " -> " + end;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return start.hashCode() + end.hashCode();
     }
 
     @Override

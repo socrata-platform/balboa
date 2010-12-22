@@ -297,12 +297,12 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     {
         DateRange range = new DateRange(start, end);
         QueryOptimizer optimizer = new QueryOptimizer();
-        Map<DateRange.Type,  List<DateRange>> slices = optimizer.optimalSlices(range.start, range.end);
+        Map<DateRange.Type,  Set<DateRange>> slices = optimizer.optimalSlices(range.start, range.end);
 
         int numberOfQueries = 0;
 
         CompoundIterator iter = new CompoundIterator();
-        for (Map.Entry<DateRange.Type,  List<DateRange>> slice : slices.entrySet())
+        for (Map.Entry<DateRange.Type,  Set<DateRange>> slice : slices.entrySet())
         {
             numberOfQueries += slice.getValue().size();
             
