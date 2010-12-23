@@ -23,7 +23,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class BalboaServlet extends HttpServlet
+public class
+        BalboaServlet extends HttpServlet
 {
     private static Log log = LogFactory.getLog(BalboaServlet.class);
 
@@ -234,29 +235,8 @@ public class BalboaServlet extends HttpServlet
         }
     }
 
-    Object batch(Map<String, String> params) throws InvalidRequestException, IOException
-    {
-        ServiceUtils.validateRequired(params, new String[] {"ids"});
-
-        String[] ids = params.get("ids").split(",");
-
-        Map<String, Object> results = new HashMap<String, Object>();
-
-        for (String id : ids)
-        {
-            results.put(id, fulfillGet(id, params));
-        }
-
-        return results;
-    }
-
     Object fulfillGet(String id, Map<String, String> params) throws IOException, InvalidRequestException
     {
-        if ("__batch__".equals(id))
-        {
-            return batch(params);
-        }
-
         if (params.containsKey("series"))
         {
             return series(id, params);
