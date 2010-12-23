@@ -1,0 +1,32 @@
+package com.socrata.balboa;
+
+import "numbers.proto";
+
+option java_package = "com.socrata.balboa.metrics.impl";
+option java_outer_classname = "MessageProtos";
+
+message PBMessages {
+    repeated PBMessage messages = 1;
+}
+
+message PBMessage {
+    enum Version { 
+        V1_0 = 0;
+    }
+    
+    required string entity_id = 1;
+    required Version version = 2;
+    required int64 timestamp = 3;
+    repeated PBMetric metrics = 4;
+}
+
+message PBMetric {
+    enum Type { 
+        AGGREGATE = 0;
+        ABSOLUTE = 1;
+    }
+
+    required Type type = 1;
+    required string name = 2;
+    required PBNumber value = 3;
+}

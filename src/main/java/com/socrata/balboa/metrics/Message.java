@@ -1,8 +1,9 @@
 package com.socrata.balboa.metrics;
 
+import java.io.IOException;
 import java.util.Map;
 
-public class Message
+public abstract class Message
 {
     String version;
     
@@ -39,4 +40,11 @@ public class Message
     {
         this.metrics = metrics;
     }
+
+    public void put(String name, Metric metric)
+    {
+        getMetrics().put(name, metric);
+    }
+
+    public abstract byte[] serialize() throws IOException;
 }

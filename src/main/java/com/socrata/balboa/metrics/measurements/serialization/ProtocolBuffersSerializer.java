@@ -13,48 +13,34 @@ public class ProtocolBuffersSerializer implements Serializer
 {
     private static Log log = LogFactory.getLog(ProtocolBuffersSerializer.class);
 
-    @Override
-    public byte[] serialize(Object value) throws IOException
+    public NumbersProtos.PBNumber proto(Number value)
     {
-        if (value == null)
-        {
-            throw new IllegalArgumentException("Serializing null values is unsupported in protocol buffers.");
-        }
-
-        log.trace("Preparing to serialize " + value + ":" + value.getClass().getSimpleName() + ".");
-
         if (value instanceof Double || value instanceof Float)
         {
-            NumbersProtos.PBNumber doublenom = NumbersProtos.
+            return NumbersProtos.
                     PBNumber.
                     newBuilder().
                     setDoubleValue(((Number)value).doubleValue()).
                     setType(NumbersProtos.PBNumber.Type.DOUBLE).
                     build();
-
-            return doublenom.toByteArray();
         }
         else if (value instanceof Integer || value instanceof Short)
         {
-            NumbersProtos.PBNumber intnom = NumbersProtos.
+            return NumbersProtos.
                     PBNumber.
                     newBuilder().
                     setIntValue(((Number)value).intValue()).
                     setType(NumbersProtos.PBNumber.Type.INT).
                     build();
-
-            return intnom.toByteArray();
         }
         else if (value instanceof Long)
         {
-            NumbersProtos.PBNumber longnom = NumbersProtos.
+            return NumbersProtos.
                     PBNumber.
                     newBuilder().
                     setLongValue(((Number)value).longValue()).
                     setType(NumbersProtos.PBNumber.Type.LONG).
                     build();
-
-            return longnom.toByteArray();
         }
         else if (value instanceof BigDecimal)
         {
@@ -81,12 +67,31 @@ public class ProtocolBuffersSerializer implements Serializer
                     setBigDecimalValue(bigmomma).
                     build();
 
-            return bigdaddy.toByteArray();
+            return bigdaddy;
         }
         else
         {
             throw new IllegalArgumentException("Unsupported number serialization type '" + value.getClass().getSimpleName() + "'.");
         }
+
+
+    }
+
+    @Override
+    public byte[] serialize(Object value) throws IOException
+    {
+        if (value == null)
+        {
+            throw new IllegalArgumentException("Serializing null values is unsupported in protocol buffers.");
+        }
+        else if (!(value instanceof Number))
+        {
+            throw new IllegalArgumentException("Cannot serialize non-number types.");
+        }
+
+        log.trace("Preparing to serialize " + value + ":" + value.getClass().getSimpleName() + ".");
+
+        return proto((Number)value).toByteArray();
     }
 
     @Override
@@ -94,6 +99,11 @@ public class ProtocolBuffersSerializer implements Serializer
     {
         NumbersProtos.PBNumber nomnom = NumbersProtos.PBNumber.parseFrom(serialized);
 
+        return java(nomnom);
+    }
+
+    public Number java(NumbersProtos.PBNumber nomnom) throws IOException
+    {
         switch (nomnom.getType())
         {
             case INT:
