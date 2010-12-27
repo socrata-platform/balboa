@@ -342,6 +342,713 @@ public final class MessageProtos {
     // @@protoc_insertion_point(class_scope:com.socrata.balboa.PBMessages)
   }
   
+  public static final class PBMetricsSeries extends
+      com.google.protobuf.GeneratedMessage {
+    // Use PBMetricsSeries.newBuilder() to construct.
+    private PBMetricsSeries() {
+      initFields();
+    }
+    private PBMetricsSeries(boolean noInit) {}
+    
+    private static final PBMetricsSeries defaultInstance;
+    public static PBMetricsSeries getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public PBMetricsSeries getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.socrata.balboa.metrics.impl.MessageProtos.internal_static_com_socrata_balboa_PBMetricsSeries_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.socrata.balboa.metrics.impl.MessageProtos.internal_static_com_socrata_balboa_PBMetricsSeries_fieldAccessorTable;
+    }
+    
+    // repeated .com.socrata.balboa.PBMetrics series = 1;
+    public static final int SERIES_FIELD_NUMBER = 1;
+    private java.util.List<com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics> series_ =
+      java.util.Collections.emptyList();
+    public java.util.List<com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics> getSeriesList() {
+      return series_;
+    }
+    public int getSeriesCount() { return series_.size(); }
+    public com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics getSeries(int index) {
+      return series_.get(index);
+    }
+    
+    private void initFields() {
+    }
+    public final boolean isInitialized() {
+      for (com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics element : getSeriesList()) {
+        if (!element.isInitialized()) return false;
+      }
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics element : getSeriesList()) {
+        output.writeMessage(1, element);
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      for (com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics element : getSeriesList()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, element);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries result;
+      
+      // Construct using com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries();
+        return builder;
+      }
+      
+      protected com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries.getDescriptor();
+      }
+      
+      public com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries getDefaultInstanceForType() {
+        return com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        if (result.series_ != java.util.Collections.EMPTY_LIST) {
+          result.series_ =
+            java.util.Collections.unmodifiableList(result.series_);
+        }
+        com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries) {
+          return mergeFrom((com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries other) {
+        if (other == com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries.getDefaultInstance()) return this;
+        if (!other.series_.isEmpty()) {
+          if (result.series_.isEmpty()) {
+            result.series_ = new java.util.ArrayList<com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics>();
+          }
+          result.series_.addAll(other.series_);
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics.Builder subBuilder = com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addSeries(subBuilder.buildPartial());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // repeated .com.socrata.balboa.PBMetrics series = 1;
+      public java.util.List<com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics> getSeriesList() {
+        return java.util.Collections.unmodifiableList(result.series_);
+      }
+      public int getSeriesCount() {
+        return result.getSeriesCount();
+      }
+      public com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics getSeries(int index) {
+        return result.getSeries(index);
+      }
+      public Builder setSeries(int index, com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.series_.set(index, value);
+        return this;
+      }
+      public Builder setSeries(int index, com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics.Builder builderForValue) {
+        result.series_.set(index, builderForValue.build());
+        return this;
+      }
+      public Builder addSeries(com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        if (result.series_.isEmpty()) {
+          result.series_ = new java.util.ArrayList<com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics>();
+        }
+        result.series_.add(value);
+        return this;
+      }
+      public Builder addSeries(com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics.Builder builderForValue) {
+        if (result.series_.isEmpty()) {
+          result.series_ = new java.util.ArrayList<com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics>();
+        }
+        result.series_.add(builderForValue.build());
+        return this;
+      }
+      public Builder addAllSeries(
+          java.lang.Iterable<? extends com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics> values) {
+        if (result.series_.isEmpty()) {
+          result.series_ = new java.util.ArrayList<com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics>();
+        }
+        super.addAll(values, result.series_);
+        return this;
+      }
+      public Builder clearSeries() {
+        result.series_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:com.socrata.balboa.PBMetricsSeries)
+    }
+    
+    static {
+      defaultInstance = new PBMetricsSeries(true);
+      com.socrata.balboa.metrics.impl.MessageProtos.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:com.socrata.balboa.PBMetricsSeries)
+  }
+  
+  public static final class PBMetrics extends
+      com.google.protobuf.GeneratedMessage {
+    // Use PBMetrics.newBuilder() to construct.
+    private PBMetrics() {
+      initFields();
+    }
+    private PBMetrics(boolean noInit) {}
+    
+    private static final PBMetrics defaultInstance;
+    public static PBMetrics getDefaultInstance() {
+      return defaultInstance;
+    }
+    
+    public PBMetrics getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+    
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return com.socrata.balboa.metrics.impl.MessageProtos.internal_static_com_socrata_balboa_PBMetrics_descriptor;
+    }
+    
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return com.socrata.balboa.metrics.impl.MessageProtos.internal_static_com_socrata_balboa_PBMetrics_fieldAccessorTable;
+    }
+    
+    // repeated .com.socrata.balboa.PBMetric metrics = 1;
+    public static final int METRICS_FIELD_NUMBER = 1;
+    private java.util.List<com.socrata.balboa.metrics.impl.MessageProtos.PBMetric> metrics_ =
+      java.util.Collections.emptyList();
+    public java.util.List<com.socrata.balboa.metrics.impl.MessageProtos.PBMetric> getMetricsList() {
+      return metrics_;
+    }
+    public int getMetricsCount() { return metrics_.size(); }
+    public com.socrata.balboa.metrics.impl.MessageProtos.PBMetric getMetrics(int index) {
+      return metrics_.get(index);
+    }
+    
+    // optional int64 timestamp = 2;
+    public static final int TIMESTAMP_FIELD_NUMBER = 2;
+    private boolean hasTimestamp;
+    private long timestamp_ = 0L;
+    public boolean hasTimestamp() { return hasTimestamp; }
+    public long getTimestamp() { return timestamp_; }
+    
+    private void initFields() {
+    }
+    public final boolean isInitialized() {
+      for (com.socrata.balboa.metrics.impl.MessageProtos.PBMetric element : getMetricsList()) {
+        if (!element.isInitialized()) return false;
+      }
+      return true;
+    }
+    
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      for (com.socrata.balboa.metrics.impl.MessageProtos.PBMetric element : getMetricsList()) {
+        output.writeMessage(1, element);
+      }
+      if (hasTimestamp()) {
+        output.writeInt64(2, getTimestamp());
+      }
+      getUnknownFields().writeTo(output);
+    }
+    
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+    
+      size = 0;
+      for (com.socrata.balboa.metrics.impl.MessageProtos.PBMetric element : getMetricsList()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, element);
+      }
+      if (hasTimestamp()) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(2, getTimestamp());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+    
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data).buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return newBuilder().mergeFrom(data, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      Builder builder = newBuilder();
+      if (builder.mergeDelimitedFrom(input, extensionRegistry)) {
+        return builder.buildParsed();
+      } else {
+        return null;
+      }
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input).buildParsed();
+    }
+    public static com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return newBuilder().mergeFrom(input, extensionRegistry)
+               .buildParsed();
+    }
+    
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+    
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> {
+      private com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics result;
+      
+      // Construct using com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics.newBuilder()
+      private Builder() {}
+      
+      private static Builder create() {
+        Builder builder = new Builder();
+        builder.result = new com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics();
+        return builder;
+      }
+      
+      protected com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics internalGetResult() {
+        return result;
+      }
+      
+      public Builder clear() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "Cannot call clear() after build().");
+        }
+        result = new com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics();
+        return this;
+      }
+      
+      public Builder clone() {
+        return create().mergeFrom(result);
+      }
+      
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics.getDescriptor();
+      }
+      
+      public com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics getDefaultInstanceForType() {
+        return com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics.getDefaultInstance();
+      }
+      
+      public boolean isInitialized() {
+        return result.isInitialized();
+      }
+      public com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics build() {
+        if (result != null && !isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return buildPartial();
+      }
+      
+      private com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics buildParsed()
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        if (!isInitialized()) {
+          throw newUninitializedMessageException(
+            result).asInvalidProtocolBufferException();
+        }
+        return buildPartial();
+      }
+      
+      public com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics buildPartial() {
+        if (result == null) {
+          throw new IllegalStateException(
+            "build() has already been called on this Builder.");
+        }
+        if (result.metrics_ != java.util.Collections.EMPTY_LIST) {
+          result.metrics_ =
+            java.util.Collections.unmodifiableList(result.metrics_);
+        }
+        com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics returnMe = result;
+        result = null;
+        return returnMe;
+      }
+      
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics) {
+          return mergeFrom((com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+      
+      public Builder mergeFrom(com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics other) {
+        if (other == com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics.getDefaultInstance()) return this;
+        if (!other.metrics_.isEmpty()) {
+          if (result.metrics_.isEmpty()) {
+            result.metrics_ = new java.util.ArrayList<com.socrata.balboa.metrics.impl.MessageProtos.PBMetric>();
+          }
+          result.metrics_.addAll(other.metrics_);
+        }
+        if (other.hasTimestamp()) {
+          setTimestamp(other.getTimestamp());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+      
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder(
+            this.getUnknownFields());
+        while (true) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              this.setUnknownFields(unknownFields.build());
+              return this;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                this.setUnknownFields(unknownFields.build());
+                return this;
+              }
+              break;
+            }
+            case 10: {
+              com.socrata.balboa.metrics.impl.MessageProtos.PBMetric.Builder subBuilder = com.socrata.balboa.metrics.impl.MessageProtos.PBMetric.newBuilder();
+              input.readMessage(subBuilder, extensionRegistry);
+              addMetrics(subBuilder.buildPartial());
+              break;
+            }
+            case 16: {
+              setTimestamp(input.readInt64());
+              break;
+            }
+          }
+        }
+      }
+      
+      
+      // repeated .com.socrata.balboa.PBMetric metrics = 1;
+      public java.util.List<com.socrata.balboa.metrics.impl.MessageProtos.PBMetric> getMetricsList() {
+        return java.util.Collections.unmodifiableList(result.metrics_);
+      }
+      public int getMetricsCount() {
+        return result.getMetricsCount();
+      }
+      public com.socrata.balboa.metrics.impl.MessageProtos.PBMetric getMetrics(int index) {
+        return result.getMetrics(index);
+      }
+      public Builder setMetrics(int index, com.socrata.balboa.metrics.impl.MessageProtos.PBMetric value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        result.metrics_.set(index, value);
+        return this;
+      }
+      public Builder setMetrics(int index, com.socrata.balboa.metrics.impl.MessageProtos.PBMetric.Builder builderForValue) {
+        result.metrics_.set(index, builderForValue.build());
+        return this;
+      }
+      public Builder addMetrics(com.socrata.balboa.metrics.impl.MessageProtos.PBMetric value) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        if (result.metrics_.isEmpty()) {
+          result.metrics_ = new java.util.ArrayList<com.socrata.balboa.metrics.impl.MessageProtos.PBMetric>();
+        }
+        result.metrics_.add(value);
+        return this;
+      }
+      public Builder addMetrics(com.socrata.balboa.metrics.impl.MessageProtos.PBMetric.Builder builderForValue) {
+        if (result.metrics_.isEmpty()) {
+          result.metrics_ = new java.util.ArrayList<com.socrata.balboa.metrics.impl.MessageProtos.PBMetric>();
+        }
+        result.metrics_.add(builderForValue.build());
+        return this;
+      }
+      public Builder addAllMetrics(
+          java.lang.Iterable<? extends com.socrata.balboa.metrics.impl.MessageProtos.PBMetric> values) {
+        if (result.metrics_.isEmpty()) {
+          result.metrics_ = new java.util.ArrayList<com.socrata.balboa.metrics.impl.MessageProtos.PBMetric>();
+        }
+        super.addAll(values, result.metrics_);
+        return this;
+      }
+      public Builder clearMetrics() {
+        result.metrics_ = java.util.Collections.emptyList();
+        return this;
+      }
+      
+      // optional int64 timestamp = 2;
+      public boolean hasTimestamp() {
+        return result.hasTimestamp();
+      }
+      public long getTimestamp() {
+        return result.getTimestamp();
+      }
+      public Builder setTimestamp(long value) {
+        result.hasTimestamp = true;
+        result.timestamp_ = value;
+        return this;
+      }
+      public Builder clearTimestamp() {
+        result.hasTimestamp = false;
+        result.timestamp_ = 0L;
+        return this;
+      }
+      
+      // @@protoc_insertion_point(builder_scope:com.socrata.balboa.PBMetrics)
+    }
+    
+    static {
+      defaultInstance = new PBMetrics(true);
+      com.socrata.balboa.metrics.impl.MessageProtos.internalForceInit();
+      defaultInstance.initFields();
+    }
+    
+    // @@protoc_insertion_point(class_scope:com.socrata.balboa.PBMetrics)
+  }
+  
   public static final class PBMessage extends
       com.google.protobuf.GeneratedMessage {
     // Use PBMessage.newBuilder() to construct.
@@ -1351,6 +2058,16 @@ public final class MessageProtos {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_com_socrata_balboa_PBMessages_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_com_socrata_balboa_PBMetricsSeries_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_com_socrata_balboa_PBMetricsSeries_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_com_socrata_balboa_PBMetrics_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_com_socrata_balboa_PBMetrics_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_com_socrata_balboa_PBMessage_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -1371,17 +2088,21 @@ public final class MessageProtos {
     java.lang.String[] descriptorData = {
       "\n\rmessage.proto\022\022com.socrata.balboa\032\rnum" +
       "bers.proto\"=\n\nPBMessages\022/\n\010messages\030\001 \003" +
-      "(\0132\035.com.socrata.balboa.PBMessage\"\255\001\n\tPB" +
-      "Message\022\021\n\tentity_id\030\001 \002(\t\0226\n\007version\030\002 " +
-      "\002(\0162%.com.socrata.balboa.PBMessage.Versi" +
-      "on\022\021\n\ttimestamp\030\003 \002(\003\022-\n\007metrics\030\004 \003(\0132\034" +
-      ".com.socrata.balboa.PBMetric\"\023\n\007Version\022" +
-      "\010\n\004V1_0\020\000\"\233\001\n\010PBMetric\022/\n\004type\030\001 \002(\0162!.c" +
-      "om.socrata.balboa.PBMetric.Type\022\014\n\004name\030" +
-      "\002 \002(\t\022+\n\005value\030\003 \002(\0132\034.com.socrata.balbo",
-      "a.PBNumber\"#\n\004Type\022\r\n\tAGGREGATE\020\000\022\014\n\010ABS" +
-      "OLUTE\020\001B0\n\037com.socrata.balboa.metrics.im" +
-      "plB\rMessageProtos"
+      "(\0132\035.com.socrata.balboa.PBMessage\"@\n\017PBM" +
+      "etricsSeries\022-\n\006series\030\001 \003(\0132\035.com.socra" +
+      "ta.balboa.PBMetrics\"M\n\tPBMetrics\022-\n\007metr" +
+      "ics\030\001 \003(\0132\034.com.socrata.balboa.PBMetric\022" +
+      "\021\n\ttimestamp\030\002 \001(\003\"\255\001\n\tPBMessage\022\021\n\tenti" +
+      "ty_id\030\001 \002(\t\0226\n\007version\030\002 \002(\0162%.com.socra" +
+      "ta.balboa.PBMessage.Version\022\021\n\ttimestamp" +
+      "\030\003 \002(\003\022-\n\007metrics\030\004 \003(\0132\034.com.socrata.ba",
+      "lboa.PBMetric\"\023\n\007Version\022\010\n\004V1_0\020\000\"\233\001\n\010P" +
+      "BMetric\022/\n\004type\030\001 \002(\0162!.com.socrata.balb" +
+      "oa.PBMetric.Type\022\014\n\004name\030\002 \002(\t\022+\n\005value\030" +
+      "\003 \002(\0132\034.com.socrata.balboa.PBNumber\"#\n\004T" +
+      "ype\022\r\n\tAGGREGATE\020\000\022\014\n\010ABSOLUTE\020\001B0\n\037com." +
+      "socrata.balboa.metrics.implB\rMessageProt" +
+      "os"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -1396,8 +2117,24 @@ public final class MessageProtos {
               new java.lang.String[] { "Messages", },
               com.socrata.balboa.metrics.impl.MessageProtos.PBMessages.class,
               com.socrata.balboa.metrics.impl.MessageProtos.PBMessages.Builder.class);
-          internal_static_com_socrata_balboa_PBMessage_descriptor =
+          internal_static_com_socrata_balboa_PBMetricsSeries_descriptor =
             getDescriptor().getMessageTypes().get(1);
+          internal_static_com_socrata_balboa_PBMetricsSeries_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_com_socrata_balboa_PBMetricsSeries_descriptor,
+              new java.lang.String[] { "Series", },
+              com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries.class,
+              com.socrata.balboa.metrics.impl.MessageProtos.PBMetricsSeries.Builder.class);
+          internal_static_com_socrata_balboa_PBMetrics_descriptor =
+            getDescriptor().getMessageTypes().get(2);
+          internal_static_com_socrata_balboa_PBMetrics_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_com_socrata_balboa_PBMetrics_descriptor,
+              new java.lang.String[] { "Metrics", "Timestamp", },
+              com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics.class,
+              com.socrata.balboa.metrics.impl.MessageProtos.PBMetrics.Builder.class);
+          internal_static_com_socrata_balboa_PBMessage_descriptor =
+            getDescriptor().getMessageTypes().get(3);
           internal_static_com_socrata_balboa_PBMessage_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_socrata_balboa_PBMessage_descriptor,
@@ -1405,7 +2142,7 @@ public final class MessageProtos {
               com.socrata.balboa.metrics.impl.MessageProtos.PBMessage.class,
               com.socrata.balboa.metrics.impl.MessageProtos.PBMessage.Builder.class);
           internal_static_com_socrata_balboa_PBMetric_descriptor =
-            getDescriptor().getMessageTypes().get(2);
+            getDescriptor().getMessageTypes().get(4);
           internal_static_com_socrata_balboa_PBMetric_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_com_socrata_balboa_PBMetric_descriptor,

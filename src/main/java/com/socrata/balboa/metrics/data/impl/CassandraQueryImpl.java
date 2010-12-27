@@ -12,6 +12,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -73,11 +74,17 @@ public class CassandraQueryImpl implements CassandraQuery
                 log.warn("Slow getting a keyspace for reading from cassandra " + totalKeyspaceTime + " (ms).");
             }
 
-            return keyspace.getSuperColumn(metaId, new ColumnPath("meta"));
+            return keyspace.getSuperColumn("meta", new ColumnPath(metaId));
         }
         catch (NotFoundException e)
         {
             throw new IOException("Keyspace '" + keyspaceName + "' not found.");
+        }
+        catch (InvalidRequestException e)
+        {
+            // The meta column doesn't currently exist, which is fine, we just
+            // need to return and empty mock-meta
+            return new SuperColumn(metaId.getBytes(), new ArrayList<Column>(0));
         }
         catch (Exception e)
         {

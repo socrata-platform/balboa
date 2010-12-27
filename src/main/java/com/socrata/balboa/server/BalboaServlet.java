@@ -2,10 +2,6 @@ package com.socrata.balboa.server;
 
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.messaging.Receiver;
-import com.socrata.balboa.metrics.messaging.ReceiverFactory;
-import com.socrata.balboa.server.exceptions.HttpException;
-import com.socrata.balboa.server.exceptions.InternalException;
 import com.socrata.balboa.server.exceptions.InvalidRequestException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,19 +19,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-public class
-        BalboaServlet extends HttpServlet
+public class BalboaServlet extends HttpServlet
 {
     private static Log log = LogFactory.getLog(BalboaServlet.class);
 
     private static final long REQUEST_TIME_WARN_THRESHOLD = 2000;
-
-    /**
-     * Not used, but assigned so that the receiver doesn't get garbage
-     * collected.
-     */
-    Receiver receiver;
-    Thread writer;
     
     @Override
     protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException
@@ -71,13 +59,6 @@ public class
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
             mapper.writeValue(response.getOutputStream(), result);
-        }
-        catch (HttpException e)
-        {
-            // Write out any "expected" errors.
-            log.warn("Unable to fullfil request because there was an HTTP error.", e);
-            response.setStatus(e.getStatus());
-            response.getOutputStream().write(e.getMessage().getBytes());
         }
         catch (Throwable e)
         {
@@ -121,33 +102,6 @@ public class
         {
             throw new ServletException("Unable to load the configuration.", e);
         }
-
-        // Initialize our receiver and it will automatically connect.
-        String readOnly = System.getProperty("socrata.readonly");
-        if (!"true".equals(readOnly))
-        {
-            try
-            {
-                Runnable r = new Runnable() {
-                    @Override
-                    public void run()
-                    {
-                        receiver = ReceiverFactory.get();
-                    }
-                };
-
-                writer = new Thread(r);
-                writer.start();
-            }
-            catch (InternalException e)
-            {
-                log.warn("Unable to create an ActiveMQReceiver. New items will not be consumed.");
-            }
-        }
-        else
-        {
-            log.warn("System set to read only, Not starting a receiver thread.");
-        }
     }
 
     Object range(String id, Map<String, String> params) throws InvalidRequestException, IOException
@@ -162,11 +116,11 @@ public class
 
         if (params.containsKey("field"))
         {
-            return service.range(id, (String)params.get("field"), range);
+            return service.range(id, params.get("field"), range);
         }
         else if (params.containsKey("combine"))
         {
-            String[] fields = ((String)params.get("combine")).split(",");
+            String[] fields = params.get("combine").split(",");
             return service.range(id, fields, range);
         }
         else
@@ -192,11 +146,11 @@ public class
 
         if (params.containsKey("field"))
         {
-            return service.get(id, period, (String)params.get("field"), range);
+            return service.get(id, period, params.get("field"), range);
         }
         else if (params.containsKey("combine"))
         {
-            String[] fields = ((String)params.get("combine")).split(",");
+            String[] fields = params.get("combine").split(",");
             return service.get(id, period, fields, range);
         }
         else
@@ -222,11 +176,11 @@ public class
 
         if (params.containsKey("field"))
         {
-            return service.series(id, period, (String)params.get("field"), range);
+            return service.series(id, period, params.get("field"), range);
         }
         else if (params.containsKey("combine"))
         {
-            String[] fields = ((String)params.get("combine")).split(",");
+            String[] fields = params.get("combine").split(",");
             return service.series(id, period, fields, range);
         }
         else

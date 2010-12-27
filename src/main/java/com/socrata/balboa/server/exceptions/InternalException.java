@@ -1,24 +1,27 @@
 package com.socrata.balboa.server.exceptions;
 
-public class InternalException extends RuntimeException
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+
+public class InternalException extends WebApplicationException
 {
     public InternalException()
     {
-        super();
+        super(Response.status(500).build());
     }
 
     public InternalException(String msg)
     {
-        super(msg);
+        super();
     }
 
     public InternalException(String msg, Throwable cause)
     {
-        super(msg, cause);
+        super(cause);
     }
 
     public InternalException(Throwable cause)
     {
-        super("Internal error", cause);
+        super(cause);
     }
 }

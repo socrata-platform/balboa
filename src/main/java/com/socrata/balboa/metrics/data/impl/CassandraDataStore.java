@@ -7,6 +7,7 @@ import com.socrata.balboa.metrics.data.*;
 import com.socrata.balboa.metrics.data.DateRange.Period;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
+import com.socrata.balboa.server.exceptions.InternalException;
 import org.apache.cassandra.thrift.Column;
 import org.apache.cassandra.thrift.SlicePredicate;
 import org.apache.cassandra.thrift.SliceRange;
@@ -289,6 +290,15 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                 // which the summary uses as its values.
                 Metrics metrics = new Metrics(column.getColumnsSize());
 
+                try
+                {
+                    metrics.setTimestamp(CassandraUtils.unpackLong(column.getName()));
+                }
+                catch (IOException e)
+                {
+                    throw new InternalException("Invalid column name, unable to unpack into timestamp.", e);
+                }
+
                 for (Column subColumn : column.getColumns())
                 {
                     String name = new String(subColumn.getName());
@@ -459,7 +469,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
 
             // Add the mutation to the list of batch stuffs
             List<SuperColumn> superColumns = new ArrayList<SuperColumn>(1);
-            superColumns.add(getSuperColumnMutation(range.start.getTime(), replacement));
+            superColumns.add(getSuperColumnMutation(range.start.getTime(), replacement.getMetrics()));
             superColumnOperations.put(period.toString(), superColumns);
 
             period = period.moreGranular();

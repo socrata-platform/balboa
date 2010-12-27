@@ -1,20 +1,17 @@
 package com.socrata.balboa.server.exceptions;
 
-public class InvalidRequestException extends HttpException
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+
+public class InvalidRequestException extends WebApplicationException
 {
     public InvalidRequestException()
     {
-        super();
+        super(Response.status(400).build());
     }
 
     public InvalidRequestException(String msg)
     {
-        super(msg);
-    }
-
-    @Override
-    public int getStatus()
-    {
-        return 400;
+        super(Response.status(400).entity(msg).build());
     }
 }

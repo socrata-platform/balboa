@@ -21,7 +21,7 @@ public class MetricsService
     {
         Combinator sum = new Summation();
         Metrics results = range(entityId, range);
-        
+
         Map<String, Object> data = new HashMap<String, Object>();
 
         for (String key : results.keySet())

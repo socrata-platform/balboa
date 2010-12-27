@@ -9,6 +9,15 @@ message PBMessages {
     repeated PBMessage messages = 1;
 }
 
+message PBMetricsSeries {
+    repeated PBMetrics series = 1;
+}
+
+message PBMetrics {
+    repeated PBMetric metrics = 1;
+    optional int64 timestamp = 2;
+}
+
 message PBMessage {
     enum Version { 
         V1_0 = 0;
