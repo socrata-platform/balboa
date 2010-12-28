@@ -9,6 +9,7 @@ import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics;
 import com.socrata.balboa.server.ServiceUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -124,6 +125,7 @@ public class MetricsRest
         {
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+            mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
 
             return Response.ok(mapper.writeValueAsString(metrics), "application/json").build();
         }
@@ -142,6 +144,7 @@ public class MetricsRest
         {
             ObjectMapper mapper = new ObjectMapper();
             mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+            mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
 
             return Response.ok(mapper.writeValueAsString(metrics), "application/json").build();
         }
