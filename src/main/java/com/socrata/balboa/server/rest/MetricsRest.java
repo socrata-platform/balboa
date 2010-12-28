@@ -42,7 +42,7 @@ public class MetricsRest
         Metrics metrics = Metrics.summarize(iter);
         metrics.setTimestamp(null);
 
-        return render(headers.getMediaType(), metrics);
+        return render(getMediaType(headers), metrics);
     }
 
     @GET
@@ -64,7 +64,7 @@ public class MetricsRest
         Metrics metrics = Metrics.summarize(iter);
         metrics.setTimestamp(null);
 
-        return render(headers.getMediaType(), metrics);
+        return render(getMediaType(headers), metrics);
     }
 
     @GET
@@ -84,12 +84,28 @@ public class MetricsRest
         Date endDate = ServiceUtils.parseDate(end);
 
         Iterator<? extends Metrics> iter = ds.find(entityId, period, startDate, endDate);
-        return render(headers.getMediaType(), iter);
+
+        return render(getMediaType(headers), iter);
+    }
+
+    MediaType getMediaType(HttpHeaders headers)
+    {
+        MediaType format = headers.getMediaType();
+        if (format == null)
+        {
+            for (MediaType type : headers.getAcceptableMediaTypes())
+            {
+                format = type;
+                break;
+            }
+        }
+
+        return format;
     }
 
     private Response render(MediaType format, Iterator<? extends Metrics> metrics) throws IOException
     {
-        if (format == MediaType.valueOf("application/x-protobuf"))
+        if (format.getSubtype().equals("x-protobuf"))
         {
             List<MessageProtos.PBMetrics> list = new ArrayList<MessageProtos.PBMetrics>();
 
@@ -115,7 +131,7 @@ public class MetricsRest
 
     private Response render(MediaType format, Metrics metrics) throws IOException
     {
-        if (format == MediaType.valueOf("application/x-protobuf"))
+        if (format.getSubtype().equals("x-protobuf"))
         {
             ProtocolBuffersMetrics mapper = new ProtocolBuffersMetrics();
             mapper.merge(metrics);
