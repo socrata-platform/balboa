@@ -3,7 +3,6 @@ package com.socrata.balboa.metrics.messaging;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.messaging.impl.ActiveMQReceiver;
 import com.socrata.balboa.metrics.messaging.impl.ListReceiver;
-import com.socrata.balboa.server.exceptions.InternalException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -35,7 +34,7 @@ public class ReceiverFactory
             catch (Exception e)
             {
                 log.warn("Unable to create an ActiveMQReceiver.", e);
-                throw new InternalException("Unable to create an ActiveMQReceiver.", e);
+                throw new RuntimeException("Unable to create an ActiveMQReceiver.", e);
             }
         }
     }

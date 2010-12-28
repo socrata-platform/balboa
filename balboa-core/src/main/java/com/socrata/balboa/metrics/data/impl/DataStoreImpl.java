@@ -2,7 +2,6 @@ package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.server.exceptions.InternalException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -24,7 +23,7 @@ public abstract class DataStoreImpl
         }
         catch (IOException e)
         {
-            throw new InternalException("Unable to load configuration for some reason.", e);
+            throw new Configuration.ConfigurationException("Unable to load configuration for some reason.", e);
         }
 
         while (!periods.contains(period) && period != null)

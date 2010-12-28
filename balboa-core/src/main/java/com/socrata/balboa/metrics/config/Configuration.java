@@ -19,6 +19,29 @@ public class Configuration extends Properties
 {
     private static Log log = LogFactory.getLog(Configuration.class);
 
+    public static class ConfigurationException extends RuntimeException
+    {
+        public ConfigurationException()
+        {
+            super();
+        }
+
+        public ConfigurationException(String s)
+        {
+            super(s);
+        }
+
+        public ConfigurationException(String s, Throwable throwable)
+        {
+            super(s, throwable);
+        }
+
+        public ConfigurationException(Throwable throwable)
+        {
+            super(throwable);
+        }
+    }
+
     static Configuration instance;
 
     private List<DateRange.Period> supportedPeriods;

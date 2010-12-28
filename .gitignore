@@ -2,6 +2,7 @@
 *.imp
 *.ipr
 *.swp
+*.iml
 balboa.i*
 target
 tmp

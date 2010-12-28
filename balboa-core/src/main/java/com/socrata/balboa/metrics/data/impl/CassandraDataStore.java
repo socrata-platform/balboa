@@ -7,7 +7,6 @@ import com.socrata.balboa.metrics.data.*;
 import com.socrata.balboa.metrics.data.DateRange.Period;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
-import com.socrata.balboa.server.exceptions.InternalException;
 import org.apache.cassandra.thrift.Column;
 import org.apache.cassandra.thrift.SlicePredicate;
 import org.apache.cassandra.thrift.SliceRange;
@@ -296,7 +295,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                 }
                 catch (IOException e)
                 {
-                    throw new InternalException("Invalid column name, unable to unpack into timestamp.", e);
+                    throw new CassandraQueryException("Invalid column name, unable to unpack into timestamp.", e);
                 }
 
                 for (Column subColumn : column.getColumns())

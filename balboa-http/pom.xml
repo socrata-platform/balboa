@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.socrata</groupId>
-    <artifactId>balboa</artifactId>
+    <artifactId>balboa-http</artifactId>
     <packaging>war</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1</version>
 
-    <name>Balboa</name>
+    <name>Balboa Http Server</name>
 
     <profiles>
         <profile>
@@ -58,6 +58,12 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.socrata</groupId>
+            <artifactId>balboa-core</artifactId>
+            <version>0.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-server</artifactId>
             <version>1.4</version>
@@ -77,31 +83,11 @@
           <scope>test</scope>
         </dependency>
 
-        <!-- cassandra -->
-        <dependency>
-          <groupId>org.apache</groupId>
-          <artifactId>apache-cassandra</artifactId>
-          <version>0.6.0</version>
-        </dependency>
-
-        <dependency>
-          <groupId>me.prettyprint</groupId>
-          <artifactId>hector</artifactId>
-          <version>0.6.0-14</version>
-        </dependency>
-
         <!-- protocol buffers -->
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
             <version>2.3.0</version>
-        </dependency>
-
-        <!-- memcache -->
-        <dependency>
-          <groupId>spy</groupId>
-          <artifactId>memcached</artifactId>
-          <version>2.5</version>
         </dependency>
 
         <!-- json serialization/deserialization -->
@@ -117,19 +103,6 @@
             <version>1.6.0</version>
         </dependency>
 
-        <!-- activemq -->
-        <dependency>
-            <groupId>javax.jms</groupId>
-            <artifactId>jms</artifactId>
-            <version>1.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-core</artifactId>
-            <version>5.2.0</version>
-        </dependency>
-
         <!-- various other misc requirements -->
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -141,31 +114,6 @@
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
             <version>3.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-dbcp</groupId>
-            <artifactId>commons-dbcp</artifactId>
-            <version>1.2.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.perf4j</groupId>
-            <artifactId>perf4j</artifactId>
-            <version>0.9.13</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.thrift</groupId>
-            <artifactId>libthrift</artifactId>
-            <version>r917130</version>
-        </dependency>
-        
-        
-        <dependency>
-            <groupId>org.apache.thrift</groupId>
-            <artifactId>libthrift</artifactId>
-            <version>r917130</version>
         </dependency>
 
         <dependency>

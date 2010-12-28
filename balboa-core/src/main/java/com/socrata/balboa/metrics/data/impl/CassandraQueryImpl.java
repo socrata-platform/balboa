@@ -2,7 +2,6 @@ package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.server.exceptions.InternalException;
 import me.prettyprint.cassandra.service.CassandraClient;
 import me.prettyprint.cassandra.service.CassandraClientPool;
 import me.prettyprint.cassandra.service.CassandraClientPoolFactory;
@@ -59,7 +58,7 @@ public class CassandraQueryImpl implements CassandraQuery
         }
         catch (Exception e)
         {
-            throw new InternalException("Unknown exception trying to borrow a cassandra client.", e);
+            throw new CassandraDataStore.CassandraQueryException("Unknown exception trying to borrow a cassandra client.", e);
         }
 
         Keyspace keyspace = null;
@@ -135,7 +134,7 @@ public class CassandraQueryImpl implements CassandraQuery
         }
         catch (Exception e)
         {
-            throw new InternalException("Unknown exception trying to borrow a cassandra client.", e);
+            throw new CassandraDataStore.CassandraQueryException("Unknown exception trying to borrow a cassandra client.", e);
         }
 
         Keyspace keyspace = null;
@@ -199,7 +198,7 @@ public class CassandraQueryImpl implements CassandraQuery
         }
         catch (Exception e)
         {
-            throw new InternalException("Unknown exception trying to borrow a cassandra client.", e);
+            throw new CassandraDataStore.CassandraQueryException("Unknown exception trying to borrow a cassandra client.", e);
         }
 
         Keyspace keyspace = null;

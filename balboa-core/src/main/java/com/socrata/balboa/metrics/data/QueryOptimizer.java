@@ -1,7 +1,6 @@
 package com.socrata.balboa.metrics.data;
 
 import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.server.exceptions.InternalException;
 
 import java.io.IOException;
 import java.util.*;
@@ -19,7 +18,7 @@ public class QueryOptimizer
         }
         catch (IOException e)
         {
-            throw new InternalException("Unable to load configuration for some reason.", e);
+            throw new Configuration.ConfigurationException("Unable to load configuration for some reason.", e);
         }
 
         DateRange.Period mostGranular = DateRange.Period.mostGranular(periods);

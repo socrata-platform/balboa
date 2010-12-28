@@ -3,7 +3,6 @@ package com.socrata.balboa.metrics.data;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.impl.MapLock;
 import com.socrata.balboa.metrics.data.impl.MemcachedLock;
-import com.socrata.balboa.server.exceptions.InternalException;
 import net.spy.memcached.AddrUtil;
 import net.spy.memcached.MemcachedClient;
 import org.apache.commons.logging.Log;
@@ -27,7 +26,7 @@ public class LockFactory
 
             if (serverConfig == null)
             {
-                throw new InternalException("memcached.servers must be configured in order to enable locking.");
+                throw new Configuration.ConfigurationException("memcached.servers must be configured in order to enable locking.");
             }
 
             log.debug("Retrieving a MemcachedLock instance for the '" + serverConfig + "' memcache servers.");
@@ -57,7 +56,7 @@ public class LockFactory
             catch (IOException e)
             {
                 log.fatal("Unable to read the configuration file to figure out what to connect to.", e);
-                throw new InternalException("Unable to read the configuration file to figure out what to connect to.", e);
+                throw new Configuration.ConfigurationException("Unable to read the configuration file to figure out what to connect to.", e);
             }
         }
     }
