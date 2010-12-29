@@ -20,6 +20,10 @@ public class Metric
     Number value;
     RecordType type;
 
+    public Metric()
+    {
+    }
+
     public Metric(RecordType type, Number value)
     {
         this.type = type;

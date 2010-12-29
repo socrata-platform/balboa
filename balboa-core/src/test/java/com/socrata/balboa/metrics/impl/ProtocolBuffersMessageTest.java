@@ -2,12 +2,11 @@ package com.socrata.balboa.metrics.impl;
 
 import com.socrata.balboa.metrics.Message;
 import com.socrata.balboa.metrics.Metric;
+import com.socrata.balboa.metrics.Metrics;
 import junit.framework.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ProtocolBuffersMessageTest
 {
@@ -40,7 +39,7 @@ public class ProtocolBuffersMessageTest
         m.setEntityId("sam");
         m.setTimestamp(0);
 
-        Map<String, Metric> metrics = new HashMap<String, Metric>();
+        Metrics metrics = new Metrics();
         metrics.put("test", new Metric(Metric.RecordType.AGGREGATE, 10));
         metrics.put("test2", new Metric(Metric.RecordType.ABSOLUTE, 11));
 

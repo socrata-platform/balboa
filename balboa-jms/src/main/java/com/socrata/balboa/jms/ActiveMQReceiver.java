@@ -1,37 +1,28 @@
-package com.socrata.balboa.metrics.messaging.impl;
+package com.socrata.balboa.jms;
 
-import com.socrata.balboa.metrics.Summary;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
-import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.messaging.Receiver;
+import com.socrata.balboa.metrics.impl.JsonMessage;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.transport.TransportListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.jms.*;
 import javax.naming.NamingException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The ActiveMQReceiver listens to the JMS queue/server configured in your
  * configuration and tries to save events that are put on the queue. Messages on
  * the queue should be text messages and their body should be a JSON encoded
- * object of the event. 
+ * object of the event.
  *
- * Events on the queue require two keys:
- *
- *     "entityId" and "timestamp"
- *
- * The entityId is the row id that the summary applies to and the timestamp is
- * the moment that the event occurred in milliseconds.
- *
- * All other key/values in the event are considered metric/value pairs.
+ * The entityId is the entity on whom metrics are being tracked. The timestamp
+ * is the time, in milliseconds, when the metrics themselves occurred. And
+ * finally "metrics" is the collection of metrics.
  *
  * e.g.
  *
@@ -39,18 +30,26 @@ import java.util.Map;
  *     {
  *         "entityId": "foo",
  *         "timestamp": 1281037944000,
- *         "view-count": 1,
- *         "rows-loaded": 500
+ *         "metrics": {
+ *              "view-loaded" : {
+ *                  "value": 104,
+ *                  "type": AGGREGATE
+ *              },
+ *              "view-downloaded" : {
+ *                  "value": 10,
+ *                  "type": ABSOLUTE
+ *              },
+ *         }
  *     }
  * </code>
  *
  * Here the key "foo" will persist at the timestamp the two metrics "view-count"
- * and "rows-loaded".
+ * and "view-downloaded".
  *
  * If for some reason a message cannot be persisted, it will be rejected and
  * redelivered as the JMS provider sees fit.
  */
-public class ActiveMQReceiver implements Receiver
+public class ActiveMQReceiver
 {
     private static Log log = LogFactory.getLog(ActiveMQReceiver.class);
     private List<Listener> listeners;
@@ -102,42 +101,17 @@ public class ActiveMQReceiver implements Receiver
         }
 
         @Override
-        public void onMessage(Message message)
+        public void onMessage(Message payload)
         {
             try
             {
-                TextMessage text = (TextMessage)message;
+                TextMessage text = (TextMessage)payload;
 
-                String serialized = text.getText();
-                ObjectMapper mapper = new ObjectMapper();
+                JsonMessage message = new JsonMessage(text.getText());
 
-                Map<String, Object> data;
-                try
-                {
-                    data = (Map<String, Object>)mapper.readValue(serialized, Object.class);
-                }
-                catch (IOException e)
-                {
-                    log.error("There was a problem parsing the JSON into a summary. Ignoring this message.", e);
+                DataStore ds = DataStoreFactory.get();
+                ds.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
 
-                    // If there was a problem parsing the JSON in a message,
-                    // we can never possibly recover, so just commit that this
-                    // message was received and move on.
-                    session.commit();
-
-                    return;
-                }
-
-                String entityId = (String)data.remove("entityId");
-                Number timestamp = (Number)data.remove("timestamp");
-
-                // Create an actual summary.
-                Summary summary = new Summary(DateRange.Period.REALTIME, timestamp.longValue(), data);
-
-                received(entityId, summary);
-
-                // Provided there were no exceptions receiving the message and
-                // persisting it, commit the result.
                 session.commit();
             }
             catch (Exception e)
@@ -162,6 +136,10 @@ public class ActiveMQReceiver implements Receiver
         }
     }
 
+    public ActiveMQReceiver()
+    {
+    }
+
     public ActiveMQReceiver(String[] servers, String channel) throws NamingException, JMSException
     {
         listeners = new ArrayList<Listener>(servers.length);
@@ -173,12 +151,5 @@ public class ActiveMQReceiver implements Receiver
 
             listeners.add(new Listener(factory, channel));
         }
-    }
-
-    @Override
-    public void received(String entityId, Summary summary) throws IOException
-    {
-        DataStore ds = DataStoreFactory.get();
-        //ds.persist(entityId, summary);
     }
 }

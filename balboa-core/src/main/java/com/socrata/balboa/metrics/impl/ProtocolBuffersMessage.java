@@ -2,11 +2,11 @@ package com.socrata.balboa.metrics.impl;
 
 import com.socrata.balboa.metrics.Message;
 import com.socrata.balboa.metrics.Metric;
+import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.measurements.serialization.ProtocolBuffersSerializer;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,7 +16,7 @@ public class ProtocolBuffersMessage extends Message
 
     public ProtocolBuffersMessage()
     {
-        setMetrics(new HashMap<String, Metric>());
+        setMetrics(new Metrics());
     }
 
     public ProtocolBuffersMessage(byte[] data) throws IOException
@@ -119,8 +119,9 @@ public class ProtocolBuffersMessage extends Message
         setTimestamp(serialized.getTimestamp());
 
         ProtocolBuffersSerializer ser = new ProtocolBuffersSerializer();
-        Map<String, Metric> metrics = new HashMap<String, Metric>(serialized.getMetricsCount());
+        Metrics metrics = new Metrics(serialized.getMetricsCount());
         setMetrics(metrics);
+
         for (MessageProtos.PBMetric metric : serialized.getMetricsList())
         {
             Metric m = new Metric(

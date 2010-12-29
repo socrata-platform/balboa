@@ -1,7 +1,6 @@
 package com.socrata.balboa.metrics;
 
 import java.io.IOException;
-import java.util.Map;
 
 public abstract class Message
 {
@@ -9,7 +8,7 @@ public abstract class Message
     
     String entityId;
     long timestamp;
-    Map<String, Metric> metrics;
+    Metrics metrics;
 
     public String getEntityId()
     {
@@ -31,12 +30,12 @@ public abstract class Message
         this.timestamp = timestamp;
     }
 
-    public Map<String, Metric> getMetrics()
+    public Metrics getMetrics()
     {
         return metrics;
     }
 
-    public void setMetrics(Map<String, Metric> metrics)
+    public void setMetrics(Metrics metrics)
     {
         this.metrics = metrics;
     }

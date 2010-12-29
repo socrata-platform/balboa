@@ -61,6 +61,7 @@ public class Metrics
         return timestamp;
     }
 
+    @JsonProperty("__timestamp__")
     public void setTimestamp(Long timestamp)
     {
         this.timestamp = timestamp;
@@ -94,5 +95,10 @@ public class Metrics
     public int size()
     {
         return getMetrics().size();
+    }
+
+    public Set<Map.Entry<String, Metric>> entrySet()
+    {
+        return getMetrics().entrySet();
     }
 }
