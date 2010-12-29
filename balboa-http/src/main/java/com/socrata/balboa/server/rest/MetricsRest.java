@@ -4,6 +4,7 @@ import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.EntityMeta;
 import com.socrata.balboa.metrics.impl.MessageProtos;
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics;
 import com.socrata.balboa.server.ServiceUtils;
@@ -22,7 +23,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-@Path("/{entityId}")
+@Path("/metrics/{entityId}")
 public class MetricsRest
 {
     @GET
@@ -89,6 +90,19 @@ public class MetricsRest
         return render(getMediaType(headers), iter);
     }
 
+    @GET
+    @Path("meta")
+    @Produces("application/json")
+    public Response meta(
+            @PathParam("entityId") String entityId,
+            @Context HttpHeaders headers
+    ) throws IOException
+    {
+        DataStore ds = DataStoreFactory.get();
+
+        return render(getMediaType(headers), ds.meta(entityId));
+    }
+
     MediaType getMediaType(HttpHeaders headers)
     {
         MediaType format = headers.getMediaType();
@@ -102,6 +116,18 @@ public class MetricsRest
         }
 
         return format;
+    }
+
+    private Response render(MediaType format, EntityMeta meta) throws IOException
+    {
+        if (format.getSubtype().equals("x-protobuf"))
+        {
+            throw new IllegalArgumentException("protobuf is an unsupported output type for meta-data");
+        }
+        else
+        {
+            return renderJson(meta);
+        }
     }
 
     private Response render(MediaType format, Iterator<? extends Metrics> metrics) throws IOException
@@ -123,11 +149,7 @@ public class MetricsRest
         }
         else
         {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-            mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-
-            return Response.ok(mapper.writeValueAsString(metrics), "application/json").build();
+            return renderJson(metrics);
         }
     }
 
@@ -142,11 +164,16 @@ public class MetricsRest
         }
         else
         {
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-            mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-
-            return Response.ok(mapper.writeValueAsString(metrics), "application/json").build();
+            return renderJson(metrics);
         }
+    }
+
+    private Response renderJson(Object object) throws IOException
+    {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
+        mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
+
+        return Response.ok(mapper.writeValueAsString(object), "application/json").build();
     }
 }

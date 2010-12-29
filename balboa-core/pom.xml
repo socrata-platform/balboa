@@ -9,6 +9,12 @@
 
     <name>Balboa Core</name>
 
+    <parent>
+        <groupId>com.socrata</groupId>
+        <artifactId>balboa</artifactId>
+        <version>0.2</version>
+    </parent>
+
     <profiles>
         <profile>
           <id>test</id>
@@ -34,7 +40,7 @@
         </repository>
         <repository>
           <id>socrata-local</id>
-          <url>file://../${basedir}/mvn-local-repo</url>
+          <url>file://${basedir}/mvn-local-repo</url>
           <releases>
             <enabled>true</enabled>
           </releases>

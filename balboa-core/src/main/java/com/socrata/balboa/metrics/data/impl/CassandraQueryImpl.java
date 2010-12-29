@@ -248,4 +248,73 @@ public class CassandraQueryImpl implements CassandraQuery
             }
         }
     }
+
+    @Override
+    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException
+    {
+        long startTime = System.currentTimeMillis();
+
+        CassandraClient client;
+        try
+        {
+            long clientStartTime = System.currentTimeMillis();
+            client = pool.borrowClient(servers);
+            long totalClientTime = System.currentTimeMillis() - clientStartTime;
+            if (totalClientTime >= CLIENT_BORROW_THRESHOLD)
+            {
+                log.warn("Slow borrowing a client from the pool " + totalClientTime + " (ms).");
+            }
+        }
+        catch (Exception e)
+        {
+            throw new CassandraDataStore.CassandraQueryException("Unknown exception trying to borrow a cassandra client.", e);
+        }
+
+        try
+        {
+            SlicePredicate predicate = new SlicePredicate();
+            SliceRange sliceRange = new SliceRange();
+            sliceRange.setCount(0);
+            sliceRange.setStart(CassandraUtils.packLong(0));
+            sliceRange.setFinish(CassandraUtils.packLong(0));
+            predicate.setSlice_range(sliceRange);
+
+            return client.getCassandra().get_range_slices(
+                    keyspaceName,
+                    new ColumnParent(columnFamily),
+                    predicate,
+                    range,
+                    ConsistencyLevel.ONE
+            );
+        }
+        catch (Exception e)
+        {
+            throw new IOException("Unknown exception reading from cassandra.", e);
+        }
+        finally
+        {
+            IOException possiblyThrown = null;
+
+            try
+            {
+                pool.releaseClient(client);
+            }
+            catch (Exception e)
+            {
+                log.warn("Unable to release the cassandra client for some reason (not good).", e);
+                possiblyThrown = new IOException(e);
+            }
+
+            long totalTime = System.currentTimeMillis() - startTime;
+            log.debug("Total read time for keyscan between " + range.getStart_key() + " and " + range.getEnd_key() + " to cassandra " + totalTime + " (ms).");
+
+            if (possiblyThrown != null)
+            {
+                // Doesn't really matter which one is thrown, we just want to
+                // chuck out any exceptions and let someone smarter than us
+                // deal with them.
+                throw possiblyThrown;
+            }
+        }
+    }
 }

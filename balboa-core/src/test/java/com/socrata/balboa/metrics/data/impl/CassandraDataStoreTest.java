@@ -8,9 +8,7 @@ import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.data.Lock;
 import com.socrata.balboa.metrics.data.LockFactory;
 import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
-import org.apache.cassandra.thrift.Column;
-import org.apache.cassandra.thrift.SlicePredicate;
-import org.apache.cassandra.thrift.SuperColumn;
+import org.apache.cassandra.thrift.*;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +45,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
+
+                    @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
@@ -81,6 +82,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
+
+                    @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
@@ -113,6 +117,9 @@ public class CassandraDataStoreTest
                     {
                         throw new IOException("Oh Cody. This is so wrong.");
                     }
+
+                    @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
@@ -161,6 +168,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
+
+                    @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
@@ -195,6 +205,9 @@ public class CassandraDataStoreTest
                     {
                         return new ArrayList<SuperColumn>(0);
                     }
+
+                    @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
@@ -237,6 +250,9 @@ public class CassandraDataStoreTest
                     {
                         return null;
                     }
+
+                    @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
@@ -286,6 +302,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
+
+                    @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
@@ -315,6 +334,9 @@ public class CassandraDataStoreTest
                     {
                         return null;
                     }
+
+                    @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
@@ -374,6 +396,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
+
+                    @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
@@ -426,6 +451,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
+
+                    @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
@@ -475,6 +503,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
+
+                    @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
@@ -509,6 +540,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
+
+                    @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
@@ -533,6 +567,9 @@ public class CassandraDataStoreTest
                     {
                         return new ArrayList<SuperColumn>(0);
                     }
+
+                    @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
@@ -595,6 +632,9 @@ public class CassandraDataStoreTest
 
                         return items;
                     }
+
+                    @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
                     public SuperColumn getMeta(String entityId) throws IOException
@@ -671,6 +711,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
+
+                    @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }
 
                     @Override
@@ -739,6 +782,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
+
+                    @Override
                     public SuperColumn getMeta(String entityId) throws IOException
                     {
                         List<Column> columns = new ArrayList<Column>();
@@ -790,6 +836,9 @@ public class CassandraDataStoreTest
 
                         return items;
                     }
+
+                    @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
                     public SuperColumn getMeta(String entityId) throws IOException
@@ -856,6 +905,9 @@ public class CassandraDataStoreTest
                     }
 
                     @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
+
+                    @Override
                     public SuperColumn getMeta(String entityId) throws IOException
                     {
                         List<Column> columns = new ArrayList<Column>();
@@ -892,6 +944,9 @@ public class CassandraDataStoreTest
                     {
                         return new ArrayList<SuperColumn>(0);
                     }
+
+                    @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
                     
                     @Override
                     public SuperColumn getMeta(String entityId) throws IOException { return null; }

@@ -8,6 +8,10 @@ import java.util.Iterator;
 
 public interface DataStore
 {
+    public Iterator<String> entities() throws IOException;
+
+    public EntityMeta meta(String entityId) throws IOException;
+
     /**
      * Given a date and given a summary range period, create the appropriate range
      * for the date (explained below) and perform a query that returns all the

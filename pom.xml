@@ -4,13 +4,10 @@
     http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.socrata.com</groupId>
+    <groupId>com.socrata</groupId>
+    <version>0.2</version>
     <artifactId>balboa</artifactId>
     <packaging>pom</packaging>
-
-    <version>0.2</version>
-
-    <name>Balboa Projects</name>
  
     <modules>
         <module>balboa-core</module>

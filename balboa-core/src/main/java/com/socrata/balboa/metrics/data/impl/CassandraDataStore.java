@@ -7,12 +7,10 @@ import com.socrata.balboa.metrics.data.*;
 import com.socrata.balboa.metrics.data.DateRange.Period;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
-import org.apache.cassandra.thrift.Column;
-import org.apache.cassandra.thrift.SlicePredicate;
-import org.apache.cassandra.thrift.SliceRange;
-import org.apache.cassandra.thrift.SuperColumn;
+import org.apache.cassandra.thrift.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.codehaus.jackson.annotate.JsonValue;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
@@ -109,6 +107,12 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
             }
         }
 
+        @JsonValue
+        public Map<String, String> getData()
+        {
+            return data;
+        }
+
         @Override
         public boolean containsKey(String metric)
         {
@@ -131,6 +135,124 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         public CassandraQueryException(String msg, Throwable cause)
         {
             super(msg, cause);
+        }
+    }
+
+    static EntityMeta getEntityMeta(String entityId) throws IOException
+    {
+        SuperColumn data = CassandraQueryFactory.get().getMeta(entityId);
+
+        if (data != null)
+        {
+            return new CassandraEntityMeta(data);
+        }
+        else
+        {
+            return new CassandraEntityMeta();
+        }
+    }
+
+    static class CassandraRowsIterator implements Iterator<String>
+    {
+        /** The maxiumum number of super columns to read in one query. */
+        static final int QUERYBUFFER = 500;
+        String columnFamily;
+        String currentKey = "";
+        List<KeySlice> buffer;
+
+        CassandraRowsIterator(Period columnFamily)
+        {
+            this.columnFamily = columnFamily.toString();
+            buffer = new ArrayList<KeySlice>(0);
+        }
+
+        /**
+         * Fill the buffer after it's empty with new items from a cassandra
+         * query.
+         */
+        public List<KeySlice> nextBuffer()
+        {
+            // Make sure that we're not executing a query when we've still got
+            // some unprocessed buffer left.
+            if (buffer != null)
+            {
+                assert(buffer.size() == 0);
+            }
+
+            if (currentKey == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                KeyRange range = new KeyRange(QUERYBUFFER);
+                range.setStart_key(currentKey);
+                range.setEnd_key("");
+
+                List<KeySlice> results = CassandraQueryFactory.get().getKeys(columnFamily, range);
+
+                // Update the range so that the next time we fill the buffer, we
+                // do it starting from the last of the returned results.
+                if (results != null && results.size() > 1)
+                {
+                    KeySlice last = results.remove(results.size() - 1);
+                    currentKey = last.getKey();
+
+                    return results;
+                }
+                else if (results != null && results.size() == 1)
+                {
+                    currentKey = null;
+
+                    return results;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (IOException e)
+            {
+                // Well, no matter what happened that caused an exception, we
+                // don't have any items to iterate over.
+                throw new CassandraQueryException("There was some serious problem reading from cassandra.", e);
+            }
+        }
+
+        @Override
+        public boolean hasNext()
+        {
+            if (buffer == null || buffer.size() == 0)
+            {
+                buffer = nextBuffer();
+            }
+
+            if (buffer == null || buffer.size() == 0)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public String next()
+        {
+            if (!hasNext())
+            {
+                throw new NoSuchElementException("There are no more summaries.");
+            }
+            else
+            {
+                return buffer.remove(0).getKey();
+            }
+        }
+
+        @Override
+        public void remove()
+        {
+            throw new UnsupportedOperationException("Not supported.");
         }
     }
 
@@ -165,21 +287,6 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
             this.meta = getEntityMeta(entityId); 
 
             buffer = new ArrayList<SuperColumn>(0);
-        }
-
-        EntityMeta getEntityMeta(String entityId) throws IOException
-        {
-            // TODO: Cachinate.
-            SuperColumn data = CassandraQueryFactory.get().getMeta(entityId);
-
-            if (data != null)
-            {
-                return new CassandraEntityMeta(data);
-            }
-            else
-            {
-                return new CassandraEntityMeta();
-            }
         }
 
         /**
@@ -347,6 +454,18 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     Iterator<Metrics> query(String entityId, DateRange.Period period, DateRange range) throws IOException
     {
         return new CassandraIterator(entityId, period, range);
+    }
+
+    @Override
+    public Iterator<String> entities() throws IOException
+    {
+        return new CassandraRowsIterator(Period.leastGranular(Configuration.get().getSupportedTypes()));
+    }
+
+    @Override
+    public EntityMeta meta(String entityId) throws IOException
+    {
+        return getEntityMeta(entityId);
     }
 
     @Override
