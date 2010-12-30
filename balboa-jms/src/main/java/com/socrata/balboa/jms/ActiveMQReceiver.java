@@ -136,10 +136,6 @@ public class ActiveMQReceiver
         }
     }
 
-    public ActiveMQReceiver()
-    {
-    }
-
     public ActiveMQReceiver(String[] servers, String channel) throws NamingException, JMSException
     {
         listeners = new ArrayList<Listener>(servers.length);
