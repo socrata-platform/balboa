@@ -20,8 +20,7 @@ public class ProtocolBuffersMetrics extends Metrics
     {
         super();
 
-        setTimestamp(other.getTimestamp());
-        getMetrics().putAll(other.getMetrics());
+        putAll(other);
     }
 
     void deserialize(MessageProtos.PBMetrics serialized) throws IOException
@@ -29,7 +28,7 @@ public class ProtocolBuffersMetrics extends Metrics
         ProtocolBuffersSerializer ser = new ProtocolBuffersSerializer();
         for (MessageProtos.PBMetric metric : serialized.getMetricsList())
         {
-            getMetrics().put(
+            put(
                     metric.getName(),
                     new Metric(
                             ProtocolBuffersMessage.protoToRecordType(metric.getType()),
@@ -41,10 +40,10 @@ public class ProtocolBuffersMetrics extends Metrics
 
     public MessageProtos.PBMetrics proto() throws IOException
     {
-        List<MessageProtos.PBMetric> metrics = new ArrayList<MessageProtos.PBMetric>(getMetrics().size());
+        List<MessageProtos.PBMetric> metrics = new ArrayList<MessageProtos.PBMetric>(size());
 
         ProtocolBuffersSerializer ser = new ProtocolBuffersSerializer();
-        for (Map.Entry<String, Metric> entry : getMetrics().entrySet())
+        for (Map.Entry<String, Metric> entry : entrySet())
         {
             MessageProtos.PBMetric metric = MessageProtos.
                     PBMetric.
@@ -61,7 +60,6 @@ public class ProtocolBuffersMetrics extends Metrics
                 PBMetrics.
                 newBuilder().
                 addAllMetrics(metrics).
-                setTimestamp(getTimestamp()).
                 build();
     }
 

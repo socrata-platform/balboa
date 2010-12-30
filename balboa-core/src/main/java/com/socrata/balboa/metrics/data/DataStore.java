@@ -1,6 +1,7 @@
 package com.socrata.balboa.metrics.data;
 
 import com.socrata.balboa.metrics.Metrics;
+import com.socrata.balboa.metrics.Timeslice;
 
 import java.io.IOException;
 import java.util.Date;
@@ -11,6 +12,8 @@ public interface DataStore
     public Iterator<String> entities() throws IOException;
 
     public EntityMeta meta(String entityId) throws IOException;
+
+    public Iterator<Timeslice> slices(String entityId, DateRange.Period period, Date start, Date end) throws IOException;
 
     /**
      * Given a date and given a summary range period, create the appropriate range

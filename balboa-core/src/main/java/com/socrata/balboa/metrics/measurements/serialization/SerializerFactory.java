@@ -1,6 +1,7 @@
 package com.socrata.balboa.metrics.measurements.serialization;
 
 import com.socrata.balboa.metrics.config.Configuration;
+import com.socrata.balboa.metrics.config.PropertiesConfiguration;
 
 import java.io.IOException;
 
@@ -17,7 +18,7 @@ public class SerializerFactory
         }
         catch (IOException e)
         {
-            throw new Configuration.ConfigurationException("Serializer not configured.");
+            throw new PropertiesConfiguration.ConfigurationException("Serializer not configured.");
         }
 
         if (serializerConfig.equals("json"))
@@ -30,7 +31,7 @@ public class SerializerFactory
         }
         else
         {
-            throw new Configuration.ConfigurationException("Invalid serializer configured '" + serializerConfig + "'.");
+            throw new PropertiesConfiguration.ConfigurationException("Invalid serializer configured '" + serializerConfig + "'.");
         }
     }
 }

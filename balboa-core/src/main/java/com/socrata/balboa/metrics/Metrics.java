@@ -1,42 +1,48 @@
 package com.socrata.balboa.metrics;
 
 import com.socrata.balboa.metrics.data.CompoundIterator;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 import java.io.IOException;
 import java.util.*;
 
-public class Metrics
+public class Metrics extends HashMap<String, Metric>
 {
-    Map<String, Metric> metrics;
-    Long timestamp;
+    public Metrics(int i, float v)
+    {
+        super(i, v);
+    }
+
+    public Metrics(int i)
+    {
+        super(i);
+    }
 
     public Metrics()
     {
-        metrics = new HashMap<String, Metric>();
+        super();
     }
 
-    public Metrics(int size)
+    public Metrics(Map<? extends String, ? extends Metric> map)
     {
-        metrics = new HashMap<String, Metric>(size);
+        super(map);
     }
 
     public void merge(Metrics other)
     {
         // Get the union of the two key sets.
-        Set<String> unionKeys = new HashSet<String>(getMetrics().keySet());
-        unionKeys.addAll(other.getMetrics().keySet());
+        Set<String> unionKeys = new HashSet<String>(keySet());
+        unionKeys.addAll(other.keySet());
 
         // Combine the two maps.
         for (String key : unionKeys)
         {
-            if (getMetrics().containsKey(key))
+            if (containsKey(key))
             {
-                getMetrics().get(key).combine(other.getMetrics().get(key));
+                get(key).combine(other.get(key));
             }
-            else if (other.getMetrics().containsKey(key))
+            else if (other.containsKey(key))
             {
-                getMetrics().put(key, other.getMetrics().get(key));
+                put(key, other.get(key));
             }
         }
     }
@@ -53,52 +59,5 @@ public class Metrics
         }
 
         return metrics;
-    }
-
-    @JsonProperty("__timestamp__")
-    public Long getTimestamp()
-    {
-        return timestamp;
-    }
-
-    @JsonProperty("__timestamp__")
-    public void setTimestamp(Long timestamp)
-    {
-        this.timestamp = timestamp;
-    }
-
-    public Map<String, Metric> getMetrics()
-    {
-        return metrics;
-    }
-
-    public void put(String name, Metric value)
-    {
-        getMetrics().put(name, value);
-    }
-
-    public Metric get(String name)
-    {
-        return getMetrics().get(name);
-    }
-
-    public Set<String> keySet()
-    {
-        return getMetrics().keySet();
-    }
-
-    public boolean containsKey(String name)
-    {
-        return getMetrics().containsKey(name);
-    }
-
-    public int size()
-    {
-        return getMetrics().size();
-    }
-
-    public Set<Map.Entry<String, Metric>> entrySet()
-    {
-        return getMetrics().entrySet();
     }
 }

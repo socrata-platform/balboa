@@ -1,13 +1,14 @@
 package com.socrata.balboa.server.rest;
 
 import com.socrata.balboa.metrics.Metrics;
+import com.socrata.balboa.metrics.Timeslice;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.data.EntityMeta;
-import com.socrata.balboa.metrics.impl.MessageProtos;
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics;
 import com.socrata.balboa.server.ServiceUtils;
+import com.socrata.balboa.server.exceptions.InvalidRequestException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -18,10 +19,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
-import java.util.List;
 
 @Path("/metrics/{entityId}")
 public class MetricsRest
@@ -42,7 +41,6 @@ public class MetricsRest
 
         Iterator<Metrics> iter = ds.find(entityId, period, range.start, range.end);
         Metrics metrics = Metrics.summarize(iter);
-        metrics.setTimestamp(null);
 
         return render(getMediaType(headers), metrics);
     }
@@ -64,7 +62,6 @@ public class MetricsRest
 
         Iterator<Metrics> iter = ds.find(entityId, startDate, endDate);
         Metrics metrics = Metrics.summarize(iter);
-        metrics.setTimestamp(null);
 
         return render(getMediaType(headers), metrics);
     }
@@ -85,7 +82,7 @@ public class MetricsRest
         Date startDate = ServiceUtils.parseDate(start);
         Date endDate = ServiceUtils.parseDate(end);
 
-        Iterator<? extends Metrics> iter = ds.find(entityId, period, startDate, endDate);
+        Iterator<? extends Timeslice> iter = ds.slices(entityId, period, startDate, endDate);
 
         return render(getMediaType(headers), iter);
     }
@@ -130,22 +127,11 @@ public class MetricsRest
         }
     }
 
-    private Response render(MediaType format, Iterator<? extends Metrics> metrics) throws IOException
+    private Response render(MediaType format, Iterator<? extends Timeslice> metrics) throws IOException
     {
         if (format.getSubtype().equals("x-protobuf"))
         {
-            List<MessageProtos.PBMetrics> list = new ArrayList<MessageProtos.PBMetrics>();
-
-            while (metrics.hasNext())
-            {
-                Metrics m = metrics.next();
-                ProtocolBuffersMetrics pbm = new ProtocolBuffersMetrics(m);
-                list.add(pbm.proto());
-            }
-
-            MessageProtos.PBMetricsSeries series = MessageProtos.PBMetricsSeries.newBuilder().addAllSeries(list).build();
-
-            return Response.ok(series.toByteArray(), "application/x-protobuf").build();
+            throw new InvalidRequestException("Unable to serialize timeslices to protobuf");
         }
         else
         {

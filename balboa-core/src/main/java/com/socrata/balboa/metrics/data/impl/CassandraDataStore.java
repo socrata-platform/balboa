@@ -2,6 +2,7 @@ package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.Metrics;
+import com.socrata.balboa.metrics.Timeslice;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.*;
 import com.socrata.balboa.metrics.data.DateRange.Period;
@@ -256,11 +257,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         }
     }
 
-    /**
-     * An iterator that pages cassandra rows in memory and loops over all of them
-     * until there are no more remaining.
-     */
-    static class CassandraIterator implements Iterator<Metrics>
+    static abstract class CassandraIteratorBase<T> implements Iterator<T>
     {
         /** The maxiumum number of super columns to read in one query. */
         static final int QUERYBUFFER = 500;
@@ -279,12 +276,12 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
          * should be searched for rows.
          * @param range The date range to constrain the search to.
          */
-        CassandraIterator(String entityId, DateRange.Period period, DateRange range) throws IOException
+        CassandraIteratorBase(String entityId, DateRange.Period period, DateRange range) throws IOException
         {
             this.period = period;
             this.range = range;
             this.entityId = entityId;
-            this.meta = getEntityMeta(entityId); 
+            this.meta = getEntityMeta(entityId);
 
             buffer = new ArrayList<SuperColumn>(0);
         }
@@ -307,7 +304,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
 
             return predicate;
         }
-        
+
         /**
          * Fill the buffer after it's empty with new items from a cassandra
          * query.
@@ -379,6 +376,28 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         }
 
         @Override
+        public abstract T next();
+
+        @Override
+        public void remove()
+        {
+            throw new UnsupportedOperationException("Not supported.");
+        }
+    }
+
+
+    /**
+     * An iterator that pages cassandra rows in memory and loops over all of them
+     * until there are no more remaining.
+     */
+    static class CassandraIterator extends CassandraIteratorBase<Metrics>
+    {
+        CassandraIterator(String entityId, Period period, DateRange range) throws IOException
+        {
+            super(entityId, period, range);
+        }
+
+        @Override
         public Metrics next()
         {
             if (!hasNext())
@@ -395,15 +414,6 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                 // We need to take all of these columns and map them into a hash
                 // which the summary uses as its values.
                 Metrics metrics = new Metrics(column.getColumnsSize());
-
-                try
-                {
-                    metrics.setTimestamp(CassandraUtils.unpackLong(column.getName()));
-                }
-                catch (IOException e)
-                {
-                    throw new CassandraQueryException("Invalid column name, unable to unpack into timestamp.", e);
-                }
 
                 for (Column subColumn : column.getColumns())
                 {
@@ -443,17 +453,98 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                 return metrics;
             }
         }
+    }
+
+    static class CassandraSliceIterator extends CassandraIteratorBase<Timeslice>
+    {
+        CassandraSliceIterator(String entityId, Period period, DateRange range) throws IOException
+        {
+            super(entityId, period, range);
+        }
 
         @Override
-        public void remove()
+        public Timeslice next()
         {
-            throw new UnsupportedOperationException("Not supported.");
+            if (!hasNext())
+            {
+                throw new NoSuchElementException("There are no more summaries.");
+            }
+            else
+            {
+                SuperColumn column = buffer.remove(0);
+                Serializer ser = SerializerFactory.get();
+
+                Timeslice slice = new Timeslice();
+
+                // When we query cassandra we get back a set of columns (the
+                // children of the super column -- period -- on which we queried).
+                // We need to take all of these columns and map them into a hash
+                // which the summary uses as its values.
+                Metrics metrics = new Metrics(column.getColumnsSize());
+
+                for (Column subColumn : column.getColumns())
+                {
+                    String name = new String(subColumn.getName());
+
+                    try
+                    {
+                        if (log.isTraceEnabled())
+                        {
+                            log.trace("READ: Raw serialized value from cassandra (" +
+                                    subColumn.getTimestamp() + ") " +
+                                    Arrays.toString(subColumn.getValue()));
+                        }
+
+                        Metric.RecordType type = Metric.RecordType.AGGREGATE;
+                        if (meta.containsKey(name))
+                        {
+                            type = Metric.RecordType.valueOf(meta.get(name).toUpperCase());
+                        }
+
+                        Metric m = new Metric(
+                                type,
+                                (Number)ser.deserialize(subColumn.getValue())
+                        );
+
+                        metrics.put(name, m);
+                    }
+                    catch (IOException e)
+                    {
+                        log.error("(" + entityId + " -> " + range + ") Unable " +
+                                "to deserialize the value '" + Arrays.toString(subColumn.getValue()) +
+                                "' in the column '" + name + "'. Ignoring " +
+                                "this metric.");
+                    }
+                }
+
+                try
+                {
+                    long timestamp = CassandraUtils.unpackLong(column.getName());
+                    DateRange range = DateRange.create(period, new Date(timestamp));
+                    slice.setStart(range.start.getTime());
+                    slice.setEnd(range.end.getTime());
+                }
+                catch (IOException e)
+                {
+                    throw new CassandraQueryException("Invalid column name, doesn't appear to be a long.", e);
+                }
+
+                slice.setMetrics(metrics);
+
+                return slice;
+            }
         }
     }
 
     Iterator<Metrics> query(String entityId, DateRange.Period period, DateRange range) throws IOException
     {
         return new CassandraIterator(entityId, period, range);
+    }
+
+    @Override
+    public Iterator<Timeslice> slices(String entityId, Period period, Date start, Date end) throws IOException
+    {
+        return new CassandraSliceIterator(entityId, period, new DateRange(start, end));
     }
 
     @Override
@@ -587,7 +678,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
 
             // Add the mutation to the list of batch stuffs
             List<SuperColumn> superColumns = new ArrayList<SuperColumn>(1);
-            superColumns.add(getSuperColumnMutation(range.start.getTime(), replacement.getMetrics()));
+            superColumns.add(getSuperColumnMutation(range.start.getTime(), replacement));
             superColumnOperations.put(period.toString(), superColumns);
 
             period = period.moreGranular();
