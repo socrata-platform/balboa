@@ -3,6 +3,7 @@ package com.socrata.balboa.metrics;
 import com.socrata.balboa.metrics.measurements.combining.Absolution;
 import com.socrata.balboa.metrics.measurements.combining.Combinator;
 import com.socrata.balboa.metrics.measurements.combining.Summation;
+import org.codehaus.jackson.annotate.JsonCreator;
 
 public class Metric
 {
@@ -14,6 +15,12 @@ public class Metric
         public String toString()
         {
             return super.toString().toLowerCase();
+        }
+
+        @JsonCreator
+        public static RecordType fromString(String value)
+        {
+            return RecordType.valueOf(value.toUpperCase());
         }
     }
 
