@@ -932,6 +932,44 @@ public class CassandraDataStoreTest
         Assert.assertEquals(Metric.RecordType.ABSOLUTE, metrics.get("test2").getType());
     }
 
+    @Test
+    public void testPersisIncludesMetaUpdate() throws Exception
+    {
+        DataStore ds = get();
+
+        final DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
+
+        CassandraQueryFactory.setTestMock(
+                new CassandraQuery() {
+                    int call = 0;
+                    @Override
+                    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
+                    {
+                        return new ArrayList<SuperColumn>(0);
+                    }
+
+                    @Override
+                    public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
+
+                    @Override
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
+
+                    @Override
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException
+                    {
+                        Assert.assertTrue(superColumnOperations.containsKey("meta"));
+                        Assert.assertTrue(superColumnOperations.get("meta").size() == 1);
+                        Assert.assertFalse(superColumnOperations.get("meta").get(0).isSetSuper_column());
+                        Assert.assertTrue(superColumnOperations.get("meta").get(0).isSetColumn());
+                        Assert.assertEquals("jessica.robinson".getBytes(), superColumnOperations.get("meta").get(0).getColumn().getName());
+                    }
+                }
+        );
+
+        Metrics metrics = new Metrics();
+        metrics.put("jessica.robinson", new Metric(Metric.RecordType.ABSOLUTE, 100));
+    }
+
     @Test(expected=java.io.IOException.class)
     public void testLockingAKeyWontWriteIt() throws Exception
     {

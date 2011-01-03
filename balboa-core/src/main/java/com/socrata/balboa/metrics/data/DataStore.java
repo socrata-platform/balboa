@@ -10,7 +10,7 @@ import java.util.Iterator;
 public interface DataStore
 {
     /**
-     * Retrieve an iterator that encompases all entity ids for which there are
+     * Retrieve an iterator that encompasses all entity ids for which there are
      * metrics being tracked. Generally speaking, this query is likely to be
      * very expensive and you probably don't want to use it unless you know
      * what you're doing.
@@ -22,6 +22,13 @@ public interface DataStore
      */
     public EntityMeta meta(String entityId) throws IOException;
 
+    /**
+     * Return a list of metrics for a period of timeslices over an arbitrary
+     * date range, chronologically ascending.
+     *
+     * e.g. Give me all of the metrics for some entity broken down by hours in
+     * the range 2010-01-01 -> 2010-01-31.
+     */
     public Iterator<Timeslice> slices(String entityId, DateRange.Period period, Date start, Date end) throws IOException;
 
     /**
