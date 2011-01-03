@@ -21,16 +21,18 @@ import java.util.*;
  * A DataStore implementation using <a href="http://cassandra.apache.org/">
  * cassandra</a> as the storage backend.
  *
- * The cassandra data model defines a keyspace in the balboa configuration file
+ * The cassandra data model defines a keyspace in configuration
  * (cassandra.keyspace). Underneath the keyspace, this datastore expects there
  * to be some super column ColumnFamilies. There should be a ColumnFamily for
- * each configured summary date range period (<code>DateRange.Period</code>).
+ * each configured summary date range period (<code>DateRange.Period</code>) and
+ * one ColumnFamily for entity meta data (<code>EntityMeta</code>).
  *
  * e.g.
  *
  * <code>
  *     &lt;ColumnFamily Name="hourly" ColumnType="Super" CompareWith="LongType" /&gt;
  *     &lt;ColumnFamily Name="daily" ColumnType="Super" CompareWith="LongType" /&gt;
+ *     &lt;ColumnFamily Name="meta" CompareWith="BytesType" /&gt;
  * </code>
  *
  * The keys for the ColumnFamily should be packed longs that are the timestamp
@@ -42,6 +44,7 @@ import java.util.*;
  * The organization of the data is most easily illustrated by some pseudo json:
  *
  * <code>
+ *     (hourly, daily, or monthly ColumnFamily)
  *     {
  *         // The entity id (the thing for which you're storing stats) is the
  *         // cassandra row id.
@@ -65,18 +68,23 @@ import java.util.*;
  * </code>
  *
  * When a set of data gets persisted, the datastore first locks the row that its
- * going to persist to then walks up each summary level and combines the values
- * to be written with the current values. Because of this, summary tiers are
- * always as up to date as the events that have been written are and reads are
- * extremely cheap (typically, even over a long range query with the default
- * summary range period configuration, balboa won't need to read more than seven
- * items). Writes on the other hand are relatively expensive, since each write
- * requires 'n' updates (where 'n' is the number of summary range types that are
- * enabled).
+ * going to persist to then walks up each metric summarization tier combinging
+ * existing values with the values being persisted. Because of this, summary
+ * tiers are always as up to date as the events that have been written are and
+ * reads are extremely cheap (typically, even over a long range query with the
+ * default summary range period configuration, balboa won't need to read more
+ * than seven items). Writes on the other hand are relatively expensive, since
+ * each write requires 'n' updates (where 'n' is the number of summary range
+ * types that are enabled).
  *
- * Writes also have to lock the entire row because of the way column writes are
+ * Writes have to lock the entire row because of the way column writes are
  * batched so some write nodes will block on writing until they can acquire a
- * lock and lock contention could be a problem on very active entity's. 
+ * lock and lock contention could be a problem on very active entity's.
+ *
+ * By default all values are written as "aggregate" records, meaning: To get the
+ * metric over an arbitrary time range, all known records from adjacent time
+ * slices can be summed together. Records can also be written as "absolute"
+ * meaning: values aren't combined, only the most recent value is used.
  */
 public class CassandraDataStore extends DataStoreImpl implements DataStore
 {

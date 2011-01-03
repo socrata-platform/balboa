@@ -9,8 +9,17 @@ import java.util.Iterator;
 
 public interface DataStore
 {
+    /**
+     * Retrieve an iterator that encompases all entity ids for which there are
+     * metrics being tracked. Generally speaking, this query is likely to be
+     * very expensive and you probably don't want to use it unless you know
+     * what you're doing.
+     */
     public Iterator<String> entities() throws IOException;
 
+    /**
+     * Get the meta data for an entity.
+     */
     public EntityMeta meta(String entityId) throws IOException;
 
     public Iterator<Timeslice> slices(String entityId, DateRange.Period period, Date start, Date end) throws IOException;
