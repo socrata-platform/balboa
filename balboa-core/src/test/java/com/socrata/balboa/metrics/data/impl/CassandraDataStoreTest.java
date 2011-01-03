@@ -48,10 +48,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> inserts) throws IOException {}
                 }
         );
 
@@ -85,10 +85,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> inserts) throws IOException {}
                 }
         );
 
@@ -122,10 +122,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
 
@@ -171,10 +171,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
 
@@ -210,17 +210,17 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> inserts) throws IOException
                     {
                         String t = DateRange.Period.HOURLY.toString();
                         
                         Assert.assertTrue(inserts.get(t).size() == 1);
 
-                        SuperColumn insert = inserts.get(t).get(0);
-                        long timestamp = CassandraUtils.unpackLong(insert.getName());
+                        ColumnOrSuperColumn insert = inserts.get(t).get(0);
+                        long timestamp = CassandraUtils.unpackLong(insert.getSuper_column().getName());
 
                         Assert.assertNotSame(range.start.getTime() + 31337, timestamp);
 
@@ -255,10 +255,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
 
@@ -305,10 +305,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
 
@@ -339,10 +339,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
 
@@ -399,10 +399,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
 
@@ -454,10 +454,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
 
@@ -506,10 +506,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
 
@@ -543,10 +543,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
 
@@ -572,10 +572,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> inserts) throws IOException
                     {
                         Assert.assertEquals("testCreate", entityId);
                         Assert.assertTrue(Configuration.get().getSupportedTypes().size() > 0);
@@ -589,7 +589,7 @@ public class CassandraDataStoreTest
                         
                         Assert.assertTrue(inserts.get(t).size() == 1);
 
-                        List<Column> cols = inserts.get(t).get(0).getColumns();
+                        List<Column> cols = inserts.get(t).get(0).getSuper_column().getColumns();
                         Assert.assertTrue(cols.size() == 2);
                         Assert.assertTrue("test1".equals(new String(cols.get(0).getName())));
                         Assert.assertTrue("test2".equals(new String(cols.get(1).getName())));
@@ -637,16 +637,16 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException
+                    public List<Column> getMeta(String entityId) throws IOException
                     {
                         List<Column> columns = new ArrayList<Column>();
                         columns.add(new Column("test1".getBytes("UTF-8"), "absolute".getBytes("UTF-8"), 0));
                         columns.add(new Column("test2".getBytes("UTF-8"), "aggregate".getBytes("UTF-8"), 0));
-                        return new SuperColumn("view.uid".getBytes("UTF-8"), columns);
+                        return columns;
                     }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> inserts) throws IOException
                     {
                         Assert.assertEquals("testCreateAbsoluteMetricDoesntAggregate", entityId);
                         Assert.assertTrue(Configuration.get().getSupportedTypes().size() > 0);
@@ -660,7 +660,7 @@ public class CassandraDataStoreTest
 
                         Assert.assertTrue(inserts.get(t).size() == 1);
 
-                        List<Column> cols = inserts.get(t).get(0).getColumns();
+                        List<Column> cols = inserts.get(t).get(0).getSuper_column().getColumns();
                         Assert.assertTrue(cols.size() == 3);
                         Assert.assertTrue("test1".equals(new String(cols.get(0).getName())));
                         Assert.assertTrue("test2".equals(new String(cols.get(1).getName())));
@@ -714,10 +714,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> inserts) throws IOException
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> inserts) throws IOException
                     {
                         Assert.assertEquals("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", entityId);
                         Assert.assertTrue(Configuration.get().getSupportedTypes().size() > 0);
@@ -731,7 +731,7 @@ public class CassandraDataStoreTest
 
                         Assert.assertTrue(inserts.get(t).size() == 1);
 
-                        List<Column> cols = inserts.get(t).get(0).getColumns();
+                        List<Column> cols = inserts.get(t).get(0).getSuper_column().getColumns();
                         Assert.assertTrue(cols.size() == 3);
                         Assert.assertTrue("test1".equals(new String(cols.get(0).getName())));
                         Assert.assertTrue("test2".equals(new String(cols.get(1).getName())));
@@ -785,16 +785,16 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException
+                    public List<Column> getMeta(String entityId) throws IOException
                     {
                         List<Column> columns = new ArrayList<Column>();
                         columns.add(new Column("test1".getBytes("UTF-8"), "absolute".getBytes("UTF-8"), 0));
                         columns.add(new Column("test2".getBytes("UTF-8"), "absolute".getBytes("UTF-8"), 0));
-                        return new SuperColumn("view.uid".getBytes("UTF-8"), columns);
+                        return columns;
                     }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
 
@@ -841,15 +841,15 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException
+                    public List<Column> getMeta(String entityId) throws IOException
                     {
                         List<Column> columns = new ArrayList<Column>();
                         columns.add(new Column("test1".getBytes("UTF-8"), "absolute".getBytes("UTF-8"), 0));
-                        return new SuperColumn("view.uid".getBytes("UTF-8"), columns);
+                        return columns;
                     }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
 
@@ -908,16 +908,16 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
 
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException
+                    public List<Column> getMeta(String entityId) throws IOException
                     {
                         List<Column> columns = new ArrayList<Column>();
                         columns.add(new Column("test1".getBytes("UTF-8"), "absolute".getBytes("UTF-8"), 0));
                         columns.add(new Column("test2".getBytes("UTF-8"), "absolute".getBytes("UTF-8"), 0));
-                        return new SuperColumn("view.uid".getBytes("UTF-8"), columns);
+                        return columns;
                     }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException {}
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException {}
                 }
         );
 
@@ -949,10 +949,10 @@ public class CassandraDataStoreTest
                     public List<KeySlice> getKeys(String columnFamily, KeyRange range) throws IOException { return null; }
                     
                     @Override
-                    public SuperColumn getMeta(String entityId) throws IOException { return null; }
+                    public List<Column> getMeta(String entityId) throws IOException { return null; }
 
                     @Override
-                    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException
+                    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> superColumnOperations) throws IOException
                     {
                         Assert.fail("Shouldn't persist an item if I'm unable to get a lock.");
                     }

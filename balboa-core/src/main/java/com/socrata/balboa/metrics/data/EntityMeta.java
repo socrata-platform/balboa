@@ -1,7 +1,7 @@
 package com.socrata.balboa.metrics.data;
 
-public interface EntityMeta
+import java.util.Map;
+
+public interface EntityMeta extends Map<String, String>
 {
-    boolean containsKey(String metric);
-    String get(String metric);
 }

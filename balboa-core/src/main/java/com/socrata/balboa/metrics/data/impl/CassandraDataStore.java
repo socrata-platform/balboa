@@ -11,7 +11,6 @@ import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
 import org.apache.cassandra.thrift.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.annotate.JsonValue;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
@@ -86,44 +85,23 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
 
     private static Log log = LogFactory.getLog(CassandraDataStore.class);
 
-    public static class CassandraEntityMeta implements EntityMeta
+    public static class CassandraEntityMeta extends HashMap<String, String> implements EntityMeta
     {
-        Map<String, String> data;
-
         public CassandraEntityMeta()
         {
-            data = new HashMap<String, String>();
         }
 
-        public CassandraEntityMeta(SuperColumn superColumn)
+        public CassandraEntityMeta(List<Column> columns)
         {
-            data = new HashMap<String, String>(superColumn.getColumnsSize());
+            super(columns.size());
 
-            for (Column column : superColumn.getColumns())
+            for (Column column : columns)
             {
-                data.put(
-                    new String(column.getName(), Charset.forName("UTF-8")),
-                    new String(column.getValue(), Charset.forName("UTF-8"))
+                put(
+                        new String(column.getName(), Charset.forName("UTF-8")),
+                        new String(column.getValue(), Charset.forName("UTF-8"))
                 );
             }
-        }
-
-        @JsonValue
-        public Map<String, String> getData()
-        {
-            return data;
-        }
-
-        @Override
-        public boolean containsKey(String metric)
-        {
-            return data.containsKey(metric);
-        }
-
-        @Override
-        public String get(String metric)
-        {
-            return data.get(metric);
         }
     }
 
@@ -141,7 +119,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
 
     static EntityMeta getEntityMeta(String entityId) throws IOException
     {
-        SuperColumn data = CassandraQueryFactory.get().getMeta(entityId);
+        List<Column> data = CassandraQueryFactory.get().getMeta(entityId);
 
         if (data != null)
         {
@@ -641,9 +619,41 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         return superColumn;
     }
 
-    public Map<String, List<SuperColumn>> update(String entityId, long timestamp, Metrics metrics) throws IOException
+    List<Column> getMetaMutation(String entityId, Metrics metrics) throws IOException
     {
-        Map<String, List<SuperColumn>> superColumnOperations = new HashMap<String, List<SuperColumn>>();
+        EntityMeta meta = getEntityMeta(entityId);
+        List<Column> mutations = new ArrayList<Column>();
+
+        for (Map.Entry<String, Metric> entry : metrics.entrySet())
+        {
+            if (meta.containsKey(entry.getKey()) && !meta.get(entry.getKey()).equals(entry.getValue().getType().toString()))
+            {
+                throw new IllegalArgumentException("Invalid metrics " + "persistence method: " +
+                                                           entry.getKey() + " already exists in " +
+                                                           entityId + "'s meta, but has a " +
+                                                           "different record type than requests " +
+                                                           entry.getValue().getType() + " <-> " +
+                                                           meta.get(entry.getKey()));
+
+            }
+            else if (!meta.containsKey(entry.getKey()) && entry.getValue().getType() != Metric.RecordType.AGGREGATE)
+            {
+                mutations.add(
+                        new Column(
+                                entry.getKey().getBytes(),
+                                entry.getValue().getType().toString().getBytes(),
+                                System.currentTimeMillis() * 1000
+                        )
+                );
+            }
+        }
+
+        return mutations;
+    }
+
+    public Map<String, List<ColumnOrSuperColumn>> update(String entityId, long timestamp, Metrics metrics) throws IOException
+    {
+        Map<String, List<ColumnOrSuperColumn>> operations = new HashMap<String, List<ColumnOrSuperColumn>>();
 
         // For every period that can be summarized read/increment/update
         // their summary.
@@ -677,9 +687,12 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
             Metrics replacement = existing;
 
             // Add the mutation to the list of batch stuffs
-            List<SuperColumn> superColumns = new ArrayList<SuperColumn>(1);
-            superColumns.add(getSuperColumnMutation(range.start.getTime(), replacement));
-            superColumnOperations.put(period.toString(), superColumns);
+            List<ColumnOrSuperColumn> columnsOrSuperColumns = new ArrayList<ColumnOrSuperColumn>(1);
+            ColumnOrSuperColumn op = new ColumnOrSuperColumn();
+            op.setSuper_column(getSuperColumnMutation(range.start.getTime(), replacement));
+
+            columnsOrSuperColumns.add(op);
+            operations.put(period.toString(), columnsOrSuperColumns);
 
             period = period.moreGranular();
             while (period != null && !periods.contains(period))
@@ -688,7 +701,17 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
             }
         }
 
-        return superColumnOperations;
+        List<Column> metaMutations = getMetaMutation(entityId, metrics);
+        List<ColumnOrSuperColumn> metaColumns = new ArrayList<ColumnOrSuperColumn>(metaMutations.size());
+        for (Column column : metaMutations)
+        {
+            ColumnOrSuperColumn columnOrSuperColumn = new ColumnOrSuperColumn();
+            columnOrSuperColumn.setColumn(column);
+            metaColumns.add(columnOrSuperColumn);
+        }
+        operations.put("meta", metaColumns);
+
+        return operations;
     }
 
     @Override
@@ -715,8 +738,8 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                 {
                     try
                     {
-                        Map<String, List<SuperColumn>> superColumnOperations = update(entityId, timestamp, metrics);
-                        CassandraQueryFactory.get().persist(entityId, superColumnOperations);
+                        Map<String, List<ColumnOrSuperColumn>> operations = update(entityId, timestamp, metrics);
+                        CassandraQueryFactory.get().persist(entityId, operations);
 
                         break;
                     }

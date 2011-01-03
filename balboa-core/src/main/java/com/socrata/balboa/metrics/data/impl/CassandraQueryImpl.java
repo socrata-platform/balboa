@@ -11,9 +11,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * An implementation of CassandraQuery that actually speaks with cassandra.
@@ -39,10 +37,8 @@ public class CassandraQueryImpl implements CassandraQuery
     }
 
     @Override
-    public SuperColumn getMeta(String entityId) throws IOException
+    public List<Column> getMeta(String entityId) throws IOException
     {
-        String metaId = "__" + entityId + "__";
-        
         long startTime = System.currentTimeMillis();
 
         CassandraClient client;
@@ -73,7 +69,35 @@ public class CassandraQueryImpl implements CassandraQuery
                 log.warn("Slow getting a keyspace for reading from cassandra " + totalKeyspaceTime + " (ms).");
             }
 
-            return keyspace.getSuperColumn("meta", new ColumnPath(metaId));
+            SlicePredicate predicate = new SlicePredicate();
+            SliceRange range = new SliceRange("".getBytes(), "".getBytes(), false, 500);
+            predicate.setSlice_range(range);
+            List<Column> results = new ArrayList<Column>();
+
+            while (true)
+            {
+                List<Column> queryResults = keyspace.getSlice(entityId, new ColumnParent("meta"), predicate);
+
+                // Update the range so that the next time we fill the buffer, we
+                // do it starting from the last of the returned results.
+                if (queryResults != null && queryResults.size() > 1)
+                {
+                    Column last = queryResults.remove(queryResults.size() - 1);
+                    range.setStart(last.getName());
+                    results.addAll(queryResults);
+                }
+                else if (queryResults != null && queryResults.size() == 1)
+                {
+                    results.addAll(queryResults);
+                    break;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return results;
         }
         catch (NotFoundException e)
         {
@@ -83,7 +107,7 @@ public class CassandraQueryImpl implements CassandraQuery
         {
             // The meta column doesn't currently exist, which is fine, we just
             // need to return and empty mock-meta
-            return new SuperColumn(metaId.getBytes(), new ArrayList<Column>(0));
+            return new ArrayList<Column>(0);
         }
         catch (Exception e)
         {
@@ -187,7 +211,7 @@ public class CassandraQueryImpl implements CassandraQuery
     }
 
     @Override
-    public void persist(String entityId, Map<String, List<SuperColumn>> superColumnOperations) throws IOException
+    public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> operations) throws IOException
     {
         long startTime = System.currentTimeMillis();
         
@@ -205,18 +229,7 @@ public class CassandraQueryImpl implements CassandraQuery
 
         try
         {
-            long keyspaceStartTime = System.currentTimeMillis();
-            keyspace = client.getKeyspace(keyspaceName, ConsistencyLevel.QUORUM, CassandraClient.FailoverPolicy.FAIL_FAST);
-            long totalKeyspaceTime = System.currentTimeMillis() - keyspaceStartTime;
-            if (totalKeyspaceTime >= KEYSPACE_BORROW_THRESHOLD)
-            {
-                log.warn("Slow getting a keyspace for writing from cassandra " + totalKeyspaceTime + " (ms).");
-            }
-            keyspace.batchInsert(entityId, null, superColumnOperations);
-        }
-        catch (NotFoundException e)
-        {
-            throw new IOException("Keyspace '" + keyspaceName + "' not found.");
+            client.getCassandra().batch_insert(keyspaceName, entityId, operations, ConsistencyLevel.QUORUM);
         }
         catch (Exception e)
         {
@@ -228,7 +241,7 @@ public class CassandraQueryImpl implements CassandraQuery
 
             try
             {
-                pool.releaseClient(keyspace == null ? client : keyspace.getClient());
+                pool.releaseClient(client);
             }
             catch (Exception e)
             {
