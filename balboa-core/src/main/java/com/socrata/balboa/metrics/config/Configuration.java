@@ -20,6 +20,8 @@ public abstract class Configuration extends Properties
             environment = "development";
         }
 
+        environment = "test";
+
         if (instance == null)
         {
             if (environment.equals("test"))
