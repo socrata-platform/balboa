@@ -10,9 +10,10 @@ public class PropertiesFixtureConfiguration extends Configuration
     PropertiesFixtureConfiguration() throws IOException
     {
         setSupportedTypes(Arrays.asList(
-                DateRange.Period.HOURLY, DateRange.Period.DAILY, DateRange.Period.MONTHLY, DateRange.Period.YEARLY
+                DateRange.Period.HOURLY, DateRange.Period.DAILY, DateRange.Period.MONTHLY
         ));
 
-        load(PropertiesFixtureConfiguration.class.getClassLoader().getResourceAsStream("config/config.test.properties"));
+        setProperty("balboa.serializer", "protobuf");
+        setProperty("balboa.datastore", "cassandra");
     }
 }
