@@ -1,7 +1,5 @@
-package com.socrata.balboa.measurements.serialization;
+package com.socrata.balboa.metrics.measurements.serialization;
 
-import com.socrata.balboa.metrics.measurements.serialization.ProtocolBuffersSerializer;
-import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import org.junit.Assert;
 import org.junit.Test;
 

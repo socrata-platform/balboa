@@ -1,6 +1,5 @@
-package com.socrata.balboa.measurements.combining;
+package com.socrata.balboa.metrics.measurements.combining;
 
-import com.socrata.balboa.metrics.measurements.combining.Summation;
 import junit.framework.Assert;
 import org.junit.Test;
 

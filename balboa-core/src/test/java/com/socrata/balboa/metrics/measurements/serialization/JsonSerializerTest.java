@@ -1,4 +1,4 @@
-package com.socrata.balboa.measurements.serialization;
+package com.socrata.balboa.metrics.measurements.serialization;
 
 import org.junit.Test;
 
