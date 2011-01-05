@@ -17,29 +17,6 @@ public class PropertiesConfiguration extends Configuration
 {
     private static Log log = LogFactory.getLog(PropertiesConfiguration.class);
 
-    public static class ConfigurationException extends RuntimeException
-    {
-        public ConfigurationException()
-        {
-            super();
-        }
-
-        public ConfigurationException(String s)
-        {
-            super(s);
-        }
-
-        public ConfigurationException(String s, Throwable throwable)
-        {
-            super(s, throwable);
-        }
-
-        public ConfigurationException(Throwable throwable)
-        {
-            super(throwable);
-        }
-    }
-
     public PropertiesConfiguration() throws IOException
     {
         String override = System.getProperty("balboa.config");
