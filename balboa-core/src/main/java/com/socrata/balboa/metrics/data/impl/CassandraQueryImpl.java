@@ -22,7 +22,6 @@ public class CassandraQueryImpl implements CassandraQuery
     private static Log log = LogFactory.getLog(CassandraQueryImpl.class);
 
     private static final int CLIENT_BORROW_THRESHOLD = 1000;
-    private static final int KEYSPACE_BORROW_THRESHOLD = 1000;
 
     String keyspaceName;
     CassandraClientPool pool;
