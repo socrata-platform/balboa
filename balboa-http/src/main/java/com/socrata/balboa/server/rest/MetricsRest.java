@@ -42,6 +42,16 @@ public class MetricsRest
         Iterator<Metrics> iter = ds.find(entityId, period, range.start, range.end);
         Metrics metrics = Metrics.summarize(iter);
 
+        if (combine != null)
+        {
+            metrics = metrics.combine(combine);
+        }
+
+        if (field != null)
+        {
+            metrics = metrics.filter(field);
+        }
+
         return render(getMediaType(headers), metrics);
     }
 
@@ -52,6 +62,8 @@ public class MetricsRest
             @PathParam("entityId") String entityId,
             @QueryParam("start") String start,
             @QueryParam("end") String end,
+            @QueryParam("combine") String combine,
+            @QueryParam("field") String field,
             @Context HttpHeaders headers
     ) throws IOException
     {
@@ -62,6 +74,16 @@ public class MetricsRest
 
         Iterator<Metrics> iter = ds.find(entityId, startDate, endDate);
         Metrics metrics = Metrics.summarize(iter);
+
+        if (combine != null)
+        {
+            metrics = metrics.combine(combine);
+        }
+
+        if (field != null)
+        {
+            metrics = metrics.filter(field);
+        }
 
         return render(getMediaType(headers), metrics);
     }

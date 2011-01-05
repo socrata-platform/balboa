@@ -27,6 +27,46 @@ public class Metrics extends HashMap<String, Metric>
         super(map);
     }
 
+    public Metrics filter(String pattern)
+    {
+        Metrics results = new Metrics(size());
+
+        for (Map.Entry<String, Metric> entry : entrySet())
+        {
+            if (entry.getKey().matches(pattern))
+            {
+                results.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return results;
+    }
+
+    public Metrics combine(String pattern)
+    {
+        Metrics results = new Metrics(1);
+        Metric combined = null;
+
+        for (Map.Entry<String, Metric> entry : entrySet())
+        {
+            if (entry.getKey().matches(pattern))
+            {
+                if (combined == null)
+                {
+                    combined = entry.getValue();
+                }
+                else
+                {
+                    combined.combine(entry.getValue());
+                }
+            }
+        }
+
+        results.put("__result__", combined);
+
+        return results;
+    }
+
     public void merge(Metrics other)
     {
         // Get the union of the two key sets.

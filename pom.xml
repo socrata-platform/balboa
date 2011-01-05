@@ -13,6 +13,7 @@
         <module>balboa-core</module>
         <module>balboa-http</module>
         <module>balboa-jms</module>
+        <module>balboa-fill</module>
     </modules>
 
   <build>

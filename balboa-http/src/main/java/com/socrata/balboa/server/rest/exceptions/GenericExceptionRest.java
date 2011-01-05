@@ -1,5 +1,7 @@
 package com.socrata.balboa.server.rest.exceptions;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.ws.rs.Produces;
@@ -13,10 +15,14 @@ import java.util.Map;
 @Provider
 public class GenericExceptionRest implements ExceptionMapper<Exception>
 {
+    private static Log log = LogFactory.getLog(GenericExceptionRest.class);
+
     @Override
     @Produces("application/json")
     public Response toResponse(Exception throwable)
     {
+        log.error("Unexpected exception executing request.", throwable);
+
         Map<String, Object> error = new HashMap<String, Object>();
         error.put("error", 500);
         error.put("message", throwable.getMessage());
