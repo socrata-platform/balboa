@@ -56,7 +56,7 @@ public class PropertiesConfiguration extends Configuration
         {
             try
             {
-                load(new File("/etc/balboa"));
+                load(new File("/etc/balboa.properties"));
             }
             catch (IOException e)
             {

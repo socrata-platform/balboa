@@ -62,7 +62,7 @@ public class Metrics extends HashMap<String, Metric>
             }
         }
 
-        results.put("__result__", combined);
+        results.put("result", combined);
 
         return results;
     }
