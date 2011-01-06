@@ -627,10 +627,10 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         return superColumn;
     }
 
-    List<Column> getMetaMutation(String entityId, Metrics metrics) throws IOException
+    List<ColumnOrSuperColumn> getMetaMutation(String entityId, Metrics metrics) throws IOException
     {
         EntityMeta meta = getEntityMeta(entityId);
-        List<Column> mutations = new ArrayList<Column>();
+        List<ColumnOrSuperColumn> mutations = new ArrayList<ColumnOrSuperColumn>();
 
         for (Map.Entry<String, Metric> entry : metrics.entrySet())
         {
@@ -646,13 +646,14 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
             }
             else if (!meta.containsKey(entry.getKey()) && entry.getValue().getType() != Metric.RecordType.AGGREGATE)
             {
-                mutations.add(
-                        new Column(
-                                entry.getKey().getBytes(),
-                                entry.getValue().getType().toString().getBytes(),
-                                System.currentTimeMillis() * 1000
-                        )
+                Column column = new Column(
+                        entry.getKey().getBytes(),
+                        entry.getValue().getType().toString().getBytes(),
+                        System.currentTimeMillis() * 1000
                 );
+                ColumnOrSuperColumn columnOrSuperColumn = new ColumnOrSuperColumn();
+                columnOrSuperColumn.setColumn(column);
+                mutations.add(columnOrSuperColumn);
             }
         }
 
@@ -709,15 +710,8 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
             }
         }
 
-        List<Column> metaMutations = getMetaMutation(entityId, metrics);
-        List<ColumnOrSuperColumn> metaColumns = new ArrayList<ColumnOrSuperColumn>(metaMutations.size());
-        for (Column column : metaMutations)
-        {
-            ColumnOrSuperColumn columnOrSuperColumn = new ColumnOrSuperColumn();
-            columnOrSuperColumn.setColumn(column);
-            metaColumns.add(columnOrSuperColumn);
-        }
-        operations.put("meta", metaColumns);
+        List<ColumnOrSuperColumn> metaMutations = getMetaMutation(entityId, metrics);
+        operations.put("meta", metaMutations);
 
         return operations;
     }
