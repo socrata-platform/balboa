@@ -644,7 +644,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                                                            meta.get(entry.getKey()));
 
             }
-            else if (!meta.containsKey(entry.getKey()) && entry.getValue().getType() != Metric.RecordType.AGGREGATE)
+            else if (!meta.containsKey(entry.getKey()))
             {
                 Column column = new Column(
                         entry.getKey().getBytes(),
