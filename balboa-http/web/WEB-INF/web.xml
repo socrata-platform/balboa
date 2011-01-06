@@ -7,6 +7,10 @@
             <param-name>com.sun.jersey.config.property.packages</param-name>
             <param-value>com.socrata.balboa.server.rest</param-value>
         </init-param>
+        <init-param>
+            <param-name>com.sun.jersey.spi.container.ContainerRequestFilters</param-name>
+            <param-value>com.socrata.balboa.server.rest.filters.LiteLoggingFilter</param-value>
+        </init-param>
     </servlet>
     <servlet-mapping>
         <servlet-name>Balboa Metrics Server</servlet-name>
