@@ -1,11 +1,11 @@
 package com.socrata.balboa.server.rest;
 
+import com.socrata.balboa.metrics.config.Configuration;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
 import org.apache.log4j.PropertyConfigurator;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.Properties;
 
 public class RestServlet extends ServletContainer
 {
@@ -16,9 +16,8 @@ public class RestServlet extends ServletContainer
 
         try
         {
-            Properties p = new Properties();
-            p.load(RestServlet.class.getClassLoader().getResourceAsStream("config/config.properties"));
-            PropertyConfigurator.configure(p);
+            Configuration config = Configuration.get();
+            PropertyConfigurator.configure(config);
         }
         catch (IOException e)
         {
