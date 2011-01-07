@@ -348,7 +348,12 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         @Override
         public boolean hasNext()
         {
-            if (buffer == null || buffer.size() == 0)
+            if (buffer == null)
+            {
+                return false;
+            }
+
+            if (buffer.size() == 0)
             {
                 buffer = nextBuffer();
             }
