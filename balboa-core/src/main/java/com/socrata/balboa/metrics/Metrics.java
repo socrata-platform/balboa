@@ -62,6 +62,11 @@ public class Metrics extends HashMap<String, Metric>
             }
         }
 
+        if (combined == null)
+        {
+            combined = new Metric(Metric.RecordType.AGGREGATE, 0);
+        }
+
         results.put("result", combined);
 
         return results;
