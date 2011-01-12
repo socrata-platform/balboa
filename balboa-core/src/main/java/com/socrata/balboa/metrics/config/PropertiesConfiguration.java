@@ -37,7 +37,7 @@ public class PropertiesConfiguration extends Configuration
             }
             catch (IOException e)
             {
-                log.warn("An override wasn't provided and /etc/balboa doesn't " +
+                log.warn("An override wasn't provided and /etc/balboa.properties doesn't " +
                                  "exist or can't be loaded. Using the default " +
                                  "configuration values. Unless you're a " +
                                  "developer this probably isn't what you want.");
