@@ -262,12 +262,12 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
          * should be searched for rows.
          * @param range The date range to constrain the search to.
          */
-        CassandraIteratorBase(String entityId, DateRange.Period period, DateRange range) throws IOException
+        CassandraIteratorBase(String entityId, DateRange.Period period, DateRange range, EntityMeta meta) throws IOException
         {
             this.period = period;
             this.range = range;
             this.entityId = entityId;
-            this.meta = getEntityMeta(entityId);
+            this.meta = meta;
 
             buffer = new ArrayList<SuperColumn>(0);
         }
@@ -383,9 +383,9 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
      */
     static class CassandraIterator extends CassandraIteratorBase<Metrics>
     {
-        CassandraIterator(String entityId, Period period, DateRange range) throws IOException
+        CassandraIterator(String entityId, Period period, DateRange range, EntityMeta meta) throws IOException
         {
-            super(entityId, period, range);
+            super(entityId, period, range, meta);
         }
 
         @Override
@@ -448,9 +448,9 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
 
     static class CassandraSliceIterator extends CassandraIteratorBase<Timeslice>
     {
-        CassandraSliceIterator(String entityId, Period period, DateRange range) throws IOException
+        CassandraSliceIterator(String entityId, Period period, DateRange range, EntityMeta meta) throws IOException
         {
-            super(entityId, period, range);
+            super(entityId, period, range, meta);
         }
 
         @Override
@@ -527,15 +527,15 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         }
     }
 
-    Iterator<Metrics> query(String entityId, DateRange.Period period, DateRange range) throws IOException
+    Iterator<Metrics> query(String entityId, DateRange.Period period, DateRange range, EntityMeta meta) throws IOException
     {
-        return new CassandraIterator(entityId, period, range);
+        return new CassandraIterator(entityId, period, range, meta);
     }
 
     @Override
     public Iterator<Timeslice> slices(String entityId, Period period, Date start, Date end) throws IOException
     {
-        return new CassandraSliceIterator(entityId, period, new DateRange(start, end));
+        return new CassandraSliceIterator(entityId, period, new DateRange(start, end), getEntityMeta(entityId));
     }
 
     @Override
@@ -555,7 +555,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     {
         DateRange range = new DateRange(start, end);
         
-        return query(entityId, getClosestTypeOrError(period), range);
+        return query(entityId, getClosestTypeOrError(period), range, getEntityMeta(entityId));
     }
     
     @Override
@@ -563,7 +563,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     {
         DateRange range = DateRange.create(period, date);
 
-        return query(entityId, getClosestTypeOrError(period), range);
+        return query(entityId, getClosestTypeOrError(period), range, getEntityMeta(entityId));
     }
 
     @Override
@@ -576,13 +576,15 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         int numberOfQueries = 0;
 
         CompoundIterator<Metrics> iter = new CompoundIterator();
+        EntityMeta meta = getEntityMeta(entityId);
+
         for (Map.Entry<DateRange.Period,  Set<DateRange>> slice : slices.entrySet())
         {
             numberOfQueries += slice.getValue().size();
             
             for (DateRange r : slice.getValue())
             {
-                iter.add(query(entityId, slice.getKey(), r));
+                iter.add(query(entityId, slice.getKey(), r, meta));
             }
         }
 
@@ -632,9 +634,8 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         return superColumn;
     }
 
-    List<ColumnOrSuperColumn> getMetaMutation(String entityId, Metrics metrics) throws IOException
+    List<ColumnOrSuperColumn> getMetaMutation(String entityId, Metrics metrics, EntityMeta meta) throws IOException
     {
-        EntityMeta meta = getEntityMeta(entityId);
         List<ColumnOrSuperColumn> mutations = new ArrayList<ColumnOrSuperColumn>();
 
         for (Map.Entry<String, Metric> entry : metrics.entrySet())
@@ -665,7 +666,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         return mutations;
     }
 
-    public Map<String, List<ColumnOrSuperColumn>> update(String entityId, long timestamp, Metrics metrics) throws IOException
+    public Map<String, List<ColumnOrSuperColumn>> update(String entityId, long timestamp, Metrics metrics, EntityMeta meta) throws IOException
     {
         Map<String, List<ColumnOrSuperColumn>> operations = new HashMap<String, List<ColumnOrSuperColumn>>();
 
@@ -715,7 +716,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
             }
         }
 
-        List<ColumnOrSuperColumn> metaMutations = getMetaMutation(entityId, metrics);
+        List<ColumnOrSuperColumn> metaMutations = getMetaMutation(entityId, metrics, meta);
         operations.put("meta", metaMutations);
 
         return operations;
@@ -745,7 +746,8 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                 {
                     try
                     {
-                        Map<String, List<ColumnOrSuperColumn>> operations = update(entityId, timestamp, metrics);
+                        EntityMeta meta = getEntityMeta(entityId);
+                        Map<String, List<ColumnOrSuperColumn>> operations = update(entityId, timestamp, metrics, meta);
                         CassandraQueryFactory.get().persist(entityId, operations);
 
                         break;
