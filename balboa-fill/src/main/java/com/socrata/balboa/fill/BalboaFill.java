@@ -3,21 +3,112 @@ package com.socrata.balboa.fill;
 import au.com.bytecode.opencsv.CSVReader;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.Metrics;
+import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
+import com.socrata.balboa.metrics.data.DateRange;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class BalboaFill
 {
     public static void usage()
     {
         System.err.println("java -jar balboa-fill file1 [file2...]");
+    }
+
+    public static class Buffer
+    {
+        Map<Long, Map<String, Metrics>> items;
+
+        Buffer()
+        {
+            items = new HashMap<Long, Map<String, Metrics>>();
+        }
+
+        public synchronized void add(String entityId, long timestamp, String name, Metric metric) throws IOException
+        {
+            Date when = new Date(timestamp);
+            DateRange.Period mostGranular = DateRange.Period.mostGranular(Configuration.get().getSupportedTypes());
+
+            Metrics original = new Metrics();
+            original.put(name, metric);
+
+            long aligned = DateRange.create(mostGranular, when).start.getTime();
+
+            if (!items.containsKey(aligned))
+            {
+                items.put(aligned, new HashMap<String, Metrics>());
+            }
+
+            if (!items.get(aligned).containsKey(entityId))
+            {
+                items.get(aligned).put(entityId, new Metrics());
+            }
+
+            Metrics metrics = items.get(aligned).get(entityId);
+
+            metrics.merge(original);
+        }
+
+        public synchronized void flush() throws IOException
+        {
+            DataStore ds = DataStoreFactory.get();
+
+            System.out.println("Flushing " + items.size() + " timeslices.");
+
+            for (Map.Entry<Long, Map<String, Metrics>> entry : items.entrySet())
+            {
+                long timestamp = entry.getKey();
+
+                for (Map.Entry<String, Metrics> metricsEntry : entry.getValue().entrySet())
+                {
+                    String entityId = metricsEntry.getKey();
+                    Metrics saveable = metricsEntry.getValue();
+                    ds.persist(entityId, timestamp, saveable);
+                }
+            }
+
+            items.clear();
+        }
+    }
+
+    static class Cleanser extends Thread
+    {
+        Buffer buffer;
+
+        Cleanser(Buffer buffer)
+        {
+            this.buffer = buffer;
+        }
+
+        @Override
+        public void run()
+        {
+            while (true)
+            {
+                try
+                {
+                    buffer.flush();
+                }
+                catch (IOException e)
+                {
+                    System.err.println("Unable to flush buffer for some reason.");
+                }
+
+                try
+                {
+                    Thread.sleep(10000);
+                }
+                catch (InterruptedException e)
+                {
+                }
+            }
+        }
     }
 
     public static void main(String[] args)
@@ -33,7 +124,10 @@ public class BalboaFill
             files.add(file);
         }
 
-        DataStore ds = DataStoreFactory.get();
+        Buffer buffer = new Buffer();
+        Cleanser cleanser = new Cleanser(buffer);
+        cleanser.start();
+
         for (File file : files)
         {
             System.out.println("Processing " + file.getPath());
@@ -67,10 +161,7 @@ public class BalboaFill
                     Metric.RecordType type = Metric.RecordType.valueOf(line[3].toUpperCase());
                     BigDecimal value = new BigDecimal(line[4]);
 
-                    Metrics metrics = new Metrics();
-                    metrics.put(metric, new Metric(type, value));
-
-                    ds.persist(entityId, timestamp, metrics);
+                    buffer.add(entityId, timestamp, metric, new Metric(type, value));
                 }
             }
             catch (IOException e)
