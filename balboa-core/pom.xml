@@ -40,7 +40,7 @@
         </repository>
         <repository>
           <id>socrata-local</id>
-          <url>file://${basedir}/mvn-local-repo</url>
+          <url>file://${basedir}/../mvn-local-repo</url>
           <releases>
             <enabled>true</enabled>
           </releases>

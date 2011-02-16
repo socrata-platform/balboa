@@ -725,6 +725,11 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     @Override
     public void persist(String entityId, long timestamp, Metrics metrics) throws IOException
     {
+        if (entityId.equals("com.blist.services.views.RowsService:index") || entityId.equals("ip-socrata-token-used"))
+        {
+            return;
+        }
+
         if (entityId.startsWith("__") && entityId.endsWith("__"))
         {
             throw new IllegalArgumentException("Unable to persist entities " +

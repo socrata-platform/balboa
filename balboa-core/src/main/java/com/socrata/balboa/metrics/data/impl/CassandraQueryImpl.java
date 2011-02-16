@@ -129,6 +129,7 @@ public class CassandraQueryImpl implements CassandraQuery
         }
         catch (Exception e)
         {
+            hectorClient.markAsError();
             throw new IOException("Unknown exception reading from cassandra.", e);
         }
         finally
@@ -160,8 +161,14 @@ public class CassandraQueryImpl implements CassandraQuery
 
             return superColumns;
         }
+        catch (TimedOutException e)
+        {
+            hectorClient.markAsError();
+            throw new IOException("Timeout exception reading from cassandra.", e);
+        }
         catch (Exception e)
         {
+            hectorClient.markAsError();
             throw new IOException("Unknown exception reading from cassandra.", e);
         }
         finally
@@ -187,6 +194,7 @@ public class CassandraQueryImpl implements CassandraQuery
         }
         catch (Exception e)
         {
+            hectorClient.markAsError();
             throw new IOException("Unknown exception persisting to cassandra.", e);
         }
         finally
@@ -225,6 +233,7 @@ public class CassandraQueryImpl implements CassandraQuery
         }
         catch (Exception e)
         {
+            hectorClient.markAsError();
             throw new IOException("Unknown exception reading from cassandra.", e);
         }
         finally
