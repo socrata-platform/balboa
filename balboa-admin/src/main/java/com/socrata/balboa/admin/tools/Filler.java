@@ -1,4 +1,4 @@
-package com.socrata.balboa.fill;
+package com.socrata.balboa.admin.tools;
 
 import au.com.bytecode.opencsv.CSVReader;
 import com.socrata.balboa.metrics.Metric;
@@ -7,18 +7,21 @@ import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.LockFactory;
 
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
-public class BalboaFill
+public class Filler
 {
-    public static void usage()
+    CSVReader reader;
+
+    public Filler(CSVReader reader)
     {
-        System.err.println("java -jar balboa-fill file1 [file2...]");
+        this.reader = reader;
     }
 
     public static class Buffer
@@ -106,72 +109,60 @@ public class BalboaFill
                 }
                 catch (InterruptedException e)
                 {
+                    System.out.println("Buffer cleanser interrupted, stopping...");
+                    return;
                 }
             }
         }
     }
 
-    public static void main(String[] args)
+    public void fill() throws IOException
     {
         long startTime = System.currentTimeMillis();
-
         int count = 0;
 
-        List<File> files = new ArrayList<File>(args.length);
-        for (String arg : args)
-        {
-            File file = new File(arg);
-            files.add(file);
-        }
-
         Buffer buffer = new Buffer();
-        Cleanser cleanser = new Cleanser(buffer);
-        cleanser.start();
+        //Cleanser cleanser = new Cleanser(buffer);
+        //cleanser.start();
 
-        for (File file : files)
+        String [] line;
+        while ((line = reader.readNext()) != null)
         {
-            System.out.println("Processing " + file.getPath());
+            count += 1;
 
-            try
+            if ((count % 1000) == 0)
             {
-                CSVReader reader = new CSVReader(new FileReader(file));
-                String [] line;
-                while ((line = reader.readNext()) != null)
-                {
-                    count += 1;
-
-                    if ((count % 1000) == 0)
-                    {
-                        System.out.print(".");
-                    }
-
-                    if ((count % 10000) == 0)
-                    {
-                        System.out.println(" " + count);
-                    }
-
-                    if (line.length != 5)
-                    {
-                        throw new IllegalArgumentException("Invalid csv format. There should be exactly 5 columns (entityId, timestamp, metric, record-type, value).");
-                    }
-
-                    String entityId = line[0];
-                    long timestamp = Long.parseLong(line[1]);
-                    String metric = line[2];
-                    Metric.RecordType type = Metric.RecordType.valueOf(line[3].toUpperCase());
-                    BigDecimal value = new BigDecimal(line[4]);
-
-                    buffer.add(entityId, timestamp, metric, new Metric(type, value));
-                }
+                System.out.print(".");
             }
-            catch (IOException e)
+
+            if ((count % 10000) == 0)
             {
-                throw new IllegalArgumentException("Unable to parse/read " + file + ".", e);
+                System.out.println(" " + count);
             }
+
+            if (line.length != 5)
+            {
+                throw new IllegalArgumentException("Invalid csv format. There should be exactly 5 columns (entityId, timestamp, metric, record-type, value).");
+            }
+
+            String entityId = line[0];
+            long timestamp = Long.parseLong(line[1]);
+            String metric = line[2];
+            Metric.RecordType type = Metric.RecordType.valueOf(line[3].toUpperCase());
+            BigDecimal value = new BigDecimal(line[4]);
+
+            buffer.add(entityId, timestamp, metric, new Metric(type, value));
         }
+
+        System.out.println("Interrupting the buffer thread...");
+        //cleanser.interrupt();
+        LockFactory.reset();
+
+        System.out.println("Purging the buffer...");
+        buffer.flush();
 
         long totalTime = (System.currentTimeMillis() - startTime) / 1000;
-        double avgInsertsPerSecond = count / totalTime / 1000;
+        double avgInsertsPerSecond = count / (totalTime > 0 ? totalTime: 1) / 1000;
         System.out.println("\nTotal time: " + totalTime + " (" + avgInsertsPerSecond + " rows/sec)");
     }
 }

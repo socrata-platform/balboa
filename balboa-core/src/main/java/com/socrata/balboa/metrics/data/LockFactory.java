@@ -5,6 +5,7 @@ import com.socrata.balboa.metrics.config.PropertiesConfiguration;
 import com.socrata.balboa.metrics.data.impl.MapLock;
 import com.socrata.balboa.metrics.data.impl.MemcachedLock;
 import net.spy.memcached.AddrUtil;
+import net.spy.memcached.ConnectionFactoryBuilder;
 import net.spy.memcached.MemcachedClient;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -33,7 +34,10 @@ public class LockFactory
             log.debug("Retrieving a MemcachedLock instance for the '" + serverConfig + "' memcache servers.");
 
             List<InetSocketAddress> address = AddrUtil.getAddresses(serverConfig);
-            client = new MemcachedClient(address);
+            client = new MemcachedClient(
+                    new ConnectionFactoryBuilder().setDaemon(true).build(),
+                    address
+            );
         }
 
         return client;

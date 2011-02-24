@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.socrata</groupId>
-    <artifactId>balboa-fill</artifactId>
+    <artifactId>balboa-admin</artifactId>
     <packaging>jar</packaging>
     <version>0.1</version>
 
-    <name>Balboa Csv Writer</name>
+    <name>Balboa Admin Tool</name>
 
     <parent>
         <groupId>com.socrata</groupId>
@@ -107,7 +107,7 @@
                     </descriptorRefs>
                     <archive>
                         <manifest>
-                            <mainClass>com.socrata.balboa.fill.BalboaFill</mainClass>
+                            <mainClass>com.socrata.balboa.admin.BalboaAdmin</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -128,7 +128,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.socrata.balboa.fill.BalboaFill</mainClass>
+                            <mainClass>com.socrata.balboa.admin.BalboaAdmin</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
@@ -168,6 +168,6 @@
             </plugin>
         </plugins>
         
-        <finalName>balboa-fill</finalName>
+        <finalName>balboa-admin</finalName>
     </build>
 </project>
