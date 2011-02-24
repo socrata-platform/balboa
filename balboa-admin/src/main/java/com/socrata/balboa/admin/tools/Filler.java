@@ -7,7 +7,6 @@ import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.data.LockFactory;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -122,8 +121,8 @@ public class Filler
         int count = 0;
 
         Buffer buffer = new Buffer();
-        //Cleanser cleanser = new Cleanser(buffer);
-        //cleanser.start();
+        Cleanser cleanser = new Cleanser(buffer);
+        cleanser.start();
 
         String [] line;
         while ((line = reader.readNext()) != null)
@@ -155,8 +154,7 @@ public class Filler
         }
 
         System.out.println("Interrupting the buffer thread...");
-        //cleanser.interrupt();
-        LockFactory.reset();
+        cleanser.interrupt();
 
         System.out.println("Purging the buffer...");
         buffer.flush();
