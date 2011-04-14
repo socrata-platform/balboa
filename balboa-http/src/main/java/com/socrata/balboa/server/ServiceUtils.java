@@ -17,24 +17,24 @@ public class ServiceUtils
     public static Date parseDate(String input) throws InvalidRequestException
     {
         DateFormat onlyDate = new SimpleDateFormat("yyyy-MM-dd");
-        DateFormat dateWithTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        DateFormat dateWithTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss:SSS");
 
         onlyDate.setTimeZone(TimeZone.getTimeZone("UTC"));
         dateWithTime.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-        // Try to parse first without a time component.
+        // First try to parse with the time component.
         try
         {
-            return onlyDate.parse(input);
+            return dateWithTime.parse(input);
         }
         catch (ParseException e)
         {
         }
 
-        // Next try to parse with the time component.
+        // Try to parse first without a time component.
         try
         {
-            return dateWithTime.parse(input);
+            return onlyDate.parse(input);
         }
         catch (ParseException e)
         {
