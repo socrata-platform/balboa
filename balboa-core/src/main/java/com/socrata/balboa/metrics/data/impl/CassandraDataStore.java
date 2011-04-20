@@ -535,7 +535,38 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     @Override
     public Iterator<Timeslice> slices(String entityId, Period period, Date start, Date end) throws IOException
     {
-        return new CassandraSliceIterator(entityId, period, new DateRange(start, end), getEntityMeta(entityId));
+        if (Configuration.get().getSupportedTypes().contains(period))
+        {
+            // Do the fast/low memory way if we support this tier
+            return new CassandraSliceIterator(entityId, period, new DateRange(start, end), getEntityMeta(entityId));
+        }
+        else
+        {
+            Iterator<Timeslice> iter = new CassandraSliceIterator(entityId, getClosestTypeOrError(period), new DateRange(start, end), getEntityMeta(entityId));
+            List<Timeslice> slices = new ArrayList<Timeslice>();
+            Timeslice currentSlice = new Timeslice();
+            currentSlice.setMetrics(new Metrics());
+            currentSlice.setStart(DateRange.create(period, start).start.getTime());
+            currentSlice.setEnd(DateRange.create(period, start).end.getTime());
+
+            while (iter.hasNext())
+            {
+                Timeslice slice = iter.next();
+                if (currentSlice.getEnd() < slice.getStart())
+                {
+                    slices.add(currentSlice);
+                    currentSlice = new Timeslice();
+                    currentSlice.setStart(DateRange.create(period, new Date(slice.getStart())).start.getTime());
+                    currentSlice.setEnd(DateRange.create(period, new Date(slice.getStart())).end.getTime());
+                }
+                else
+                {
+                    currentSlice.getMetrics().merge(slice.getMetrics());
+                }
+            }
+
+            return slices.iterator();
+        }
     }
 
     @Override
