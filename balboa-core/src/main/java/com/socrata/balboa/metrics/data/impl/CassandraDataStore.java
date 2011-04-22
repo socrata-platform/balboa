@@ -558,6 +558,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                     currentSlice = new Timeslice();
                     currentSlice.setStart(DateRange.create(period, new Date(slice.getStart())).start.getTime());
                     currentSlice.setEnd(DateRange.create(period, new Date(slice.getStart())).end.getTime());
+                    currentSlice.setMetrics(new Metrics());
                 }
                 else
                 {
