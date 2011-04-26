@@ -71,7 +71,21 @@ public class Filler
                 {
                     String entityId = metricsEntry.getKey();
                     Metrics saveable = metricsEntry.getValue();
-                    ds.persist(entityId, timestamp, saveable);
+                    boolean success = false;
+
+                    while (!success)
+                    {
+                        try
+                        {
+                            ds.persist(entityId, timestamp, saveable);
+                            success = true;
+                        }
+                        catch (Exception e)
+                        {
+                            System.err.println("Error persisting " + entityId + " at timestamp " + timestamp);
+                            e.printStackTrace(System.err);
+                        }
+                    }
                 }
             }
 
