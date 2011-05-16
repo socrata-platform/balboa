@@ -8,6 +8,8 @@ import com.socrata.balboa.metrics.data.*;
 import com.socrata.balboa.metrics.data.DateRange.Period;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
+import com.yammer.metrics.core.MeterMetric;
+import com.yammer.metrics.core.TimerMetric;
 import org.apache.cassandra.thrift.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,6 +18,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A DataStore implementation using <a href="http://cassandra.apache.org/">
@@ -92,6 +95,10 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     private static final int MAX_RETRIES = 5;
 
     private static Log log = LogFactory.getLog(CassandraDataStore.class);
+
+    public static final TimerMetric persistMeter = com.yammer.metrics.Metrics.newTimer(DataStore.class, "total persist (read, update & write) lifecycle", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final TimerMetric lockAcquisitionMeter = com.yammer.metrics.Metrics.newTimer(DataStore.class, "total time acquiring locks (including retries)", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final MeterMetric lockFailureMeter = com.yammer.metrics.Metrics.newMeter(DataStore.class, "failure rate of lock acquisition", "failures", TimeUnit.SECONDS);
 
     public static class CassandraEntityMeta extends HashMap<String, String> implements EntityMeta
     {
@@ -757,6 +764,8 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     @Override
     public void persist(String entityId, long timestamp, Metrics metrics) throws IOException
     {
+        long begin = System.currentTimeMillis();
+
         if (entityId.equals("com.blist.services.views.RowsService:index") || entityId.equals("ip-socrata-token-used"))
         {
             return;
@@ -779,8 +788,10 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         {
             try
             {
+                long lockBegin = System.currentTimeMillis();
                 if (lock.acquire(entityId))
                 {
+                    lockAcquisitionMeter.update(System.currentTimeMillis() - lockBegin, TimeUnit.MILLISECONDS);
                     try
                     {
                         EntityMeta meta = getEntityMeta(entityId);
@@ -810,6 +821,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                     // This row is already locked and being written to. Wait it out.
                     attempts += 1;
                     log.debug("'" + entityId + "' is already locked, waiting for it to free up (this was attempt " + attempts + " of " + MAX_RETRIES + ").");
+                    lockFailureMeter.mark();
 
                     // Do a linear backoff and sleep until we try to acquire
                     // the lock again.
@@ -829,5 +841,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
             // in a serious way, so throw an exception.
             throw new IOException("Unable to acquire a lock on the '" + entityId + "' row after " + MAX_RETRIES + " attempts. Aborting this write.");
         }
+
+        persistMeter.update(System.currentTimeMillis() - begin, TimeUnit.MILLISECONDS);
     }
 }

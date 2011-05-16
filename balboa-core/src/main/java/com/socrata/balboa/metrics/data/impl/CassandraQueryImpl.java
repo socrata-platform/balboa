@@ -2,6 +2,8 @@ package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.yammer.metrics.core.MeterMetric;
+import com.yammer.metrics.core.TimerMetric;
 import me.prettyprint.cassandra.service.CassandraClient;
 import me.prettyprint.cassandra.service.CassandraClientPool;
 import me.prettyprint.cassandra.service.CassandraClientPoolFactory;
@@ -13,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * An implementation of CassandraQuery that actually speaks with cassandra.
@@ -20,6 +23,10 @@ import java.util.Map;
 public class CassandraQueryImpl implements CassandraQuery
 {
     private static Log log = LogFactory.getLog(CassandraQueryImpl.class);
+
+    public static final TimerMetric persistMeter = com.yammer.metrics.Metrics.newTimer(CassandraQueryImpl.class, "total persist time", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final TimerMetric queryMeter = com.yammer.metrics.Metrics.newTimer(CassandraQueryImpl.class, "total query time", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final MeterMetric errorMeter = com.yammer.metrics.Metrics.newMeter(CassandraQueryImpl.class, "total errors in all queries (read & write)", "errors", TimeUnit.SECONDS);
 
     private static final int CLIENT_BORROW_THRESHOLD = 1000;
 
@@ -129,6 +136,7 @@ public class CassandraQueryImpl implements CassandraQuery
         }
         catch (Exception e)
         {
+            errorMeter.mark();
             hectorClient.markAsError();
             throw new IOException("Unknown exception reading from cassandra.", e);
         }
@@ -163,17 +171,20 @@ public class CassandraQueryImpl implements CassandraQuery
         }
         catch (TimedOutException e)
         {
+            errorMeter.mark();
             hectorClient.markAsError();
             throw new IOException("Timeout exception reading from cassandra.", e);
         }
         catch (Exception e)
         {
+            errorMeter.mark();
             hectorClient.markAsError();
             throw new IOException("Unknown exception reading from cassandra.", e);
         }
         finally
         {
             long totalTime = System.currentTimeMillis() - startTime;
+            queryMeter.update(totalTime, TimeUnit.MILLISECONDS);
             log.debug("Total read time for '" + entityId + "' (" + period + ") to cassandra " + totalTime + " (ms).");
 
             releaseClient(hectorClient);
@@ -194,12 +205,14 @@ public class CassandraQueryImpl implements CassandraQuery
         }
         catch (Exception e)
         {
+            errorMeter.mark();
             hectorClient.markAsError();
             throw new IOException("Unknown exception persisting to cassandra.", e);
         }
         finally
         {
             long totalTime = System.currentTimeMillis() - startTime;
+            persistMeter.update(totalTime, TimeUnit.MILLISECONDS);
             log.debug("Total write time for '" + entityId + "' (all periods and meta, not including lock) to cassandra " + totalTime + " (ms)");
 
             releaseClient(hectorClient);
@@ -233,6 +246,7 @@ public class CassandraQueryImpl implements CassandraQuery
         }
         catch (Exception e)
         {
+            errorMeter.mark();
             hectorClient.markAsError();
             throw new IOException("Unknown exception reading from cassandra.", e);
         }

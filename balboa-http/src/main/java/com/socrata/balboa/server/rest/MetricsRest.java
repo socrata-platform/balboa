@@ -9,6 +9,7 @@ import com.socrata.balboa.metrics.data.EntityMeta;
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics;
 import com.socrata.balboa.server.ServiceUtils;
 import com.socrata.balboa.server.exceptions.InvalidRequestException;
+import com.yammer.metrics.core.TimerMetric;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -21,10 +22,15 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.concurrent.TimeUnit;
 
 @Path("/metrics/{entityId}")
 public class MetricsRest
 {
+    public static final TimerMetric seriesMeter = com.yammer.metrics.Metrics.newTimer(MetricsRest.class, "series queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final TimerMetric rangeMeter = com.yammer.metrics.Metrics.newTimer(MetricsRest.class, "range queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final TimerMetric periodMeter = com.yammer.metrics.Metrics.newTimer(MetricsRest.class, "period queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+
     @GET
     @Produces({"application/json", "application/x-protobuf"})
     public Response get(
@@ -36,23 +42,32 @@ public class MetricsRest
             @Context HttpHeaders headers
     ) throws IOException
     {
-        DataStore ds = DataStoreFactory.get();
-        DateRange range = DateRange.create(period, ServiceUtils.parseDate(date));
+        long begin = System.currentTimeMillis();
 
-        Iterator<Metrics> iter = ds.find(entityId, period, range.start, range.end);
-        Metrics metrics = Metrics.summarize(iter);
-
-        if (combine != null)
+        try
         {
-            metrics = metrics.combine(combine);
-        }
+            DataStore ds = DataStoreFactory.get();
+            DateRange range = DateRange.create(period, ServiceUtils.parseDate(date));
 
-        if (field != null)
+            Iterator<Metrics> iter = ds.find(entityId, period, range.start, range.end);
+            Metrics metrics = Metrics.summarize(iter);
+
+            if (combine != null)
+            {
+                metrics = metrics.combine(combine);
+            }
+
+            if (field != null)
+            {
+                metrics = metrics.filter(field);
+            }
+
+            return render(getMediaType(headers), metrics);
+        }
+        finally
         {
-            metrics = metrics.filter(field);
+            periodMeter.update(System.currentTimeMillis() - begin, TimeUnit.MILLISECONDS);
         }
-
-        return render(getMediaType(headers), metrics);
     }
 
     @GET
@@ -67,25 +82,34 @@ public class MetricsRest
             @Context HttpHeaders headers
     ) throws IOException
     {
-        DataStore ds = DataStoreFactory.get();
+        long begin = System.currentTimeMillis();
 
-        Date startDate = ServiceUtils.parseDate(start);
-        Date endDate = ServiceUtils.parseDate(end);
-
-        Iterator<Metrics> iter = ds.find(entityId, startDate, endDate);
-        Metrics metrics = Metrics.summarize(iter);
-
-        if (combine != null)
+        try
         {
-            metrics = metrics.combine(combine);
-        }
+            DataStore ds = DataStoreFactory.get();
 
-        if (field != null)
+            Date startDate = ServiceUtils.parseDate(start);
+            Date endDate = ServiceUtils.parseDate(end);
+
+            Iterator<Metrics> iter = ds.find(entityId, startDate, endDate);
+            Metrics metrics = Metrics.summarize(iter);
+
+            if (combine != null)
+            {
+                metrics = metrics.combine(combine);
+            }
+
+            if (field != null)
+            {
+                metrics = metrics.filter(field);
+            }
+
+            return render(getMediaType(headers), metrics);
+        }
+        finally
         {
-            metrics = metrics.filter(field);
+            rangeMeter.update(System.currentTimeMillis() - begin, TimeUnit.MILLISECONDS);
         }
-
-        return render(getMediaType(headers), metrics);
     }
 
     @GET
@@ -99,14 +123,23 @@ public class MetricsRest
             @Context HttpHeaders headers
     ) throws IOException
     {
-        DataStore ds = DataStoreFactory.get();
+        long begin = System.currentTimeMillis();
 
-        Date startDate = ServiceUtils.parseDate(start);
-        Date endDate = ServiceUtils.parseDate(end);
+        try
+        {
+            DataStore ds = DataStoreFactory.get();
 
-        Iterator<? extends Timeslice> iter = ds.slices(entityId, period, startDate, endDate);
+            Date startDate = ServiceUtils.parseDate(start);
+            Date endDate = ServiceUtils.parseDate(end);
 
-        return render(getMediaType(headers), iter);
+            Iterator<? extends Timeslice> iter = ds.slices(entityId, period, startDate, endDate);
+
+            return render(getMediaType(headers), iter);
+        }
+        finally
+        {
+            seriesMeter.update(System.currentTimeMillis() - begin, TimeUnit.MILLISECONDS);
+        }
     }
 
     @GET

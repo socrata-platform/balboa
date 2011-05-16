@@ -39,6 +39,10 @@
           </snapshots>
         </repository>
         <repository>
+            <id>repo.codahale.com</id>
+            <url>http://repo.codahale.com/</url>
+        </repository>
+        <repository>
           <id>socrata-local</id>
           <url>file://${basedir}/../mvn-local-repo</url>
           <releases>
@@ -54,12 +58,6 @@
             <url>http://download.java.net/maven/2/</url>
             <layout>default</layout>
         </repository> 
-        <repository>
-            <id>maven-repository.dev.java.net</id>
-            <name>Java.net Maven 1 Repository (legacy)</name>
-            <url>http://download.java.net/maven/1</url>
-            <layout>legacy</layout>
-        </repository>
     </repositories>
 
     <dependencies>
@@ -159,6 +157,12 @@
             <groupId>org.apache.thrift</groupId>
             <artifactId>libthrift</artifactId>
             <version>r917130</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.yammer</groupId>
+            <artifactId>metrics_2.8.1</artifactId>
+            <version>2.0.0-BETA10</version>
         </dependency>
 
         <dependency>
