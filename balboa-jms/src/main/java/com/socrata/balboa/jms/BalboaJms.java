@@ -10,12 +10,17 @@ public class BalboaJms
 {
     static void usage()
     {
-        System.err.println("java -jar balboa-jms [activemq urls] [activemq channel]");
+        System.err.println("java -jar balboa-jms [thread count] [activemq urls] [activemq channel]");
+    }
+
+    static Integer parseThreads(String[] args)
+    {
+        return Integer.parseInt(args[0]);
     }
 
     static String[] parseServers(String[] args)
     {
-        return Arrays.copyOfRange(args, 0, args.length - 1);
+        return Arrays.copyOfRange(args, 1, args.length - 1);
     }
 
     static String parseChannel(String[] args)
@@ -38,13 +43,14 @@ public class BalboaJms
             System.exit(1);
         }
 
+        Integer threads = parseThreads(args);
         String[] servers = parseServers(args);
         String channel = parseChannel(args);
 
         configureLogging();
 
         System.out.println("Receivers starting, awaiting messages.");
-        ActiveMQReceiver receiver = new ActiveMQReceiver(servers, channel);
+        ActiveMQReceiver receiver = new ActiveMQReceiver(servers, channel, threads);
 
         while (true)
         {

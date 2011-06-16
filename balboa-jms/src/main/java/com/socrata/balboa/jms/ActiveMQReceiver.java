@@ -136,16 +136,21 @@ public class ActiveMQReceiver
         }
     }
 
-    public ActiveMQReceiver(String[] servers, String channel) throws NamingException, JMSException
+    public ActiveMQReceiver(String[] servers, String channel, Integer threads) throws NamingException, JMSException
     {
         listeners = new ArrayList<Listener>(servers.length);
 
         for (String server : servers)
         {
-            ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(server);
-            factory.setTransportListener(new ActiveMQReceiver.TransportLogger());
+            for (int i=0; i < threads; i++)
+            {
+                ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(server);
+                factory.setTransportListener(new ActiveMQReceiver.TransportLogger());
 
-            listeners.add(new Listener(factory, channel));
+                listeners.add(new Listener(factory, channel));
+            }
         }
+
+        log.info("Listeners all started.");
     }
 }
