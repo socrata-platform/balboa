@@ -17,8 +17,8 @@
 
     <repositories>
         <repository>
-          <id>jboss</id>
-          <url>http://repository.jboss.com/maven2/</url>
+          <id>Maven Central Repo</id>
+          <url>http://repo1.maven.org/maven2/</url>
           <releases>
             <enabled>true</enabled>
           </releases>
@@ -26,6 +26,7 @@
             <enabled>false</enabled>
           </snapshots>
         </repository>
+        
         <repository>
           <id>socrata-local</id>
           <url>file://../${basedir}/mvn-local-repo</url>
@@ -92,6 +93,10 @@
               <exclusion>
                   <groupId>javax.mail</groupId>
                   <artifactId>mail</artifactId>
+              </exclusion>
+              <exclusion>
+                  <groupId>javax.jms</groupId>
+                  <artifactId>jms</artifactId>
               </exclusion>
           </exclusions>
         </dependency>
