@@ -27,6 +27,19 @@ public class Metrics extends HashMap<String, Metric>
         super(map);
     }
 
+    public Set<Map.Entry<String, Metric>> difference(Metrics other)
+    {
+        Set<Map.Entry<String, Metric>> union = new HashSet<Map.Entry<String, Metric>>(entrySet());
+        union.addAll(other.entrySet());
+
+        Set<Map.Entry<String, Metric>> intersection = new HashSet<Map.Entry<String, Metric>>(entrySet());
+        intersection.retainAll(other.entrySet());
+
+        union.removeAll(intersection);
+
+        return union;
+    }
+
     public Metrics filter(String pattern)
     {
         Metrics results = new Metrics(size());

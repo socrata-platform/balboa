@@ -4,6 +4,7 @@ import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import com.socrata.balboa.admin.tools.Dumper;
 import com.socrata.balboa.admin.tools.Filler;
+import com.socrata.balboa.admin.tools.FSChecker;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -16,6 +17,7 @@ public class BalboaAdmin
         System.err.println("Balboa admin utility:\n" +
            "\tjava -jar balboa-admin <command> [args]\n\n" +
            "Commands:\n" +
+           "\tfsck: Check the balboa file system and validate the correctness of the tiers. This will probably take a long time.\n" +
            "\tfill: Restore balboa metrics from stdin.\n" +
            "\tdump: Dump all of the data in a balboa store to stdout in a format suitable for fill.");
     }
@@ -55,6 +57,11 @@ public class BalboaAdmin
             {
                 writer.close();
             }
+        }
+        else if (command.equals("fsck"))
+        {
+            FSChecker fsck = new FSChecker();
+            fsck.check();
         }
         else
         {

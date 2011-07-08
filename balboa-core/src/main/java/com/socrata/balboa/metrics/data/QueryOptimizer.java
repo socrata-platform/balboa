@@ -13,7 +13,7 @@ public class QueryOptimizer
         List<DateRange.Period> types;
         try
         {
-            types = Configuration.get().getSupportedTypes();
+            types = Configuration.get().getSupportedPeriods();
         }
         catch (IOException e)
         {
@@ -104,7 +104,7 @@ public class QueryOptimizer
         List<DateRange.Period> types;
         try
         {
-            types = Configuration.get().getSupportedTypes();
+            types = Configuration.get().getSupportedPeriods();
         }
         catch (IOException e)
         {

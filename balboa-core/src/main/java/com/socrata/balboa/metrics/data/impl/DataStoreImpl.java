@@ -20,7 +20,7 @@ public abstract class DataStoreImpl
         List<DateRange.Period> periods;
         try
         {
-            periods = Configuration.get().getSupportedTypes();
+            periods = Configuration.get().getSupportedPeriods();
         }
         catch (IOException e)
         {

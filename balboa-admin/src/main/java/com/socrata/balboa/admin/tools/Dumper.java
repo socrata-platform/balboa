@@ -44,7 +44,7 @@ public class Dumper
 
     public void dump() throws IOException
     {
-        DateRange.Period mostGranular = DateRange.Period.mostGranular(Configuration.get().getSupportedTypes());
+        DateRange.Period mostGranular = DateRange.Period.mostGranular(Configuration.get().getSupportedPeriods());
 
         Date epoch = new Date(0);
         Date cutoff = DateRange.create(mostGranular, new Date()).start;

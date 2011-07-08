@@ -578,14 +578,14 @@ public class CassandraDataStoreTest
                     public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> inserts) throws IOException
                     {
                         Assert.assertEquals("testCreate", entityId);
-                        Assert.assertTrue(Configuration.get().getSupportedTypes().size() > 0);
+                        Assert.assertTrue(Configuration.get().getSupportedPeriods().size() > 0);
 
-                        for (DateRange.Period t : Configuration.get().getSupportedTypes())
+                        for (DateRange.Period t : Configuration.get().getSupportedPeriods())
                         {
                             Assert.assertTrue(inserts.containsKey(t.toString()));
                         }
 
-                        String t = Configuration.get().getSupportedTypes().get(0).toString();
+                        String t = Configuration.get().getSupportedPeriods().get(0).toString();
                         
                         Assert.assertTrue(inserts.get(t).size() == 1);
 
@@ -649,14 +649,14 @@ public class CassandraDataStoreTest
                     public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> inserts) throws IOException
                     {
                         Assert.assertEquals("testCreateAbsoluteMetricDoesntAggregate", entityId);
-                        Assert.assertTrue(Configuration.get().getSupportedTypes().size() > 0);
+                        Assert.assertTrue(Configuration.get().getSupportedPeriods().size() > 0);
 
-                        for (DateRange.Period t : Configuration.get().getSupportedTypes())
+                        for (DateRange.Period t : Configuration.get().getSupportedPeriods())
                         {
                             Assert.assertTrue(inserts.containsKey(t.toString()));
                         }
 
-                        String t = Configuration.get().getSupportedTypes().get(0).toString();
+                        String t = Configuration.get().getSupportedPeriods().get(0).toString();
 
                         Assert.assertTrue(inserts.get(t).size() == 1);
 
@@ -720,14 +720,14 @@ public class CassandraDataStoreTest
                     public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> inserts) throws IOException
                     {
                         Assert.assertEquals("testCreateSummaryActuallyUpdatesTheSummaryIfItAlreadyExists", entityId);
-                        Assert.assertTrue(Configuration.get().getSupportedTypes().size() > 0);
+                        Assert.assertTrue(Configuration.get().getSupportedPeriods().size() > 0);
 
-                        for (DateRange.Period t : Configuration.get().getSupportedTypes())
+                        for (DateRange.Period t : Configuration.get().getSupportedPeriods())
                         {
                             Assert.assertTrue(inserts.containsKey(t.toString()));
                         }
 
-                        String t = Configuration.get().getSupportedTypes().get(0).toString();
+                        String t = Configuration.get().getSupportedPeriods().get(0).toString();
 
                         Assert.assertTrue(inserts.get(t).size() == 1);
 

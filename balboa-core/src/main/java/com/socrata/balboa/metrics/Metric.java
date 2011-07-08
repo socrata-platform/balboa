@@ -31,6 +31,26 @@ public class Metric
     {
     }
 
+    @Override
+    public int hashCode()
+    {
+        return type.hashCode() + value.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o)
+    {
+        if (o instanceof Metric)
+        {
+            Metric other = (Metric)o;
+            return other.type == type && other.value.equals(value);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     public Metric(RecordType type, Number value)
     {
         this.type = type;

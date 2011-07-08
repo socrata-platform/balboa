@@ -43,7 +43,7 @@ public abstract class Configuration extends Properties
         this.supportedPeriods = supportedPeriods;
     }
 
-    synchronized public List<DateRange.Period> getSupportedTypes()
+    synchronized public List<DateRange.Period> getSupportedPeriods()
     {
         if (supportedPeriods == null)
         {

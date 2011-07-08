@@ -542,7 +542,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     @Override
     public Iterator<Timeslice> slices(String entityId, Period period, Date start, Date end) throws IOException
     {
-        if (Configuration.get().getSupportedTypes().contains(period))
+        if (Configuration.get().getSupportedPeriods().contains(period))
         {
             // Do the fast/low memory way if we support this tier
             return new CassandraSliceIterator(entityId, period, new DateRange(start, end), getEntityMeta(entityId));
@@ -580,7 +580,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     @Override
     public Iterator<String> entities() throws IOException
     {
-        return new CassandraRowsIterator(Period.leastGranular(Configuration.get().getSupportedTypes()));
+        return new CassandraRowsIterator(Period.leastGranular(Configuration.get().getSupportedPeriods()));
     }
 
     @Override
@@ -711,7 +711,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
 
         // For every period that can be summarized read/increment/update
         // their summary.
-        List<DateRange.Period> periods = Configuration.get().getSupportedTypes();
+        List<DateRange.Period> periods = Configuration.get().getSupportedPeriods();
         Period period = DateRange.Period.leastGranular(periods);
         while (period != null && period != Period.REALTIME)
         {

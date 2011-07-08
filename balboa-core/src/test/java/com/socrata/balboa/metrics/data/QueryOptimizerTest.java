@@ -126,7 +126,7 @@ public class QueryOptimizerTest
     @Test
     public void testRangeSpansYears() throws Exception
     {
-        List<DateRange.Period> originalPeriods = Configuration.get().getSupportedTypes();
+        List<DateRange.Period> originalPeriods = Configuration.get().getSupportedPeriods();
         Configuration.get().setSupportedTypes(Arrays.asList(
                 DateRange.Period.HOURLY, DateRange.Period.DAILY, DateRange.Period.MONTHLY, DateRange.Period.YEARLY
         ));
@@ -189,7 +189,7 @@ public class QueryOptimizerTest
     @Test
     public void testRangeExhaustivelyLookAtAllTheRangesToMakeSureTheyreRight() throws Exception
     {
-        List<DateRange.Period> originalPeriods = Configuration.get().getSupportedTypes();
+        List<DateRange.Period> originalPeriods = Configuration.get().getSupportedPeriods();
         Configuration.get().setSupportedTypes(Arrays.asList(
                 DateRange.Period.HOURLY, DateRange.Period.DAILY, DateRange.Period.MONTHLY, DateRange.Period.YEARLY
         ));

@@ -35,7 +35,7 @@ public class Filler
         public synchronized void add(String entityId, long timestamp, String name, Metric metric) throws IOException
         {
             Date when = new Date(timestamp);
-            DateRange.Period mostGranular = DateRange.Period.mostGranular(Configuration.get().getSupportedTypes());
+            DateRange.Period mostGranular = DateRange.Period.mostGranular(Configuration.get().getSupportedPeriods());
 
             Metrics original = new Metrics();
             original.put(name, metric);
