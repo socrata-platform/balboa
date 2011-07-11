@@ -578,6 +578,49 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     }
 
     @Override
+    public Iterator<String> entities(final String pattern) throws IOException
+    {
+        final CassandraRowsIterator rows = new CassandraRowsIterator(Period.leastGranular(Configuration.get().getSupportedPeriods()));
+        return new Iterator<String>() {
+            String current = null;
+            @Override
+            public boolean hasNext()
+            {
+                if (current != null)
+                {
+                    return true;
+                }
+
+                while (rows.hasNext())
+                {
+                    String candidate = rows.next();
+                    if (candidate.matches(pattern))
+                    {
+                        current = candidate;
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            @Override
+            public String next()
+            {
+                String n = current;
+                current = null;
+                return n;
+            }
+
+            @Override
+            public void remove()
+            {
+                rows.remove();
+            }
+        };
+    }
+
+    @Override
     public Iterator<String> entities() throws IOException
     {
         return new CassandraRowsIterator(Period.leastGranular(Configuration.get().getSupportedPeriods()));

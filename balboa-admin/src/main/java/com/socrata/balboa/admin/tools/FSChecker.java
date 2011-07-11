@@ -3,6 +3,7 @@ package com.socrata.balboa.admin.tools;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.config.Configuration;
+import com.socrata.balboa.metrics.data.CompoundIterator;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
@@ -55,13 +56,27 @@ public class FSChecker
 
     public void error()
     {
-        System.out.println("[\033[91merror\033[0m]");
+        System.err.println("[\033[91merror\033[0m]");
     }
 
-    public void check() throws IOException
+    public void check(List<String> filters) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
-        Iterator<String> entities = ds.entities();
+        Iterator<String> entities;
+
+        if (filters.size() > 0)
+        {
+            List<Iterator<String>> iters = new ArrayList<Iterator<String>>(filters.size());
+            for (String filter : filters)
+            {
+                iters.add(ds.entities(filter));
+            }
+            entities = new CompoundIterator<String>(iters.toArray(new Iterator[] {}));
+        }
+        else
+        {
+            entities = ds.entities();
+        }
 
         List<DateRange.Period> periods = new ArrayList<DateRange.Period>(Configuration.get().getSupportedPeriods());
         DateRange.Period leastGranular = DateRange.Period.leastGranular(periods);
@@ -79,6 +94,8 @@ public class FSChecker
             Date cutoff = new Date();
 
             System.out.print(entity + " ... ");
+            System.out.flush();
+
             while (current.before(cutoff))
             {
                 for (DateRange.Period period : periods)
@@ -95,18 +112,31 @@ public class FSChecker
                         DateRange range = DateRange.create(lessGranular(period), current);
                         for (Map.Entry<String, List<Number>> entry : diff.entrySet())
                         {
+                            String first, second = null;
+                            if (entry.getValue().size() > 1)
+                            {
+                                first = entry.getValue().get(0).toString();
+                                second = entry.getValue().get(1).toString();
+                            }
+                            else
+                            {
+                                // Sometimes
+                                first = entry.getValue().get(0).toString();
+                            }
+
                             String problem = String.format(
-                                    "\t%s (%s -> %s %s/%s): %s != %s",
+                                    "\t%s[%s] (%s -> %s %s/%s): %s != %s",
+                                    entity,
                                     entry.getKey(),
                                     range.start.toString(),
                                     range.end.toString(),
                                     period.toString(),
                                     lessGranular(period).toString(),
-                                    entry.getValue().get(0).toString(),
-                                    entry.getValue().get(1).toString()
+                                    first,
+                                    second
                             );
 
-                            System.out.println(problem);
+                            System.err.println(problem);
                         }
                     }
                 }

@@ -3,12 +3,13 @@ package com.socrata.balboa.admin;
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 import com.socrata.balboa.admin.tools.Dumper;
-import com.socrata.balboa.admin.tools.Filler;
 import com.socrata.balboa.admin.tools.FSChecker;
+import com.socrata.balboa.admin.tools.Filler;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 public class BalboaAdmin
 {
@@ -61,7 +62,7 @@ public class BalboaAdmin
         else if (command.equals("fsck"))
         {
             FSChecker fsck = new FSChecker();
-            fsck.check();
+            fsck.check(Arrays.asList(args).subList(1, args.length));
         }
         else
         {

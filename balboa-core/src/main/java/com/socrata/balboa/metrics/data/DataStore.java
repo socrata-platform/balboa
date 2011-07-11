@@ -10,6 +10,12 @@ import java.util.Iterator;
 public interface DataStore
 {
     /**
+     * Retrieve an iterator that contains all the entity ids that the pattern
+     * string matches.
+     */
+    public Iterator<String> entities(String pattern) throws IOException;
+
+    /**
      * Retrieve an iterator that encompasses all entity ids for which there are
      * metrics being tracked. Generally speaking, this query is likely to be
      * very expensive and you probably don't want to use it unless you know
