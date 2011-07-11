@@ -11,7 +11,7 @@ import com.socrata.balboa.metrics.data.DateRange;
 import java.io.IOException;
 import java.util.*;
 
-public class FSChecker
+public class Checker
 {
     public DateRange.Period lessGranular(DateRange.Period period) throws IOException
     {
