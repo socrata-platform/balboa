@@ -827,6 +827,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         // lock the whole row. This kind of sucks, but hopefully the same
         // entity isn't concurrently written to extremely often.
         int attempts = 0;
+        long delay = lock.delay();
         while (attempts < MAX_RETRIES)
         {
             try
@@ -866,9 +867,10 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                     log.debug("'" + entityId + "' is already locked, waiting for it to free up (this was attempt " + attempts + " of " + MAX_RETRIES + ").");
                     lockFailureMeter.mark();
 
-                    // Do a linear backoff and sleep until we try to acquire
+                    // Do an exponential backoff and sleep until we try to acquire
                     // the lock again.
-                    Thread.sleep(lock.delay() * attempts);
+                    Thread.sleep(delay);
+                    delay *= 2;
                 }
             }
             catch (InterruptedException e)
