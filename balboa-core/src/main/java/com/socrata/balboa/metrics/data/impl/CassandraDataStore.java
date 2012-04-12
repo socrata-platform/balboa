@@ -860,7 +860,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                         }
                     }
                 }
-                else
+                else if(lock.delay() > 0)
                 {
                     // This row is already locked and being written to. Wait it out.
                     attempts += 1;
@@ -871,6 +871,8 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                     // the lock again.
                     Thread.sleep(delay);
                     delay *= 2;
+                } else {
+                    attempts = MAX_RETRIES;
                 }
             }
             catch (InterruptedException e)
