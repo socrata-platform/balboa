@@ -88,14 +88,13 @@ public class CassandraQueryImpl implements CassandraQuery
         try
         {
             SlicePredicate predicate = new SlicePredicate();
-            SliceRange range = new SliceRange("".getBytes(), "".getBytes(), false, 500);
+            SliceRange range = new SliceRange("".getBytes(), "".getBytes(), false, 500000);
             predicate.setSlice_range(range);
             List<Column> results = new ArrayList<Column>();
 
             while (true)
             {
                 List<ColumnOrSuperColumn> queryResults = client.get_slice(keyspaceName, entityId, new ColumnParent("meta"), predicate, ConsistencyLevel.QUORUM);
-
                 if (queryResults == null)
                 {
                     break;
@@ -153,7 +152,6 @@ public class CassandraQueryImpl implements CassandraQuery
     public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
     {
         long startTime = System.currentTimeMillis();
-        
         CassandraClient hectorClient = getClient();
         Cassandra.Client client = hectorClient.getCassandra();
 
@@ -195,7 +193,6 @@ public class CassandraQueryImpl implements CassandraQuery
     public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> operations) throws IOException
     {
         long startTime = System.currentTimeMillis();
-        
         CassandraClient hectorClient = getClient();
         Cassandra.Client client = hectorClient.getCassandra();
 
