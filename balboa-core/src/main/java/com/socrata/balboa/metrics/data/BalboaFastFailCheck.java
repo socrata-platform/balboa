@@ -51,8 +51,8 @@ public class BalboaFastFailCheck {
             }
             failFastUntilTime.set(timeService.currentTimeMillis() + delayTime);
             mult *= 2;
+            log.error("Entered fast fail mode with delay " + delayTime);
         }
-        log.error("Entered fast fail mode with delay " + delayTime);
     }
 
     /**
