@@ -3,7 +3,10 @@ package com.socrata.balboa.jms;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.impl.JsonMessage;
+import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ActiveMQMessageConsumer;
+import org.apache.activemq.ActiveMQSession;
 import org.apache.activemq.transport.TransportListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -82,21 +85,18 @@ public class ActiveMQReceiver
 
     class Listener implements MessageListener
     {
-        private Session session;
+        private ActiveMQSession session;
         private Queue queue;
-        private MessageConsumer consumer;
-        private Connection connection;
+        private ActiveMQMessageConsumer consumer;
+        private ActiveMQConnection connection;
 
-        public Listener(ConnectionFactory connFactory, String queueName) throws NamingException, JMSException
+        public Listener(ActiveMQConnectionFactory connFactory, String queueName) throws NamingException, JMSException
         {
-            connection = connFactory.createConnection();
-
-            session = connection.createSession(true, Session.SESSION_TRANSACTED);
+            connection = (ActiveMQConnection) connFactory.createConnection();
+            session = (ActiveMQSession) connection.createSession(true, Session.SESSION_TRANSACTED);
             queue = session.createQueue(queueName);
-
-            consumer = session.createConsumer(queue);
+            consumer = (ActiveMQMessageConsumer) session.createConsumer(queue);
             consumer.setMessageListener(this);
-
             connection.start();
         }
 
@@ -131,15 +131,33 @@ public class ActiveMQReceiver
                 catch (JMSException e1)
                 {
                     log.error("There was a problem rolling back the session. This is really bad.", e1);
+                } finally {
+                    // stop the consumer for now. The message is hopefully rolledback.
+                    // restart will occur when the WatchDog says so, upon decree from the
+                    // BalboaFastFailCheck
+                    stop();
                 }
+            }
+        }
+
+        public void stop() {
+            consumer.stop();
+        }
+
+        public void restart() {
+            try {
+                consumer.start();
+            } catch (JMSException e) {
+                log.error("Unable to restart the consumer after data store failure. This is bad.");
             }
         }
     }
 
+    volatile boolean stopped = false;
+
     public ActiveMQReceiver(String[] servers, String channel, Integer threads) throws NamingException, JMSException
     {
         listeners = new ArrayList<Listener>(servers.length);
-
         for (String server : servers)
         {
             for (int i=0; i < threads; i++)
@@ -152,5 +170,24 @@ public class ActiveMQReceiver
         }
 
         log.info("Listeners all started.");
+    }
+
+    // Used to restart the receiver on DataStore failure
+    public void restart() {
+        stopped = false;
+        for (Listener listener : listeners)
+            listener.restart();
+    }
+
+    // Used to stop all listeners, whether they are already stopped
+    // or not.
+    public void stop() {
+        stopped = true;
+        for (Listener listener : listeners)
+            listener.stop();
+    }
+
+    public boolean isStopped() {
+        return stopped;
     }
 }

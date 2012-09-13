@@ -93,7 +93,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
 {
     /** The maximum number of retries to acquire a lock before giving up */
     private static final int MAX_RETRIES = 5;
-
+    private static TimeService timeService = new TimeService();
     private static Log log = LogFactory.getLog(CassandraDataStore.class);
 
     public static final TimerMetric persistMeter = com.yammer.metrics.Metrics.newTimer(DataStore.class, "total persist (read, update & write) lifecycle", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
@@ -694,7 +694,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
             // the internal timestamp that Cassandra uses on all of it it's
             // columns. THIS IS THAT TIMESTAMP. We cannot backdate that
             // timestamp and it's in microseconds instead of milliseconds.
-            long cassandraTimestamp = System.currentTimeMillis() * 1000;
+            long cassandraTimestamp = timeService.currentTimeMillis() * 1000;
             
             if (log.isTraceEnabled())
             {
@@ -737,7 +737,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
                 Column column = new Column(
                         entry.getKey().getBytes(),
                         entry.getValue().getType().toString().getBytes(),
-                        System.currentTimeMillis() * 1000
+                        timeService.currentTimeMillis() * 1000
                 );
                 ColumnOrSuperColumn columnOrSuperColumn = new ColumnOrSuperColumn();
                 columnOrSuperColumn.setColumn(column);
@@ -807,7 +807,7 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
     @Override
     public void persist(String entityId, long timestamp, Metrics metrics) throws IOException
     {
-        long begin = System.currentTimeMillis();
+        long begin = timeService.currentTimeMillis();
 
         if (entityId.equals("com.blist.services.views.RowsService:index") || entityId.equals("ip-socrata-token-used"))
         {
@@ -832,10 +832,10 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
         {
             try
             {
-                long lockBegin = System.currentTimeMillis();
+                long lockBegin = timeService.currentTimeMillis();
                 if (lock.acquire(entityId))
                 {
-                    lockAcquisitionMeter.update(System.currentTimeMillis() - lockBegin, TimeUnit.MILLISECONDS);
+                    lockAcquisitionMeter.update(timeService.currentTimeMillis() - lockBegin, TimeUnit.MILLISECONDS);
                     try
                     {
                         EntityMeta meta = getEntityMeta(entityId);
@@ -881,12 +881,12 @@ public class CassandraDataStore extends DataStoreImpl implements DataStore
 
         if (attempts == MAX_RETRIES)
         {
-            // We failed to acquire a lock to write the row and we've
+            // We dataStoreFailed to acquire a lock to write the row and we've
             // exceeded the allowable number of retries. We're really borked
             // in a serious way, so throw an exception.
             throw new IOException("Unable to acquire a lock on the '" + entityId + "' row after " + MAX_RETRIES + " attempts. Aborting this write.");
         }
 
-        persistMeter.update(System.currentTimeMillis() - begin, TimeUnit.MILLISECONDS);
+        persistMeter.update(timeService.currentTimeMillis() - begin, TimeUnit.MILLISECONDS);
     }
 }

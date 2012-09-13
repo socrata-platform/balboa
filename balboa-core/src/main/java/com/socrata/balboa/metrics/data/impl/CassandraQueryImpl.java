@@ -1,12 +1,14 @@
 package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.config.Configuration;
+import com.socrata.balboa.metrics.data.BalboaFastFailCheck;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.yammer.metrics.core.MeterMetric;
 import com.yammer.metrics.core.TimerMetric;
 import me.prettyprint.cassandra.service.CassandraClient;
 import me.prettyprint.cassandra.service.CassandraClientPool;
 import me.prettyprint.cassandra.service.CassandraClientPoolFactory;
+import me.prettyprint.cassandra.service.CassandraHostConfigurator;
 import org.apache.cassandra.thrift.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,24 +34,35 @@ public class CassandraQueryImpl implements CassandraQuery
 
     String keyspaceName;
     CassandraClientPool pool;
-    String[] servers;
+    String servers;
+    private BalboaFastFailCheck failCheck = BalboaFastFailCheck.getInstance();
 
     public CassandraQueryImpl() throws IOException
     {
         Configuration config = Configuration.get();
-        servers = config.getProperty("cassandra.servers").split(",");
+        servers = config.getProperty("cassandra.servers");
         keyspaceName = config.getProperty("cassandra.keyspace");
-
-        pool = CassandraClientPoolFactory.getInstance().get();
+        CassandraHostConfigurator hostConfigurator = new CassandraHostConfigurator(servers);
+        hostConfigurator.setCassandraThriftSocketTimeout(3000);
+        hostConfigurator.setMaxWaitTimeWhenExhausted(4000);
+        pool = CassandraClientPoolFactory.getInstance().createNew(hostConfigurator);
     }
 
-    CassandraClient getClient()
-    {
+    /**
+     * Gets the Cassandra client
+     * Throws a CassandraQueryException if there is a problem with the query
+     * @return
+     * @throws IOException if we are in a fast-fail mode
+     */
+    CassandraClient getClient() throws IOException {
+        if (!failCheck.proceed()) {
+            throw new IOException("Unable to return client because we are have failed too recently in the past");
+        }
         CassandraClient client;
         try
         {
             long clientStartTime = System.currentTimeMillis();
-            client = pool.borrowClient(servers);
+            client = pool.borrowClient();
             long totalClientTime = System.currentTimeMillis() - clientStartTime;
             if (totalClientTime >= CLIENT_BORROW_THRESHOLD)
             {
@@ -84,7 +97,6 @@ public class CassandraQueryImpl implements CassandraQuery
 
         CassandraClient hectorClient = getClient();
         Cassandra.Client client = hectorClient.getCassandra();
-
         try
         {
             SlicePredicate predicate = new SlicePredicate();
@@ -125,7 +137,7 @@ public class CassandraQueryImpl implements CassandraQuery
                     break;
                 }
             }
-
+            failCheck.markSuccess();
             return results;
         }
         catch (InvalidRequestException e)
@@ -136,6 +148,7 @@ public class CassandraQueryImpl implements CassandraQuery
         }
         catch (Exception e)
         {
+            failCheck.markFailure();
             errorMeter.mark();
             hectorClient.markAsError();
             throw new IOException("Unknown exception reading from cassandra.", e);
@@ -166,17 +179,12 @@ public class CassandraQueryImpl implements CassandraQuery
             {
                 superColumns.add(result.getSuper_column());
             }
-
+            failCheck.markSuccess();
             return superColumns;
-        }
-        catch (TimedOutException e)
-        {
-            errorMeter.mark();
-            hectorClient.markAsError();
-            throw new IOException("Timeout exception reading from cassandra.", e);
         }
         catch (Exception e)
         {
+            failCheck.markFailure();
             errorMeter.mark();
             hectorClient.markAsError();
             throw new IOException("Unknown exception reading from cassandra.", e);
@@ -202,9 +210,11 @@ public class CassandraQueryImpl implements CassandraQuery
         try
         {
             client.batch_insert(keyspaceName, entityId, operations, ConsistencyLevel.QUORUM);
+            failCheck.markSuccess();
         }
         catch (Exception e)
         {
+            failCheck.markFailure();
             errorMeter.mark();
             hectorClient.markAsError();
             throw new IOException("Unknown exception persisting to cassandra.", e);
@@ -235,17 +245,19 @@ public class CassandraQueryImpl implements CassandraQuery
             sliceRange.setStart(CassandraUtils.packLong(0));
             sliceRange.setFinish(CassandraUtils.packLong(0));
             predicate.setSlice_range(sliceRange);
-
-            return client.get_range_slices(
+            List<KeySlice> slices = client.get_range_slices(
                     keyspaceName,
                     new ColumnParent(columnFamily),
                     predicate,
                     range,
                     ConsistencyLevel.ONE
             );
+            failCheck.markSuccess();
+            return slices;
         }
         catch (Exception e)
         {
+            failCheck.markFailure();
             errorMeter.mark();
             hectorClient.markAsError();
             throw new IOException("Unknown exception reading from cassandra.", e);

@@ -51,10 +51,6 @@ public class BalboaJms
 
         System.out.println("Receivers starting, awaiting messages.");
         ActiveMQReceiver receiver = new ActiveMQReceiver(servers, channel, threads);
-
-        while (true)
-        {
-            Thread.sleep(100);
-        }
+        new WatchDog().watchAndWait(receiver);
     }
 }
