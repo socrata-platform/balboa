@@ -7,3 +7,6 @@ balboa.i*
 target
 tmp
 .DS_Store
+/target/
+/project/target/
+/project/project/target/
