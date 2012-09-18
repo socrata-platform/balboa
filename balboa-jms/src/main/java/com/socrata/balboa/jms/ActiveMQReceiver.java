@@ -131,21 +131,18 @@ public class ActiveMQReceiver
                 catch (JMSException e1)
                 {
                     log.error("There was a problem rolling back the session. This is really bad.", e1);
-                } finally {
-                    // stop the consumer for now. The message is hopefully rolledback.
-                    // restart will occur when the WatchDog says so, upon decree from the
-                    // BalboaFastFailCheck
-                    stop();
                 }
             }
         }
 
         public void stop() {
+            log.error("Stopping JMS listener");
             consumer.stop();
         }
 
         public void restart() {
             try {
+                log.error("Restarting JMS listener");
                 consumer.start();
             } catch (JMSException e) {
                 log.error("Unable to restart the consumer after data store failure. This is bad.");
