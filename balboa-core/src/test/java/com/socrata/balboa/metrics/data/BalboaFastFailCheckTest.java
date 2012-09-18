@@ -19,20 +19,20 @@ public class BalboaFastFailCheckTest extends TestCase {
         mockTime.returnTime = 1000;
         balboaFailer.markFailure();
         assertFalse(balboaFailer.proceed());
-        mockTime.returnTime = 1100;
+        mockTime.returnTime = 2000;
         assertFalse(balboaFailer.proceed());
 
         // just past the timeout
-        mockTime.returnTime = 1101;
+        mockTime.returnTime = 2001;
         assertTrue(balboaFailer.proceed());
 
         // should double the timeout
         balboaFailer.markFailure();
-        mockTime.returnTime = 1300;
+        mockTime.returnTime = 4000;
         assertFalse(balboaFailer.proceed());
 
         // again, just passed the timeout
-        mockTime.returnTime = 1302;
+        mockTime.returnTime = 4002;
         assertTrue(balboaFailer.proceed());
         balboaFailer.markFailure();
         balboaFailer.markSuccess();
