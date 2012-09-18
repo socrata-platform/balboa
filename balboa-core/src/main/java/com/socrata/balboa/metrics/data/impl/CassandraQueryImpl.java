@@ -43,8 +43,8 @@ public class CassandraQueryImpl implements CassandraQuery
         servers = config.getProperty("cassandra.servers");
         keyspaceName = config.getProperty("cassandra.keyspace");
         CassandraHostConfigurator hostConfigurator = new CassandraHostConfigurator(servers);
-        hostConfigurator.setCassandraThriftSocketTimeout(3000);
-        hostConfigurator.setMaxWaitTimeWhenExhausted(4000);
+        hostConfigurator.setCassandraThriftSocketTimeout(200);
+        hostConfigurator.setMaxWaitTimeWhenExhausted(200);
         pool = CassandraClientPoolFactory.getInstance().createNew(hostConfigurator);
     }
 

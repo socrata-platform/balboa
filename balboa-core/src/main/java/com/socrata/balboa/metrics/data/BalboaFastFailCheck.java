@@ -17,7 +17,7 @@ public class BalboaFastFailCheck {
     private static final BalboaFastFailCheck INSTANCE = new BalboaFastFailCheck(new TimeService());
 
     // Initial failure delay
-    public final static long INITIAL_FAILURE_DELAY_MS = 100;
+    public final static long INITIAL_FAILURE_DELAY_MS = 1000;
     // max time to permit a fast fail before allowing a retry
     public final static long MAX_FAILURE_DELAY_MS = 30000;
 
