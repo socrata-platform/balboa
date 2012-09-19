@@ -15,5 +15,7 @@ public class PropertiesFixtureConfiguration extends Configuration
 
         setProperty("balboa.serializer", "protobuf");
         setProperty("balboa.datastore", "cassandra");
+        setProperty("failfast.initialbackoff", "1000");
+        setProperty("failfast.maxbackoff", "30000");
     }
 }

@@ -1,8 +1,11 @@
 package com.socrata.balboa.metrics.data;
 
+import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.impl.TimeService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -17,10 +20,9 @@ public class BalboaFastFailCheck {
     private static final BalboaFastFailCheck INSTANCE = new BalboaFastFailCheck(new TimeService());
 
     // Initial failure delay
-    public final static long INITIAL_FAILURE_DELAY_MS = 1000;
+    public final long INITIAL_FAILURE_DELAY_MS;
     // max time to permit a fast fail before allowing a retry
-    public final static long MAX_FAILURE_DELAY_MS = 30000;
-
+    public final long MAX_FAILURE_DELAY_MS;
 
     private AtomicLong failFastUntilTime = new AtomicLong(0);
     private int mult = 1;
@@ -37,6 +39,13 @@ public class BalboaFastFailCheck {
     // package protected for tests
     BalboaFastFailCheck(TimeService timeService) {
         this.timeService = timeService;
+        try {
+            Configuration config = Configuration.get();
+            INITIAL_FAILURE_DELAY_MS = Long.parseLong(config.getProperty("failfast.initialbackoff"));
+            MAX_FAILURE_DELAY_MS = Long.parseLong(config.getProperty("failfast.maxbackoff"));
+        } catch (IOException e) {
+            throw new RuntimeException("Configuration Error", e);
+        }
     }
 
     /**
