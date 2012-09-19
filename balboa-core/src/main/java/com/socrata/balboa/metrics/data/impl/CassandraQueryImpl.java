@@ -33,19 +33,28 @@ public class CassandraQueryImpl implements CassandraQuery
     private static final int CLIENT_BORROW_THRESHOLD = 1000;
 
     String keyspaceName;
-    CassandraClientPool pool;
+    private volatile static CassandraClientPool pool;
     String servers;
     private BalboaFastFailCheck failCheck = BalboaFastFailCheck.getInstance();
+
+    public CassandraClientPool getPool() throws IOException {
+        if (pool != null) return pool;
+        synchronized (this) {
+            if (pool != null) return pool;
+            CassandraHostConfigurator hostConfigurator = new CassandraHostConfigurator(servers);
+            hostConfigurator.setCassandraThriftSocketTimeout(200);
+            hostConfigurator.setMaxWaitTimeWhenExhausted(200);
+            hostConfigurator.setMaxActive(100);
+            pool =  CassandraClientPoolFactory.getInstance().createNew(hostConfigurator);
+            return pool;
+        }
+    }
 
     public CassandraQueryImpl() throws IOException
     {
         Configuration config = Configuration.get();
         servers = config.getProperty("cassandra.servers");
         keyspaceName = config.getProperty("cassandra.keyspace");
-        CassandraHostConfigurator hostConfigurator = new CassandraHostConfigurator(servers);
-        hostConfigurator.setCassandraThriftSocketTimeout(200);
-        hostConfigurator.setMaxWaitTimeWhenExhausted(200);
-        pool = CassandraClientPoolFactory.getInstance().createNew(hostConfigurator);
     }
 
     /**
@@ -62,7 +71,7 @@ public class CassandraQueryImpl implements CassandraQuery
         try
         {
             long clientStartTime = System.currentTimeMillis();
-            client = pool.borrowClient();
+            client = getPool().borrowClient();
             long totalClientTime = System.currentTimeMillis() - clientStartTime;
             if (totalClientTime >= CLIENT_BORROW_THRESHOLD)
             {
@@ -81,7 +90,7 @@ public class CassandraQueryImpl implements CassandraQuery
     {
         try
         {
-            pool.releaseClient(client);
+            getPool().releaseClient(client);
         }
         catch (Exception e)
         {

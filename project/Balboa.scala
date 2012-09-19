@@ -4,7 +4,7 @@ object Balboa extends Build {
   lazy val balboa = Project(
     "balboa",
     file("."),
-    settings = BuildSettings.buildSettings
+    settings = BuildSettings.buildSettings ++ Seq(Keys.parallelExecution := false)
   ) aggregate (balboaCore, balboaHttp, balboaJms, balboaAdmin)
 
   lazy val balboaCore = Project(
