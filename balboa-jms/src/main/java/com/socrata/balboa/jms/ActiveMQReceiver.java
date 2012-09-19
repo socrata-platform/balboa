@@ -136,16 +136,20 @@ public class ActiveMQReceiver
         }
 
         public void stop() {
-            log.error("Stopping JMS listener");
-            consumer.stop();
+            synchronized (this) {
+                log.error("Stopping JMS listener");
+                consumer.stop();
+            }
         }
 
         public void restart() {
-            try {
-                log.error("Restarting JMS listener");
-                consumer.start();
-            } catch (JMSException e) {
-                log.error("Unable to restart the consumer after data store failure. This is bad.");
+            synchronized (this) {
+                try {
+                    log.error("Restarting JMS listener");
+                    consumer.start();
+                } catch (JMSException e) {
+                    log.error("Unable to restart the consumer after data store failure. This is bad.");
+                }
             }
         }
     }
@@ -171,17 +175,21 @@ public class ActiveMQReceiver
 
     // Used to restart the receiver on DataStore failure
     public void restart() {
-        stopped = false;
-        for (Listener listener : listeners)
-            listener.restart();
+        synchronized (this) {
+            stopped = false;
+            for (Listener listener : listeners)
+                listener.restart();
+        }
     }
 
     // Used to stop all listeners, whether they are already stopped
     // or not.
     public void stop() {
-        stopped = true;
-        for (Listener listener : listeners)
-            listener.stop();
+        synchronized (this) {
+            stopped = true;
+            for (Listener listener : listeners)
+                listener.stop();
+        }
     }
 
     public boolean isStopped() {
