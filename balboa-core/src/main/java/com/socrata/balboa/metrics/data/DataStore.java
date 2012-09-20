@@ -2,12 +2,13 @@ package com.socrata.balboa.metrics.data;
 
 import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.Timeslice;
+import com.socrata.balboa.metrics.WatchDog;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 
-public interface DataStore
+public interface DataStore extends WatchDog.WatchDogListener
 {
     /**
      * Retrieve an iterator that contains all the entity ids that the pattern

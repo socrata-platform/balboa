@@ -1,5 +1,8 @@
 package com.socrata.balboa.jms;
 
+import com.socrata.balboa.metrics.WatchDog;
+import com.socrata.balboa.metrics.data.DataStore;
+import com.socrata.balboa.metrics.data.DataStoreFactory;
 import org.apache.log4j.PropertyConfigurator;
 
 import java.io.IOException;
@@ -50,7 +53,8 @@ public class BalboaJms
         configureLogging();
 
         System.out.println("Receivers starting, awaiting messages.");
-        ActiveMQReceiver receiver = new ActiveMQReceiver(servers, channel, threads);
-        new WatchDog().watchAndWait(receiver);
+        DataStore ds = DataStoreFactory.get();
+        ActiveMQReceiver receiver = new ActiveMQReceiver(servers, channel, threads, ds);
+        new WatchDog().watchAndWait(receiver, ds);
     }
 }

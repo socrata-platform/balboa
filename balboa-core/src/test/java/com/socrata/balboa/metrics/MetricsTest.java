@@ -22,6 +22,22 @@ public class MetricsTest
     }
 
     @Test
+    public void testMergeToThird() throws Exception
+    {
+        Metrics m1 = new Metrics();
+        m1.put("hello", new Metric(Metric.RecordType.AGGREGATE, 55));
+        Metrics m2 = new Metrics();
+        m2.put("hello", new Metric(Metric.RecordType.AGGREGATE, 1));
+
+        Metrics m3 = new Metrics();
+        m3.merge(m1);
+        m3.merge(m2);
+
+        Assert.assertTrue(m3.containsKey("hello"));
+        Assert.assertEquals(56, m3.get("hello").getValue());
+    }
+
+    @Test
     public void testMerge2() throws Exception
     {
         Metrics m1 = new Metrics();

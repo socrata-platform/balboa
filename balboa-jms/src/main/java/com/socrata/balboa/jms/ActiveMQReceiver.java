@@ -1,7 +1,8 @@
 package com.socrata.balboa.jms;
 
+import com.socrata.balboa.metrics.*;
+import com.socrata.balboa.metrics.WatchDog;
 import com.socrata.balboa.metrics.data.DataStore;
-import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.impl.JsonMessage;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -12,6 +13,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import javax.jms.*;
+import javax.jms.Message;
 import javax.naming.NamingException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -52,7 +54,7 @@ import java.util.List;
  * If for some reason a message cannot be persisted, it will be rejected and
  * redelivered as the JMS provider sees fit.
  */
-public class ActiveMQReceiver
+public class ActiveMQReceiver implements WatchDog.WatchDogListener
 {
     private static Log log = LogFactory.getLog(ActiveMQReceiver.class);
     private List<Listener> listeners;
@@ -89,9 +91,11 @@ public class ActiveMQReceiver
         private Queue queue;
         private ActiveMQMessageConsumer consumer;
         private ActiveMQConnection connection;
+        private DataStore ds;
 
-        public Listener(ActiveMQConnectionFactory connFactory, String queueName) throws NamingException, JMSException
+        public Listener(ActiveMQConnectionFactory connFactory, String queueName, DataStore ds) throws NamingException, JMSException
         {
+            this.ds = ds;
             connection = (ActiveMQConnection) connFactory.createConnection();
             session = (ActiveMQSession) connection.createSession(true, Session.SESSION_TRANSACTED);
             queue = session.createQueue(queueName);
@@ -109,7 +113,6 @@ public class ActiveMQReceiver
 
                 JsonMessage message = new JsonMessage(text.getText());
 
-                DataStore ds = DataStoreFactory.get();
                 ds.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
 
                 session.commit();
@@ -156,7 +159,7 @@ public class ActiveMQReceiver
 
     volatile boolean stopped = false;
 
-    public ActiveMQReceiver(String[] servers, String channel, Integer threads) throws NamingException, JMSException
+    public ActiveMQReceiver(String[] servers, String channel, Integer threads, DataStore ds) throws NamingException, JMSException
     {
         listeners = new ArrayList<Listener>(servers.length);
         for (String server : servers)
@@ -166,7 +169,7 @@ public class ActiveMQReceiver
                 ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(server);
                 factory.setTransportListener(new ActiveMQReceiver.TransportLogger());
 
-                listeners.add(new Listener(factory, channel));
+                listeners.add(new Listener(factory, channel, ds));
             }
         }
 
@@ -174,7 +177,7 @@ public class ActiveMQReceiver
     }
 
     // Used to restart the receiver on DataStore failure
-    public void restart() {
+    public void onStart() {
         synchronized (this) {
             stopped = false;
             for (Listener listener : listeners)
@@ -184,7 +187,7 @@ public class ActiveMQReceiver
 
     // Used to stop all listeners, whether they are already stopped
     // or not.
-    public void stop() {
+    public void onStop() {
         synchronized (this) {
             stopped = true;
             for (Listener listener : listeners)
@@ -194,5 +197,10 @@ public class ActiveMQReceiver
 
     public boolean isStopped() {
         return stopped;
+    }
+
+    @Override
+    public void heartbeat() {
+        //noop
     }
 }

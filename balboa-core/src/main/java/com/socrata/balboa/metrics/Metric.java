@@ -101,4 +101,12 @@ public class Metric
 
         setValue(com.combine(getValue(), other.getValue()));
     }
+
+    @Override
+    public String toString() {
+        return "Metric{" +
+                "value=" + value +
+                ", type=" + type +
+                '}';
+    }
 }

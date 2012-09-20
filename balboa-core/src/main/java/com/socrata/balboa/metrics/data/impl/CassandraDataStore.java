@@ -89,7 +89,7 @@ import java.util.concurrent.TimeUnit;
  * slices can be summed together. Records can also be written as "absolute"
  * meaning: values aren't combined, only the most recent value is used.
  */
-public class CassandraDataStore extends DataStoreImpl implements DataStore
+public class CassandraDataStore extends DataStoreImpl
 {
     /** The maximum number of retries to acquire a lock before giving up */
     private static final int MAX_RETRIES = 5;

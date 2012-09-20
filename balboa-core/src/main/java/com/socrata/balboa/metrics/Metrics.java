@@ -5,6 +5,12 @@ import com.socrata.balboa.metrics.data.CompoundIterator;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * A bag of metrics which can be merged through summation or
+ * replace operations.
+ *
+ * Warning; merge operations on Metrics are not immutable.
+ */
 public class Metrics extends HashMap<String, Metric>
 {
     public Metrics(int i, float v)

@@ -2,6 +2,7 @@ package com.socrata.balboa.metrics.data;
 
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.config.PropertiesConfiguration;
+import com.socrata.balboa.metrics.data.impl.BufferedDataStore;
 import com.socrata.balboa.metrics.data.impl.CassandraDataStore;
 
 import java.io.IOException;
@@ -20,6 +21,10 @@ public class DataStoreFactory
         catch (IOException e)
         {
             throw new PropertiesConfiguration.ConfigurationException("Unable to determine which datastore to use because the configuration couldn't be read.", e);
+        }
+
+        if (datastore.equals("buffered-cassandra")) {
+            return new BufferedDataStore(new CassandraDataStore());
         }
 
         if (datastore.equals("cassandra"))

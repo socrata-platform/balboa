@@ -37,14 +37,14 @@ public class BalboaFastFailCheck {
     }
 
     // package protected for tests
-    BalboaFastFailCheck(TimeService timeService) {
+    protected BalboaFastFailCheck(TimeService timeService) {
         this.timeService = timeService;
         try {
             Configuration config = Configuration.get();
             INITIAL_FAILURE_DELAY_MS = Long.parseLong(config.getProperty("failfast.initialbackoff"));
             MAX_FAILURE_DELAY_MS = Long.parseLong(config.getProperty("failfast.maxbackoff"));
         } catch (IOException e) {
-            throw new RuntimeException("Configuration Error", e);
+            throw new RuntimeException("BalboaFastFailCheck Configuration Error", e);
         }
     }
 
