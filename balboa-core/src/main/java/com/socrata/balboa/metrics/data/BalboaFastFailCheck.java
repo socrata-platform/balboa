@@ -44,7 +44,7 @@ public class BalboaFastFailCheck {
             INITIAL_FAILURE_DELAY_MS = Long.parseLong(config.getProperty("failfast.initialbackoff"));
             MAX_FAILURE_DELAY_MS = Long.parseLong(config.getProperty("failfast.maxbackoff"));
         } catch (IOException e) {
-            throw new RuntimeException("BalboaFastFailCheck Configuration Error", e);
+            throw new Configuration.ConfigurationException("BalboaFastFailCheck Configuration Error", e);
         }
     }
 

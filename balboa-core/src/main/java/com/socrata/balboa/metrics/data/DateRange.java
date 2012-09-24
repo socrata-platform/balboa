@@ -2,118 +2,26 @@ package com.socrata.balboa.metrics.data;
 
 import java.util.*;
 
-public class DateRange
-{
-    /**
-     * A type of time span.
-     */
-    public static enum Period
-    {
-        FOREVER,
-        YEARLY,
-        MONTHLY,
-        WEEKLY,
-        DAILY,
-        HOURLY,
-        MINUTELY,
-        SECONDLY,
-        REALTIME;
+/**
+ * Holds a DateRange; but contains methods for finding the Dates for a given period.
+ */
+public class DateRange {
 
-        @Override
-        public String toString()
-        {
-            return this.name().toLowerCase();
-        }
-
-        public static Period leastGranular(Collection<Period> col)
-        {
-            return Collections.min(col);
-        }
-
-        public static Period mostGranular(Collection<Period> col)
-        {
-            return Collections.max(col);
-        }
-
-        /**
-         * Retrieve the adjacent type that is less granular that the current.
-         * For example, "day" is less granular than "hour" which is slightly
-         * less granular than "minute".
-         */
-        public Period lessGranular()
-        {
-            switch(this)
-            {
-                case REALTIME:
-                    return SECONDLY;
-                case SECONDLY:
-                    return MINUTELY;
-                case MINUTELY:
-                    return HOURLY;
-                case HOURLY:
-                    return DAILY;
-                case DAILY:
-                case WEEKLY:
-                    return MONTHLY;
-                case MONTHLY:
-                    return YEARLY;
-                case YEARLY:
-                    return FOREVER;
-                default:
-                    return null;
-            }
-        }
-
-        /**
-         * Retrieve the adjacent type that is more granular than the current.
-         * For example, "day" is slightly more granular than "month" which is
-         * slightly more granular than "year".
-         */
-        public Period moreGranular()
-        {
-            switch(this)
-            {
-                case FOREVER:
-                    return YEARLY;
-                case YEARLY:
-                    return MONTHLY;
-                case MONTHLY:
-                case WEEKLY:
-                    // Because weeks don't fall on month boundaries we can't
-                    // summarize them as the next best of months.
-                    return DAILY;
-                case DAILY:
-                    return HOURLY;
-                case HOURLY:
-                    return MINUTELY;
-                case MINUTELY:
-                    return SECONDLY;
-                case SECONDLY:
-                    return REALTIME;
-                default:
-                    return null;
-            }
-        }
-    }
-    
     public Date start;
     public Date end;
 
-    public DateRange(Date start, Date end)
-    {
-        if (start.after(end))
-        {
+    public DateRange(Date start, Date end) {
+        if (start.after(end)) {
             throw new IllegalArgumentException("The start time must be before the end time '" + start + "' !< '" + end + "'.");
         }
-        
+
         this.start = start;
         this.end = end;
     }
 
-    public static boolean liesOnBoundary(Date date, Period typeOfBoundary)
-    {
+    public static boolean liesOnBoundary(Date date, Period typeOfBoundary) {
         DateRange range = DateRange.create(typeOfBoundary, date);
-        
+
         return range.start.equals(date) || range.end.equals(date);
     }
 
@@ -121,18 +29,17 @@ public class DateRange
      * Get a date range that covers everything in the past/present/future. Kind
      * of like Timecop.
      */
-    static DateRange createForever(Date date)
-    {
+    static DateRange createForever(Date date) {
         Calendar start = new GregorianCalendar();
         start.setTimeZone(TimeZone.getTimeZone("UTC"));
 
         // Trim the day of the year off the requested date.
         start.set(start.getActualMinimum(Calendar.YEAR),
-                  start.getActualMinimum(Calendar.MONTH),
-                  start.getActualMinimum(Calendar.DATE),
-                  start.getActualMinimum(Calendar.HOUR_OF_DAY),
-                  start.getActualMinimum(Calendar.MINUTE),
-                  start.getActualMinimum(Calendar.SECOND));
+                start.getActualMinimum(Calendar.MONTH),
+                start.getActualMinimum(Calendar.DATE),
+                start.getActualMinimum(Calendar.HOUR_OF_DAY),
+                start.getActualMinimum(Calendar.MINUTE),
+                start.getActualMinimum(Calendar.SECOND));
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
@@ -156,19 +63,18 @@ public class DateRange
      * the date belongs. For example, if the input date is "2010-05-28", the
      * range returned would be (2010-01-01 -> 2010-12-31).
      */
-    static DateRange createYearly(Date date)
-    {
+    static DateRange createYearly(Date date) {
         Calendar start = new GregorianCalendar();
         start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
 
         // Trim the day of the year off the requested date.
         start.set(start.get(Calendar.YEAR),
-                  start.getActualMinimum(Calendar.MONTH),
-                  start.getActualMinimum(Calendar.DATE),
-                  start.getActualMinimum(Calendar.HOUR_OF_DAY),
-                  start.getActualMinimum(Calendar.MINUTE),
-                  start.getActualMinimum(Calendar.SECOND));
+                start.getActualMinimum(Calendar.MONTH),
+                start.getActualMinimum(Calendar.DATE),
+                start.getActualMinimum(Calendar.HOUR_OF_DAY),
+                start.getActualMinimum(Calendar.MINUTE),
+                start.getActualMinimum(Calendar.SECOND));
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
@@ -200,19 +106,18 @@ public class DateRange
      * the date belongs. For example, if the input date is "2010-05-28", the
      * range returned would be (2010-05-01 -> 2010-05-31).
      */
-    static DateRange createMonthly(Date date)
-    {
+    static DateRange createMonthly(Date date) {
         Calendar start = new GregorianCalendar();
         start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
 
         // Trim the day of the month off the requested date.
         start.set(start.get(Calendar.YEAR),
-                  start.get(Calendar.MONTH),
-                  start.getActualMinimum(Calendar.DATE),
-                  start.getActualMinimum(Calendar.HOUR_OF_DAY),
-                  start.getActualMinimum(Calendar.MINUTE),
-                  start.getActualMinimum(Calendar.SECOND));
+                start.get(Calendar.MONTH),
+                start.getActualMinimum(Calendar.DATE),
+                start.getActualMinimum(Calendar.HOUR_OF_DAY),
+                start.getActualMinimum(Calendar.MINUTE),
+                start.getActualMinimum(Calendar.SECOND));
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
@@ -237,19 +142,18 @@ public class DateRange
      * given week, the date range would look like (previous sunday -> next
      * saturday) encompassing all 7 days of the week.
      */
-    static DateRange createWeekly(Date date)
-    {
+    static DateRange createWeekly(Date date) {
         Calendar start = new GregorianCalendar();
         start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
 
         // Set the day to the beginning of the week of the reqeusted date.
         start.set(start.get(Calendar.YEAR),
-                  start.get(Calendar.MONTH),
-                  start.get(Calendar.DATE) - start.get(Calendar.DAY_OF_WEEK) + 1,
-                  start.getActualMinimum(Calendar.HOUR_OF_DAY),
-                  start.getActualMinimum(Calendar.MINUTE),
-                  start.getActualMinimum(Calendar.SECOND));
+                start.get(Calendar.MONTH),
+                start.get(Calendar.DATE) - start.get(Calendar.DAY_OF_WEEK) + 1,
+                start.getActualMinimum(Calendar.HOUR_OF_DAY),
+                start.getActualMinimum(Calendar.MINUTE),
+                start.getActualMinimum(Calendar.SECOND));
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
@@ -273,19 +177,18 @@ public class DateRange
      * the date belongs. So if the date is "2010-05-28 16:14:08" then the
      * returned range would be (2010-05-28 00:00:00 -> 2010-05-28 23:59:59).
      */
-    static DateRange createDaily(Date date)
-    {
+    static DateRange createDaily(Date date) {
         Calendar start = new GregorianCalendar();
         start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
 
         // Set the day to the beginning of the day of the reqeusted date.
         start.set(start.get(Calendar.YEAR),
-                  start.get(Calendar.MONTH),
-                  start.get(Calendar.DATE),
-                  start.getActualMinimum(Calendar.HOUR_OF_DAY),
-                  start.getActualMinimum(Calendar.MINUTE),
-                  start.getActualMinimum(Calendar.SECOND));
+                start.get(Calendar.MONTH),
+                start.get(Calendar.DATE),
+                start.getActualMinimum(Calendar.HOUR_OF_DAY),
+                start.getActualMinimum(Calendar.MINUTE),
+                start.getActualMinimum(Calendar.SECOND));
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
@@ -309,19 +212,18 @@ public class DateRange
      * So if the date is "2010-05-28 16:14:08" then the returned range would be
      * (2010-05-28 16:00:00 -> 2010-05-28 16:59:59).
      */
-    static DateRange createHourly(Date date)
-    {
+    static DateRange createHourly(Date date) {
         Calendar start = new GregorianCalendar();
         start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
 
         // Set the time to the beginning of the hour of the requested date.
         start.set(start.get(Calendar.YEAR),
-                  start.get(Calendar.MONTH),
-                  start.get(Calendar.DATE),
-                  start.get(Calendar.HOUR_OF_DAY),
-                  start.getActualMinimum(Calendar.MINUTE),
-                  start.getActualMinimum(Calendar.SECOND));
+                start.get(Calendar.MONTH),
+                start.get(Calendar.DATE),
+                start.get(Calendar.HOUR_OF_DAY),
+                start.getActualMinimum(Calendar.MINUTE),
+                start.getActualMinimum(Calendar.SECOND));
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
@@ -345,19 +247,18 @@ public class DateRange
      * "2010-05-28 16:14:08" then the returned range would be
      * (2010-05-28 16:14:00 -> 2010-05-28 16:14:59).
      */
-    static DateRange createMinutely(Date date)
-    {
+    static DateRange createMinutely(Date date) {
         Calendar start = new GregorianCalendar();
         start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
 
         // Set the time to the beginning of the hour of the requested date.
         start.set(start.get(Calendar.YEAR),
-                  start.get(Calendar.MONTH),
-                  start.get(Calendar.DATE),
-                  start.get(Calendar.HOUR_OF_DAY),
-                  start.get(Calendar.MINUTE),
-                  start.getActualMinimum(Calendar.SECOND));
+                start.get(Calendar.MONTH),
+                start.get(Calendar.DATE),
+                start.get(Calendar.HOUR_OF_DAY),
+                start.get(Calendar.MINUTE),
+                start.getActualMinimum(Calendar.SECOND));
         start.set(Calendar.MILLISECOND, 0);
 
         Calendar end = new GregorianCalendar();
@@ -381,8 +282,7 @@ public class DateRange
      * "2010-05-28 16:14:08:594" then the returned range would be
      * (2010-05-28 16:14:08:000 -> 2010-05-28 16:14:08:000).
      */
-    static DateRange createSecondly(Date date)
-    {
+    static DateRange createSecondly(Date date) {
         Calendar start = new GregorianCalendar();
         start.setTimeZone(TimeZone.getTimeZone("UTC"));
         start.setTime(date);
@@ -396,10 +296,8 @@ public class DateRange
         return new DateRange(start.getTime(), end.getTime());
     }
 
-    public static DateRange create(Period period, Date date)
-    {
-        switch(period)
-        {
+    public static DateRange create(Period period, Date date) {
+        switch (period) {
             case SECONDLY:
                 return createSecondly(date);
             case MINUTELY:
@@ -421,38 +319,32 @@ public class DateRange
         }
     }
 
-    public boolean includes(Date suspect)
-    {
+    public boolean includes(Date suspect) {
         return (start.equals(suspect) || start.before(suspect)) &&
-               (end.equals(suspect) || end.after(suspect));
+                (end.equals(suspect) || end.after(suspect));
     }
 
-    public boolean includesToday()
-    {
+    public boolean includesToday() {
         return includes(new Date());
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return start + " -> " + end;
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         return start.hashCode() + end.hashCode();
     }
 
     @Override
-    public boolean equals(Object obj)
-    {
-        if (!(obj instanceof DateRange))
-        {
+    public boolean equals(Object obj) {
+        if (!(obj instanceof DateRange)) {
             return false;
         }
 
-        DateRange other = (DateRange)obj;
+        DateRange other = (DateRange) obj;
         return other.start.equals(start) && other.end.equals(end);
     }
 }

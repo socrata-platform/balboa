@@ -4,6 +4,7 @@ import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.config.PropertiesConfiguration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.Period;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -14,11 +15,11 @@ public abstract class DataStoreImpl implements DataStore
 {
     private static Log log = LogFactory.getLog(DataStoreImpl.class);
 
-    DateRange.Period getClosestTypeOrError(DateRange.Period period) throws IOException
+    Period getClosestTypeOrError(Period period) throws IOException
     {
-        DateRange.Period originalPeriod = period;
+        Period originalPeriod = period;
 
-        List<DateRange.Period> periods;
+        List<Period> periods;
         try
         {
             periods = Configuration.get().getSupportedPeriods();

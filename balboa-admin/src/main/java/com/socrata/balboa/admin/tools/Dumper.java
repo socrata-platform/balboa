@@ -7,6 +7,7 @@ import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.Period;
 
 import java.io.IOException;
 import java.util.Date;
@@ -44,7 +45,7 @@ public class Dumper
 
     public void dump() throws IOException
     {
-        DateRange.Period mostGranular = DateRange.Period.mostGranular(Configuration.get().getSupportedPeriods());
+        Period mostGranular = Period.mostGranular(Configuration.get().getSupportedPeriods());
 
         Date epoch = new Date(0);
         Date cutoff = DateRange.create(mostGranular, new Date()).start;

@@ -7,6 +7,7 @@ import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.Period;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -35,7 +36,7 @@ public class Filler
         public synchronized void add(String entityId, long timestamp, String name, Metric metric) throws IOException
         {
             Date when = new Date(timestamp);
-            DateRange.Period mostGranular = DateRange.Period.mostGranular(Configuration.get().getSupportedPeriods());
+            Period mostGranular = Period.mostGranular(Configuration.get().getSupportedPeriods());
 
             Metrics original = new Metrics();
             original.put(name, metric);

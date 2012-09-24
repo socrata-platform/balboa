@@ -7,6 +7,7 @@ import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.data.EntityMeta;
+import com.socrata.balboa.metrics.data.Period;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -55,7 +56,7 @@ public class BufferedDataStore extends DataStoreImpl {
             Configuration config = Configuration.get();
             AGGREGATE_GRANULARITY = Long.parseLong(config.getProperty("buffer.granularity"));
         } catch (IOException e) {
-            throw new RuntimeException("BufferedDataStore Configuration Error", e);
+            throw new Configuration.ConfigurationException("BufferedDataStore Configuration Error", e);
         }
 
     }
@@ -120,15 +121,15 @@ public class BufferedDataStore extends DataStoreImpl {
         return underlying.meta(entityId);
     }
 
-    public Iterator<Timeslice> slices(String entityId, DateRange.Period period, Date start, Date end) throws IOException {
+    public Iterator<Timeslice> slices(String entityId, Period period, Date start, Date end) throws IOException {
         return underlying.slices(entityId, period, start, end);
     }
 
-    public Iterator<Metrics> find(String entityId, DateRange.Period period, Date date) throws IOException {
+    public Iterator<Metrics> find(String entityId, Period period, Date date) throws IOException {
         return underlying.find(entityId, period, date);
     }
 
-    public Iterator<Metrics> find(String entityId, DateRange.Period period, Date start, Date end) throws IOException {
+    public Iterator<Metrics> find(String entityId, Period period, Date start, Date end) throws IOException {
         return underlying.find(entityId, period, start, end);
     }
 

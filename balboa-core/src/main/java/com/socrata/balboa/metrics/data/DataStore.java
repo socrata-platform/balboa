@@ -36,7 +36,7 @@ public interface DataStore extends WatchDog.WatchDogListener
      * e.g. Give me all of the metrics for some entity broken down by hours in
      * the range 2010-01-01 -> 2010-01-31.
      */
-    public Iterator<Timeslice> slices(String entityId, DateRange.Period period, Date start, Date end) throws IOException;
+    public Iterator<Timeslice> slices(String entityId, Period period, Date start, Date end) throws IOException;
 
     /**
      * Given a date and given a summary range period, create the appropriate range
@@ -50,7 +50,7 @@ public interface DataStore extends WatchDog.WatchDogListener
      *
      * @see DateRange
      */
-    public Iterator<Metrics> find(String entityId, DateRange.Period period, Date date) throws IOException;
+    public Iterator<Metrics> find(String entityId, Period period, Date date) throws IOException;
 
     /**
      * Find all the summaries of a particular tier between start and end. This
@@ -58,14 +58,14 @@ public interface DataStore extends WatchDog.WatchDogListener
      * and should only be used when you need to query a specific tier for some
      * reason.
      */
-    public Iterator<Metrics> find(String entityId, DateRange.Period period, Date start, Date end) throws IOException;
+    public Iterator<Metrics> find(String entityId, Period period, Date start, Date end) throws IOException;
 
     /**
      * Find the total summaries between two particular dates. The query
      * optimizer should plan the query so that start and end align along a date
      * date boundary of your most granular type.
      *
-     * @see com.socrata.balboa.metrics.data.DateRange.Period
+     * @see com.socrata.balboa.metrics.data.Period
      */
     public Iterator<Metrics> find(String entityId, Date start, Date end) throws IOException;
 

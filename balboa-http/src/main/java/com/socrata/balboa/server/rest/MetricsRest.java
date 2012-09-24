@@ -2,10 +2,7 @@ package com.socrata.balboa.server.rest;
 
 import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.Timeslice;
-import com.socrata.balboa.metrics.data.DataStore;
-import com.socrata.balboa.metrics.data.DataStoreFactory;
-import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.data.EntityMeta;
+import com.socrata.balboa.metrics.data.*;
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics;
 import com.socrata.balboa.server.ServiceUtils;
 import com.socrata.balboa.server.exceptions.InvalidRequestException;
@@ -35,7 +32,7 @@ public class MetricsRest
     @Produces({"application/json", "application/x-protobuf"})
     public Response get(
             @PathParam("entityId") String entityId,
-            @QueryParam("period") DateRange.Period period,
+            @QueryParam("period") Period period,
             @QueryParam("date") String date,
             @QueryParam("combine") String combine,
             @QueryParam("field") String field,
@@ -117,7 +114,7 @@ public class MetricsRest
     @Produces({"application/json", "application/x-protobuf"})
     public Response series(
             @PathParam("entityId") String entityId,
-            @QueryParam("period") DateRange.Period period,
+            @QueryParam("period") Period period,
             @QueryParam("start") String start,
             @QueryParam("end") String end,
             @Context HttpHeaders headers

@@ -3,6 +3,7 @@ package com.socrata.balboa.metrics.data.impl;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck;
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.Period;
 import com.yammer.metrics.core.MeterMetric;
 import com.yammer.metrics.core.TimerMetric;
 import me.prettyprint.cassandra.service.CassandraClient;
@@ -176,7 +177,7 @@ public class CassandraQueryImpl implements CassandraQuery
     }
 
     @Override
-    public List<SuperColumn> find(String entityId, SlicePredicate predicate, DateRange.Period period) throws IOException
+    public List<SuperColumn> find(String entityId, SlicePredicate predicate, Period period) throws IOException
     {
         long startTime = System.currentTimeMillis();
         

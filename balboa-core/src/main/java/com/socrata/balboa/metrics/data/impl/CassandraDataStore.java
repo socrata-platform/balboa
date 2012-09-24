@@ -5,7 +5,7 @@ import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.Timeslice;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.*;
-import com.socrata.balboa.metrics.data.DateRange.Period;
+import com.socrata.balboa.metrics.data.Period;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
 import com.yammer.metrics.core.MeterMetric;
@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
  * The cassandra data model defines a keyspace in configuration
  * (cassandra.keyspace). Underneath the keyspace, this datastore expects there
  * to be some super column ColumnFamilies. There should be a ColumnFamily for
- * each configured summary date range period (<code>DateRange.Period</code>) and
+ * each configured summary date range period (<code>Period</code>) and
  * one ColumnFamily for entity meta data (<code>EntityMeta</code>).
  *
  * e.g.
@@ -269,7 +269,7 @@ public class CassandraDataStore extends DataStoreImpl
          * should be searched for rows.
          * @param range The date range to constrain the search to.
          */
-        CassandraIteratorBase(String entityId, DateRange.Period period, DateRange range, EntityMeta meta) throws IOException
+        CassandraIteratorBase(String entityId, Period period, DateRange range, EntityMeta meta) throws IOException
         {
             this.period = period;
             this.range = range;
@@ -534,7 +534,7 @@ public class CassandraDataStore extends DataStoreImpl
         }
     }
 
-    Iterator<Metrics> query(String entityId, DateRange.Period period, DateRange range, EntityMeta meta) throws IOException
+    Iterator<Metrics> query(String entityId, Period period, DateRange range, EntityMeta meta) throws IOException
     {
         return new CassandraIterator(entityId, period, range, meta);
     }
@@ -633,7 +633,7 @@ public class CassandraDataStore extends DataStoreImpl
     }
 
     @Override
-    public Iterator<Metrics> find(String entityId, DateRange.Period period, Date start, Date end) throws IOException
+    public Iterator<Metrics> find(String entityId, Period period, Date start, Date end) throws IOException
     {
         DateRange range = new DateRange(start, end);
         
@@ -657,10 +657,10 @@ public class CassandraDataStore extends DataStoreImpl
 
         int numberOfQueries = 0;
 
-        CompoundIterator<Metrics> iter = new CompoundIterator();
+        CompoundIterator<Metrics> iter = new CompoundIterator<Metrics>();
         EntityMeta meta = getEntityMeta(entityId);
 
-        for (Map.Entry<DateRange.Period,  Set<DateRange>> slice : slices.entrySet())
+        for (Map.Entry<Period,  Set<DateRange>> slice : slices.entrySet())
         {
             numberOfQueries += slice.getValue().size();
             
@@ -754,8 +754,8 @@ public class CassandraDataStore extends DataStoreImpl
 
         // For every period that can be summarized read/increment/update
         // their summary.
-        List<DateRange.Period> periods = Configuration.get().getSupportedPeriods();
-        Period period = DateRange.Period.leastGranular(periods);
+        List<Period> periods = Configuration.get().getSupportedPeriods();
+        Period period = Period.leastGranular(periods);
         while (period != null && period != Period.REALTIME)
         {
             // Read the old data.

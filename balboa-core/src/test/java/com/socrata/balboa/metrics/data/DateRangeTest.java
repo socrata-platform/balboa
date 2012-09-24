@@ -10,28 +10,28 @@ public class DateRangeTest
     @Test
     public void testLeastGranular() throws Exception
     {
-        List<DateRange.Period> periods = Arrays.asList(DateRange.Period.values());
+        List<Period> periods = Arrays.asList(Period.values());
 
-        DateRange.Period t = DateRange.Period.leastGranular(periods);
+        Period t = Period.leastGranular(periods);
 
-        Assert.assertEquals(DateRange.Period.FOREVER, t);
+        Assert.assertEquals(Period.FOREVER, t);
     }
 
     @Test
     public void testMostGranular() throws Exception
     {
-        List<DateRange.Period> periods = Arrays.asList(DateRange.Period.values());
+        List<Period> periods = Arrays.asList(Period.values());
 
-        DateRange.Period t = DateRange.Period.mostGranular(periods);
+        Period t = Period.mostGranular(periods);
 
-        Assert.assertEquals(DateRange.Period.REALTIME, t);
+        Assert.assertEquals(Period.REALTIME, t);
     }
 
     @Test
     public void testEquals() throws Exception
     {
-        DateRange r1 = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
-        DateRange r2 = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
+        DateRange r1 = DateRange.create(Period.MONTHLY, new Date(0));
+        DateRange r2 = DateRange.create(Period.MONTHLY, new Date(0));
 
         Assert.assertEquals(r1, r2);
         r2.end = new Date(r2.end.getTime() + 1);
@@ -43,7 +43,7 @@ public class DateRangeTest
     @Test
     public void testInclude() throws Exception
     {
-        DateRange range = DateRange.create(DateRange.Period.MONTHLY, new Date(0));
+        DateRange range = DateRange.create(Period.MONTHLY, new Date(0));
 
         Assert.assertFalse(range.includes(new Date(range.start.getTime() - 1)));
         Assert.assertTrue(range.includes(range.start));

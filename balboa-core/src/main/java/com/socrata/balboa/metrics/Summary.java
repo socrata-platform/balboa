@@ -1,6 +1,7 @@
 package com.socrata.balboa.metrics;
 
 import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.Period;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -22,7 +23,7 @@ public class Summary
 {
     private static Log log = LogFactory.getLog(Summary.class);
 
-    public Summary(DateRange.Period period, long timestamp, Map<String, Object> values)
+    public Summary(Period period, long timestamp, Map<String, Object> values)
     {
         this.period = period;
         this.timestamp = timestamp;
@@ -34,7 +35,7 @@ public class Summary
         return timestamp;
     }
 
-    public DateRange.Period getType()
+    public Period getType()
     {
         return period;
     }
@@ -51,5 +52,5 @@ public class Summary
 
     long timestamp;
     Map<String, Object> values;
-    DateRange.Period period;
+    Period period;
 }

@@ -1,33 +1,26 @@
 package com.socrata.balboa.metrics.config;
 
-import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.Period;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-public abstract class Configuration extends Properties
-{
+public abstract class Configuration extends Properties {
     public static Configuration instance;
-    private List<DateRange.Period> supportedPeriods;
+    private List<Period> supportedPeriods;
 
-    public static synchronized Configuration get() throws IOException
-    {
+    public static synchronized Configuration get() throws IOException {
         String environment = System.getProperty("socrata.env");
-        if (environment == null)
-        {
+        if (environment == null) {
             environment = "development";
         }
 
-        if (instance == null)
-        {
-            if (environment.equals("test"))
-            {
+        if (instance == null) {
+            if (environment.equals("test")) {
                 instance = new PropertiesFixtureConfiguration();
-            }
-            else
-            {
+            } else {
                 instance = new PropertiesConfiguration();
             }
         }
@@ -38,46 +31,37 @@ public abstract class Configuration extends Properties
     /**
      * Don't use this, it's only for mocking.
      */
-    synchronized public void setSupportedTypes(List<DateRange.Period> supportedPeriods)
-    {
+    synchronized public void setSupportedTypes(List<Period> supportedPeriods) {
         this.supportedPeriods = supportedPeriods;
     }
 
-    synchronized public List<DateRange.Period> getSupportedPeriods()
-    {
-        if (supportedPeriods == null)
-        {
-            String[] types = ((String)getProperty("balboa.summaries")).split(",");
+    synchronized public List<Period> getSupportedPeriods() {
+        if (supportedPeriods == null) {
+            String[] types = getProperty("balboa.summaries").split(",");
 
-            supportedPeriods = new ArrayList<DateRange.Period>(types.length);
-            for (String t : types)
-            {
-                supportedPeriods.add(DateRange.Period.valueOf(t.toUpperCase()));
+            supportedPeriods = new ArrayList<Period>(types.length);
+            for (String t : types) {
+                supportedPeriods.add(Period.valueOf(t.toUpperCase()));
             }
         }
 
         return supportedPeriods;
     }
 
-    public static class ConfigurationException extends RuntimeException
-    {
-        public ConfigurationException()
-        {
+    public static class ConfigurationException extends RuntimeException {
+        public ConfigurationException() {
             super();
         }
 
-        public ConfigurationException(String s)
-        {
+        public ConfigurationException(String s) {
             super(s);
         }
 
-        public ConfigurationException(String s, Throwable throwable)
-        {
+        public ConfigurationException(String s, Throwable throwable) {
             super(s, throwable);
         }
 
-        public ConfigurationException(Throwable throwable)
-        {
+        public ConfigurationException(Throwable throwable) {
             super(throwable);
         }
     }

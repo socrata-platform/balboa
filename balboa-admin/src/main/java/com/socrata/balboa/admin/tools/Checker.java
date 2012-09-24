@@ -3,19 +3,16 @@ package com.socrata.balboa.admin.tools;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.metrics.data.CompoundIterator;
-import com.socrata.balboa.metrics.data.DataStore;
-import com.socrata.balboa.metrics.data.DataStoreFactory;
-import com.socrata.balboa.metrics.data.DateRange;
+import com.socrata.balboa.metrics.data.*;
 
 import java.io.IOException;
 import java.util.*;
 
 public class Checker
 {
-    public DateRange.Period lessGranular(DateRange.Period period) throws IOException
+    public Period lessGranular(Period period) throws IOException
     {
-        List<DateRange.Period> periods = Configuration.get().getSupportedPeriods();
+        List<Period> periods = Configuration.get().getSupportedPeriods();
         period = period.lessGranular();
         while (period != null && !periods.contains(period))
         {
@@ -25,7 +22,7 @@ public class Checker
         return period;
     }
 
-    public Map<String, List<Number>> difference(String entityId, Date start, DateRange.Period period) throws IOException
+    public Map<String, List<Number>> difference(String entityId, Date start, Period period) throws IOException
     {
         DataStore ds = DataStoreFactory.get();
 
@@ -78,8 +75,8 @@ public class Checker
             entities = ds.entities();
         }
 
-        List<DateRange.Period> periods = new ArrayList<DateRange.Period>(Configuration.get().getSupportedPeriods());
-        DateRange.Period leastGranular = DateRange.Period.leastGranular(periods);
+        List<Period> periods = new ArrayList<Period>(Configuration.get().getSupportedPeriods());
+        Period leastGranular = Period.leastGranular(periods);
 
         // Remove the last (least granular) item from the list so that we don't
         // try to validate (least granular -> null).
@@ -98,7 +95,7 @@ public class Checker
 
             while (current.before(cutoff))
             {
-                for (DateRange.Period period : periods)
+                for (Period period : periods)
                 {
                     Map<String, List<Number>> diff = difference(entity, current, period);
 

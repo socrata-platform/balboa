@@ -19,7 +19,7 @@ public class QueryOptimizerTest
         Date end = cal.getTime();
 
         QueryOptimizer o  = new QueryOptimizer();
-        Map<DateRange.Period, Set<DateRange>> result = o.optimalSlices(start, end);
+        Map<Period, Set<DateRange>> result = o.optimalSlices(start, end);
 
         cal.set(2008, 1, 1, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
@@ -29,7 +29,7 @@ public class QueryOptimizerTest
         cal.set(Calendar.MILLISECOND, 999);
         end = cal.getTime();
 
-        Assert.assertEquals(new DateRange(start, end), result.get(DateRange.Period.MONTHLY).iterator().next());
+        Assert.assertEquals(new DateRange(start, end), result.get(Period.MONTHLY).iterator().next());
     }
     
     @Test
@@ -43,7 +43,7 @@ public class QueryOptimizerTest
         Date end = cal.getTime();
 
         QueryOptimizer o  = new QueryOptimizer();
-        Map<DateRange.Period, Set<DateRange>> result = o.optimalSlices(start, end);
+        Map<Period, Set<DateRange>> result = o.optimalSlices(start, end);
         Assert.assertEquals(1, result.size());
     }
 
@@ -58,19 +58,19 @@ public class QueryOptimizerTest
         Date end = cal.getTime();
 
         QueryOptimizer o  = new QueryOptimizer();
-        Map<DateRange.Period, Set<DateRange>> result = o.optimalSlices(start, end);
+        Map<Period, Set<DateRange>> result = o.optimalSlices(start, end);
         
-        Assert.assertTrue(result.containsKey(DateRange.Period.HOURLY));
-        Assert.assertEquals(1, result.get(DateRange.Period.HOURLY).size());
+        Assert.assertTrue(result.containsKey(Period.HOURLY));
+        Assert.assertEquals(1, result.get(Period.HOURLY).size());
 
         cal.set(2010, 1, 1, 1, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
 
-        Assert.assertEquals(cal.getTime(), result.get(DateRange.Period.HOURLY).iterator().next().start);
+        Assert.assertEquals(cal.getTime(), result.get(Period.HOURLY).iterator().next().start);
 
         cal.set(2010, 1, 1, 3, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), result.get(DateRange.Period.HOURLY).iterator().next().end);
+        Assert.assertEquals(cal.getTime(), result.get(Period.HOURLY).iterator().next().end);
     }
 
     @Test
@@ -84,12 +84,12 @@ public class QueryOptimizerTest
         Date end = cal.getTime();
 
         QueryOptimizer o  = new QueryOptimizer();
-        Map<DateRange.Period, Set<DateRange>> result = o.optimalSlices(start, end);
+        Map<Period, Set<DateRange>> result = o.optimalSlices(start, end);
 
-        Assert.assertTrue(result.containsKey(DateRange.Period.HOURLY));
-        Assert.assertEquals(1, result.get(DateRange.Period.HOURLY).size());
+        Assert.assertTrue(result.containsKey(Period.HOURLY));
+        Assert.assertEquals(1, result.get(Period.HOURLY).size());
 
-        Assert.assertFalse(result.containsKey(DateRange.Period.DAILY));
+        Assert.assertFalse(result.containsKey(Period.DAILY));
     }
 
     @Test
@@ -103,32 +103,32 @@ public class QueryOptimizerTest
         Date end = cal.getTime();
 
         QueryOptimizer o  = new QueryOptimizer();
-        Map<DateRange.Period, Set<DateRange>> result = o.optimalSlices(start, end);
+        Map<Period, Set<DateRange>> result = o.optimalSlices(start, end);
 
-        Assert.assertTrue(result.containsKey(DateRange.Period.HOURLY));
-        Assert.assertEquals(2, result.get(DateRange.Period.HOURLY).size());
+        Assert.assertTrue(result.containsKey(Period.HOURLY));
+        Assert.assertEquals(2, result.get(Period.HOURLY).size());
 
-        Assert.assertTrue(result.containsKey(DateRange.Period.DAILY));
-        Assert.assertEquals(1, result.get(DateRange.Period.DAILY).size());
+        Assert.assertTrue(result.containsKey(Period.DAILY));
+        Assert.assertEquals(1, result.get(Period.DAILY).size());
 
-        Assert.assertTrue(result.containsKey(DateRange.Period.MONTHLY));
-        Assert.assertEquals(1, result.get(DateRange.Period.MONTHLY).size());
+        Assert.assertTrue(result.containsKey(Period.MONTHLY));
+        Assert.assertEquals(1, result.get(Period.MONTHLY).size());
 
         cal.set(2010, 1, 1, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), result.get(DateRange.Period.MONTHLY).iterator().next().start);
+        Assert.assertEquals(cal.getTime(), result.get(Period.MONTHLY).iterator().next().start);
 
         cal.set(2010, 5, 30, 23, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), result.get(DateRange.Period.MONTHLY).iterator().next().end);
+        Assert.assertEquals(cal.getTime(), result.get(Period.MONTHLY).iterator().next().end);
     }
 
     @Test
     public void testRangeSpansYears() throws Exception
     {
-        List<DateRange.Period> originalPeriods = Configuration.get().getSupportedPeriods();
+        List<Period> originalPeriods = Configuration.get().getSupportedPeriods();
         Configuration.get().setSupportedTypes(Arrays.asList(
-                DateRange.Period.HOURLY, DateRange.Period.DAILY, DateRange.Period.MONTHLY, DateRange.Period.YEARLY
+                Period.HOURLY, Period.DAILY, Period.MONTHLY, Period.YEARLY
         ));
 
         try
@@ -141,19 +141,19 @@ public class QueryOptimizerTest
             Date end = cal.getTime();
 
             QueryOptimizer o  = new QueryOptimizer();
-            Map<DateRange.Period, Set<DateRange>> result = o.optimalSlices(start, end);
+            Map<Period, Set<DateRange>> result = o.optimalSlices(start, end);
 
-            Assert.assertTrue(result.containsKey(DateRange.Period.HOURLY));
-            Assert.assertEquals(2, result.get(DateRange.Period.HOURLY).size());
+            Assert.assertTrue(result.containsKey(Period.HOURLY));
+            Assert.assertEquals(2, result.get(Period.HOURLY).size());
 
-            Assert.assertTrue(result.containsKey(DateRange.Period.DAILY));
-            Assert.assertEquals(1, result.get(DateRange.Period.DAILY).size());
+            Assert.assertTrue(result.containsKey(Period.DAILY));
+            Assert.assertEquals(1, result.get(Period.DAILY).size());
 
-            Assert.assertTrue(result.containsKey(DateRange.Period.MONTHLY));
-            Assert.assertEquals(2, result.get(DateRange.Period.MONTHLY).size());
+            Assert.assertTrue(result.containsKey(Period.MONTHLY));
+            Assert.assertEquals(2, result.get(Period.MONTHLY).size());
 
-            Assert.assertTrue(result.containsKey(DateRange.Period.YEARLY));
-            Assert.assertEquals(1, result.get(DateRange.Period.YEARLY).size());
+            Assert.assertTrue(result.containsKey(Period.YEARLY));
+            Assert.assertEquals(1, result.get(Period.YEARLY).size());
         }
         finally
         {
@@ -172,26 +172,26 @@ public class QueryOptimizerTest
         Date end = cal.getTime();
 
         QueryOptimizer o  = new QueryOptimizer();
-        Map<DateRange.Period, Set<DateRange>> result = o.optimalSlices(start, end);
+        Map<Period, Set<DateRange>> result = o.optimalSlices(start, end);
 
-        Assert.assertTrue(result.containsKey(DateRange.Period.HOURLY));
-        Assert.assertEquals(2, result.get(DateRange.Period.HOURLY).size());
+        Assert.assertTrue(result.containsKey(Period.HOURLY));
+        Assert.assertEquals(2, result.get(Period.HOURLY).size());
 
-        Assert.assertTrue(result.containsKey(DateRange.Period.DAILY));
-        Assert.assertEquals(1, result.get(DateRange.Period.DAILY).size());
+        Assert.assertTrue(result.containsKey(Period.DAILY));
+        Assert.assertEquals(1, result.get(Period.DAILY).size());
 
-        Assert.assertTrue(result.containsKey(DateRange.Period.MONTHLY));
-        Assert.assertEquals(1, result.get(DateRange.Period.MONTHLY).size());
+        Assert.assertTrue(result.containsKey(Period.MONTHLY));
+        Assert.assertEquals(1, result.get(Period.MONTHLY).size());
 
-        Assert.assertFalse(result.containsKey(DateRange.Period.YEARLY));
+        Assert.assertFalse(result.containsKey(Period.YEARLY));
     }
 
     @Test
     public void testRangeExhaustivelyLookAtAllTheRangesToMakeSureTheyreRight() throws Exception
     {
-        List<DateRange.Period> originalPeriods = Configuration.get().getSupportedPeriods();
+        List<Period> originalPeriods = Configuration.get().getSupportedPeriods();
         Configuration.get().setSupportedTypes(Arrays.asList(
-                DateRange.Period.HOURLY, DateRange.Period.DAILY, DateRange.Period.MONTHLY, DateRange.Period.YEARLY
+                Period.HOURLY, Period.DAILY, Period.MONTHLY, Period.YEARLY
         ));
 
         try
@@ -204,29 +204,29 @@ public class QueryOptimizerTest
             Date end = cal.getTime();
 
             QueryOptimizer o  = new QueryOptimizer();
-            Map<DateRange.Period, Set<DateRange>> result = o.optimalSlices(start, end);
+            Map<Period, Set<DateRange>> result = o.optimalSlices(start, end);
 
-            Assert.assertTrue(result.containsKey(DateRange.Period.HOURLY));
-            Assert.assertEquals(2, result.get(DateRange.Period.HOURLY).size());
+            Assert.assertTrue(result.containsKey(Period.HOURLY));
+            Assert.assertEquals(2, result.get(Period.HOURLY).size());
 
-            Assert.assertTrue(result.containsKey(DateRange.Period.DAILY));
-            Assert.assertEquals(1, result.get(DateRange.Period.DAILY).size());
+            Assert.assertTrue(result.containsKey(Period.DAILY));
+            Assert.assertEquals(1, result.get(Period.DAILY).size());
 
-            Assert.assertTrue(result.containsKey(DateRange.Period.MONTHLY));
-            Assert.assertEquals(2, result.get(DateRange.Period.MONTHLY).size());
+            Assert.assertTrue(result.containsKey(Period.MONTHLY));
+            Assert.assertEquals(2, result.get(Period.MONTHLY).size());
 
-            Assert.assertTrue(result.containsKey(DateRange.Period.YEARLY));
-            Assert.assertEquals(1, result.get(DateRange.Period.YEARLY).size());
+            Assert.assertTrue(result.containsKey(Period.YEARLY));
+            Assert.assertEquals(1, result.get(Period.YEARLY).size());
 
             // First check that the hourly is correct. We should have the final hour
             // of Jan 30th, 2010 and the first hour of May 1st, 2013
             cal.set(2010, 0, 30, 23, 50);
-            DateRange h1 = DateRange.create(DateRange.Period.HOURLY, cal.getTime());
+            DateRange h1 = DateRange.create(Period.HOURLY, cal.getTime());
 
             cal.set(2013, 6, 1, 0, 55);
-            DateRange h2 = DateRange.create(DateRange.Period.HOURLY, cal.getTime());
+            DateRange h2 = DateRange.create(Period.HOURLY, cal.getTime());
 
-            Set<DateRange> hours = result.get(DateRange.Period.HOURLY);
+            Set<DateRange> hours = result.get(Period.HOURLY);
 
             Assert.assertTrue(hours.contains(h1));
             Assert.assertTrue(hours.contains(h2));
@@ -234,9 +234,9 @@ public class QueryOptimizerTest
             // Next check that the daily is correct. We should have only one day:
             // Jan 31st, 2010.
             cal.set(2010, 0, 31, 1, 0);
-            DateRange d1 = DateRange.create(DateRange.Period.DAILY, cal.getTime());
+            DateRange d1 = DateRange.create(Period.DAILY, cal.getTime());
 
-            Set<DateRange> days = result.get(DateRange.Period.DAILY);
+            Set<DateRange> days = result.get(Period.DAILY);
 
             Assert.assertTrue(days.contains(d1));
 
@@ -258,7 +258,7 @@ public class QueryOptimizerTest
             Date e = cal.getTime();
             DateRange m1 = new DateRange(s, e);
 
-            Assert.assertTrue(result.get(DateRange.Period.MONTHLY).contains(m1));
+            Assert.assertTrue(result.get(Period.MONTHLY).contains(m1));
 
             cal.set(2013, 0, 1, 0, 0, 0);
             cal.set(Calendar.MILLISECOND, 0);
@@ -269,18 +269,18 @@ public class QueryOptimizerTest
             e = cal.getTime();
             DateRange m2 = new DateRange(s, e);
 
-            Assert.assertTrue(result.get(DateRange.Period.MONTHLY).contains(m2));
+            Assert.assertTrue(result.get(Period.MONTHLY).contains(m2));
 
             // Finally we just have two years that we have to verify. 2011, and 2012
             cal.set(2011, 0, 1);
-            DateRange y1 = DateRange.create(DateRange.Period.YEARLY, cal.getTime());
+            DateRange y1 = DateRange.create(Period.YEARLY, cal.getTime());
 
             cal.set(2012, 0, 1);
-            DateRange y2 = DateRange.create(DateRange.Period.YEARLY, cal.getTime());
+            DateRange y2 = DateRange.create(Period.YEARLY, cal.getTime());
 
             DateRange ys = new DateRange(y1.start, y2.end);
 
-            Set<DateRange> years = result.get(DateRange.Period.YEARLY);
+            Set<DateRange> years = result.get(Period.YEARLY);
             Assert.assertTrue(years.contains(ys));
         }
         finally

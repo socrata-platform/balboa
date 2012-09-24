@@ -1,43 +1,34 @@
 package com.socrata.balboa.metrics.data;
 
 import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.metrics.data.impl.CassandraDataStore;
 
 import java.io.IOException;
 import java.util.*;
 
-public class QueryOptimizer
-{
-    DateRange.Period lessGranular(DateRange.Period current)
-    {
-        List<DateRange.Period> types;
-        try
-        {
+public class QueryOptimizer {
+    Period lessGranular(Period current) {
+        List<Period> types;
+        try {
             types = Configuration.get().getSupportedPeriods();
+        } catch (IOException e) {
+            throw new QueryException("Unable to load configuration for some reason.", e);
         }
-        catch (IOException e)
-        {
-            throw new CassandraDataStore.CassandraQueryException("Unable to load configuration for some reason.", e);
-        }
-        
+
         current = current.lessGranular();
-        while (current != null && !types.contains(current))
-        {
+        while (current != null && !types.contains(current)) {
             current = current.lessGranular();
         }
 
         return current;
     }
 
-    void optimize(Date start, Date end, DateRange.Period type, Map<DateRange.Period, Set<DateRange>> results)
-    {
+    void optimize(Date start, Date end, Period type, Map<Period, Set<DateRange>> results) {
         // Check to see if you're finishing pinching...
-        if (type == null || type == DateRange.Period.FOREVER || start.after(end))
-        {
+        if (type == null || type == Period.FOREVER || start.after(end)) {
             return;
         }
 
-        DateRange.Period nextPeriod = lessGranular(type);
+        Period nextPeriod = lessGranular(type);
 
         Set<DateRange> tier = new HashSet<DateRange>();
         results.put(type, tier);
@@ -49,16 +40,12 @@ public class QueryOptimizer
         Date nextStart = start;
         Date nextEnd = end;
 
-        if (nextPeriod == null)
-        {
+        if (nextPeriod == null) {
             DateRange remaining = new DateRange(start, end);
             tier.add(remaining);
-        }
-        else
-        {
+        } else {
             DateRange startSlice = null;
-            if (!DateRange.liesOnBoundary(start, nextPeriod))
-            {
+            if (!DateRange.liesOnBoundary(start, nextPeriod)) {
                 startSlice = new DateRange(
                         start,
                         Collections.min(Arrays.asList(DateRange.create(nextPeriod, start).end, end))
@@ -68,29 +55,23 @@ public class QueryOptimizer
             }
 
             DateRange endSlice = null;
-            if (!DateRange.liesOnBoundary(end, nextPeriod))
-            {
+            if (!DateRange.liesOnBoundary(end, nextPeriod)) {
                 endSlice = new DateRange(
                         Collections.max(Arrays.asList(DateRange.create(nextPeriod, end).start, start)),
                         end
                 );
-                
+
                 nextEnd = new Date(endSlice.start.getTime() - 1);
             }
 
-            if (startSlice != null && endSlice != null && startSlice.end.getTime() == (endSlice.start.getTime() - 1))
-            {
+            if (startSlice != null && endSlice != null && startSlice.end.getTime() == (endSlice.start.getTime() - 1)) {
                 tier.add(new DateRange(startSlice.start, endSlice.end));
-            }
-            else
-            {
-                if (startSlice != null)
-                {
+            } else {
+                if (startSlice != null) {
                     tier.add(startSlice);
                 }
 
-                if (endSlice != null)
-                {
+                if (endSlice != null) {
                     tier.add(endSlice);
                 }
             }
@@ -99,20 +80,16 @@ public class QueryOptimizer
         }
     }
 
-    public Map<DateRange.Period, Set<DateRange>> optimalSlices(Date start, Date end)
-    {
-        List<DateRange.Period> types;
-        try
-        {
+    public Map<Period, Set<DateRange>> optimalSlices(Date start, Date end) {
+        List<Period> types;
+        try {
             types = Configuration.get().getSupportedPeriods();
-        }
-        catch (IOException e)
-        {
-            throw new CassandraDataStore.CassandraQueryException("Unable to load configuration for some reason.", e);
+        } catch (IOException e) {
+            throw new QueryException("Unable to load configuration for some reason.", e);
         }
 
-        Map<DateRange.Period,  Set<DateRange>> optimized = new HashMap<DateRange.Period,  Set<DateRange>>();
-        optimize(start, end, DateRange.Period.mostGranular(types), optimized);
+        Map<Period, Set<DateRange>> optimized = new HashMap<Period, Set<DateRange>>();
+        optimize(start, end, Period.mostGranular(types), optimized);
 
         return optimized;
     }
