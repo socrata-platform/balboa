@@ -4,8 +4,8 @@ import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.data.Period;
-import com.yammer.metrics.core.MeterMetric;
-import com.yammer.metrics.core.TimerMetric;
+import com.yammer.metrics.core.Meter;
+import com.yammer.metrics.core.Timer;
 import me.prettyprint.cassandra.service.CassandraClient;
 import me.prettyprint.cassandra.service.CassandraClientPool;
 import me.prettyprint.cassandra.service.CassandraClientPoolFactory;
@@ -27,9 +27,9 @@ public class CassandraQueryImpl implements CassandraQuery
 {
     private static Log log = LogFactory.getLog(CassandraQueryImpl.class);
 
-    public static final TimerMetric persistMeter = com.yammer.metrics.Metrics.newTimer(CassandraQueryImpl.class, "total persist time", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
-    public static final TimerMetric queryMeter = com.yammer.metrics.Metrics.newTimer(CassandraQueryImpl.class, "total query time", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
-    public static final MeterMetric errorMeter = com.yammer.metrics.Metrics.newMeter(CassandraQueryImpl.class, "total errors in all queries (read & write)", "errors", TimeUnit.SECONDS);
+    public static final Timer persistMeter = com.yammer.metrics.Metrics.newTimer(CassandraQueryImpl.class, "total persist time", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final Timer queryMeter = com.yammer.metrics.Metrics.newTimer(CassandraQueryImpl.class, "total query time", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final Meter errorMeter = com.yammer.metrics.Metrics.newMeter(CassandraQueryImpl.class, "total errors in all queries (read & write)", "errors", TimeUnit.SECONDS);
 
     private static final int CLIENT_BORROW_THRESHOLD = 1000;
 
@@ -180,7 +180,7 @@ public class CassandraQueryImpl implements CassandraQuery
     public List<SuperColumn> find(String entityId, SlicePredicate predicate, Period period) throws IOException
     {
         long startTime = System.currentTimeMillis();
-        
+
         CassandraClient hectorClient = getClient();
         Cassandra.Client client = hectorClient.getCassandra();
 
@@ -217,7 +217,7 @@ public class CassandraQueryImpl implements CassandraQuery
     public void persist(String entityId, Map<String, List<ColumnOrSuperColumn>> operations) throws IOException
     {
         long startTime = System.currentTimeMillis();
-        
+
         CassandraClient hectorClient = getClient();
         Cassandra.Client client = hectorClient.getCassandra();
 

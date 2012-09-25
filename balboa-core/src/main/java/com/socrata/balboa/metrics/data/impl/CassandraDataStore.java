@@ -8,8 +8,8 @@ import com.socrata.balboa.metrics.data.*;
 import com.socrata.balboa.metrics.data.Period;
 import com.socrata.balboa.metrics.measurements.serialization.Serializer;
 import com.socrata.balboa.metrics.measurements.serialization.SerializerFactory;
-import com.yammer.metrics.core.MeterMetric;
-import com.yammer.metrics.core.TimerMetric;
+import com.yammer.metrics.core.Meter;
+import com.yammer.metrics.core.Timer;
 import org.apache.cassandra.thrift.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -96,9 +96,9 @@ public class CassandraDataStore extends DataStoreImpl
     private static TimeService timeService = new TimeService();
     private static Log log = LogFactory.getLog(CassandraDataStore.class);
 
-    public static final TimerMetric persistMeter = com.yammer.metrics.Metrics.newTimer(DataStore.class, "total persist (read, update & write) lifecycle", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
-    public static final TimerMetric lockAcquisitionMeter = com.yammer.metrics.Metrics.newTimer(DataStore.class, "total time acquiring locks (including retries)", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
-    public static final MeterMetric lockFailureMeter = com.yammer.metrics.Metrics.newMeter(DataStore.class, "failure rate of lock acquisition", "failures", TimeUnit.SECONDS);
+    public static final Timer persistMeter = com.yammer.metrics.Metrics.newTimer(DataStore.class, "total persist (read, update & write) lifecycle", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final Timer lockAcquisitionMeter = com.yammer.metrics.Metrics.newTimer(DataStore.class, "total time acquiring locks (including retries)", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final Meter lockFailureMeter = com.yammer.metrics.Metrics.newMeter(DataStore.class, "failure rate of lock acquisition", "failures", TimeUnit.SECONDS);
 
     public static class CassandraEntityMeta extends HashMap<String, String> implements EntityMeta
     {
@@ -436,7 +436,7 @@ public class CassandraDataStore extends DataStoreImpl
                                 type,
                                 (Number)ser.deserialize(subColumn.getValue())
                         );
-                        
+
                         metrics.put(name, m);
                     }
                     catch (IOException e)
@@ -636,10 +636,10 @@ public class CassandraDataStore extends DataStoreImpl
     public Iterator<Metrics> find(String entityId, Period period, Date start, Date end) throws IOException
     {
         DateRange range = new DateRange(start, end);
-        
+
         return query(entityId, getClosestTypeOrError(period), range, getEntityMeta(entityId));
     }
-    
+
     @Override
     public Iterator<Metrics> find(String entityId, Period period, Date date) throws IOException
     {
@@ -663,7 +663,7 @@ public class CassandraDataStore extends DataStoreImpl
         for (Map.Entry<Period,  Set<DateRange>> slice : slices.entrySet())
         {
             numberOfQueries += slice.getValue().size();
-            
+
             for (DateRange r : slice.getValue())
             {
                 iter.add(query(entityId, slice.getKey(), r, meta));
@@ -695,7 +695,7 @@ public class CassandraDataStore extends DataStoreImpl
             // columns. THIS IS THAT TIMESTAMP. We cannot backdate that
             // timestamp and it's in microseconds instead of milliseconds.
             long cassandraTimestamp = timeService.currentTimeMillis() * 1000;
-            
+
             if (log.isTraceEnabled())
             {
                 log.trace("WRITE: Writing byte array to cassandra (" +

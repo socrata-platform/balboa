@@ -17,7 +17,7 @@ object BalboaCore {
         "commons-collections" % "commons-collections" % "3.1",
         "commons-dbcp" % "commons-dbcp" % "1.2.2",
         "org.perf4j" % "perf4j" % "0.9.13",
-        "com.yammer" % "metrics_2.8.1" % "2.0.0-BETA10",
+        "com.yammer.metrics" % "metrics-core" % "2.0.3",
         "log4j" % "log4j" % "1.2.16"
       )
     },
