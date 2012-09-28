@@ -10,7 +10,8 @@ import com.yammer.metrics.core.TimerMetric;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
-
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
@@ -27,6 +28,7 @@ public class MetricsRest
     public static final TimerMetric seriesMeter = com.yammer.metrics.Metrics.newTimer(MetricsRest.class, "series queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
     public static final TimerMetric rangeMeter = com.yammer.metrics.Metrics.newTimer(MetricsRest.class, "range queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
     public static final TimerMetric periodMeter = com.yammer.metrics.Metrics.newTimer(MetricsRest.class, "period queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    private static Log log = LogFactory.getLog(MetricsRest.class);
 
     @GET
     @Produces({"application/json", "application/x-protobuf"})
@@ -147,9 +149,7 @@ public class MetricsRest
             @Context HttpHeaders headers
     ) throws IOException
     {
-        DataStore ds = DataStoreFactory.get();
-
-        return render(getMediaType(headers), ds.meta(entityId));
+        throw new UnsupportedOperationException("Getting metadata is no longer implemented. Contact your System Administrator");
     }
 
     MediaType getMediaType(HttpHeaders headers)
@@ -165,18 +165,6 @@ public class MetricsRest
         }
 
         return format;
-    }
-
-    private Response render(MediaType format, EntityMeta meta) throws IOException
-    {
-        if (format.getSubtype().equals("x-protobuf"))
-        {
-            throw new IllegalArgumentException("protobuf is an unsupported output type for meta-data");
-        }
-        else
-        {
-            return renderJson(meta);
-        }
     }
 
     private Response render(MediaType format, Iterator<? extends Timeslice> metrics) throws IOException

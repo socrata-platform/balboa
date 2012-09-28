@@ -15,38 +15,6 @@ public abstract class DataStoreImpl implements DataStore
 {
     private static Log log = LogFactory.getLog(DataStoreImpl.class);
 
-    Period getClosestTypeOrError(Period period) throws IOException
-    {
-        Period originalPeriod = period;
-
-        List<Period> periods;
-        try
-        {
-            periods = Configuration.get().getSupportedPeriods();
-        }
-        catch (IOException e)
-        {
-            throw new PropertiesConfiguration.ConfigurationException("Unable to load configuration for some reason.", e);
-        }
-
-        while (!periods.contains(period) && period != null)
-        {
-            period = period.moreGranular();
-        }
-
-        if (period == null)
-        {
-            throw new IOException("There are no supported summarization periods.");
-        }
-
-        if (period != originalPeriod)
-        {
-            log.debug("Originally requested a " + originalPeriod + " summary, but the closest supported level is " + period + ". Range scanning that instead.");
-        }
-
-        return period;
-    }
-
     public void heartbeat() {
         // noop
     }

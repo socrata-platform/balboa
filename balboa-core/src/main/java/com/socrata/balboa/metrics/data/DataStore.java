@@ -12,7 +12,7 @@ public interface DataStore extends WatchDog.WatchDogListener
 {
     /**
      * Retrieve an iterator that contains all the entity ids that the pattern
-     * string matches.
+     * string matches. You probably don't want to use this.
      */
     public Iterator<String> entities(String pattern) throws IOException;
 
@@ -23,11 +23,6 @@ public interface DataStore extends WatchDog.WatchDogListener
      * what you're doing.
      */
     public Iterator<String> entities() throws IOException;
-
-    /**
-     * Get the meta data for an entity.
-     */
-    public EntityMeta meta(String entityId) throws IOException;
 
     /**
      * Return a list of metrics for a period of timeslices over an arbitrary

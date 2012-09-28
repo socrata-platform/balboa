@@ -2,8 +2,7 @@ package com.socrata.balboa.metrics.data;
 
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.config.PropertiesConfiguration;
-import com.socrata.balboa.metrics.data.impl.BufferedDataStore;
-import com.socrata.balboa.metrics.data.impl.CassandraDataStore;
+import com.socrata.balboa.metrics.data.impl.*;
 
 import java.io.IOException;
 
@@ -24,12 +23,19 @@ public class DataStoreFactory
         }
 
         if (datastore.equals("buffered-cassandra")) {
-            return new BufferedDataStore(new CassandraDataStore());
+            return new BufferedDataStore(
+                    new BadIdeasDataStore(
+                            new Cassandra11DataStore(
+                                    new Cassandra11QueryImpl(
+                                            Cassandra11Util.initializeContext()))));
         }
 
         if (datastore.equals("cassandra"))
         {
-            return new CassandraDataStore();
+            return new BadIdeasDataStore(
+                    new Cassandra11DataStore(
+                            new Cassandra11QueryImpl(
+                                    Cassandra11Util.initializeContext())));
         }
         else
         {

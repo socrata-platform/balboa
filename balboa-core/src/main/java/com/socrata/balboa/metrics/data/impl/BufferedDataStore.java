@@ -2,11 +2,8 @@ package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.Timeslice;
-import com.socrata.balboa.metrics.WatchDog;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
-import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.data.EntityMeta;
 import com.socrata.balboa.metrics.data.Period;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,7 +13,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Buffers metrics across all metric sources for some
@@ -115,10 +111,6 @@ public class BufferedDataStore extends DataStoreImpl {
 
     public Iterator<String> entities() throws IOException {
         return underlying.entities();
-    }
-
-    public EntityMeta meta(String entityId) throws IOException {
-        return underlying.meta(entityId);
     }
 
     public Iterator<Timeslice> slices(String entityId, Period period, Date start, Date end) throws IOException {

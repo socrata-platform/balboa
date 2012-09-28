@@ -16,77 +16,6 @@ import java.util.regex.Pattern;
 @Path("/entities")
 public class EntitiesRest
 {
-    static class FilteredIterator implements Iterator<String>
-    {
-        Pattern filter;
-        Iterator<String> other;
-        String next;
-        int limit;
-        int count = 0;
-
-        FilteredIterator(Pattern filter, Iterator<String> other, int limit)
-        {
-            this.filter = filter;
-            this.other = other;
-            this.limit = limit;
-        }
-
-        @Override
-        public boolean hasNext()
-        {
-            if (next != null)
-            {
-                return true;
-            }
-
-            if (limit >= 0 && count >= limit)
-            {
-                return false;
-            }
-
-            if (filter != null)
-            {
-                while (other.hasNext() && !filter.matcher(next = other.next()).matches()) {}
-            }
-
-            if (other.hasNext() && next == null)
-            {
-                next = other.next();
-                count += 1;
-                return true;
-            }
-            else if (next != null)
-            {
-                count += 1;
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        @Override
-        public String next()
-        {
-            if (hasNext())
-            {
-                String result = next;
-                next = null;
-                return result;
-            }
-            else
-            {
-                throw new NoSuchElementException("There are no more summaries.");
-            }
-        }
-
-        @Override
-        public void remove()
-        {
-            throw new UnsupportedOperationException("Not supported.");
-        }
-    }
     @GET
     @Produces("application/json")
     public Response index(
@@ -94,23 +23,7 @@ public class EntitiesRest
             @DefaultValue("-1") @QueryParam("limit") int limit
     ) throws IOException
     {
-        DataStore ds = DataStoreFactory.get();
-        Pattern pattern = null;
-
-        if (filter != null)
-        {
-             pattern = Pattern.compile(filter);
-        }
-
-        return render(new FilteredIterator(pattern, ds.entities(), limit));
+        throw new UnsupportedOperationException("Getting the list of entities over http is a really bad idea. Contact your System Administrator");
     }
 
-    public Response render(Iterator<? extends String> entityIds) throws IOException
-    {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true);
-        mapper.getSerializationConfig().setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL);
-
-        return Response.ok(mapper.writeValueAsString(entityIds), "application/json").build();
-    }
 }
