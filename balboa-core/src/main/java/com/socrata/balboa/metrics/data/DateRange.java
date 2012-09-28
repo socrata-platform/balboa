@@ -257,7 +257,7 @@ public class DateRange {
                 start.get(Calendar.MONTH),
                 start.get(Calendar.DATE),
                 start.get(Calendar.HOUR_OF_DAY),
-                start.getActualMinimum(Calendar.MINUTE),
+                (start.get(Calendar.MINUTE) / 15) * 15,
                 start.getActualMinimum(Calendar.SECOND));
         start.set(Calendar.MILLISECOND, 0);
 
@@ -270,7 +270,7 @@ public class DateRange {
                 end.get(Calendar.MONTH),
                 end.get(Calendar.DATE),
                 end.get(Calendar.HOUR_OF_DAY),
-                end.get(Calendar.MINUTE),
+                (start.get(Calendar.MINUTE) / 15 + 1) * 15 - 1,
                 end.getActualMaximum(Calendar.SECOND));
         end.set(Calendar.MILLISECOND, 999);
 

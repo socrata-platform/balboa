@@ -107,13 +107,27 @@ public class DateRangeTest {
 
         DateRange range = DateRange.createFifteenMinutely(cal.getTime());
 
-        cal.set(2010, 1, 12, 16, 0, 0);
+        cal.set(2010, 1, 12, 16, 45, 0);
         cal.set(Calendar.MILLISECOND, 0);
         Assert.assertEquals(cal.getTime(), range.start);
 
         cal.set(2010, 1, 12, 16, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
         Assert.assertEquals(cal.getTime(), range.end);
+
+        cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+        cal.set(2010, 1, 12, 16, 34, 12);
+
+        range = DateRange.createFifteenMinutely(cal.getTime());
+
+        cal.set(2010, 1, 12, 16, 30, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Assert.assertEquals(cal.getTime(), range.start);
+
+        cal.set(2010, 1, 12, 16, 44, 59);
+        cal.set(Calendar.MILLISECOND, 999);
+        Assert.assertEquals(cal.getTime(), range.end);
+
     }
 
 
