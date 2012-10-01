@@ -28,7 +28,7 @@ class Cassandra11QueryImplTest {
   @Test
   @Ignore
   def testGetKeys {
-    val keysItr:Iterator[String] = new Cassandra11QueryImpl(Cassandra11Util.initializeContext()).get_allEntityIds(RecordType.AGGREGATE, Period.HOURLY)
+    val keysItr:Iterator[String] = new Cassandra11QueryImpl(Cassandra11Util.initializeContext()).getAllEntityIds(RecordType.AGGREGATE, Period.HOURLY)
     keysItr.foreach(println)
   }
 

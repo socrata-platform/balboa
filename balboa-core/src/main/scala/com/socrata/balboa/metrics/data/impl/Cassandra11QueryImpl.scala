@@ -33,9 +33,10 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
   }
 
   /**
-   * Returns all the row keys in a tier as an iterator with many, many duplicate strings.
+   * Returns all the row keys in a tier as an iterator with many, many duplicate strings. This is very slow. Do
+   * not use this outside the admin tool.
    */
-  def get_allEntityIds(recordType: RecordType, period: Period): Iterator[String] = {
+  def getAllEntityIds(recordType: RecordType, period: Period): Iterator[String] = {
     if (!fastfail.proceed()) {
       throw new IOException("fast fail: query immediately because we have failed recently in the past Query:" + recordType + ":" + period)
     }

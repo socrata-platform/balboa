@@ -12,8 +12,10 @@ public interface DataStore extends WatchDog.WatchDogListener
 {
     /**
      * Retrieve an iterator that contains all the entity ids that the pattern
-     * string matches. You probably don't want to use this.
+     * string matches. You probably don't want to use this, because it's
+     * terribly slow and possibly dangerous.
      */
+    @Deprecated
     public Iterator<String> entities(String pattern) throws IOException;
 
     /**
@@ -22,6 +24,7 @@ public interface DataStore extends WatchDog.WatchDogListener
      * very expensive and you probably don't want to use it unless you know
      * what you're doing.
      */
+    @Deprecated
     public Iterator<String> entities() throws IOException;
 
     /**

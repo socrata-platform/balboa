@@ -18,7 +18,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
 
   /**
    * Retrieve an iterator that contains all the entity ids that the pattern
-   * string matches.
+   * string matches. Do not use this outside the admin tool.
    */
   def entities(pattern: String): ju.Iterator[String] = {
     // Yes. This does what you think it does. Admin should only use this. It's nasty stuff.
@@ -28,7 +28,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     val ent = collection.mutable.HashSet[String]()
     val period = Period.leastGranular(Configuration.get().getSupportedPeriods)
     RecordType.values().iterator.flatMap(
-      queryImpl.get_allEntityIds(_,period)
+      queryImpl.getAllEntityIds(_,period)
           .filter(_.contains(pattern))
           .filter(x => !ent.contains(x) && ent.add(x))
     ).asJava
