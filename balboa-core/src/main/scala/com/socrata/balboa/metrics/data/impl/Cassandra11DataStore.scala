@@ -1,12 +1,10 @@
 package com.socrata.balboa.metrics.data.impl
 
 import com.socrata.balboa.metrics.data.{QueryOptimizer, Period, DateRange}
-import java.util.{Date, Iterator}
+import java.{util => ju}
 import com.socrata.balboa.metrics.{Metric, Metrics, Timeslice}
-import scala.collection.JavaConversions._
 import com.socrata.balboa.metrics.Metric.RecordType
 import scala.collection.JavaConverters._
-import org.apache.commons.logging.{LogFactory, Log}
 import com.socrata.balboa.metrics.config.Configuration
 
 /**
@@ -17,13 +15,12 @@ import com.socrata.balboa.metrics.config.Configuration
  */
 class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext()))
   extends DataStoreImpl {
-  private var log: Log = LogFactory.getLog(classOf[Cassandra11DataStore])
 
   /**
    * Retrieve an iterator that contains all the entity ids that the pattern
    * string matches.
    */
-  def entities(pattern: String): Iterator[String] = {
+  def entities(pattern: String): ju.Iterator[String] = {
     // Yes. This does what you think it does. Admin should only use this. It's nasty stuff.
     // It iterates through all entity ids in both the aggregate and absolute column families
     // of the leastGranular tier, returning them only if they match the filter and have not
@@ -44,7 +41,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
    * very expensive and you probably don't want to use it unless you know
    * what you're doing.
    */
-  def entities: Iterator[String] = {
+  def entities: ju.Iterator[String] = {
     entities("")
   }
 
@@ -55,9 +52,9 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
    * e.g. Give me all of the metrics for some entity broken down by hours in
    * the range 2010-01-01 -> 2010-01-31.
    */
-  def slices(entityId: String, period:Period, start: Date, end: Date): Iterator[Timeslice] = {
+  def slices(entityId: String, period:Period, start: ju.Date, end: ju.Date): ju.Iterator[Timeslice] = {
     val dates = new DateRange(start, end).toDates(period)
-    return Cassandra11Util.sliceIterator(queryImpl, entityId, period, dates.asScala.toList)
+    return Cassandra11Util.sliceIterator(queryImpl, entityId, period, dates.asScala.toList).asJava
 
   }
 
@@ -73,8 +70,8 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
    *
    * @see DateRange
    */
-  def find(entityId: String, period:Period, date: Date): Iterator[Metrics] = {
-    Cassandra11Util.metricsIterator(queryImpl, entityId, Map(period -> List(DateRange.create(period, date).start)))
+  def find(entityId: String, period:Period, date: ju.Date): ju.Iterator[Metrics] = {
+    Cassandra11Util.metricsIterator(queryImpl, entityId, Map(period -> List(DateRange.create(period, date).start))).asJava
   }
 
   /**
@@ -83,9 +80,9 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
    * and should only be used when you need to query a specific tier for some
    * reason.
    */
-  def find(entityId: String, period:Period, start: Date, end: Date): Iterator[Metrics] = {
-    val dates = new DateRange(start, end).toDates(period)
-    Cassandra11Util.metricsIterator(queryImpl, entityId, Map(period -> dates.toList))
+  def find(entityId: String, period:Period, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = {
+    val dates = new DateRange(start, end).toDates(period).asScala
+    Cassandra11Util.metricsIterator(queryImpl, entityId, Map(period -> dates.toList)).asJava
   }
 
   /**
@@ -95,12 +92,12 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
    *
    * @see com.socrata.balboa.metrics.data.Period
    */
-  def find(entityId: String, start: Date, end: Date): Iterator[Metrics] = {
+  def find(entityId: String, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = {
     val range:DateRange = new DateRange(start, end)
     val optimalSlices = new QueryOptimizer().optimalSlices(range.start, range.end).asScala
-    val query = optimalSlices.flatMap{ case (k,v) => Map(k -> v.map(_.toDates(k)).flatMap(i => i).toList)}.toMap
+    val query = optimalSlices.flatMap{ case (k,v) => Map(k -> v.asScala.map(_.toDates(k)).flatMap(i => i.asScala).toList)}.toMap
     // create the query set from the optimal slice
-    Cassandra11Util.metricsIterator(queryImpl, entityId, query)
+    Cassandra11Util.metricsIterator(queryImpl, entityId, query).asJava
   }
 
   /**
@@ -111,7 +108,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     // Sort the metrics into aggregates/absolutes
     val absolutes = scala.collection.mutable.HashMap[String, Metric]()
     val aggregates = scala.collection.mutable.HashMap[String, Metric]()
-    metrics.foreach {
+    metrics.asScala.foreach {
       case(key,value) => {
         // bad idea
         if (key.startsWith("__") && key.endsWith("__"))
@@ -131,7 +128,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     var period:Period = Cassandra11Util.leastGranular
     while (period != null && period != Period.REALTIME)
     {
-      val range:DateRange = DateRange.create(period, new Date(timestamp))
+      val range:DateRange = DateRange.create(period, new ju.Date(timestamp))
       queryImpl.persist(entityId, range.start, period, aggregates, absolutes)
       // Skip to the next largest period which we are configured
       // to use.

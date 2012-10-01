@@ -3,7 +3,7 @@ package com.socrata.balboa.metrics.data.impl
 import com.socrata.balboa.metrics.data.{DateRange, Period}
 import com.socrata.balboa.metrics.{Metrics, Metric}
 import scala.collection.mutable.HashMap
-import java.util.Date
+import java.{ util => ju }
 import com.socrata.balboa.metrics.Metric.RecordType
 
 /**
@@ -12,7 +12,7 @@ import com.socrata.balboa.metrics.Metric.RecordType
 abstract class Cassandra11Query {
   def get_allEntityIds(recordType:RecordType, period:Period):Iterator[String]
 
-  def fetch(entityKey:String, period:Period, bucket:Date):Metrics
+  def fetch(entityKey:String, period:Period, bucket:ju.Date):Metrics
 
-  def persist(entityId:String, bucket:Date, period:Period, aggregates:HashMap[String, Metric], absolutes:HashMap[String, Metric])
+  def persist(entityId:String, bucket:ju.Date, period:Period, aggregates:HashMap[String, Metric], absolutes:HashMap[String, Metric])
 }

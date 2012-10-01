@@ -7,9 +7,8 @@ import com.socrata.balboa.metrics.{Metrics, Metric}
 import scala.collection.mutable.HashMap
 import com.netflix.astyanax.model.{ConsistencyLevel, ColumnList}
 import scala.collection.JavaConverters._
-import java.util.Date
+import java.{util => ju}
 import com.netflix.astyanax.retry.{ExponentialBackoff}
-import com.netflix.astyanax.connectionpool.exceptions.ConnectionException
 import java.io.IOException
 import com.netflix.astyanax.connectionpool.OperationResult
 
@@ -19,7 +18,7 @@ import com.netflix.astyanax.connectionpool.OperationResult
  */
 class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra11Query {
 
-  def fetch(entityId: String, period: Period, bucket: Date): Metrics = {
+  def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {
     val entityKey: String = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
     val ret: Metrics = new Metrics()
     // aggregate column family
@@ -80,7 +79,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
     }
   }
 
-  def persist(entityId: String, bucket: Date, period: Period, aggregates: HashMap[String, Metric], absolutes: HashMap[String, Metric]) {
+  def persist(entityId: String, bucket:ju.Date, period: Period, aggregates: HashMap[String, Metric], absolutes: HashMap[String, Metric]) {
     val entityKey = Cassandra11Util.createEntityKey(entityId, bucket.getTime);
     if (!fastfail.proceed()) {
       throw new IOException("fast fail: Failing persist immediately for Query:" + entityKey + " in " + period)
