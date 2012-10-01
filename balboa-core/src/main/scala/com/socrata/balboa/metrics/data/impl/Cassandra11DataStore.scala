@@ -27,8 +27,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     // been seen before (HashSet ent).
     val ent = collection.mutable.HashSet[String]()
     val period = Period.leastGranular(Configuration.get().getSupportedPeriods())
-    val types = List(RecordType.AGGREGATE, RecordType.ABSOLUTE)
-    types.iterator.flatMap(
+    RecordType.values().iterator.flatMap(
       queryImpl.get_allEntityIds(_,period)
           .filter(_.contains(pattern))
           .filter(x => !ent.contains(x) && ent.add(x))
