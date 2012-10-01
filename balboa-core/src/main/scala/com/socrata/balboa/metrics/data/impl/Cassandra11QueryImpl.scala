@@ -43,24 +43,24 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
       val retVal: Iterator[String] = context.getEntity.prepareQuery(Cassandra11Util.getColumnFamily(period, recordType))
         .setConsistencyLevel(ConsistencyLevel.CL_ONE)
         .withRetryPolicy(new ExponentialBackoff(250, 5)) // initial, max tries
-        .getAllRows()
+        .getAllRows
         .setRowLimit(100) // max 100 rows per query to cassandra
-        .execute().getResult.iterator().asScala.map {
+        .execute.getResult.iterator.asScala.map {
         row =>
           row.getKey.replaceFirst("-[0-9]+$", "") // remove the timebucket
       }
-      fastfail.markSuccess()
+      fastfail.markSuccess
       retVal
     } catch {
       case e: Exception => {
-        fastfail.markFailure()
+        fastfail.markFailure
         throw new IOException("Error reading entityIds Query:" + recordType + ":" + period + "Cassandra", e)
       }
     }
   }
 
   def fetch_cf(recordType: RecordType, entityKey: String, period: Period) = {
-    if (!fastfail.proceed()) {
+    if (!fastfail.proceed) {
       throw new IOException("fast fail: Failing fetch immediately for Query:" + entityKey + " in " + recordType + ":" + period)
     }
     try {
@@ -69,11 +69,11 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
         .withRetryPolicy(new ExponentialBackoff(250, 5))
         .getKey(entityKey)
         .execute()
-      fastfail.markSuccess()
+      fastfail.markSuccess
       retVal
     } catch {
       case e: Exception => {
-        fastfail.markFailure()
+        fastfail.markFailure
         throw new IOException("Error reading row " + entityKey + " from " + recordType + ":" + period, e)
       }
     }
@@ -81,7 +81,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
 
   def persist(entityId: String, bucket:ju.Date, period: Period, aggregates: HashMap[String, Metric], absolutes: HashMap[String, Metric]) {
     val entityKey = Cassandra11Util.createEntityKey(entityId, bucket.getTime);
-    if (!fastfail.proceed()) {
+    if (!fastfail.proceed) {
       throw new IOException("fast fail: Failing persist immediately for Query:" + entityKey + " in " + period)
     }
 
@@ -91,28 +91,28 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
     if (!aggregates.isEmpty) {
       var cols = m.withRow(Cassandra11Util.getColumnFamily(period, RecordType.AGGREGATE), entityKey)
       aggregates.foreach(kv =>
-        cols = cols.incrementCounterColumn(kv._1, kv._2.getValue.longValue())
+        cols = cols.incrementCounterColumn(kv._1, kv._2.getValue.longValue)
       )
     }
 
     if (!absolutes.isEmpty) {
       var cols = m.withRow(Cassandra11Util.getColumnFamily(period, RecordType.ABSOLUTE), entityKey)
       absolutes.foreach(kv =>
-        cols = cols.putColumn(kv._1, kv._2.getValue.longValue())
+        cols = cols.putColumn(kv._1, kv._2.getValue.longValue)
       )
     }
 
     try {
-      val retVal = m.execute()
+      val retVal = m.execute
       fastfail.markSuccess()
       retVal
     } catch {
       case e: Exception => {
-        fastfail.markFailure()
+        fastfail.markFailure
         throw new IOException("Error writing metrics " + entityKey + " from " + period, e)
       }
     }
   }
 
-  val fastfail: BalboaFastFailCheck = BalboaFastFailCheck.getInstance()
+  val fastfail: BalboaFastFailCheck = BalboaFastFailCheck.getInstance
 }

@@ -26,7 +26,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     // of the leastGranular tier, returning them only if they match the filter and have not
     // been seen before (HashSet ent).
     val ent = collection.mutable.HashSet[String]()
-    val period = Period.leastGranular(Configuration.get().getSupportedPeriods())
+    val period = Period.leastGranular(Configuration.get().getSupportedPeriods)
     RecordType.values().iterator.flatMap(
       queryImpl.get_allEntityIds(_,period)
           .filter(_.contains(pattern))
@@ -109,13 +109,6 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     val aggregates = scala.collection.mutable.HashMap[String, Metric]()
     metrics.asScala.foreach {
       case(key,value) => {
-        // bad idea
-        if (key.startsWith("__") && key.endsWith("__"))
-        {
-          throw new IllegalArgumentException("Unable to persist metrics " +
-            "that start and end with two underscores '__'. These " +
-            "entities are reserved for meta data.");
-        }
         value.getType match {
           case RecordType.AGGREGATE => aggregates.put(key, value)
           case RecordType.ABSOLUTE => absolutes.put(key, value)
@@ -131,9 +124,9 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
       queryImpl.persist(entityId, range.start, period, aggregates, absolutes)
       // Skip to the next largest period which we are configured
       // to use.
-      period = period.moreGranular()
+      period = period.moreGranular
       while (period != null && !Cassandra11Util.periods.contains(period)) {
-        period = period.moreGranular()
+        period = period.moreGranular
       }
 
     }
