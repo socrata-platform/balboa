@@ -5,7 +5,7 @@ import com.netflix.astyanax.{Keyspace, AstyanaxContext, MutationBatch}
 import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, Period}
 import com.socrata.balboa.metrics.{Metrics, Metric}
 import scala.collection.mutable.HashMap
-import com.netflix.astyanax.model.{ConsistencyLevel, ColumnList}
+import com.netflix.astyanax.model.{Row, ConsistencyLevel, ColumnList}
 import scala.collection.JavaConverters._
 import java.{util => ju}
 import com.netflix.astyanax.retry.{ExponentialBackoff}
@@ -32,6 +32,8 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
     ret
   }
 
+  def removeTimestamp(row:Row[String, String]):String = row.getKey.replaceFirst("-[0-9]+$", "")
+
   /**
    * Returns all the row keys in a tier as an iterator with many, many duplicate strings. This is very slow. Do
    * not use this outside the admin tool.
@@ -46,17 +48,13 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
         .withRetryPolicy(new ExponentialBackoff(250, 5)) // initial, max tries
         .getAllRows
         .setRowLimit(100) // max 100 rows per query to cassandra
-        .execute.getResult.iterator.asScala.map {
-        row =>
-          row.getKey.replaceFirst("-[0-9]+$", "") // remove the timebucket
-      }
+        .execute.getResult.iterator.asScala.map(removeTimestamp)
       fastfail.markSuccess
       retVal
     } catch {
-      case e: Exception => {
+      case e: Exception =>
         fastfail.markFailure
         throw new IOException("Error reading entityIds Query:" + recordType + ":" + period + "Cassandra", e)
-      }
     }
   }
 
@@ -73,10 +71,9 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
       fastfail.markSuccess
       retVal
     } catch {
-      case e: Exception => {
+      case e: Exception =>
         fastfail.markFailure
         throw new IOException("Error reading row " + entityKey + " from " + recordType + ":" + period, e)
-      }
     }
   }
 
@@ -108,10 +105,9 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
       fastfail.markSuccess()
       retVal
     } catch {
-      case e: Exception => {
+      case e: Exception =>
         fastfail.markFailure
         throw new IOException("Error writing metrics " + entityKey + " from " + period, e)
-      }
     }
   }
 
