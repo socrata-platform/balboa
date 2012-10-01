@@ -10,6 +10,7 @@ import java.{util => ju}
 import com.netflix.astyanax.retry.{ExponentialBackoff}
 import java.io.IOException
 import com.netflix.astyanax.connectionpool.OperationResult
+import scala.collection.Map
 
 /**
  * Query Implementation
@@ -47,12 +48,12 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
         .withRetryPolicy(new ExponentialBackoff(250, 5)) // initial, max tries
         .getAllRows
         .setRowLimit(100) // max 100 rows per query to cassandra
-        .execute.getResult.iterator.asScala.map(removeTimestamp)
-      fastfail.markSuccess
+        .execute().getResult.iterator.asScala.map(removeTimestamp)
+      fastfail.markSuccess()
       retVal
     } catch {
       case e: Exception =>
-        fastfail.markFailure
+        fastfail.markFailure()
         throw new IOException("Error reading entityIds Query:" + recordType + ":" + period + "Cassandra", e)
     }
   }
@@ -67,11 +68,11 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
         .withRetryPolicy(new ExponentialBackoff(250, 5))
         .getKey(entityKey)
         .execute()
-      fastfail.markSuccess
+      fastfail.markSuccess()
       retVal
     } catch {
       case e: Exception =>
-        fastfail.markFailure
+        fastfail.markFailure()
         throw new IOException("Error reading row " + entityKey + " from " + recordType + ":" + period, e)
     }
   }
@@ -98,12 +99,12 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
     }
 
     try {
-      val retVal = m.execute
+      val retVal = m.execute()
       fastfail.markSuccess()
       retVal
     } catch {
       case e: Exception =>
-        fastfail.markFailure
+        fastfail.markFailure()
         throw new IOException("Error writing metrics " + entityKey + " from " + period, e)
     }
   }

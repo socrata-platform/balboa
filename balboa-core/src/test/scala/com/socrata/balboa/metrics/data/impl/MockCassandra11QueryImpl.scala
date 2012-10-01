@@ -4,6 +4,7 @@ import com.socrata.balboa.metrics.data.Period
 import com.socrata.balboa.metrics.{Metrics, Metric}
 import java.util.Date
 import com.socrata.balboa.metrics.Metric.RecordType
+import scala.collection.Map
 
 /**
  *

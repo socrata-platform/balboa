@@ -121,7 +121,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     while (period != null && period != Period.REALTIME)
     {
       val range:DateRange = DateRange.create(period, new ju.Date(timestamp))
-      queryImpl.persist(entityId, range.start, period, aggregates.toMap, absolutes.toMap)
+      queryImpl.persist(entityId, range.start, period, aggregates, absolutes)
       // Skip to the next largest period which we are configured
       // to use.
       period = period.moreGranular

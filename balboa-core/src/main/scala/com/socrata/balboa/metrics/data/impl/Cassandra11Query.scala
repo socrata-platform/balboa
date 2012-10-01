@@ -3,6 +3,7 @@ package com.socrata.balboa.metrics.data.impl
 import com.socrata.balboa.metrics.data.Period
 import com.socrata.balboa.metrics.{Metrics, Metric}
 import java.{ util => ju }
+import scala.collection.Map
 import com.socrata.balboa.metrics.Metric.RecordType
 
 /**
