@@ -4,11 +4,11 @@ import com.socrata.balboa.metrics.{Metric, Metrics}
 import org.junit.{Before, Test, Ignore}
 import junit.framework.Assert
 import com.socrata.balboa.metrics.data.{DateRange, Period}
-import collection.mutable.HashMap
 import java.util.Date
 import scala.collection.JavaConverters._
 import java.util.concurrent.TimeUnit
 import com.socrata.balboa.metrics.Metric.RecordType
+import com.socrata.balboa.metrics.config.Configuration
 
 /**
  *
@@ -26,9 +26,9 @@ class Cassandra11DataStoreTest {
 
   def getPersistExpect(ts:Long) =
     List[APersist](
-      new APersist(testEntity + "-" + DateRange.create(Period.MONTHLY, new Date(ts)).start.getTime, Period.MONTHLY, HashMap(aggMetricName -> aggMetric),HashMap(absMetricName -> absMetric)),
-      new APersist(testEntity + "-" + DateRange.create(Period.DAILY, new Date(ts)).start.getTime, Period.DAILY, HashMap(aggMetricName -> aggMetric),  HashMap(absMetricName -> absMetric)),
-      new APersist(testEntity + "-" + DateRange.create(Period.HOURLY, new Date(ts)).start.getTime, Period.HOURLY, HashMap(aggMetricName -> aggMetric), HashMap(absMetricName -> absMetric)))
+      new APersist(testEntity + "-" + DateRange.create(Period.MONTHLY, new Date(ts)).start.getTime, Period.MONTHLY, Map(aggMetricName -> aggMetric), Map(absMetricName -> absMetric)),
+      new APersist(testEntity + "-" + DateRange.create(Period.DAILY, new Date(ts)).start.getTime, Period.DAILY, Map(aggMetricName -> aggMetric),  Map(absMetricName -> absMetric)),
+      new APersist(testEntity + "-" + DateRange.create(Period.HOURLY, new Date(ts)).start.getTime, Period.HOURLY, Map(aggMetricName -> aggMetric), Map(absMetricName -> absMetric)))
 
   @Before
   def setUp {
@@ -37,7 +37,7 @@ class Cassandra11DataStoreTest {
   }
 
   @Test
-  @Ignore
+  @Ignore("Requires a local cassandra server and should be executed in isolation")
   def testPersistIntegration {
     val cds: Cassandra11DataStore = new Cassandra11DataStore()
     cds.persist(testEntity, System.currentTimeMillis(), testMetrics)

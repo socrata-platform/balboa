@@ -4,7 +4,6 @@ import com.socrata.balboa.metrics.Metric.RecordType
 import com.netflix.astyanax.{Keyspace, AstyanaxContext, MutationBatch}
 import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, Period}
 import com.socrata.balboa.metrics.{Metrics, Metric}
-import scala.collection.mutable.HashMap
 import com.netflix.astyanax.model.{Row, ConsistencyLevel, ColumnList}
 import scala.collection.JavaConverters._
 import java.{util => ju}
@@ -77,27 +76,25 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
     }
   }
 
-  def persist(entityId: String, bucket:ju.Date, period: Period, aggregates: HashMap[String, Metric], absolutes: HashMap[String, Metric]) {
-    val entityKey = Cassandra11Util.createEntityKey(entityId, bucket.getTime);
+  def persist(entityId: String, bucket:ju.Date, period: Period, aggregates: Map[String, Metric], absolutes: Map[String, Metric]) {
+    val entityKey = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
     if (!fastfail.proceed) {
       throw new IOException("fast fail: Failing persist immediately for Query:" + entityKey + " in " + period)
     }
 
-    val m: MutationBatch = context.getEntity.prepareMutationBatch
+    val m:MutationBatch = context.getEntity.prepareMutationBatch
       .setConsistencyLevel(ConsistencyLevel.CL_ONE)
       .withRetryPolicy(new ExponentialBackoff(250, 5))
     if (!aggregates.isEmpty) {
       var cols = m.withRow(Cassandra11Util.getColumnFamily(period, RecordType.AGGREGATE), entityKey)
-      aggregates.foreach(kv =>
-        cols = cols.incrementCounterColumn(kv._1, kv._2.getValue.longValue)
-      )
+      for { (k,v) <- aggregates }
+        cols = cols.incrementCounterColumn(k, v.getValue.longValue)
     }
 
     if (!absolutes.isEmpty) {
       var cols = m.withRow(Cassandra11Util.getColumnFamily(period, RecordType.ABSOLUTE), entityKey)
-      absolutes.foreach(kv =>
-        cols = cols.putColumn(kv._1, kv._2.getValue.longValue)
-      )
+      for { (k,v) <- absolutes }
+        cols = cols.putColumn(k, v.getValue.longValue)
     }
 
     try {

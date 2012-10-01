@@ -1,7 +1,6 @@
 package com.socrata.balboa.metrics.data.impl
 
-import com.socrata.balboa.metrics.data.{DateRange, Period}
-import collection.mutable.HashMap
+import com.socrata.balboa.metrics.data.Period
 import com.socrata.balboa.metrics.{Metrics, Metric}
 import java.util.Date
 import com.socrata.balboa.metrics.Metric.RecordType
@@ -29,14 +28,14 @@ class MockCassandra11QueryImpl extends Cassandra11Query {
     metricsToReturn
   }
 
-  def persist(entityId:String, bucket:Date, period:Period, aggregates:HashMap[String, Metric], absolutes:HashMap[String, Metric]) {
+  def persist(entityId:String, bucket:Date, period:Period, aggregates:Map[String, Metric], absolutes:Map[String, Metric]) {
     val entityKey:String = Cassandra11Util.createEntityKey(entityId,bucket.getTime)
     //println("Persisting " + entityKey + " in period " + period + " DATE: " + bucket.toGMTString)
     persists = persists ::: List[APersist](new APersist(entityKey, period, aggregates, absolutes))
   }
 }
 
-class APersist(val entityKey:String, val period:Period, val agg:HashMap[String, Metric], val abs:HashMap[String, Metric]) {
+class APersist(val entityKey:String, val period:Period, val agg:Map[String, Metric], val abs:Map[String, Metric]) {
   override def equals(obj:Any) = {
     if (!obj.isInstanceOf[APersist]) false
     else {
