@@ -9,7 +9,7 @@ import com.socrata.balboa.metrics.Metric.RecordType
 /**
  * Queries the underlying datastore
  */
-abstract class Cassandra11Query {
+trait Cassandra11Query {
   def get_allEntityIds(recordType:RecordType, period:Period):Iterator[String]
 
   def fetch(entityKey:String, period:Period, bucket:ju.Date):Metrics
