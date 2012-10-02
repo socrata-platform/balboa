@@ -6,7 +6,7 @@ import com.socrata.balboa.metrics.data.*;
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics;
 import com.socrata.balboa.server.ServiceUtils;
 import com.socrata.balboa.server.exceptions.InvalidRequestException;
-import com.yammer.metrics.core.TimerMetric;
+import com.yammer.metrics.core.Timer;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
@@ -25,9 +25,9 @@ import java.util.concurrent.TimeUnit;
 @Path("/metrics/{entityId}")
 public class MetricsRest
 {
-    public static final TimerMetric seriesMeter = com.yammer.metrics.Metrics.newTimer(MetricsRest.class, "series queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
-    public static final TimerMetric rangeMeter = com.yammer.metrics.Metrics.newTimer(MetricsRest.class, "range queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
-    public static final TimerMetric periodMeter = com.yammer.metrics.Metrics.newTimer(MetricsRest.class, "period queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final Timer seriesMeter = com.yammer.metrics.Metrics.newTimer(MetricsRest.class, "series queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final Timer rangeMeter = com.yammer.metrics.Metrics.newTimer(MetricsRest.class, "range queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
+    public static final Timer periodMeter = com.yammer.metrics.Metrics.newTimer(MetricsRest.class, "period queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS);
     private static Log log = LogFactory.getLog(MetricsRest.class);
 
     @GET
