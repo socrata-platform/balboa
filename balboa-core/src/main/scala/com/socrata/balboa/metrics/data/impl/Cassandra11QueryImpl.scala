@@ -10,7 +10,7 @@ import java.{util => ju}
 import com.netflix.astyanax.retry.{ExponentialBackoff}
 import java.io.IOException
 import com.netflix.astyanax.connectionpool.OperationResult
-import scala.collection.Map
+import scala.{ collection => sc}
 
 /**
  * Query Implementation
@@ -77,7 +77,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
     }
   }
 
-  def persist(entityId: String, bucket:ju.Date, period: Period, aggregates: Map[String, Metric], absolutes: Map[String, Metric]) {
+  def persist(entityId: String, bucket:ju.Date, period: Period, aggregates: sc.Map[String, Metric], absolutes: sc.Map[String, Metric]) {
     val entityKey = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
     if (!fastfail.proceed) {
       throw new IOException("fast fail: Failing persist immediately for Query:" + entityKey + " in " + period)

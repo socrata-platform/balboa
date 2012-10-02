@@ -13,6 +13,7 @@ import com.netflix.astyanax.connectionpool.NodeDiscoveryType
 import com.netflix.astyanax.thrift.ThriftFamilyFactory
 import java.{util => ju}
 import com.socrata.balboa.metrics.Timeslice
+import scala.{collection => sc}
 
 /**
  * Holds Connection Pool and Common ColumnFamily definitions
@@ -29,7 +30,7 @@ object Cassandra11Util {
     }.filter(_ != null)
   }
 
-  def metricsIterator(queryImpl:Cassandra11Query, entityId:String, query:scala.collection.immutable.Map[Period, List[ju.Date]]) = {
+  def metricsIterator(queryImpl:Cassandra11Query, entityId:String, query:sc.Map[Period, List[ju.Date]]) = {
     {
       for {
         (period, dates) <- query.iterator
