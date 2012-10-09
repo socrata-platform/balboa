@@ -6,6 +6,7 @@ import com.socrata.balboa.metrics.{Metric, Metrics, Timeslice}
 import com.socrata.balboa.metrics.Metric.RecordType
 import scala.collection.JavaConverters._
 import com.socrata.balboa.metrics.config.Configuration
+import org.apache.commons.logging.{LogFactory, Log}
 
 /**
  * DataStore Implementation for Cassandra 1.1
@@ -15,6 +16,9 @@ import com.socrata.balboa.metrics.config.Configuration
  */
 class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext()))
   extends DataStoreImpl {
+  private val log = LogFactory.getLog(classOf[Cassandra11DataStore])
+  private val timeSvc = new TimeService()
+
 
   /**
    * Retrieve an iterator that contains all the entity ids that the pattern
@@ -115,7 +119,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
         }
       }
     }
-
+    val start = timeSvc.currentTimeMillis()
     // increment/store metrics in each period
     var period:Period = Cassandra11Util.leastGranular
     while (period != null && period != Period.REALTIME)
@@ -130,6 +134,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
       }
 
     }
+    log.info("Persisted " + absolutes.size + " absolute, " + aggregates.size + " aggregated metrics to Cassandra in " + (timeSvc.currentTimeMillis() - start) + "ms")
   }
 
 
