@@ -23,6 +23,8 @@ object Cassandra11Util {
   val leastGranular:Period = Period.leastGranular(periods)
   val context:AstyanaxContext[Keyspace] = initializeContext()
 
+  def getContext = context
+
   def sliceIterator(queryImpl:Cassandra11Query, entityId:String, period:Period, query:List[ju.Date]):Iterator[Timeslice] = {
     query.iterator.map { date =>
           val range = DateRange.create(period, date)
