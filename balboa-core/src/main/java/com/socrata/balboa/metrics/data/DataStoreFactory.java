@@ -27,7 +27,7 @@ public class DataStoreFactory
                     new BadIdeasDataStore(
                             new Cassandra11DataStore(
                                     new Cassandra11QueryImpl(
-                                            Cassandra11Util.getContext()))));
+                                            Cassandra11Util.context()))));
         }
 
         if (datastore.equals("cassandra"))
@@ -35,7 +35,7 @@ public class DataStoreFactory
             return new BadIdeasDataStore(
                     new Cassandra11DataStore(
                             new Cassandra11QueryImpl(
-                                    Cassandra11Util.getContext())));
+                                    Cassandra11Util.context())));
         }
         else
         {
