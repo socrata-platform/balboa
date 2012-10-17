@@ -74,11 +74,12 @@ public class BufferedDataStore extends DataStoreImpl {
         synchronized (buffer) {
             long nearestSlice = timestamp - (timestamp % AGGREGATE_GRANULARITY);
             if (nearestSlice > currentSlice) {
-                log.info("Flushing " + buffer.size() + " metrics to underlying datastore from the last " + AGGREGATE_GRANULARITY + "ms");
+                log.info("Flushing " + buffer.size() + " entities to underlying datastore from the last " + AGGREGATE_GRANULARITY + "ms");
                 // flush metrics
                 for (String entity : buffer.keySet()) {
                     // If a failure occurs in the underlying datastore the exception
                     // chain back up and keep the buffer in memory
+                    log.info("  flushing " + entity);
                     underlying.persist(entity, currentSlice, buffer.get(entity));
                 }
                 buffer.clear();

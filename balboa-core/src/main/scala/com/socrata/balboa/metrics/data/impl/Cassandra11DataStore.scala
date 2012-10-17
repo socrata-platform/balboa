@@ -134,7 +134,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
       }
 
     }
-    log.info("Persisted " + absolutes.size + " absolute, " + aggregates.size + " aggregated metrics to Cassandra in " + (timeSvc.currentTimeMillis() - start) + "ms")
+    log.info("Persisted entity: " + entityId + " with " + absolutes.size + " absolute and " + aggregates.size + " aggregated metrics - took " + (timeSvc.currentTimeMillis() - start) + "ms")
   }
 
 
