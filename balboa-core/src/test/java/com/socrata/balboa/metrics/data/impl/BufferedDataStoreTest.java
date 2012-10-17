@@ -27,6 +27,7 @@ public class BufferedDataStoreTest {
         public void onStart() {}
         public void onStop() {}
         public void heartbeat() {}
+        public void ensureStarted() {}
         public Iterator<String> entities(String pattern) throws IOException { throw new UnsupportedOperationException(); }
         public Iterator<String> entities() throws IOException { throw new UnsupportedOperationException(); }
         public Iterator<Timeslice> slices(String entityId, Period period, Date start, Date end) throws IOException { throw new UnsupportedOperationException(); }

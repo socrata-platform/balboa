@@ -26,4 +26,8 @@ public abstract class DataStoreImpl implements DataStore
     public void onStop() {
         log.error("Recieved stop message from watchdog");
     }
+
+    public void ensureStarted() {
+        //noop
+    }
 }

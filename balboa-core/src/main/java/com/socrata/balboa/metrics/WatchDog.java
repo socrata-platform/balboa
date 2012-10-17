@@ -18,6 +18,7 @@ public class WatchDog {
         public void onStart();
         public void onStop();
         public void heartbeat();
+        public void ensureStarted();
     }
 
     public void watchAndWait(WatchDogListener ... listeners) throws InterruptedException {
@@ -42,6 +43,9 @@ public class WatchDog {
                 for (WatchDogListener listener : listeners)
                     listener.onStop();
             }
+        } else {
+            for (WatchDogListener listener : listeners)
+                listener.ensureStarted();
         }
         for (WatchDogListener listener : listeners)
             listener.heartbeat();
