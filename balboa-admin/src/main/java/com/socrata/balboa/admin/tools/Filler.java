@@ -8,6 +8,7 @@ import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
 import com.socrata.balboa.metrics.data.Period;
+import scala.actors.threadpool.Arrays;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -119,7 +120,7 @@ public class Filler
 
             if (line.length != 5)
             {
-                throw new IllegalArgumentException("Invalid csv format. There should be exactly 5 columns (entityId, timestamp, metric, record-type, value).");
+                throw new IllegalArgumentException("LINE: " + count + " - Invalid csv format. There should be exactly 5 columns (entityId, timestamp, metric, record-type, value). We got: " + Arrays.toString(line));
             }
 
             String entityId = line[0];
