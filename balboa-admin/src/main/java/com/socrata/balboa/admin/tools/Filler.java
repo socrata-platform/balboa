@@ -94,50 +94,12 @@ public class Filler
         }
     }
 
-    static class Cleanser extends Thread
-    {
-        Buffer buffer;
-
-        Cleanser(Buffer buffer)
-        {
-            this.buffer = buffer;
-        }
-
-        @Override
-        public void run()
-        {
-            while (true)
-            {
-                try
-                {
-                    buffer.flush();
-                }
-                catch (IOException e)
-                {
-                    System.err.println("Unable to flush buffer for some reason.");
-                }
-
-                try
-                {
-                    Thread.sleep(10000);
-                }
-                catch (InterruptedException e)
-                {
-                    System.out.println("Buffer cleanser interrupted, stopping...");
-                    return;
-                }
-            }
-        }
-    }
-
     public void fill() throws IOException
     {
         long startTime = System.currentTimeMillis();
         int count = 0;
 
         Buffer buffer = new Buffer();
-        Cleanser cleanser = new Cleanser(buffer);
-        cleanser.start();
 
         String [] line;
         while ((line = reader.readNext()) != null)
@@ -151,7 +113,8 @@ public class Filler
 
             if ((count % 10000) == 0)
             {
-                System.out.println(" " + count);
+                System.out.println(" flushing " + count);
+                buffer.flush();
             }
 
             if (line.length != 5)
@@ -167,9 +130,6 @@ public class Filler
 
             buffer.add(entityId, timestamp, metric, new Metric(type, value));
         }
-
-        System.out.println("Interrupting the buffer thread...");
-        cleanser.interrupt();
 
         System.out.println("Purging the buffer...");
         buffer.flush();
