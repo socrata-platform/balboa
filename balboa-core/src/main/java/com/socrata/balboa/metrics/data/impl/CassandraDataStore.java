@@ -511,7 +511,7 @@ public class CassandraDataStore extends DataStoreImpl
                         log.error("(" + entityId + " -> " + range + ") Unable " +
                                 "to deserialize the value '" + Arrays.toString(subColumn.getValue()) +
                                 "' in the column '" + name + "'. Ignoring " +
-                                "this metric.");
+                                "this metric.", e);
                     }
                 }
 
