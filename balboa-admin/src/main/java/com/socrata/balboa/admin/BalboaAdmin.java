@@ -5,6 +5,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 import com.socrata.balboa.admin.tools.Dumper;
 import com.socrata.balboa.admin.tools.Checker;
 import com.socrata.balboa.admin.tools.Filler;
+import com.socrata.balboa.admin.tools.Lister;
 
 import java.io.*;
 import java.util.Arrays;
@@ -18,7 +19,9 @@ public class BalboaAdmin
            "Commands:\n" +
            "\tfsck [filters...] : Check the balboa file system and validate the correctness of the tiers. This will probably take a long time.\n" +
            "\tfill file         : Restore balboa metrics from [file].\n" +
-           "\tdump [filters...] : Dump all of the data in a balboa store to stdout in a format suitable for fill, with an optional entity regex");
+           "\tdump [filters...] : Dump all of the data in a balboa store to stdout in a format suitable for fill, with an optional entity regex\n" +
+           "\tlist [filters...] : Dump all of the entity keys in a balboa store to stdout, with an optional entity regex"
+        );
     }
 
     public static char pickEscapeCharacter(File f) throws IOException {
@@ -94,6 +97,11 @@ public class BalboaAdmin
         {
             Checker fsck = new Checker();
             fsck.check(Arrays.asList(args).subList(1, args.length));
+        }
+        else if (command.equals("list"))
+        {
+            Lister lister = new Lister();
+            lister.list(Arrays.asList(args).subList(1, args.length));
         }
         else
         {
