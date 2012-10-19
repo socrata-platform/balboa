@@ -11,4 +11,4 @@ addSbtPlugin("com.socrata" % "socrata-sbt" % "0.2.3")
 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.6.0")
 
-libraryDependencies <+= sbtVersion(v => "com.github.siasia" %% "xsbt-web-plugin" % (v+"-0.2.11.1"))
+libraryDependencies += "com.github.siasia" %% "xsbt-web-plugin" % "0.12.0-0.2.11.1"
