@@ -4,15 +4,10 @@ import au.com.bytecode.opencsv.CSVWriter;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.Timeslice;
 import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.metrics.data.DataStore;
-import com.socrata.balboa.metrics.data.DataStoreFactory;
-import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.data.Period;
+import com.socrata.balboa.metrics.data.*;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class Dumper
 {
@@ -43,7 +38,7 @@ public class Dumper
         }
     }
 
-    public void dump() throws IOException
+    public void dump(List<String> filters) throws IOException
     {
         Period mostGranular = Period.mostGranular(Configuration.get().getSupportedPeriods());
 
@@ -51,7 +46,20 @@ public class Dumper
         Date cutoff = DateRange.create(mostGranular, new Date()).start;
 
         DataStore ds = DataStoreFactory.get();
-        Iterator<String> entities = ds.entities();
+        Iterator<String> entities;
+        if (filters.size() > 0)
+        {
+            List<Iterator<String>> iters = new ArrayList<Iterator<String>>(filters.size());
+            for (String filter : filters)
+            {
+                iters.add(ds.entities(filter));
+            }
+            entities = new CompoundIterator<String>(iters.toArray(new Iterator[] {}));
+        }
+        else
+        {
+            entities = ds.entities();
+        }
         while (entities.hasNext())
         {
             String entityId = entities.next();

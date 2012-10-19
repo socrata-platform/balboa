@@ -16,9 +16,9 @@ public class BalboaAdmin
         System.err.println("Balboa admin utility:\n" +
            "\tjava -jar balboa-admin <command> [args]\n\n" +
            "Commands:\n" +
-           "\tfsck          : Check the balboa file system and validate the correctness of the tiers. This will probably take a long time.\n" +
-           "\tfill [file]   : Restore balboa metrics from [file].\n" +
-           "\tdump          : Dump all of the data in a balboa store to stdout in a format suitable for fill.");
+           "\tfsck [filters...] : Check the balboa file system and validate the correctness of the tiers. This will probably take a long time.\n" +
+           "\tfill file         : Restore balboa metrics from [file].\n" +
+           "\tdump [filters...] : Dump all of the data in a balboa store to stdout in a format suitable for fill, with an optional entity regex");
     }
 
     public static char pickEscapeCharacter(File f) throws IOException {
@@ -83,7 +83,7 @@ public class BalboaAdmin
             try
             {
                 Dumper dumper = new Dumper(writer);
-                dumper.dump();
+                dumper.dump(Arrays.asList(args).subList(1, args.length));
             }
             finally
             {
