@@ -201,6 +201,12 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
 
     @Override
     public void heartbeat() {
-        //noop
+        // noop
+    }
+
+    public void ensureStarted() {
+        if (stopped) {
+            onStart();
+        }
     }
 }

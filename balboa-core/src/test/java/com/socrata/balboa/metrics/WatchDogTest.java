@@ -7,7 +7,7 @@ import static org.junit.Assert.*;
 public class WatchDogTest {
 
     class MockListener implements WatchDog.WatchDogListener {
-        int starts = 0, stops = 0, hearts = 0;
+        int starts = 0, stops = 0, hearts = 0, ensure = 0;
 
         @Override
         public void onStart() { starts++;}
@@ -15,6 +15,8 @@ public class WatchDogTest {
         public void onStop() { stops++; }
         @Override
         public void heartbeat() { hearts++; }
+        @Override
+        public void ensureStarted() {ensure++;}
     }
 
     class MockBalboaFailCheck extends BalboaFastFailCheck {
@@ -68,7 +70,14 @@ public class WatchDogTest {
         assertEquals(3, l.stops);
         assertEquals(1, l.starts);
 
+        fc.proceed = true;
+        fc.failure = false;
+        wd.check(fc, l);
+        wd.check(fc, l);
+
+        assertEquals(2, l.ensure);
+
         // check heartbeats
-        assertEquals(4, l.hearts);
+        assertEquals(6, l.hearts);
     }
 }

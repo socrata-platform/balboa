@@ -36,7 +36,7 @@ public class CassandraQueryImpl implements CassandraQuery
     String keyspaceName;
     private volatile static CassandraClientPool pool;
     final String servers;
-    final int sotimeout;
+    final Integer sotimeout;
     final int poolsize;
     private BalboaFastFailCheck failCheck = BalboaFastFailCheck.getInstance();
 
@@ -45,8 +45,10 @@ public class CassandraQueryImpl implements CassandraQuery
         synchronized (this) {
             if (pool != null) return pool;
             CassandraHostConfigurator hostConfigurator = new CassandraHostConfigurator(servers);
-            hostConfigurator.setCassandraThriftSocketTimeout(sotimeout);
-            hostConfigurator.setMaxWaitTimeWhenExhausted(sotimeout*2);
+            if(sotimeout != null) {
+                hostConfigurator.setCassandraThriftSocketTimeout(sotimeout);
+                hostConfigurator.setMaxWaitTimeWhenExhausted(sotimeout*2);
+            }
             hostConfigurator.setMaxActive(poolsize);
             pool =  CassandraClientPoolFactory.getInstance().createNew(hostConfigurator);
             return pool;
@@ -58,8 +60,10 @@ public class CassandraQueryImpl implements CassandraQuery
         Configuration config = Configuration.get();
         servers = config.getProperty("cassandra.servers");
         keyspaceName = config.getProperty("cassandra.keyspace");
-        sotimeout = Integer.parseInt(config.getProperty("cassandra.sotimeout"));
-        poolsize = Integer.parseInt(config.getProperty("cassandra.maxpoolsize"));
+        String sotimeoutStr = config.getProperty("cassandra.sotimeout");
+        if(sotimeoutStr != null && !sotimeoutStr.equals("infinite")) sotimeout = Integer.valueOf(sotimeoutStr);
+        else sotimeout = null;
+        poolsize = Integer.parseInt(config.getProperty("cassandra.maxpoolsize", "100"));
     }
 
     /**

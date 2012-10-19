@@ -41,7 +41,7 @@ public class MemcachedLock implements Lock
     @Override
     public int delay()
     {
-        return 200;
+        return 4000;
     }
 
     @Override
