@@ -38,6 +38,15 @@ public class Dumper
         }
     }
 
+    public void dumpOnly(String entityId) throws IOException {
+        Period mostGranular = Period.mostGranular(Configuration.get().getSupportedPeriods());
+        Date epoch = new Date(0);
+        Date cutoff = DateRange.create(mostGranular, new Date()).start;
+        DataStore ds = DataStoreFactory.get();
+        Iterator<Timeslice> slices = ds.slices(entityId, mostGranular, epoch, cutoff);
+        output(entityId, slices, writer);
+    }
+
     public void dump(List<String> filters) throws IOException
     {
         Period mostGranular = Period.mostGranular(Configuration.get().getSupportedPeriods());
