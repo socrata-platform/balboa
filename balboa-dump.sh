@@ -1,0 +1,1 @@
+cat all.entities | xargs -I XXXXX bash -c 'echo "Processing XXXXX"; md5=`echo XXXXX | md5sum`; two=${md5:0:2}; if [ ! -f out.$two/XXXXX.csv ]; then echo "Making subdirectory: out.$two"; mkdir -p out.$two; time java -jar balboa-admin-jar-with-speedy-and-safe.jar dump-only XXXXX > out.$two/XXXXX.csv 2> out.$two/XXXXX.err; else echo "Skipping"; fi'
