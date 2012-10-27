@@ -37,6 +37,15 @@ public class Timeslice {
         this.metrics = metrics;
     }
 
+    public void addTimeslice(Timeslice other) {
+        if (this.metrics != null)
+            this.metrics.merge(other.getMetrics());
+        else
+            this.metrics = new Metrics(other.getMetrics());
+        if (start > other.getStart()) start = other.getStart();
+        if (end < other.getEnd()) end = other.getEnd();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

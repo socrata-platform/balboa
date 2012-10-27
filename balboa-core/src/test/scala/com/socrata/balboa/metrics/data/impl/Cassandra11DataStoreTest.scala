@@ -1,14 +1,14 @@
 package com.socrata.balboa.metrics.data.impl
 
-import com.socrata.balboa.metrics.{Metric, Metrics}
+import com.socrata.balboa.metrics.{Timeslice, Metric, Metrics}
 import org.junit.{Before, Test, Ignore}
 import junit.framework.Assert
 import com.socrata.balboa.metrics.data.{DateRange, Period}
-import java.util.Date
+import java.util.{TimeZone, GregorianCalendar, Date}
 import scala.collection.JavaConverters._
 import java.util.concurrent.TimeUnit
 import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.config.Configuration
+import java.util
 
 /**
  *
@@ -53,11 +53,32 @@ class Cassandra11DataStoreTest {
 
   @Test
   def testFindSingleDateWithinTier {
-    cds.persist(testEntity, 12345, testMetrics)
     mock.metricsToReturn = new Metrics(Map(aggMetricName -> aggMetric).asJava)
-    Assert.assertEquals(mock.metricsToReturn, cds.find(testEntity, Period.HOURLY, new Date(12345)).next())
+    Assert.assertEquals(mock.metricsToReturn, cds.find(testEntity, Period.HOURLY, new Date(12345L)).next())
     Assert.assertEquals(List(new AFetch(testEntity + "-" + 0, Period.HOURLY)), mock.fetches)
   }
+
+  @Test
+  def testFindSingleDateWithinUnsupportedTier {
+    mock.metricsToReturn = new Metrics(Map(aggMetricName -> aggMetric).asJava)
+    mock.fetches = List()
+    val fItr = cds.find(testEntity, Period.YEARLY, new Date(1351236163000L))
+    for (i <- 1 to 12) {
+      Assert.assertEquals(mock.metricsToReturn, fItr.next)
+    }
+    Assert.assertEquals(List( new AFetch(testEntity + "-1325376000000", Period.MONTHLY),
+                              new AFetch(testEntity + "-1328054400000", Period.MONTHLY),
+                              new AFetch(testEntity + "-1330560000000", Period.MONTHLY),
+                              new AFetch(testEntity + "-1333238400000", Period.MONTHLY),
+                              new AFetch(testEntity + "-1335830400000", Period.MONTHLY),
+                              new AFetch(testEntity + "-1338508800000", Period.MONTHLY),
+                              new AFetch(testEntity + "-1341100800000", Period.MONTHLY),
+                              new AFetch(testEntity + "-1343779200000", Period.MONTHLY),
+                              new AFetch(testEntity + "-1346457600000", Period.MONTHLY),
+                              new AFetch(testEntity + "-1349049600000", Period.MONTHLY),
+                              new AFetch(testEntity + "-1351728000000", Period.MONTHLY),
+                              new AFetch(testEntity + "-1354320000000", Period.MONTHLY)), mock.fetches)
+}
 
   @Test
   def testFindRangeWithinTier {
@@ -121,6 +142,32 @@ class Cassandra11DataStoreTest {
   }
 
   @Test
+  def testGetUnSupportedSlices {
+    mock.metricsToReturn = new Metrics(Map(aggMetricName -> aggMetric).asJava)
+    val start = new Date(TimeUnit.MILLISECONDS.convert(28, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(22, TimeUnit.HOURS)) // two hours before midnight, Jan 30 1970
+    val end = new Date(TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(25, TimeUnit.HOURS)) // to two hours after midnight, Mar 3 1970
+
+    // Should be converted to a daily query because weekly is not supported
+    var timeSliceItr = cds.slices(testEntity, Period.WEEKLY, start, end)
+
+    var count = 0
+    while (timeSliceItr.hasNext) {
+      var ts = timeSliceItr.next()
+      Assert.assertTrue(DateRange.liesOnBoundary(new Date(ts.getStart), Period.WEEKLY))
+      count += 1
+    }
+
+    // 6 full weeks between Jan 30, 1970 and Mar, 3 - Sun -> Sat
+    Assert.assertEquals(6, count)
+
+    // Check that we actually fetched from a supported bin
+    val times = List.range(2419200000L, 5270400001L, 86400000)
+    val fs = times.map(t => new AFetch("foo-" + t, Period.DAILY))
+    Assert.assertEquals(fs, mock.fetches)
+  }
+
+
+  @Test
   def testGetEntities {
     val entyItr = cds.entities()
     var count = 0
@@ -168,6 +215,67 @@ class Cassandra11DataStoreTest {
       new AFetch("foo-5097600000", Period.DAILY),
       new AFetch("foo-5184000000", Period.DAILY),
       new AFetch("foo-2678400000", Period.MONTHLY)).sorted,  mock.fetches.sorted)
+  }
+
+  def rollUpIteratorTest(requestPeriod:Period, supportedPeriod:Period, startMS:Long, endMS:Long) {
+    mock.metricsToReturn = new Metrics(Map(aggMetricName -> aggMetric).asJava)
+    val startPeriod = DateRange.create(requestPeriod, new Date(startMS)) // start from the reference point
+    var endPeriod = DateRange.create(requestPeriod, new Date(endMS))
+    val dr = new DateRange(startPeriod.start, endPeriod.end)
+    val inRanges = dr.toDates(supportedPeriod).asScala.toList; // requesting as the supported period
+    val expectedRanges = dr.toDates(requestPeriod).asScala.toList
+
+    // Run it through the roll-up iterator
+    val tsItr = Cassandra11Util.sliceIterator(mock, "blah", supportedPeriod, inRanges)
+    val rdItr = Cassandra11Util.rollupSliceIterator(requestPeriod, tsItr)
+
+    // Pretend we support this period
+    val expectedItr = Cassandra11Util.sliceIterator(mock, "blah", requestPeriod, expectedRanges)
+
+    // We can have more requested timeslices returned than if the query were natively supported
+    // because
+    while(rdItr.hasNext && expectedItr.hasNext) {
+      var ts = rdItr.next()
+      var expect = expectedItr.next()
+      requestPeriod match {
+        case Period.MONTHLY => {}
+        case _ => {
+          Assert.assertEquals("Expected start to be == rolledUp start",  expect.getStart, ts.getStart) // time slices do not have to exactly align on boundarys
+          Assert.assertEquals("Expected end to be == rolledUp end",expect.getEnd, ts.getEnd)
+        }
+      }
+
+      Assert.assertTrue(DateRange.liesOnBoundary(new Date(ts.getStart), requestPeriod))
+    }
+  }
+
+  @Test
+  def rollUpSliceToLessGranularPeriod() {
+    rollUpIteratorTest(Period.WEEKLY, Period.DAILY, 1000000, 1000000 + 604800000 * 3)
+    rollUpIteratorTest(Period.DAILY, Period.MINUTELY, 1000000, 1000000 + 86400000 * 6)
+    rollUpIteratorTest(Period.MONTHLY, Period.DAILY, 1351228407, 1351228407 + 2628000000L * 2)
+  }
+
+  @Test
+  def rollUpSliceHandlesDatesInThePast() {
+    rollUpIteratorTest(Period.WEEKLY, Period.DAILY, -1000000, -1000000 + 604800000 * 3)
+    rollUpIteratorTest(Period.DAILY, Period.MINUTELY, -1351228407, -1351228407 + 86400000 * 6)
+  }
+
+  @Test
+  def rollUpSliceCrossOddBoundary() {
+    val start = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+    start.set(2010, 0, 12)
+    val end = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+    end.set(2010, 3, 16)
+    rollUpIteratorTest(Period.MONTHLY, Period.WEEKLY, start.getTime.getTime, end.getTime.getTime)
+  }
+
+  @Test
+  def testGetValidGranularity() {
+    Assert.assertEquals(Period.DAILY, cds.getValidGranularity(Period.WEEKLY))
+    Assert.assertEquals(Period.MONTHLY, cds.getValidGranularity(Period.YEARLY))
+    Assert.assertEquals(Period.HOURLY, cds.getValidGranularity(Period.SECONDLY))
   }
 
 }

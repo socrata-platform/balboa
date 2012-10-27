@@ -14,6 +14,7 @@ import com.netflix.astyanax.thrift.ThriftFamilyFactory
 import java.{util => ju}
 import com.socrata.balboa.metrics.Timeslice
 import scala.{collection => sc}
+import annotation.tailrec
 
 /**
  * Holds Connection Pool and Common ColumnFamily definitions
@@ -21,8 +22,47 @@ import scala.{collection => sc}
 object Cassandra11Util {
   val periods = Configuration.get().getSupportedPeriods()
   val leastGranular:Period = Period.leastGranular(periods)
+  val mostGranular:Period = Period.mostGranular(periods)
   val context:AstyanaxContext[Keyspace] = initializeContext()
 
+  /*
+   * Roll up a timeslice into another, more granular, unsupported Period
+   *
+   * The resulting set should lie on the requested Period boundaries but it
+   * may have more items than if the requested Period were supported directly
+   *
+   */
+  def rollupSliceIterator(period: Period, raw: Iterator[Timeslice]): Iterator[Timeslice] = {
+
+    //can't do tail rec mod cons
+    //@tailrec
+    def loop(input: Stream[Timeslice], acc: Timeslice, range: DateRange): Stream[Timeslice] = {
+      if(input.isEmpty) {
+        Stream(acc)
+      } else {
+        val c = input.head
+        if(c.getEnd <= range.end.getTime) {
+          acc.addTimeslice(c)
+          loop(input.tail, acc, range)
+        } else {
+          val newRange = DateRange.create(period, new ju.Date(c.getStart))
+          c.setStart(newRange.start.getTime)
+          c.setEnd(newRange.end.getTime)
+          acc #:: loop(input.tail, c, newRange)
+        }
+      }
+    }
+
+    if(raw.hasNext) {
+      val firstTimeslice = raw.next()
+      val firstRange = DateRange.create(period,new ju.Date(firstTimeslice.getStart))
+      firstTimeslice.setStart(firstRange.start.getTime)
+      firstTimeslice.setEnd(firstRange.end.getTime)
+      loop(raw.toStream, firstTimeslice, firstRange).iterator
+    } else {
+      Iterator.empty
+    }
+  }
   def sliceIterator(queryImpl:Cassandra11Query, entityId:String, period:Period, query:List[ju.Date]):Iterator[Timeslice] = {
     query.iterator.map { date =>
           val range = DateRange.create(period, date)

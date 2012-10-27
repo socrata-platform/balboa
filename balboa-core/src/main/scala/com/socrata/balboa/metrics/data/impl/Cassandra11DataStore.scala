@@ -48,17 +48,41 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     entities("")
   }
 
+  def getValidGranularity(period:Period) = {
+    val supported = Configuration.get().getSupportedPeriods
+    var requestPeriod = period
+    while (requestPeriod != null && !supported.contains(requestPeriod)) {
+      requestPeriod = requestPeriod.moreGranular()
+    }
+    if (requestPeriod == null) {
+      // We can't find a period which is more granular than the one given, so
+      // we do our best.
+      requestPeriod = Cassandra11Util.mostGranular
+    }
+    requestPeriod
+  }
+
   /**
    * Return a list of metrics for a period of timeslices over an arbitrary
    * date range, chronologically ascending.
    *
    * e.g. Give me all of the metrics for some entity broken down by hours in
    * the range 2010-01-01 -> 2010-01-31.
+   *
+   * If an unsupported date is given this will attempt to generate the slice
+   * from the next most granular bin which is supported. The resulting TimeSlice
+   * will be fixed to the bounds of the requested period and the metrics within
+   * each supported bin will be aggregated to the requested bin.
    */
   def slices(entityId: String, period:Period, start: ju.Date, end: ju.Date): ju.Iterator[Timeslice] = {
-    val dates = new DateRange(start, end).toDates(period)
-    return Cassandra11Util.sliceIterator(queryImpl, entityId, period, dates.asScala.toList).asJava
-
+    val requestPeriod = getValidGranularity(period)
+    val dates = new DateRange(start, end).toDates(requestPeriod)
+    val timeSlice = Cassandra11Util.sliceIterator(queryImpl, entityId, requestPeriod, dates.asScala.toList)
+    if (requestPeriod != period) {
+      Cassandra11Util.rollupSliceIterator(period, timeSlice).asJava
+    } else {
+      timeSlice.asJava
+    }
   }
 
   /**
@@ -71,10 +95,19 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
    * and the date is 2010-01-04, the range that will be queried is
    * 2010-01-01 -> 2010-01-31. For more details
    *
+   * If the period is not natively supported one of the smaller granularities will
+   * be chosen for the request. This may result in slightly-incorrect data if the
+   * smaller granularity does not exactly align on the boundaries of the requested
+   * gran. For an unsupported request the number of items returned is equal to the
+   * number returned for the supported column (e.g. values are not summarized to
+   * match the unsupported bins, should they exist).
+   *
    * @see DateRange
    */
   def find(entityId: String, period:Period, date: ju.Date): ju.Iterator[Metrics] = {
-    Cassandra11Util.metricsIterator(queryImpl, entityId, Map(period -> List(DateRange.create(period, date).start))).asJava
+    val requestPeriod = getValidGranularity(period)
+    val range = DateRange.create(period, date)
+    find(entityId, requestPeriod, range.start, range.end)
   }
 
   /**
@@ -82,6 +115,8 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
    * is not necessarily the most optimal way to query for an arbitrary range
    * and should only be used when you need to query a specific tier for some
    * reason.
+   *
+   * If the period is not supported an exception will be thrown.
    */
   def find(entityId: String, period:Period, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = {
     val dates = new DateRange(start, end).toDates(period).asScala
