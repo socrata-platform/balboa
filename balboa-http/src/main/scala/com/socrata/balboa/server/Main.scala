@@ -36,7 +36,7 @@ object Main extends App {
   }
 
   def service(req: HttpServletRequest): HttpResponse =
-    router(req.getMethod, req.getRequestURI.split('.').head.split('/').tail) match {
+    router(req.getMethod, req.getRequestURI.split('/').tail) match {
       case Some(s) =>
         s(req)
       case None =>
