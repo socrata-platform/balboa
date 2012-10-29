@@ -25,7 +25,6 @@ object BalboaCore {
     },
     dependenciesSnippet :=
       <xml.group>
-        <exclude org="javax.servlet" module="servlet-api" />
         <exclude org="org.codehaus.jackson" module="jackson-mapper-asl" />
         <exclude org="org.codehaus.jackson" module="jackson-core-asl" />
       </xml.group>

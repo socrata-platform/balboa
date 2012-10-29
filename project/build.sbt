@@ -10,5 +10,3 @@ externalResolvers <<= resolvers map { rs =>
 addSbtPlugin("com.socrata" % "socrata-sbt" % "0.2.3")
 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.6.0")
-
-libraryDependencies += "com.github.siasia" %% "xsbt-web-plugin" % "0.12.0-0.2.11.1"
