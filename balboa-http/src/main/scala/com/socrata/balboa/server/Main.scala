@@ -43,6 +43,6 @@ object Main extends App {
         NotFound ~> ContentType("application/json") ~> Content("{\"error\": 404, \"message\": \"Not found.\"}")
     }
 
-  val server = new SocrataServerJetty(logger andThen service, port = 9898)
+  val server = new SocrataServerJetty(logger andThen service, port = args(0).toInt)
   server.run()
 }
