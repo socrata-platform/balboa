@@ -17,10 +17,11 @@ public class BalboaAdmin
         System.err.println("Balboa admin utility:\n" +
            "\tjava -jar balboa-admin <command> [args]\n\n" +
            "Commands:\n" +
-           "\tfsck [filters...] : Check the balboa file system and validate the correctness of the tiers. This will probably take a long time.\n" +
-           "\tfill file         : Restore balboa metrics from [file].\n" +
-           "\tdump [filters...] : Dump all of the data in a balboa store to stdout in a format suitable for fill, with an optional entity regex\n" +
-           "\tlist [filters...] : Dump all of the entity keys in a balboa store to stdout, with an optional entity regex"
+           "\tfsck [filters...]  : Check the balboa file system and validate the correctness of the tiers. This will probably take a long time.\n" +
+           "\tfill file          : Restore balboa metrics from [file].\n" +
+           "\tdump [filters...]  : Dump all of the data in a balboa store to stdout in a format suitable for fill, with an optional entity regex\n" +
+           "\tdump-only entityId : Dump a specific entity in a format suitable for fill\n" +
+           "\tlist [filters...]  : Dump all of the entity keys in a balboa store to stdout, with an optional entity regex"
         );
     }
 
@@ -69,7 +70,7 @@ public class BalboaAdmin
             File inputFile = new File(file);
             char escape = pickEscapeCharacter(inputFile);
             System.out.println("Using escape character " + escape);
-            CSVReader reader = new CSVReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(inputFile))), ',', '"', escape);
+            CSVReader reader = new CSVReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(inputFile)), "UTF-8"), ',', '"', escape);
             try
             {
                 Filler filler = new Filler(reader);
@@ -82,7 +83,7 @@ public class BalboaAdmin
         }
         else if (command.equals("dump"))
         {
-            CSVWriter writer = new CSVWriter(new PrintWriter(System.out), ',', '"');
+            CSVWriter writer = new CSVWriter(new OutputStreamWriter(System.out, "UTF-8"), ',', '"');
             try
             {
                 Dumper dumper = new Dumper(writer);
@@ -93,6 +94,26 @@ public class BalboaAdmin
                 writer.close();
             }
         }
+        else if (command.equals("dump-only"))
+        {
+            if (args.length < 2) {
+                System.err.println("No entityId specified '" + command + "'.");
+                usage();
+                System.exit(1);
+            }
+            CSVWriter writer = new CSVWriter(new OutputStreamWriter(System.out, "UTF-8"), ',', '"');
+            try
+            {
+                Dumper dumper = new Dumper(writer);
+                dumper.dumpOnly(args[1]);
+            }
+            finally
+            {
+                writer.close();
+            }
+        }
+
+
         else if (command.equals("fsck"))
         {
             Checker fsck = new Checker();
