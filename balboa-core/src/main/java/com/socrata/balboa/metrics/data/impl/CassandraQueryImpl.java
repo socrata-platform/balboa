@@ -73,9 +73,9 @@ public class CassandraQueryImpl implements CassandraQuery
      * @throws IOException if we are in a fast-fail mode
      */
     CassandraClient getClient() throws IOException {
-        if (!failCheck.proceed()) {
-            throw new IOException("Unable to return client because we are have failed too recently in the past");
-        }
+        //if (!failCheck.proceed()) {
+        //    throw new IOException("Unable to return client because we are have failed too recently in the past");
+        //}
         CassandraClient client;
         try
         {
@@ -124,7 +124,7 @@ public class CassandraQueryImpl implements CassandraQuery
 
             while (true)
             {
-                List<ColumnOrSuperColumn> queryResults = client.get_slice(keyspaceName, entityId, new ColumnParent("meta"), predicate, ConsistencyLevel.QUORUM);
+                List<ColumnOrSuperColumn> queryResults = client.get_slice(keyspaceName, entityId, new ColumnParent("meta"), predicate, ConsistencyLevel.ONE);
 
                 if (queryResults == null)
                 {
@@ -190,7 +190,7 @@ public class CassandraQueryImpl implements CassandraQuery
 
         try
         {
-            List<ColumnOrSuperColumn> results = client.get_slice(keyspaceName, entityId, new ColumnParent(period.toString()), predicate, ConsistencyLevel.QUORUM);
+            List<ColumnOrSuperColumn> results = client.get_slice(keyspaceName, entityId, new ColumnParent(period.toString()), predicate, ConsistencyLevel.ONE);
             List<SuperColumn> superColumns = new ArrayList<SuperColumn>(results.size());
 
             for (ColumnOrSuperColumn result : results)

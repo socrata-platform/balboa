@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A DataStore implementation using <a href="http://cassandra.apache.org/">
@@ -132,18 +133,34 @@ public class CassandraDataStore extends DataStoreImpl
         }
     }
 
+    static class EntityCacheEntry {
+        String entity;
+        EntityMeta meta;
+    }
+
+    static AtomicReference<EntityCacheEntry> meta = new AtomicReference<EntityCacheEntry>(null);
+
     static EntityMeta getEntityMeta(String entityId) throws IOException
     {
-        List<Column> data = CassandraQueryFactory.get().getMeta(entityId);
+        EntityCacheEntry last = meta.get();
+        if (last != null && last.entity.equals(entityId)) {
+            return last.meta;
+        }
 
+        List<Column> data = CassandraQueryFactory.get().getMeta(entityId);
+        last = new EntityCacheEntry();
+        last.entity = entityId;
         if (data != null)
         {
-            return new CassandraEntityMeta(data);
+            last.meta = new CassandraEntityMeta(data);
+            return last.meta;
         }
         else
         {
-            return new CassandraEntityMeta();
+            last.meta = new CassandraEntityMeta();
         }
+        meta.set(last);
+        return last.meta;
     }
 
     static class CassandraRowsIterator implements Iterator<String>

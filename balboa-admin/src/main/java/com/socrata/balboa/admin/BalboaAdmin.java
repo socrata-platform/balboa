@@ -56,8 +56,7 @@ public class BalboaAdmin
 
         String command = args[0];
 
-        if (command.equals("fill"))
-        {
+        if (command.equals("fill")) {
             if (args.length < 2) {
                 System.err.println("No file for fill specified '" + command + "'.");
                 usage();
@@ -71,64 +70,55 @@ public class BalboaAdmin
             char escape = pickEscapeCharacter(inputFile);
             System.out.println("Using escape character " + escape);
             CSVReader reader = new CSVReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(inputFile)), "UTF-8"), ',', '"', escape);
-            try
-            {
+            try {
                 Filler filler = new Filler(reader);
                 filler.fill();
-            }
-            finally
-            {
+            } finally {
                 reader.close();
             }
-        }
-        else if (command.equals("dump"))
-        {
+        } else if (command.equals("dump")) {
             CSVWriter writer = new CSVWriter(new OutputStreamWriter(System.out, "UTF-8"), ',', '"');
-            try
-            {
+            try {
                 Dumper dumper = new Dumper(writer);
                 dumper.dump(Arrays.asList(args).subList(1, args.length));
-            }
-            finally
-            {
+            } catch (Throwable t) {
+                t.printStackTrace();
+                System.exit(1);
+            } finally {
                 writer.close();
             }
-        }
-        else if (command.equals("dump-only"))
-        {
+        } else if (command.equals("dump-only")) {
             if (args.length < 2) {
                 System.err.println("No entityId specified '" + command + "'.");
                 usage();
                 System.exit(1);
             }
             CSVWriter writer = new CSVWriter(new OutputStreamWriter(System.out, "UTF-8"), ',', '"');
-            try
-            {
+            try {
                 Dumper dumper = new Dumper(writer);
                 dumper.dumpOnly(args[1]);
-            }
-            finally
-            {
+            } catch (Throwable t) {
+                t.printStackTrace();
+                System.exit(1);
+            } finally {
+                writer.flush();
                 writer.close();
             }
-        }
-
-
-        else if (command.equals("fsck"))
-        {
+            System.out.println();
+            System.out.println();
+        } else if (command.equals("fsck")) {
             Checker fsck = new Checker();
             fsck.check(Arrays.asList(args).subList(1, args.length));
-        }
-        else if (command.equals("list"))
-        {
+        } else if (command.equals("list")) {
             Lister lister = new Lister();
             lister.list(Arrays.asList(args).subList(1, args.length));
-        }
-        else
-        {
+        } else {
             System.err.println("Unknown command '" + command + "'.");
             usage();
             System.exit(1);
         }
+        System.out.flush();
+        System.err.flush();
+        System.exit(0);
     }
 }
