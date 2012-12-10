@@ -4,10 +4,7 @@ import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.Timeslice;
 import com.socrata.balboa.metrics.data.DataStore;
-import com.socrata.balboa.metrics.data.DateRange;
-import com.socrata.balboa.metrics.data.EntityMeta;
 import com.socrata.balboa.metrics.data.Period;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -33,7 +30,6 @@ public class BufferedDataStoreTest {
         public void ensureStarted() {}
         public Iterator<String> entities(String pattern) throws IOException { throw new UnsupportedOperationException(); }
         public Iterator<String> entities() throws IOException { throw new UnsupportedOperationException(); }
-        public EntityMeta meta(String entityId) throws IOException { throw new UnsupportedOperationException(); }
         public Iterator<Timeslice> slices(String entityId, Period period, Date start, Date end) throws IOException { throw new UnsupportedOperationException(); }
         public Iterator<Metrics> find(String entityId, Period period, Date date) throws IOException { throw new UnsupportedOperationException(); }
         public Iterator<Metrics> find(String entityId, Period period, Date start, Date end) throws IOException { throw new UnsupportedOperationException(); }

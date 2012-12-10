@@ -247,6 +247,41 @@ public class DateRange {
      * "2010-05-28 16:14:08" then the returned range would be
      * (2010-05-28 16:14:00 -> 2010-05-28 16:14:59).
      */
+    static DateRange createFifteenMinutely(Date date) {
+        Calendar start = new GregorianCalendar();
+        start.setTimeZone(TimeZone.getTimeZone("UTC"));
+        start.setTime(date);
+
+        // Set the time to the beginning of the hour of the requested date.
+        start.set(start.get(Calendar.YEAR),
+                start.get(Calendar.MONTH),
+                start.get(Calendar.DATE),
+                start.get(Calendar.HOUR_OF_DAY),
+                (start.get(Calendar.MINUTE) / 15) * 15,
+                start.getActualMinimum(Calendar.SECOND));
+        start.set(Calendar.MILLISECOND, 0);
+
+        Calendar end = new GregorianCalendar();
+        end.setTimeZone(TimeZone.getTimeZone("UTC"));
+        end.setTime(date);
+
+        // Set the day to the end of the day of the requested date.
+        end.set(end.get(Calendar.YEAR),
+                end.get(Calendar.MONTH),
+                end.get(Calendar.DATE),
+                end.get(Calendar.HOUR_OF_DAY),
+                (start.get(Calendar.MINUTE) / 15 + 1) * 15 - 1,
+                end.getActualMaximum(Calendar.SECOND));
+        end.set(Calendar.MILLISECOND, 999);
+
+        return new DateRange(start.getTime(), end.getTime());
+    }
+
+    /**
+     * Create a minute range for a given time. So if the date is
+     * "2010-05-28 16:14:08" then the returned range would be
+     * (2010-05-28 16:14:00 -> 2010-05-28 16:14:59).
+     */
     static DateRange createMinutely(Date date) {
         Calendar start = new GregorianCalendar();
         start.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -300,6 +335,8 @@ public class DateRange {
         switch (period) {
             case SECONDLY:
                 return createSecondly(date);
+            case FIFTEEN_MINUTE:
+                return createFifteenMinutely(date);
             case MINUTELY:
                 return createMinutely(date);
             case HOURLY:
@@ -317,6 +354,18 @@ public class DateRange {
             default:
                 throw new IllegalArgumentException("Unsupported date range '" + period + "'.");
         }
+    }
+
+    // Return a list of dates aligned to the given period for this date range
+    public List<Date> toDates(Period period) {
+        Date curr = start;
+        List<Date> dates = new LinkedList<Date>();
+        while (curr.before(end)) {
+            DateRange range = DateRange.create(period, curr); // align date to boundary
+            dates.add(range.start);
+            curr = new Date(range.end.getTime() + 1);
+        }
+        return dates;
     }
 
     public boolean includes(Date suspect) {

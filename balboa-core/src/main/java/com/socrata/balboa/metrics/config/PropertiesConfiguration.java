@@ -15,7 +15,7 @@ import java.io.InputStream;
  */
 public class PropertiesConfiguration extends Configuration
 {
-    private static Log log = LogFactory.getLog(PropertiesConfiguration.class);
+    private static Log log() { return LogFactory.getLog(PropertiesConfiguration.class); }
 
     public PropertiesConfiguration() throws IOException
     {
@@ -37,7 +37,7 @@ public class PropertiesConfiguration extends Configuration
             }
             catch (IOException e)
             {
-                log.warn("An override wasn't provided and /etc/balboa.properties doesn't " +
+                System.err.println("An override wasn't provided and /etc/balboa.properties doesn't " +
                                  "exist or can't be loaded. Using the default " +
                                  "configuration values. Unless you're a " +
                                  "developer this probably isn't what you want.");
@@ -54,7 +54,7 @@ public class PropertiesConfiguration extends Configuration
         }
         else
         {
-            log.fatal("A configuration override was provided but the file (" + config + ") doesn't exist.");
+            System.err.println("A configuration override was provided but the file (" + config + ") doesn't exist.");
             throw new IOException("A configuration override was provided but the file (" + config + ") doesn't exist.");
         }
     }

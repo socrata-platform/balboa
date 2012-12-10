@@ -13,6 +13,7 @@ public enum Period {
     WEEKLY,
     DAILY,
     HOURLY,
+    FIFTEEN_MINUTE,
     MINUTELY,
     SECONDLY,
     REALTIME;
@@ -42,6 +43,8 @@ public enum Period {
             case SECONDLY:
                 return MINUTELY;
             case MINUTELY:
+                return FIFTEEN_MINUTE;
+            case FIFTEEN_MINUTE:
                 return HOURLY;
             case HOURLY:
                 return DAILY;
@@ -76,6 +79,8 @@ public enum Period {
             case DAILY:
                 return HOURLY;
             case HOURLY:
+                return FIFTEEN_MINUTE;
+            case FIFTEEN_MINUTE:
                 return MINUTELY;
             case MINUTELY:
                 return SECONDLY;
@@ -85,4 +90,5 @@ public enum Period {
                 return null;
         }
     }
+
 }
