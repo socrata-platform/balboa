@@ -3,7 +3,7 @@ package com.socrata.balboa.server
 import com.socrata.http.server.SocrataServerJetty
 import javax.servlet.http.HttpServletRequest
 import com.socrata.balboa.metrics.config.Configuration
-import com.socrata.balboa.server.rest.{MetricsRest, EntitiesRest}
+import rest.{VersionRest, MetricsRest, EntitiesRest}
 import org.apache.log4j.PropertyConfigurator
 import com.socrata.http.routing.{HttpMethods, SimpleRoute, SimpleRouter}
 import com.socrata.http.server.{Service, HttpResponse, SimpleFilter}
@@ -22,6 +22,7 @@ object Main extends App {
   type BalboaService = Service[HttpServletRequest, HttpResponse]
 
   val router = new SimpleRouter[BalboaService](
+    new SimpleRoute(Set(HttpMethods.GET), "version") -> VersionRest,
     new SimpleRoute(Set(HttpMethods.GET), "entities") -> EntitiesRest,
     new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r, "range") -> MetricsRest.range,
     new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r, "series") -> MetricsRest.series,
