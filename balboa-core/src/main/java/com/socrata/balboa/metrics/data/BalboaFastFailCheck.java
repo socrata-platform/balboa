@@ -28,7 +28,7 @@ public class BalboaFastFailCheck {
     private int mult = 1;
     private volatile boolean inFailureMode = false;
     private Object lock = new Object();
-
+    private Exception cause = null;
 
     private final TimeService timeService;
 
@@ -51,7 +51,7 @@ public class BalboaFastFailCheck {
     /**
      * Indicate that the DataStore is currently failing
      */
-    public void markFailure() {
+    public void markFailure(Exception e) {
         synchronized (lock) {
             inFailureMode = true;
             long delayTime = INITIAL_FAILURE_DELAY_MS * mult;
@@ -60,7 +60,8 @@ public class BalboaFastFailCheck {
             }
             failFastUntilTime.set(timeService.currentTimeMillis() + delayTime);
             mult *= 2;
-            log.error("Entered fast fail mode with delay " + delayTime);
+            cause = e;
+            log.error("Entered fast fail mode with delay " + delayTime, cause);
         }
     }
 
@@ -71,6 +72,7 @@ public class BalboaFastFailCheck {
         if (inFailureMode) {
             synchronized (lock) {
                 inFailureMode = false;
+                cause = null;
                 failFastUntilTime.set(0);
                 mult = 1;
                 log.error("Exiting fast failure mode!");
@@ -87,5 +89,15 @@ public class BalboaFastFailCheck {
 
     public boolean isInFailureMode() {
         return inFailureMode;
+    }
+
+    public void proceedOrThrow() throws IOException {
+        if (!proceed()) {
+            synchronized (lock) {
+                long timeLeft = timeService.currentTimeMillis() - failFastUntilTime.get();
+                throw new IOException("Balboa is in fast fail mode for " + timeLeft + "ms", cause);
+            }
+        }
+
     }
 }

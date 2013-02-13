@@ -39,9 +39,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
    * not use this outside the admin tool.
    */
   def getAllEntityIds(recordType: RecordType, period: Period): Iterator[String] = {
-    if (!fastfail.proceed()) {
-      throw new IOException("fast fail: query immediately because we have failed recently in the past Query:" + recordType + ":" + period)
-    }
+    fastfail.proceedOrThrow()
     try {
       val retVal: Iterator[String] = context.getEntity.prepareQuery(Cassandra11Util.getColumnFamily(period, recordType))
         .setConsistencyLevel(ConsistencyLevel.CL_ONE)
@@ -53,15 +51,14 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
       retVal
     } catch {
       case e: Exception =>
-        fastfail.markFailure()
-        throw new IOException("Error reading entityIds Query:" + recordType + ":" + period + "Cassandra", e)
+        val wrapped = new IOException("Error reading entityIds Query:" + recordType + ":" + period + "Cassandra", e)
+        fastfail.markFailure(wrapped)
+        throw wrapped
     }
   }
 
   def fetch_cf(recordType: RecordType, entityKey: String, period: Period) = {
-    if (!fastfail.proceed) {
-      throw new IOException("fast fail: Failing fetch immediately for Query:" + entityKey + " in " + recordType + ":" + period)
-    }
+    fastfail.proceedOrThrow()
     try {
       val retVal: OperationResult[com.netflix.astyanax.model.ColumnList[String]] = context.getEntity.prepareQuery(Cassandra11Util.getColumnFamily(period, recordType))
         .setConsistencyLevel(ConsistencyLevel.CL_ONE)
@@ -72,16 +69,16 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
       retVal
     } catch {
       case e: Exception =>
-        fastfail.markFailure()
-        throw new IOException("Error reading row " + entityKey + " from " + recordType + ":" + period, e)
+        val wrapped = new IOException("Error reading row " + entityKey + " from " + recordType + ":" + period, e)
+        fastfail.markFailure(wrapped)
+        throw wrapped
     }
   }
 
   def persist(entityId: String, bucket:ju.Date, period: Period, aggregates: sc.Map[String, Metric], absolutes: sc.Map[String, Metric]) {
     val entityKey = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
-    if (!fastfail.proceed) {
-      throw new IOException("fast fail: Failing persist immediately for Query:" + entityKey + " in " + period)
-    }
+    fastfail.proceedOrThrow()
+
 
     val m:MutationBatch = context.getEntity.prepareMutationBatch
       .setConsistencyLevel(ConsistencyLevel.CL_ONE)
@@ -104,8 +101,9 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
       retVal
     } catch {
       case e: Exception =>
-        fastfail.markFailure()
-        throw new IOException("Error writing metrics " + entityKey + " from " + period, e)
+        val wrapped = new IOException("Error writing metrics " + entityKey + " from " + period, e)
+        fastfail.markFailure(wrapped)
+        throw wrapped
     }
   }
 

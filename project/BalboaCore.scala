@@ -19,7 +19,7 @@ object BalboaCore {
         "commons-dbcp" % "commons-dbcp" % "1.2.2",
         "org.perf4j" % "perf4j" % "0.9.13",
         "com.yammer.metrics" % "metrics-core" % "2.1.2",
-        "com.netflix.astyanax" % "astyanax" % "1.0.6",
+        "com.netflix.astyanax" % "astyanax" % "1.56.26",
         "log4j" % "log4j" % "1.2.16"
       )
     },
