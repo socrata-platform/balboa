@@ -22,7 +22,7 @@ object MetricsRest {
   val rangeMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "range queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
   val periodMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "period queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
 
-  val json = "application/json"
+  val json = "application/json; charset=utf-8"
   val protobuf = "application/x-protobuf"
 
   def extractEntityId(req: HttpServletRequest): String = {
@@ -30,16 +30,16 @@ object MetricsRest {
   }
 
   def unacceptable =
-    NotAcceptable ~> ContentType("application/json") ~> Content("""{"error": 406, "message": "Not acceptable."}""")
+    NotAcceptable ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 406, "message": "Not acceptable."}""")
 
   def required(parameter: String) =
-    BadRequest ~> ContentType("application/json") ~> Content("""{"error": 400, "message": "Parameter """ + parameter + """ required."}""")
+    BadRequest ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 400, "message": "Parameter """ + parameter + """ required."}""")
 
   def malformedDate(parameter: String) =
-    BadRequest ~> ContentType("application/json") ~> Content("""{"error": 400, "message": "Unable to parse date """ + JString(parameter).toString.drop(1).dropRight(1) + """"}""")
+    BadRequest ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 400, "message": "Unable to parse date """ + JString(parameter).toString.drop(1).dropRight(1) + """"}""")
 
   def br(parameter: String, msg: String) =
-    BadRequest ~> ContentType("application/json") ~> Content("""{"error": 400, "message": "Unable to parse """ + parameter + """ : """ + JString(msg).toString.drop(1).dropRight(1) + """"}""")
+    BadRequest ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 400, "message": "Unable to parse """ + parameter + """ : """ + JString(msg).toString.drop(1).dropRight(1) + """"}""")
 
   def get(req: HttpServletRequest): HttpResponse = {
     val entityId = extractEntityId(req)
@@ -150,7 +150,7 @@ object MetricsRest {
       accept <- accepts
       typ <- types
     } {
-      if(accept.contains(typ)) return Some(typ)
+      if(accept.contains(typ.replaceAll(";.*", ""))) return Some(typ)
     }
     if(accepts.exists(_.contains("*/*"))) return Some(types(0))
     None

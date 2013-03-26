@@ -11,8 +11,8 @@ object BalboaCore {
         "junit" % "junit" % "4.5" % "test",
         "com.google.protobuf" % "protobuf-java" % "2.3.0",
         "com.google.guava" % "guava" % "12.0",
-        "org.codehaus.jackson" % "jackson-core-lgpl" % "1.6.0",
-        "org.codehaus.jackson" % "jackson-mapper-lgpl" % "1.6.0",
+        "org.codehaus.jackson" % "jackson-core-asl" % "1.9.12",
+        "org.codehaus.jackson" % "jackson-mapper-asl" % "1.9.12",
         "org.slf4j" % "slf4j-api" % slf4jVersion,
         "org.slf4j" % "slf4j-log4j12" % slf4jVersion,
         "commons-collections" % "commons-collections" % "3.1",
@@ -26,8 +26,6 @@ object BalboaCore {
     dependenciesSnippet :=
       <xml.group>
         <exclude org="javax.servlet" module="servlet-api" />
-        <exclude org="org.codehaus.jackson" module="jackson-mapper-asl" />
-        <exclude org="org.codehaus.jackson" module="jackson-core-asl" />
       </xml.group>
   )
 }
