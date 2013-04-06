@@ -8,33 +8,27 @@ import java.util.*;
 /**
  * A bag of metrics which can be merged through summation or
  * replace operations.
- *
+ * <p/>
  * Warning; merge operations on Metrics are not immutable.
  */
-public class Metrics extends HashMap<String, Metric>
-{
-    public Metrics(int i, float v)
-    {
+public class Metrics extends HashMap<String, Metric> {
+    public Metrics(int i, float v) {
         super(i, v);
     }
 
-    public Metrics(int i)
-    {
+    public Metrics(int i) {
         super(i);
     }
 
-    public Metrics()
-    {
+    public Metrics() {
         super();
     }
 
-    public Metrics(Map<? extends String, ? extends Metric> map)
-    {
+    public Metrics(Map<? extends String, ? extends Metric> map) {
         super(map);
     }
 
-    public Set<Map.Entry<String, Metric>> difference(Metrics other)
-    {
+    public Set<Map.Entry<String, Metric>> difference(Metrics other) {
         Set<Map.Entry<String, Metric>> union = new HashSet<Map.Entry<String, Metric>>(entrySet());
         union.addAll(other.entrySet());
 
@@ -46,14 +40,11 @@ public class Metrics extends HashMap<String, Metric>
         return union;
     }
 
-    public Metrics filter(String pattern)
-    {
+    public Metrics filter(String pattern) {
         Metrics results = new Metrics(size());
 
-        for (Map.Entry<String, Metric> entry : entrySet())
-        {
-            if (entry.getKey().matches(pattern))
-            {
+        for (Map.Entry<String, Metric> entry : entrySet()) {
+            if (entry.getKey().matches(pattern)) {
                 results.put(entry.getKey(), entry.getValue());
             }
         }
@@ -61,28 +52,21 @@ public class Metrics extends HashMap<String, Metric>
         return results;
     }
 
-    public Metrics combine(String pattern)
-    {
+    public Metrics combine(String pattern) {
         Metrics results = new Metrics(1);
         Metric combined = null;
 
-        for (Map.Entry<String, Metric> entry : entrySet())
-        {
-            if (entry.getKey().matches(pattern))
-            {
-                if (combined == null)
-                {
+        for (Map.Entry<String, Metric> entry : entrySet()) {
+            if (entry.getKey().matches(pattern)) {
+                if (combined == null) {
                     combined = entry.getValue();
-                }
-                else
-                {
+                } else {
                     combined.combine(entry.getValue());
                 }
             }
         }
 
-        if (combined == null)
-        {
+        if (combined == null) {
             combined = new Metric(Metric.RecordType.AGGREGATE, 0);
         }
 
@@ -91,34 +75,27 @@ public class Metrics extends HashMap<String, Metric>
         return results;
     }
 
-    public void merge(Metrics other)
-    {
+    public void merge(Metrics other) {
         // Get the union of the two key sets.
         Set<String> unionKeys = new HashSet<String>(keySet());
         unionKeys.addAll(other.keySet());
 
         // Combine the two maps.
-        for (String key : unionKeys)
-        {
-            if (containsKey(key))
-            {
+        for (String key : unionKeys) {
+            if (containsKey(key)) {
                 get(key).combine(other.get(key));
-            }
-            else if (other.containsKey(key))
-            {
+            } else if (other.containsKey(key)) {
                 put(key, other.get(key));
             }
         }
     }
 
-    public static Metrics summarize(Iterator<Metrics>... everything) throws IOException
-    {
+    public static Metrics summarize(Iterator<Metrics>... everything) throws IOException {
         Metrics metrics = new Metrics();
 
         Iterator<Metrics> iter = new CompoundIterator<Metrics>(everything);
 
-        while (iter.hasNext())
-        {
+        while (iter.hasNext()) {
             metrics.merge(iter.next());
         }
 
