@@ -11,12 +11,15 @@ import com.netflix.astyanax.retry.{ExponentialBackoff}
 import java.io.IOException
 import com.netflix.astyanax.connectionpool.OperationResult
 import scala.{ collection => sc}
+import org.apache.commons.logging.LogFactory
 
 /**
  * Query Implementation
  *
  */
 class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra11Query {
+
+  private val log = LogFactory.getLog(classOf[Cassandra11QueryImpl])
 
   def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {
     val entityKey: String = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
@@ -85,14 +88,18 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
       .withRetryPolicy(new ExponentialBackoff(250, 5))
     if (!aggregates.isEmpty) {
       var cols = m.withRow(Cassandra11Util.getColumnFamily(period, RecordType.AGGREGATE), entityKey)
-      for { (k,v) <- aggregates }
-        cols = cols.incrementCounterColumn(k, v.getValue.longValue)
+      for { (k,v) <- aggregates } {
+        if (k != ""){ cols = cols.incrementCounterColumn(k, v.getValue.longValue) }
+        else { log.warn("dropping metric with empty string as column") }
+      }
     }
 
     if (!absolutes.isEmpty) {
       var cols = m.withRow(Cassandra11Util.getColumnFamily(period, RecordType.ABSOLUTE), entityKey)
-      for { (k,v) <- absolutes }
-        cols = cols.putColumn(k, v.getValue.longValue)
+      for { (k,v) <- absolutes } {
+        if (k != ""){ cols = cols.putColumn(k, v.getValue.longValue) }
+        else { log.warn("dropping metric with empty string as column") }
+      }
     }
 
     try {
