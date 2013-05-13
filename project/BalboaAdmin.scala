@@ -10,11 +10,6 @@ object BalboaAdmin {
     libraryDependencies ++= Seq(
       "net.sf.opencsv" % "opencsv" % "2.0.1"
     ),
-    dependenciesSnippet :=
-      <xml.group>
-        <exclude org="org.codehaus.jackson" module="jackson-mapper-asl" />
-        <exclude org="org.codehaus.jackson" module="jackson-core-asl" />
-      </xml.group>,
     jarName in assembly <<= name(_ + "-jar-with-dependencies.jar")
   )
 }
