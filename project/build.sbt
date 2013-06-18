@@ -1,7 +1,5 @@
 resolvers := Seq(
   "socrata maven" at "https://repo.socrata.com/artifactory/libs-release",
-  "socrata maven local" at "https://repo.socrata.com/artifactory/libs-release-local",
-  "socrata repo1-cache" at "https://repo.socrata.com/artifactory/repo1-cache",
   Resolver.url("socrata ivy", new URL("https://repo.socrata.com/artifactory/ivy-libs-release"))(Resolver.ivyStylePatterns)
 )
 
