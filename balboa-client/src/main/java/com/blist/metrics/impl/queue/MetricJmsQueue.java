@@ -1,6 +1,6 @@
 package com.blist.metrics.impl.queue;
 
-import com.blist.metrics.MetricQueue;
+import com.socrata.metrics.*;
 import org.apache.activemq.ActiveMQConnectionFactory;
 
 import javax.jms.*;
@@ -51,7 +51,7 @@ public class MetricJmsQueue extends AbstractMetricQueue {
         Map<String, Item> buffer = new HashMap<String, Item>();
 
         synchronized void add(String entityId, Metrics data, long timestamp) {
-            long nearestSlice = timestamp - (timestamp % MetricQueue.AGGREGATE_GRANULARITY);
+            long nearestSlice = timestamp - (timestamp %  MetricQueue$.MODULE$.AGGREGATE_GRANULARITY());
             String bufferKey = entityId + ":" + nearestSlice;
 
             Item notBuffered = new Item(entityId, data, nearestSlice);
@@ -88,7 +88,7 @@ public class MetricJmsQueue extends AbstractMetricQueue {
         public void run() {
             while (true) {
                 try {
-                    Thread.sleep(MetricQueue.AGGREGATE_GRANULARITY);
+                    Thread.sleep( MetricQueue$.MODULE$.AGGREGATE_GRANULARITY());
                 } catch (InterruptedException e) {
                     // We want to make sure the final messages are sent to JMS before
                     // bombing out from an interrupt
@@ -215,7 +215,6 @@ public class MetricJmsQueue extends AbstractMetricQueue {
         }
     }
 
-    @Override
     public void create(String entityId, String name, Number value, long timestamp, Metric.RecordType type) {
         Metrics metrics = new Metrics();
         Metric metric = new Metric();
@@ -226,4 +225,10 @@ public class MetricJmsQueue extends AbstractMetricQueue {
 
         updateWriteBuffer(entityId, timestamp, metrics);
     }
+
+    @Override
+    public void create(IdParts entity, IdParts name, long value, long timestamp, Metric.RecordType type) {
+        create(entity.toString(), name.toString(), value, timestamp, type);
+    }
+
 }

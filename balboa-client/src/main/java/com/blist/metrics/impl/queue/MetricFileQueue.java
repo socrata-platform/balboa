@@ -1,6 +1,6 @@
 package com.blist.metrics.impl.queue;
 
-import com.blist.metrics.MetricQueue;
+import com.socrata.metrics.*;
 import com.socrata.balboa.metrics.Metric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +39,7 @@ public class MetricFileQueue extends AbstractMetricQueue {
         String logName = basename + ".data";
         fileStream = new FileOutputStream(new File(directory, logName), true);
         stream = new BufferedOutputStream(fileStream);
-
-        reopenTime = now + MetricQueue.AGGREGATE_GRANULARITY;
+        reopenTime = now + MetricQueue$.MODULE$.AGGREGATE_GRANULARITY();
     }
 
     public synchronized void close() throws IOException {
@@ -51,7 +50,6 @@ public class MetricFileQueue extends AbstractMetricQueue {
         }
     }
 
-    @Override
     public synchronized void create(String entityId, String name, Number value, long timestamp, Metric.RecordType type) {
         // File format:
         // 0xff asciiTimestamp 0xfe entityId 0xfe name 0xfe asciiNumber 0xfe
@@ -109,5 +107,9 @@ public class MetricFileQueue extends AbstractMetricQueue {
         }
 
         return instance;
+    }
+
+    public void create(IdParts entity, IdParts name, long value, long timestamp, Metric.RecordType type) {
+        create(entity.toString(), name.toString(), value, timestamp, type);
     }
 }
