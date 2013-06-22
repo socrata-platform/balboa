@@ -80,9 +80,9 @@ abstract trait MetricQueue {
 
   def logDatasetReferrer(url:ReferrerUri, viewUid:ViewUid)
 
-  def logAction(actionType:MetricQueue.Action.Value, viewUid:ViewUid, domainId:DomainId, value: Integer, tokenUid:AppToken)
+  def logAction(actionType:MetricQueue.Action.Value, viewUid:ViewUid, domainId:DomainId, value:Int, tokenUid:AppToken)
 
-  def logRowAccess(accessChannel:MetricQueue.AccessChannel.Value, domainId:DomainId, viewUid:ViewUid, count: Integer, appTokenUid:AppToken)
+  def logRowAccess(accessChannel:MetricQueue.AccessChannel.Value, domainId:DomainId, viewUid:ViewUid, count:Int, appTokenUid:AppToken)
 
   def logBytesInOrOut(inOrOut: String, viewUid:ViewUid, domainId:DomainId, bytes: Long)
 

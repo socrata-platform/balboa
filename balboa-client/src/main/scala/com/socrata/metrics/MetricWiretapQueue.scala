@@ -9,16 +9,14 @@ import com.socrata.balboa.metrics.Metric.RecordType
  *
  */
 class MetricWiretapQueue extends AbstractMetricQueue {
-  var _record = List[MetricOp]()
+  var _record = List[MetricOperation]()
 
   @Override
   def create(entity:IdParts, name:IdParts, value:Long,timestamp:Long, t: RecordType) {
     synchronized {
-      _record = new MetricOp(entity, name, t) :: _record
+      _record = new MetricOperation(entity, name, t) :: _record
     }
   }
 
   def record() = _record
 }
-
-case class MetricOp(entity:IdParts, name:IdParts, t: RecordType)

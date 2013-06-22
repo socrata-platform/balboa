@@ -166,7 +166,7 @@ abstract class AbstractMetricQueue extends MetricQueue {
 
 
   //(actionType: com.socrata.metrics.MetricQueue.Action.Value, viewUid: com.socrata.metrics.ViewUid, domainId: com.socrata.metrics.DomainId, value: Integer, tokenUid: com.socrata.metrics.AppToken)Unit
-  def logAction(t:MetricQueue.Action.Value, viewUid:ViewUid, domainId:DomainId, value:Integer, tokenUid:AppToken) {
+  def logAction(t:MetricQueue.Action.Value, viewUid:ViewUid, domainId:DomainId, value:Int, tokenUid:AppToken) {
     val v:Int =
     if (value == null) {
       1
@@ -198,7 +198,7 @@ abstract class AbstractMetricQueue extends MetricQueue {
     create(domainId, Fluff("bytes-" + inOrOut), bytes)
   }
 
-  def logRowAccess(accessType:MetricQueue.AccessChannel.Value, domainId:DomainId, viewUid:ViewUid, count: Integer, token:AppToken) {
+  def logRowAccess(accessType:MetricQueue.AccessChannel.Value, domainId:DomainId, viewUid:ViewUid, count: Int, token:AppToken) {
     create(viewUid, Fluff("rows-accessed-" + accessType), 1)
     create(domainId, Fluff("rows-accessed-" + accessType), 1)
     if (AccessChannel.DOWNLOAD eq accessType) {
