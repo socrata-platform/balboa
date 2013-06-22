@@ -1,5 +1,9 @@
 package com.socrata.metrics
 
+import java.util.UUID
+import java.net.URL
+import org.apache.commons.lang.StringUtils
+
 /**
  * A way of statically typing some of the entity/metric name keys
  */
@@ -31,9 +35,32 @@ case class MetricIdParts(p:MetricIdPart *) extends IdParts(p)
 case class ViewUid(viewUid:String) extends MetricIdPart(viewUid)
 case class UserUid(viewUid:String) extends MetricIdPart(viewUid)
 case class DomainId(domainId:Int) extends MetricIdPart(String.valueOf(domainId))
-case class ReferrerUri(referrer:String)
+
+case class ReferrerUri(referrer: String)
   extends MetricIdPart(if (referrer.length > ReferrerUri.MAX_URL_SIZE) referrer.substring(0, ReferrerUri.MAX_URL_SIZE)
-                       else referrer)
+  else referrer) {
+  def getPath() = {
+    if (referrer.startsWith("%"))
+      "%rpath:" + UUID.randomUUID().toString + "%"
+    else {
+      val url = new URL(referrer)
+      if (!StringUtils.isBlank(url.getQuery))
+        url.getPath + "?" + url.getQuery
+      else
+        url.getPath
+    }
+
+  }
+
+  def getHost() = {
+    if (referrer.startsWith("%"))
+      "%rhost:" + UUID.randomUUID().toString + "%"
+    else {
+      val url = new URL(referrer)
+      url.getProtocol + "-" + url.getHost
+    }
+  }
+}
 case class QueryString(query:String) extends MetricIdPart(query)
 case class AppToken(token:String) extends MetricIdPart(token)
 case class Ip(ip:String) extends MetricIdPart(ip)

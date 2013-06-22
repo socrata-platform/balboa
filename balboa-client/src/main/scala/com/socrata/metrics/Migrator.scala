@@ -1,11 +1,13 @@
 package com.socrata.metrics
 
-import com.socrata.metrics.migrate.{ResolveChildrenToReadWrite, ViewUidMetricTransform, ResolvedMetricToReadWrite, MetricRecord}
+import com.socrata.metrics.migrate._
 import com.socrata.balboa.metrics.Metric.RecordType
-import java.util.Date
-import com.socrata.balboa.metrics.data.DataStoreFactory
+import java.util.{TimeZone, GregorianCalendar, Date}
+import com.socrata.balboa.metrics.data.{Period, DateRange, DataStoreFactory}
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
+import scala.collection.JavaConverters._
+
 
 class MigrationOperation(_entity:IdParts, _name:IdParts, _t:RecordType) {
   def getEntity =  _entity
@@ -39,7 +41,7 @@ case class ReadChildrenOperation(parent:ParentMetricOperation) extends Migration
 
 object Migrator {
   var log:Log = LogFactory.getLog("Migrator")
-  def migrateView(viewUid:ViewUid, destViewUid:ViewUid, domainId:DomainId, start:Date, end:Date) = {
+  def syncViewMetrics(viewUid:ViewUid, destViewUid:ViewUid, domainId:DomainId, start:Date, end:Date) = {
        // Record the operations associated with all log*(viewUid) calls
        log.info("======== Recording ========")
        val recording = new MetricRecord().recordViews(viewUid, domainId)
@@ -55,11 +57,31 @@ object Migrator {
        // Convert the operations, once more into read/write operations using the specified transform
        log.info("======== Pass Three ========")
        val passThree = passTwo flatMap { op:MigrationOperation => new ResolvedMetricToReadWrite(new ViewUidMetricTransform(viewUid, destViewUid)).apply(op) }
-       passThree
+       passThree.foreach(log.trace(_))
+       // For each time granularity, compare the read value to the write value and store the difference
+       log.info("======== Calculating Deltas ========")
+       val dates = new DateRange(start, end).toDates(Period.MONTHLY).asScala
+
+       val deltas = dates flatMap {
+         d:Date => {
+            val transformer = new CalculatedMetricDelta(DataStoreFactory.get(), Period.MONTHLY, d)
+            passThree flatMap {
+              op:MigrationOperation => {
+                 transformer.apply(op)
+              }
+            }
+         }
+       }
+       deltas
    }
 
    def main(args: Array[String]) {
-      val stuff = migrateView(ViewUid(args(0)), ViewUid(args(1)), DomainId(args(2).toInt), new Date(0), new Date())
+      val start = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+      start.set(2013, 1, 1, 0, 0, 0)
+      val end = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+      end.set(2013, 7, 1, 0, 0, 0)
+
+      val stuff = syncViewMetrics(ViewUid(args(0)), ViewUid(args(1)), DomainId(args(2).toInt), start.getTime, end.getTime)
      stuff.foreach {
        m => println(m)
      }

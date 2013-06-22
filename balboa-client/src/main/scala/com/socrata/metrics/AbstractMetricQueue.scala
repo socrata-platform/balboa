@@ -137,30 +137,18 @@ abstract class AbstractMetricQueue extends MetricQueue {
 
   def logDatasetReferrer(referrer:ReferrerUri, viewUid:ViewUid) {
     try {
-      val url:URL = new URL(referrer.referrer)
-      val host: String = url.getProtocol + "-" + url.getHost
-      var path: String = url.getPath
-      if (!StringUtils.isBlank(url.getQuery)) {
-        path += "?" + url.getQuery
-      }
-      create(MetricIdParts(Fluff("referrer-hosts-"), viewUid), MetricIdParts(Fluff("referrer-"), Host(host)), 1)
-      create(MetricIdParts(Fluff("referrer-paths-"), viewUid, Fluff("-"), Host(host)), MetricIdParts(Fluff("path-"), Path(path)), 1)
+      create(MetricIdParts(Fluff("referrer-hosts-"), viewUid), MetricIdParts(Fluff("referrer-"), Host(referrer.getHost())), 1)
+      create(MetricIdParts(Fluff("referrer-paths-"), viewUid, Fluff("-"), Host(referrer.getHost())), MetricIdParts(Fluff("path-"), Path(referrer.getPath)), 1)
     }
   }
 
   def logPublish(referrer:ReferrerUri, viewUid:ViewUid, domainId:DomainId) {
     try {
-      val url: URL = new URL(referrer.referrer)
-      val host: String = url.getProtocol + "-" + url.getHost
-      var path: String = url.getPath
-      if (!StringUtils.isBlank(url.getQuery)) {
-        path += "?" + url.getQuery
-      }
       create(MetricIdParts(Fluff("publishes-uids-"), domainId),MetricIdParts(Fluff("uid-"), viewUid), 1)
-      create(MetricIdParts(Fluff("publishes-hosts-"), viewUid),MetricIdParts(Fluff("referrer-"), Host(host)), 1)
-      create(MetricIdParts(Fluff("publishes-paths-"), viewUid, Fluff("-"), Host(host)),MetricIdParts(Fluff("path-"), Path(path)), 1)
-      create(MetricIdParts(Fluff("publishes-hosts-"), domainId),MetricIdParts(Fluff("referrer-"), Host(host)), 1)
-      create(MetricIdParts(Fluff("publishes-paths-"), domainId , Fluff("-"), Host(host)),MetricIdParts(Fluff("path-"), Path(path)), 1)
+      create(MetricIdParts(Fluff("publishes-hosts-"), viewUid),MetricIdParts(Fluff("referrer-"), Host(referrer.getHost())), 1)
+      create(MetricIdParts(Fluff("publishes-paths-"), viewUid, Fluff("-"), Host(referrer.getHost())),MetricIdParts(Fluff("path-"), Path(referrer.getPath)), 1)
+      create(MetricIdParts(Fluff("publishes-hosts-"), domainId),MetricIdParts(Fluff("referrer-"), Host(referrer.getHost())), 1)
+      create(MetricIdParts(Fluff("publishes-paths-"), domainId , Fluff("-"), Host(referrer.getHost())),MetricIdParts(Fluff("path-"), Path(referrer.getPath)), 1)
     }
   }
 

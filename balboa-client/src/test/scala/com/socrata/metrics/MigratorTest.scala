@@ -11,7 +11,7 @@ class MigratorTest {
   @Test
   @Ignore
   def testMigrateView {
-    val migration = Migrator.migrateView(ViewUid("1234xabcd"), ViewUid("43214xdcba"), DomainId(66), new Date(1234), new Date(4321))
+    val migration = Migrator.syncViewMetrics(ViewUid("1234xabcd"), ViewUid("43214xdcba"), DomainId(66), new Date(1234), new Date(4321))
     migration.foreach { x:MigrationOperation => println(x) }
   }
 }

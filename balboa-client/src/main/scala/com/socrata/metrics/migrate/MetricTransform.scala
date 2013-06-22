@@ -3,7 +3,7 @@ package com.socrata.metrics.migrate
 import com.socrata.metrics._
 import com.socrata.metrics.ReadWriteOperation
 import com.socrata.metrics.ViewUid
-import com.socrata.balboa.metrics.data.DataStore
+import com.socrata.balboa.metrics.data.{Period, DataStore}
 import java.util.Date
 import scala.collection.JavaConverters._
 import com.socrata.balboa.metrics.Metrics
@@ -82,6 +82,36 @@ class ResolveChildrenToReadWrite(ds: DataStore, start: Date, end: Date) extends 
       case op: MigrationOperation => Seq(op)
     }
 
+  }
+}
+
+class CalculatedMetricDelta(ds: DataStore, period:Period, time:Date) extends MetricTransform {
+
+  def getValue(entityMetrics:util.Iterator[Metrics], metricName:String):Long = {
+    if (entityMetrics == null || !entityMetrics.hasNext) {
+      return 0L
+    }
+    val metrics = entityMetrics.next().get(metricName)
+    if (metrics == null) {
+      return 0L
+    }
+    metrics.getValue.longValue()
+  }
+
+  def apply(op: MigrationOperation) = {
+    log.info("Calculating metric delta for instance " + time + "metric: " + op.getEntity + ":" + op.getName)
+    op match {
+      case rw:ReadWriteOperation => {
+        val readMetric = rw.read
+        val writeMetric = rw.write
+        val readEntity = ds.find(readMetric.getEntity.toString(), period, time)
+        val readValue = getValue(readEntity, readMetric.getName.toString())
+        val writeEntity = ds.find(writeMetric.getEntity.toString(), period, time)
+        val writeValue = getValue(writeEntity, writeMetric.getName.toString())
+        Seq(ReadWriteOperation(readMetric, writeMetric, Some(readValue - writeValue)))
+      }
+      case op:MigrationOperation => throw new InternalError("Delta calculations can only be performed on RW pairs")
+    }
   }
 }
 
