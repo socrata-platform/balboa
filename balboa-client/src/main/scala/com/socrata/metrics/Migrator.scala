@@ -43,21 +43,15 @@ object Migrator {
        // Record the operations associated with all log*(viewUid) calls
        log.info("======== Recording ========")
        val recording = new MetricRecord().recordViews(viewUid, domainId)
-       recording.foreach {
-         m => println(m)
-       }
+       recording.foreach(log.trace(_))
        // Convert the recording into a list of Migration Read* operations
        log.info("======== Pass One ======== ")
        val passOne = recording flatMap { op:MigrationOperation => new ResolvedMetricToReadWrite(new ViewUidMetricTransform(viewUid, destViewUid)).apply(op) }
-       passOne.foreach {
-         m => println(m)
-       }
+       passOne.foreach(log.trace(_))
        // transform all ReadChildrenOperations into ReadWrite by actually reading the parent entity/metric
        log.info("======== Pass Two ========")
        val passTwo = passOne flatMap { op:MigrationOperation => new ResolveChildrenToReadWrite(DataStoreFactory.get(), start, end).apply(op) }
-    passTwo.foreach {
-      m => println(m)
-    }
+       passTwo.foreach(log.trace(_))
        // Convert the operations, once more into read/write operations using the specified transform
        log.info("======== Pass Three ========")
        val passThree = passTwo flatMap { op:MigrationOperation => new ResolvedMetricToReadWrite(new ViewUidMetricTransform(viewUid, destViewUid)).apply(op) }

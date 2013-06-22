@@ -23,7 +23,9 @@ trait MetricTransform {
 class ViewUidMetricTransform(in:ViewUid, out:ViewUid) extends MetricTransform {
   def apply(op:MigrationOperation) = {
     log.info("View Transform " + op.getEntity + ":" + op.getName)
-    Seq(op.replacePart(in, out))
+    val transformed = op.replacePart(in, out)
+    log.info("   Transformed to " + transformed.getEntity + ":" + transformed.getName)
+    Seq(transformed)
   }
 }
 
@@ -44,15 +46,13 @@ class ResolvedMetricToReadWrite(transform:MetricTransform) extends MetricTransfo
 
 class ResolveChildrenToReadWrite(ds: DataStore, start: Date, end: Date) extends MetricTransform {
   def parentToOperation(entity:IdParts, name:String, recordType:RecordType) = {
-    Seq(
-        ResolvedMetricOperation(entity, Fluff(name), recordType)
-    )
+    Seq(ResolvedMetricOperation(entity, Fluff(name), recordType))
   }
 
   def childrenToOperation(name:String, children:Seq[MigrationOperation]):Seq[MigrationOperation] = {
     children flatMap {
       child:MigrationOperation => {
-        log.info("Child to Resolved Op " + child.getEntity + ":" + child.getName)
+        log.info("Child to Resolved Op " + child.getEntity + ":" + child.getName + " <- " + name)
         assert(child.isUnresolved())
         assert(!child.getName.isUnresolved())
         Seq(ResolvedMetricOperation(child.getEntity.replaceFirstUnresolved(Fluff(name)), child.getName, child.getRecordType))
