@@ -3,14 +3,15 @@ package com.socrata.metrics.migrate
 import com.socrata.metrics._
 import com.socrata.metrics.ReadWriteOperation
 import com.socrata.metrics.ViewUid
-import com.socrata.balboa.metrics.data.{Period, DataStore}
+import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, Period, DataStore}
 import java.util.Date
 import scala.collection.JavaConverters._
-import com.socrata.balboa.metrics.Metrics
+import com.socrata.balboa.metrics.{Metric, Metrics}
 import java.util
 import com.socrata.balboa.metrics.Metric.RecordType
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  *
@@ -85,6 +86,10 @@ class ResolveChildrenToReadWrite(ds: DataStore, start: Date, end: Date) extends 
   }
 }
 
+object CalculatedMetricDelta {
+  val metricCache = new ConcurrentHashMap[String,util.Iterator[Metrics]]()
+}
+
 class CalculatedMetricDelta(ds: DataStore, period:Period, time:Date) extends MetricTransform {
 
   def getValue(entityMetrics:util.Iterator[Metrics], metricName:String):Long = {
@@ -99,18 +104,78 @@ class CalculatedMetricDelta(ds: DataStore, period:Period, time:Date) extends Met
   }
 
   def apply(op: MigrationOperation) = {
-    log.info("Calculating metric delta for instance " + time + "metric: " + op.getEntity + ":" + op.getName)
+    log.info("            Calculating metric delta for instance " + time + " period " + period + " metric: " + op.getEntity + ":" + op.getName)
     op match {
       case rw:ReadWriteOperation => {
         val readMetric = rw.read
         val writeMetric = rw.write
-        val readEntity = ds.find(readMetric.getEntity.toString(), period, time)
+        val cacheKey = readMetric.getEntity.toString() + "-" + period + "-" + time.getTime
+        val cachedEntity = CalculatedMetricDelta.metricCache.get(cacheKey)
+        val readEntity = if (cachedEntity != null) cachedEntity
+          else {
+            val entry = ds.find(readMetric.getEntity.toString(), period, time);
+            CalculatedMetricDelta.metricCache.put(cacheKey, entry);
+            entry
+          }
         val readValue = getValue(readEntity, readMetric.getName.toString())
         val writeEntity = ds.find(writeMetric.getEntity.toString(), period, time)
         val writeValue = getValue(writeEntity, writeMetric.getName.toString())
-        Seq(ReadWriteOperation(readMetric, writeMetric, Some(readValue - writeValue)))
+        if ((readValue - writeValue) > 0)
+          Seq(ReadWriteOperation(readMetric, writeMetric, Some(readValue - writeValue), time, period))
+        else
+          Seq()
       }
       case op:MigrationOperation => throw new InternalError("Delta calculations can only be performed on RW pairs")
+    }
+  }
+}
+
+class ExpandToRange(period:Period, start:Date, end:Date) extends MetricTransform {
+  def apply(op: MigrationOperation) = {
+    new DateRange(start, end).toDates(period).asScala flatMap {
+      d:Date => new CalculatedMetricDelta(DataStoreFactory.get(), period, d).apply(op)
+    }
+  }
+}
+
+class ExpandOpToPeriod(period:Period) extends MetricTransform {
+  def apply(op: MigrationOperation) = {
+    log.info("Calculating sub-periods for instance metric: " + op.getEntity + ":" + op.getName)
+    op match {
+      case p: ReadWriteOperation => {
+        log.info("      Expanding metric from " + p.period + " to " + period + " values " + p.getValue())
+        assert(p.period.compareTo(period) < 0)
+        if (p.getValue().isDefined && p.getValue().get > 0) {
+          val fullRange = DateRange.create(p.period, p.time)
+          new ExpandToRange(period, fullRange.start, fullRange.end).apply(op)
+        } else {
+          log.info("      Ignoring zeroed out metric: " + p.getEntity + ":" + p.getName)
+          Seq()
+        }
+      }
+      case _:MigrationOperation => assert(false); Seq()
+    }
+  }
+}
+
+class WriteMetric(ds: DataStore, dryrun:Boolean) extends MetricTransform {
+  def apply(op: MigrationOperation) = {
+    op match {
+      case p: ReadWriteOperation => {
+          assert(p.period == Period.FIFTEEN_MINUTE)
+          assert(p.getValue().get > 0)
+          log.info("Writing metric " + p.write.getEntity + ":" + p.write.getName + ":" + p.write.getRecordType + " -> " + p.getValue())
+          if (!dryrun) {
+            val metrics = new Metrics()
+            val metric = new Metric()
+            metric.setType(p.write.getRecordType)
+            metric.setValue(p.getValue().get)
+            metrics.put(p.write.getName.toString(), metric)
+            ds.persist(p.write.getEntity.toString(), p.getTime().getTime, metrics)
+          }
+          Seq()
+      }
+      case _:MigrationOperation => assert(false); Seq()
     }
   }
 }
