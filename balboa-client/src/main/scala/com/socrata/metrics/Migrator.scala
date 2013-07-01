@@ -45,6 +45,39 @@ case class ReadChildrenOperation(parent:ParentMetricOperation) extends Migration
 
 object Migrator {
   var log:Log = LogFactory.getLog("Migrator")
+
+  def migrate(ops:Seq[MigrationOperation], start:Date, end:Date, dryrun:Boolean) = {
+    log.info("======== Calculating Yearly ========")
+    val yearlies = ops flatMap {
+      y:MigrationOperation => new ExpandToRange(Period.YEARLY, start, end).apply(y)
+    }
+    log.info("======== Calculating Monthly ========")
+    val monthlies = yearlies.par flatMap {
+      y:MigrationOperation => new ExpandOpToPeriod(Period.MONTHLY).apply(y)
+    }
+    //og.info("======== Calculating Weekly ========")
+    //val weeklies = monthlies flatMap {
+    //  y:MigrationOperation => new ExpandOpToPeriod(Period.WEEKLY).apply(y)
+    //}
+    log.info("======== Calculating Daily ========")
+    val dailies = monthlies.par flatMap {
+      y:MigrationOperation => new ExpandOpToPeriod(Period.DAILY).apply(y)
+    }
+    log.info("======== Calculating Hourly ========")
+    val deltas = dailies.par flatMap {
+      y:MigrationOperation => new ExpandOpToPeriod(Period.HOURLY).apply(y)
+    }
+    //log.info("======== Calculating Fifteen Minutely ========")
+    //val deltas = hourlies flatMap {
+    //  y:MigrationOperation => new ExpandOpToPeriod(Period.FIFTEEN_MINUTE).apply(y)
+    //}
+    log.info("======== Writing Metrics ========")
+
+    deltas flatMap {
+      d:MigrationOperation => new WriteMetric(DataStoreFactory.get(), dryrun).apply(d)
+    }
+  }
+
   def syncViewMetrics(viewUid:ViewUid, destViewUid:ViewUid, domainId:DomainId, start:Date, end:Date, dryrun:Boolean) = {
        // Record the operations associated with all log*(viewUid) calls
        log.info("======== Recording ========")
@@ -62,51 +95,31 @@ object Migrator {
        log.info("======== Pass Three ========")
        val passThree = passTwo flatMap { op:MigrationOperation => new ResolvedMetricToReadWrite(new ViewUidMetricTransform(viewUid, destViewUid)).apply(op) }
        passThree.foreach(log.trace(_))
-       log.info("======== Calculating Yearly ========")
-       val yearlies = passThree.par flatMap {
-         y:MigrationOperation => new ExpandToRange(Period.YEARLY, start, end).apply(y)
-       }
-       log.info("======== Calculating Monthly ========")
-       val monthlies = yearlies.par flatMap {
-         y:MigrationOperation => new ExpandOpToPeriod(Period.MONTHLY).apply(y)
-       }
-       log.info("======== Calculating Weekly ========")
-       val weeklies = monthlies.par flatMap {
-         y:MigrationOperation => new ExpandOpToPeriod(Period.WEEKLY).apply(y)
-       }
-       log.info("======== Calculating Daily ========")
-       val dailies = weeklies.par flatMap {
-         y:MigrationOperation => new ExpandOpToPeriod(Period.DAILY).apply(y)
-       }
-       log.info("======== Calculating Hourly ========")
-       val hourlies = dailies.par flatMap {
-         y:MigrationOperation => new ExpandOpToPeriod(Period.HOURLY).apply(y)
-       }
-       log.info("======== Calculating Fifteen Minutely ========")
-       val deltas = hourlies.par flatMap {
-         y:MigrationOperation => new ExpandOpToPeriod(Period.FIFTEEN_MINUTE).apply(y)
-       }
-       log.info("======== Writing Metrics ========")
+       migrate(passThree, start, end, dryrun)
+   }
 
-       deltas flatMap {
-         d:MigrationOperation => new WriteMetric(DataStoreFactory.get(), dryrun).apply(d)
-       }
+   // copy 4x4/rows-accessed-download to 4x4/files-downloaded
+   def esriToMondara(viewUid:ViewUid, start:Date, end:Date, dryrun:Boolean) = {
+     val from = new ResolvedMetricOperation(viewUid, Fluff("rows-accessed-download"), RecordType.AGGREGATE)
+     val to= new ResolvedMetricOperation(viewUid, Fluff("files-downloaded"), RecordType.AGGREGATE)
+     val rw = ReadWriteOperation(from, to, None)
+     migrate(Seq(rw), start, end, dryrun)
    }
 
    def main(args: Array[String]) {
-      if (args.length < 4) {
-        println("Migrator [src view 4x4] [dst view 4x4] [domain id] [dryrun|real]")
-        System.exit(1)
-      }
       val start = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
       start.set(2009, 1, 1, 0, 0, 0)
       val end = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
       end.set(2014, 1, 1, 0, 0, 0)
-
-      val stuff = syncViewMetrics(ViewUid(args(0)), ViewUid(args(1)), DomainId(args(2).toInt), start.getTime, end.getTime, !"real".equals(args(3)))
-     stuff.foreach {
-       m => println(m)
-     }
+      args(0).toString match {
+        case "view" => syncViewMetrics(ViewUid(args(1)), ViewUid(args(2)), DomainId(args(3).toInt), start.getTime, end.getTime, !"real".equals(args(4)))
+        case "e2m" => esriToMondara(ViewUid(args(1)), start.getTime, end.getTime, !"real".equals(args(2)))
+        case _ =>  {
+          println("Migrator view [src view 4x4] [dst view 4x4] [domain id] [dryrun|real]")
+          println("Migrator e2m view 4x4] [dryrun|real]")
+          Seq()
+        }
+      }
    }
 }
 

@@ -162,9 +162,9 @@ class WriteMetric(ds: DataStore, dryrun:Boolean) extends MetricTransform {
   def apply(op: MigrationOperation) = {
     op match {
       case p: ReadWriteOperation => {
-          assert(p.period == Period.FIFTEEN_MINUTE)
+          //assert(p.period == Period.FIFTEEN_MINUTE)
           assert(p.getValue().get > 0)
-          log.info("Writing metric " + p.write.getEntity + ":" + p.write.getName + ":" + p.write.getRecordType + " -> " + p.getValue())
+          log.info("Writing metric " + p.write.getEntity + ":" + p.write.getName + ":" + p.write.getRecordType + " -> " + p.getValue().get)
           if (!dryrun) {
             val metrics = new Metrics()
             val metric = new Metric()
