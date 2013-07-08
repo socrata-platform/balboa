@@ -12,7 +12,7 @@ public class DataStoreFactory
     public static DataStore get()
     {
         String datastore;
-        
+
         try
         {
             datastore = (String)Configuration.get().get("balboa.datastore");

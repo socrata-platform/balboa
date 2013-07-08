@@ -21,9 +21,9 @@ trait MetricTransform {
   def apply(op:MigrationOperation):Seq[MigrationOperation]
 }
 
-class ViewUidMetricTransform(in:ViewUid, out:ViewUid) extends MetricTransform {
+class MetricPartTransform(in:MetricIdPart, out:MetricIdPart) extends MetricTransform {
   def apply(op:MigrationOperation) = {
-    log.info("View Transform " + op.getEntity + ":" + op.getName)
+    log.info("Metric Part Transform " + op.getEntity + ":" + op.getName)
     val transformed = op.replacePart(in, out)
     log.info("   Transformed to " + transformed.getEntity + ":" + transformed.getName)
     Seq(transformed)
@@ -80,6 +80,15 @@ class ResolveChildrenToReadWrite(ds: DataStore, start: Date, end: Date) extends 
           }
         }
       }.toSeq
+      case full:FullEntityMetricOperation => {
+        ds.find(full.entity.toString(), start, end).asScala flatMap {
+          m: Metrics => {
+            m.keySet().asScala flatMap {
+              name:String => Seq(ResolvedMetricOperation(full.entity, Fluff(name), RecordType.AGGREGATE))
+            }
+          }
+        }
+      }.toSeq
       case op: MigrationOperation => Seq(op)
     }
 
@@ -90,7 +99,7 @@ object CalculatedMetricDelta {
   val metricCache = new ConcurrentHashMap[String,util.Iterator[Metrics]]()
 }
 
-class CalculatedMetricDelta(ds: DataStore, period:Period, time:Date) extends MetricTransform {
+class CalculatedMetricDelta(ds: DataStore, period:Period, time:Date, readOnly:Boolean) extends MetricTransform {
 
   def getValue(entityMetrics:util.Iterator[Metrics], metricName:String):Long = {
     if (entityMetrics == null || !entityMetrics.hasNext) {
@@ -118,8 +127,11 @@ class CalculatedMetricDelta(ds: DataStore, period:Period, time:Date) extends Met
             entry
           }
         val readValue = getValue(readEntity, readMetric.getName.toString())
-        val writeEntity = ds.find(writeMetric.getEntity.toString(), period, time)
-        val writeValue = getValue(writeEntity, writeMetric.getName.toString())
+        var writeValue = 0L
+        if (!readOnly) {
+           val writeEntity = ds.find(writeMetric.getEntity.toString(), period, time)
+           writeValue = getValue(writeEntity, writeMetric.getName.toString())
+        }
         if ((readValue - writeValue) > 0)
           Seq(ReadWriteOperation(readMetric, writeMetric, Some(readValue - writeValue), time, period))
         else
@@ -130,15 +142,15 @@ class CalculatedMetricDelta(ds: DataStore, period:Period, time:Date) extends Met
   }
 }
 
-class ExpandToRange(period:Period, start:Date, end:Date) extends MetricTransform {
+class ExpandToRange(period:Period, start:Date, end:Date, readOnly:Boolean) extends MetricTransform {
   def apply(op: MigrationOperation) = {
     new DateRange(start, end).toDates(period).asScala flatMap {
-      d:Date => new CalculatedMetricDelta(DataStoreFactory.get(), period, d).apply(op)
+      d:Date => new CalculatedMetricDelta(DataStoreFactory.get(), period, d, readOnly).apply(op)
     }
   }
 }
 
-class ExpandOpToPeriod(period:Period) extends MetricTransform {
+class ExpandOpToPeriod(period:Period, readOnly:Boolean) extends MetricTransform {
   def apply(op: MigrationOperation) = {
     log.info("Calculating sub-periods for instance metric: " + op.getEntity + ":" + op.getName)
     op match {
@@ -147,7 +159,7 @@ class ExpandOpToPeriod(period:Period) extends MetricTransform {
         assert(p.period.compareTo(period) < 0)
         if (p.getValue().isDefined && p.getValue().get > 0) {
           val fullRange = DateRange.create(p.period, p.time)
-          new ExpandToRange(period, fullRange.start, fullRange.end).apply(op)
+          new ExpandToRange(period, fullRange.start, fullRange.end, readOnly).apply(op)
         } else {
           log.info("      Ignoring zeroed out metric: " + p.getEntity + ":" + p.getName)
           Seq()

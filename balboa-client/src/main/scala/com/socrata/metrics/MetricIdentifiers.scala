@@ -67,6 +67,7 @@ case class Ip(ip:String) extends MetricIdPart(ip)
 case class Host(host:String) extends MetricIdPart(host)
 case class Path(path:String) extends MetricIdPart(path)
 case class Fluff(fluff:String) extends MetricIdPart(fluff)
+case class Unknown() extends MetricIdPart("unknown")
 
 object ReferrerUri {
   final val MAX_URL_SIZE: Int = 500
