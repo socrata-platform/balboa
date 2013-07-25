@@ -9,25 +9,25 @@ import java.io.IOException;
 
 public class DataStoreFactory
 {
-    public static DataStore get()
-    {
-        String datastore;
 
-        try
-        {
-            datastore = (String)Configuration.get().get("balboa.datastore");
-        }
-        catch (IOException e)
-        {
+    public static DataStore get() {
+        try {
+            return get(Configuration.get());
+        } catch (IOException e) {
             throw new PropertiesConfiguration.ConfigurationException("Unable to determine which datastore to use because the configuration couldn't be read.", e);
         }
+    }
+
+    public static DataStore get(Configuration conf)
+    {
+        String datastore = (String)conf.get("balboa.datastore");
 
         if (datastore.equals("buffered-cassandra")) {
             return new BufferedDataStore(
                     new BadIdeasDataStore(
                             new Cassandra11DataStore(
                                     new Cassandra11QueryImpl(
-                                            Cassandra11Util.context()))));
+                                            Cassandra11Util.initializeContext(conf)))));
         }
 
         if (datastore.equals("cassandra"))
@@ -35,7 +35,7 @@ public class DataStoreFactory
             return new BadIdeasDataStore(
                     new Cassandra11DataStore(
                             new Cassandra11QueryImpl(
-                                    Cassandra11Util.context())));
+                                    Cassandra11Util.initializeContext(conf))));
         }
         else
         {

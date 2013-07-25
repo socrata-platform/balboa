@@ -86,7 +86,11 @@ object Cassandra11Util {
   def createEntityKey(entityId:String, timestamp:Long) = entityId + "-" + timestamp
 
   def initializeContext():AstyanaxContext[Keyspace] = {
-    val conf = Configuration.get()
+    initializeContext(Configuration.get())
+  }
+
+  def initializeContext(conf:Configuration):AstyanaxContext[Keyspace] = {
+
     val seeds = conf.getProperty("cassandra.servers")
     val keyspace = conf.getProperty("cassandra.keyspace")
     val sotimeout = conf.getProperty("cassandra.sotimeout").toInt
