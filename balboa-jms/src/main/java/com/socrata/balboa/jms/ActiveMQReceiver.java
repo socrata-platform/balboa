@@ -1,6 +1,5 @@
 package com.socrata.balboa.jms;
 
-import com.socrata.balboa.metrics.*;
 import com.socrata.balboa.metrics.WatchDog;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.impl.JsonMessage;

@@ -2,7 +2,6 @@ package com.socrata.metrics
 
 import java.util.UUID
 import java.net.URL
-import org.apache.commons.lang.StringUtils
 
 /**
  * A way of statically typing some of the entity/metric name keys
@@ -39,12 +38,16 @@ case class DomainId(domainId:Int) extends MetricIdPart(String.valueOf(domainId))
 case class ReferrerUri(referrer: String)
   extends MetricIdPart(if (referrer.length > ReferrerUri.MAX_URL_SIZE) referrer.substring(0, ReferrerUri.MAX_URL_SIZE)
   else referrer) {
+  def isBlank(query:String) = {
+    query == null || query.trim.isEmpty
+  }
   def getPath() = {
     if (referrer.startsWith("%"))
       "%rpath:" + UUID.randomUUID().toString + "%"
     else {
       val url = new URL(referrer)
-      if (!StringUtils.isBlank(url.getQuery))
+
+      if (!isBlank(url.getQuery))
         url.getPath + "?" + url.getQuery
       else
         url.getPath

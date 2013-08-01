@@ -1,11 +1,8 @@
 package com.socrata.metrics
 
 import com.socrata.balboa.metrics.Metric
-import org.apache.commons.lang.StringUtils
-import java.net.URL
 import java.util.Date
 import com.socrata.metrics.MetricQueue.{AccessChannel, Action}
-import scala.math.Numeric
 
 abstract class AbstractMetricQueue extends MetricQueue {
 

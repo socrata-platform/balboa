@@ -3,8 +3,6 @@ package com.socrata.metrics
 import com.socrata.balboa.metrics.Metric
 
 
-
-
 object MetricQueue {
   val AGGREGATE_GRANULARITY: Long = 120 * 1000
 
