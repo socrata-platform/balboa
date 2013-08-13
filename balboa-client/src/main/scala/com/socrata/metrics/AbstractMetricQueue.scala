@@ -151,17 +151,11 @@ abstract class AbstractMetricQueue extends MetricQueue {
 
 
   //(actionType: com.socrata.metrics.MetricQueue.Action.Value, viewUid: com.socrata.metrics.ViewUid, domainId: com.socrata.metrics.DomainId, value: Integer, tokenUid: com.socrata.metrics.AppToken)Unit
-  def logAction(t:MetricQueue.Action.Value, viewUid:ViewUid, domainId:DomainId, value:Int, tokenUid:AppToken) {
-    val v:Int =
-    if (value == null) {
-      1
-    } else {
-      value
-    }
+  def logAction(t:MetricQueue.Action.Value, viewUid:ViewUid, domainId:DomainId, value:Int=1, tokenUid:AppToken) {
     if (t eq Action.RATING) {
-      create(viewUid, Fluff("ratings-total"), v)
+      create(viewUid, Fluff("ratings-total"), value)
       create(viewUid, Fluff("ratings-count"), 1)
-      create(domainId, Fluff("ratings-total"), v)
+      create(domainId, Fluff("ratings-total"), value)
       create(domainId, Fluff("ratings-count"), 1)
     }
     else if (t eq Action.VIEW) {
