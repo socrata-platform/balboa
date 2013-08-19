@@ -34,7 +34,7 @@ object BalboaHttp {
 
   lazy val settings: Seq[Setting[_]] = BuildSettings.buildSettings ++ socrataProjectSettings(assembly = true) ++ net.virtualvoid.sbt.graph.Plugin.graphSettings ++ Seq(
     libraryDependencies ++= Seq(
-      "com.socrata" %% "socrata-http" % "1.1.0",
+      "com.socrata" %% "socrata-http" % "1.3.2",
       "com.rojoma" %% "rojoma-json" % "2.1.0",
       "junit" % "junit" % "4.5" % "test"
     ),

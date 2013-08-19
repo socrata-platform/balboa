@@ -8,6 +8,7 @@ object BuildSettings {
   val buildSettings: Seq[Setting[_]] = Defaults.defaultSettings ++ socrataBuildSettings ++ Seq(
     scalaVersion := "2.10.1",
     fork in test := true,
-    javaOptions in test += "-Dsocrata.env=test"
+    javaOptions in test += "-Dsocrata.env=test",
+    resolvers += "socrata releases" at "https://repository-socrata-oss.forge.cloudbees.com/release"
   )
 }
