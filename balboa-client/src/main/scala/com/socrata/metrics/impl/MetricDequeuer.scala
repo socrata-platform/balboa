@@ -3,7 +3,7 @@ package com.socrata.metrics.impl
 import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.metrics.collection.PreBufferQueue
 import com.socrata.metrics.components.{MetricEntry, BufferItem, BufferComponent}
-import java.util.concurrent.{RejectedExecutionException, TimeUnit, Executors, ExecutorService}
+import java.util.concurrent.{TimeUnit, Executors, ExecutorService}
 import org.apache.commons.logging.LogFactory
 
 trait MetricDequeuerService {

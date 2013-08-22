@@ -1,9 +1,9 @@
-create keyspace Metrics3
+create keyspace Metrics2012
   with placement_strategy = 'NetworkTopologyStrategy'
   and strategy_options = {datacenter1 : 1}
   and durable_writes = true;
 
-use Metrics3;
+use Metrics2012;
 
 create column family daily_absolute
   with column_type = 'Standard'
@@ -154,3 +154,4 @@ create column family yearly_aggregate
   and compaction_strategy = 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'
   and caching = 'KEYS_ONLY'
   and compression_options = {'sstable_compression' : 'org.apache.cassandra.io.compress.SnappyCompressor'};
+

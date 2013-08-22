@@ -30,7 +30,7 @@ trait ActiveMQueueComponent extends MessageQueueComponent {
 
     def send(msg:Message) = {
       try {
-        producer.send(session.createObjectMessage(msg.serialize()))
+        producer.send(session.createTextMessage(new String(msg.serialize())))
       } catch {
         case e:Exception =>
           log.error(e)

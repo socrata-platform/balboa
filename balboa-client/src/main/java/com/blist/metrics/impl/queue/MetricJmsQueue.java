@@ -1,24 +1,22 @@
 package com.blist.metrics.impl.queue;
 
-import com.socrata.metrics.*;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import javax.jms.*;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.jms.*;
 
 import static com.socrata.util.deepcast.DeepCast.*;
-
 import com.socrata.balboa.metrics.impl.JsonMessage;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.*;
+import com.socrata.metrics.*;
 
-import java.io.IOException;
 
 /**
  * This class mirrors the Event class except that it drops the events in the
@@ -188,7 +186,7 @@ public class MetricJmsQueue extends AbstractMetricQueue {
     }
 
     void updateWriteBuffer(String entityId, long timestamp, Metrics metrics) {
-        if (entityId != null) {
+        if (entityId == null) {
             throw new RuntimeException("Unable to insert data without an entityId.");
         } else if (timestamp <= 0) {
             throw new RuntimeException("Unable to insert data without a timestamp.");
@@ -205,7 +203,7 @@ public class MetricJmsQueue extends AbstractMetricQueue {
             msg.setMetrics(metrics);
             msg.setTimestamp(timestamp);
             try {
-                producer.send(session.createObjectMessage(msg.serialize()));
+                producer.send(session.createTextMessage(new String(msg.serialize())));
             } catch (IOException e) {
                 log.error("Unable to serialize metric for entity " + entityId, e);
             }

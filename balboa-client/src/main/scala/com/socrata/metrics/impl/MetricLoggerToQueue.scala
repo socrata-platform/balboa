@@ -42,7 +42,9 @@ trait MetricLoggerToQueue extends MetricLoggerComponent {
                        with ActiveMQueueComponent
                        with LinkedBlockingPreBufferQueue
                        with BufferedStreamEmergencyWriterComponent
-                       with ServerInformation { lazy val activeServer = serverName; lazy val activeQueue = queueName; lazy val backupFile = backupFileName}
+                       with ServerInformation { lazy val activeServer = serverName
+                                                lazy val activeQueue = queueName
+                                                lazy val backupFile = backupFileName}
   }
 
 }
