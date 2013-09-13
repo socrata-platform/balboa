@@ -11,11 +11,17 @@ object BalboaClient {
     libraryDependencies <++= (slf4jVersion) { slf4jVersion => Seq(
       "org.apache.activemq" % "activemq-core" % "5.2.0",
       "com.socrata" %% "socrata-utils" % "[0.6.0,1.0.0)",
+      "com.rojoma" %% "simple-arm" % "1.1.10",
       "log4j" % "log4j" % "1.2.16",
       "org.slf4j" % "slf4j-api" % slf4jVersion,
       "org.slf4j" % "slf4j-log4j12" % slf4jVersion
     )},
-    jarName in assembly <<= name(_ + "-jar-with-dependencies.jar")
+    jarName in assembly <<= name(_ + "-jar-with-dependencies.jar"),
+    dependenciesSnippet :=
+      <xml.group>
+        <conflict org="com.socrata" manager="latest-compatible" />
+        <conflict org="com.rojoma" manager="latest-compatible" />
+      </xml.group>
   )
 }
 

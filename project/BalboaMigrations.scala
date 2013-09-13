@@ -11,9 +11,14 @@ object BalboaMigrations {
     libraryDependencies ++= Seq(
       "net.sf.opencsv" % "opencsv" % "2.0.1",
       "commons-collections" % "commons-collections" % "3.1",
+      "com.rojoma" %% "simple-arm" % "1.1.10",
       "log4j" % "log4j" % "1.2.16"
     ),
-    jarName in assembly <<= name(_ + "-jar-with-dependencies.jar")
+    jarName in assembly <<= name(_ + "-jar-with-dependencies.jar"),
+    dependenciesSnippet :=
+      <xml.group>
+        <conflict org="com.rojoma" manager="latest-compatible" />
+      </xml.group>
   )
 }
 

@@ -36,6 +36,7 @@ object BalboaHttp {
     libraryDependencies ++= Seq(
       "com.socrata" %% "socrata-http" % "1.3.2",
       "com.rojoma" %% "rojoma-json" % "2.1.0",
+      "com.rojoma" %% "simple-arm" % "1.1.10",
       "junit" % "junit" % "4.5" % "test"
     ),
     resourceGenerators in Compile <+= (resourceManaged in Compile, version in Compile, scalaVersion in Compile) map tagVersion,
@@ -43,6 +44,8 @@ object BalboaHttp {
     dependenciesSnippet :=
       <xml.group>
         <exclude org="javax.servlet" module="servlet-api" />
+        <conflict org="com.socrata" manager="latest-compatible" />
+        <conflict org="com.rojoma" manager="latest-compatible" />
       </xml.group>
   )
 }
