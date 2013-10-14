@@ -20,12 +20,15 @@ trait MetricDequeuerService {
 
     class PreBufferDequeuer(val buffer:Buffer) extends Runnable {
       def run() {
-        while(keepRunning) {
-          // if need be, we can add a cushion to prevent context switching, e.g. only take if (queue.size > 10)
-          queue.take() match {
-            case Some(m) => buffer.synchronized { buffer.add(asBufferItem(m)) }
-            case None =>
-          }
+        while(keepRunning) take()
+        while(!queue.isEmpty) take()
+      }
+
+      def take() {
+        // if need be, we can add a cushion to prevent context switching, e.g. only take if (queue.size > 10)
+        queue.take() match {
+          case Some(m) => buffer.synchronized { buffer.add(asBufferItem(m)) }
+          case None =>
         }
       }
     }
@@ -35,15 +38,6 @@ trait MetricDequeuerService {
         val numFlushed = buffer.synchronized { buffer.flush() }
         val queueSize = queue.size
         if (numFlushed < queueSize) log.warn("The metric queue contains " + queueSize + " elements; the last buffer flush emptied out " + numFlushed + " elements.")
-      }
-    }
-
-    private def shutDown(service:ExecutorService) {
-      if (!keepRunning) {
-        service.shutdown()
-        if(service.awaitTermination(timeout, TimeUnit.MILLISECONDS)) service.shutdownNow()
-        else if(service.awaitTermination(timeout, TimeUnit.MILLISECONDS)) service.shutdownNow()
-        else service.shutdownNow()
       }
     }
 
@@ -62,8 +56,14 @@ trait MetricDequeuerService {
 
     def stop() {
       keepRunning = false
-      shutDown(dequeueExecutor)
-      shutDown(flushExecutor)
+      dequeueExecutor.shutdown()
+      while(!dequeueExecutor.awaitTermination(timeout, TimeUnit.MILLISECONDS))
+        log.info("Emptying out BalboaClient queue; " + queue.size + " elements left.")
+      dequeueExecutor.shutdownNow()
+      flushExecutor.shutdown()
+      while(!flushExecutor.awaitTermination(timeout, TimeUnit.MILLISECONDS))
+        log.info("Allowing BalboaClient buffer to finish flushing; " + actualBuffer.size() + " elements left.")
+      flushExecutor.shutdownNow()
       actualBuffer.stop()
     }
   }

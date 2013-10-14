@@ -8,10 +8,13 @@ import scala.collection.JavaConverters._
 import com.socrata.metrics.components.{BufferItem, MessageQueueComponent, BufferComponent}
 import com.socrata.metrics.MetricQueue
 import scala.collection.mutable.HashMap
+import org.apache.commons.logging.LogFactory
 
 // Not Thread Safe; access must be synchronized by caller (MetricDequeuer)
 trait HashMapBufferComponent extends BufferComponent {
   self: MessageQueueComponent =>
+
+  private val log = LogFactory.getLog(classOf[Buffer])
 
   class Buffer extends BufferLike {
     val bufferMap = HashMap.empty[String, BufferItem]
@@ -80,8 +83,14 @@ trait HashMapBufferComponent extends BufferComponent {
     }
 
     def stop() {
+      if (bufferMap.size > 0) {
+        log.info("Flushing " + bufferMap.size + " metrics from BalboaClient buffer before shutting down ...")
+        flush()
+      }
       messageQueue.stop()
     }
+
+    def size() = bufferMap.size
 
   }
 

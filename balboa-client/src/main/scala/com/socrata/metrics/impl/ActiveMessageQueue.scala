@@ -26,6 +26,7 @@ trait ActiveMQueueComponent extends MessageQueueComponent {
     def stop() {
       connection.close()
       fileWriter.close()
+      log.info("Shutdown BalboaClient")
     }
 
     def send(msg:Message) = {

@@ -48,6 +48,20 @@ class MetricLoggerSpec extends WordSpec with ShouldMatchers
     }
   }
 
+  "Starting a MetricLogger, writing and immediately shutting down" should {
+    "not lose metrics" in {
+      val quickLogger = new MetricLogger() with MetricEnqueuer
+                                           with MetricDequeuerService
+                                           with HashMapBufferComponent
+                                           with TestMessageQueueComponent
+                                           with LinkedBlockingPreBufferQueue
+      quickLogger.enqueue(new MetricEntry("ayn", "num_kitties", 4, 1L, aggType))
+      quickLogger.stop()
+      Thread.sleep(300)
+      quickLogger.metricDequeuer.actualBuffer.messageQueue.dumpingQueue.size should be (1)
+
+    }
+  }
   def queueUpA1(baseTime:Long) = {
     testLogger.enqueue(new MetricEntry("ayn", "num_kitties", 1, baseTime, aggType))
     testLogger.enqueue(new MetricEntry("ayn", "num_kitties", 2, baseTime + granularity/4, aggType))

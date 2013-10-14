@@ -3,6 +3,7 @@ package com.socrata.metrics.impl
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.metrics.components.{MetricEntry, MetricEnqueuer, MetricLoggerComponent}
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
+import org.apache.commons.logging.LogFactory
 
 trait ServerInformation {
   def activeServer:String
@@ -13,6 +14,7 @@ trait ServerInformation {
 trait MetricLoggerToQueue extends MetricLoggerComponent {
   val delay = 120L
   val interval = 120L
+  private val log = LogFactory.getLog(classOf[MetricLogger])
 
   class MetricLogger() extends MetricLoggerLike {
     self: MetricEnqueuer with MetricDequeuerService =>
@@ -30,6 +32,7 @@ trait MetricLoggerToQueue extends MetricLoggerComponent {
 
     def stop() {
       acceptEnqueues = false
+      log.info("Beginning BalboaClient shutdown")
       metricDequeuer.stop()
     }
 
