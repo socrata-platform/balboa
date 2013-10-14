@@ -10,9 +10,12 @@ import java.io.*;
 public class MetricFileQueue extends AbstractMetricQueue {
     private static final Logger log = LoggerFactory.getLogger(MetricFileQueue.class);
     private static MetricFileQueue instance;
+    private static long MAX_METRICS_PER_FILE = 20000;
+
 
     private File directory;
     private long reopenTime;
+    private long metricCount = 0;
 
     private FileOutputStream fileStream = null;
     private BufferedOutputStream stream = null;
@@ -40,6 +43,7 @@ public class MetricFileQueue extends AbstractMetricQueue {
         fileStream = new FileOutputStream(new File(directory, logName), true);
         stream = new BufferedOutputStream(fileStream);
         reopenTime = now + MetricQueue$.MODULE$.AGGREGATE_GRANULARITY();
+        metricCount = 0;
     }
 
     public synchronized void close() throws IOException {
@@ -57,11 +61,11 @@ public class MetricFileQueue extends AbstractMetricQueue {
         try {
             if (stream == null) {
                 open();
-            } else if (System.currentTimeMillis() >= reopenTime) {
+            } else if (System.currentTimeMillis() >= reopenTime || metricCount >= MAX_METRICS_PER_FILE) {
                 close();
                 open();
             }
-
+            metricCount++;
             stream.write(0xff);
 
             stream.write(utf8(String.valueOf(timestamp)));
