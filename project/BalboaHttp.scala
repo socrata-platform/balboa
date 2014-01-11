@@ -1,6 +1,7 @@
 import sbt._
 import Keys._
 
+import sbtassembly.Plugin._
 import sbtassembly.Plugin.AssemblyKeys._
 import com.socrata.socratasbt.SocrataSbt._
 import SocrataSbtKeys._
@@ -41,6 +42,11 @@ object BalboaHttp {
     ),
     resourceGenerators in Compile <+= (resourceManaged in Compile, version in Compile, scalaVersion in Compile) map tagVersion,
     jarName in assembly <<= name(_ + "-jar-with-dependencies.jar"),
+    mergeStrategy in assembly <<= (mergeStrategy in assembly) { old => {
+        case PathList("org","slf4j","impl", xs @ _*) => MergeStrategy.first
+        case x => old(x)
+      }
+    },
     dependenciesSnippet :=
       <xml.group>
         <exclude org="javax.servlet" module="servlet-api" />
