@@ -23,7 +23,6 @@ object Cassandra11Util {
   val periods = Configuration.get().getSupportedPeriods()
   val leastGranular:Period = Period.leastGranular(periods)
   val mostGranular:Period = Period.mostGranular(periods)
-  val context:AstyanaxContext[Keyspace] = initializeContext()
 
   /*
    * Roll up a timeslice into another, more granular, unsupported Period

@@ -10,9 +10,17 @@ import java.io.IOException;
 public class DataStoreFactory
 {
 
+    private volatile static DataStore defaultDataStore = null;
     public static DataStore get() {
+        if (defaultDataStore != null)
+            return defaultDataStore;
         try {
-            return get(Configuration.get());
+            synchronized(DataStoreFactory.class) {
+                if (defaultDataStore != null)
+                    return defaultDataStore;
+                defaultDataStore = get(Configuration.get());
+            }
+            return defaultDataStore;
         } catch (IOException e) {
             throw new PropertiesConfiguration.ConfigurationException("Unable to determine which datastore to use because the configuration couldn't be read.", e);
         }

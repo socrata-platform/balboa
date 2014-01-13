@@ -14,7 +14,7 @@ import org.apache.commons.logging.{LogFactory, Log}
  *
  *
  */
-class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.context))
+class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext()))
   extends DataStoreImpl {
   private val log = LogFactory.getLog(classOf[Cassandra11DataStore])
   private val timeSvc = new TimeService()

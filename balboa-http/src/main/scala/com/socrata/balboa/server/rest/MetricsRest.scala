@@ -24,6 +24,7 @@ object MetricsRest {
 
   val json = "application/json; charset=utf-8"
   val protobuf = "application/x-protobuf"
+  val ds = DataStoreFactory.get()
 
   def extractEntityId(req: HttpServletRequest): String = {
     req.getPathInfo.split('/').filterNot(_.isEmpty)(1)
@@ -61,8 +62,6 @@ object MetricsRest {
 
     try
     {
-      val ds = DataStoreFactory.get()
-
       val iter = ds.find(entityId, period, range.start, range.end)
       var metrics = Metrics.summarize(iter)
 
@@ -94,7 +93,6 @@ object MetricsRest {
 
     try
     {
-      val ds = DataStoreFactory.get()
 
       val iter = ds.find(entityId, startDate, endDate)
       var metrics = Metrics.summarize(iter)
@@ -130,8 +128,6 @@ object MetricsRest {
 
     try
     {
-      val ds = DataStoreFactory.get()
-
       val iter = ds.slices(entityId, period, startDate, endDate)
 
       OK ~> ContentType(json) ~> Content(renderJson(iter))

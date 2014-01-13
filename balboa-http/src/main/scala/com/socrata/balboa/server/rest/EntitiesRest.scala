@@ -12,9 +12,10 @@ import javax.servlet.http.HttpServletRequest
 import com.rojoma.json.ast.JString
 
 object EntitiesRest extends Service[HttpServletRequest, HttpResponse] {
+  val ds = DataStoreFactory.get
+
   def apply(req: HttpServletRequest): HttpResponse = {
     val qs = new QueryExtractor(req)
-    val ds = DataStoreFactory.get
     val predicate: (String => Boolean) =
       qs[String]("filter").map(_.right.get).map(Pattern.compile).map { pattern => (str: String) => pattern.matcher(str).matches }.getOrElse(_ => true)
 
