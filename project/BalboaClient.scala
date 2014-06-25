@@ -11,7 +11,7 @@ object BalboaClient {
     libraryDependencies ++= Seq(
       "org.apache.activemq" % "activemq-core" % "5.2.0",
       "com.socrata" %% "socrata-utils" % "[0.6.0,1.0.0)",
-      "com.rojoma" %% "simple-arm" % "1.1.10",
+      "com.rojoma" %% "simple-arm" % "[1.1.10, 2.0.0)",
       "log4j" % "log4j" % "1.2.16"
     ),
     jarName in assembly <<= name(_ + "-jar-with-dependencies.jar"),
