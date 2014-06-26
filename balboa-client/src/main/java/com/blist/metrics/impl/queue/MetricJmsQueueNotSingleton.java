@@ -60,7 +60,7 @@ public class MetricJmsQueueNotSingleton extends AbstractMetricQueue {
 
             if (buffer.containsKey(bufferKey)) {
                 Item buffered = buffer.get(bufferKey);
-                merge(mapOf(string, mapOfObject).cast(buffered.data), mapOf(string, mapOfObject).cast(notBuffered.data));
+                buffered.data.merge(notBuffered.data);
             } else {
                 buffer.put(bufferKey, notBuffered);
             }
@@ -131,46 +131,6 @@ public class MetricJmsQueueNotSingleton extends AbstractMetricQueue {
             // I hate you, Java
             throw new RuntimeException(e);
         }
-    }
-
-    private static Object merge(Map<String, Map<String, Object>> first, final Map<String, Map<String, Object>> second) {
-        // Get the union of the two key sets.
-        Set<String> unionKeys = new HashSet<String>(first.keySet());
-        unionKeys.addAll(second.keySet());
-
-        // Combine the two maps.
-        for (String key : unionKeys) {
-            if (!first.containsKey(key)) {
-                Map<String, Object> metric = new HashMap<String, Object>();
-                metric.put("value", 0);
-
-                String type = Metric.RecordType.AGGREGATE.toString();
-                if (second.containsKey(key)) {
-                    type = (String) second.get(key).get("type");
-                }
-
-                metric.put("type", type);
-                first.put(key, metric);
-            }
-
-            if (!second.containsKey(key)) {
-                Map<String, Object> metric = new HashMap<String, Object>();
-                metric.put("value", 0);
-                metric.put("type", first.get(key).get("type"));
-                second.put(key, metric);
-            }
-
-            if (!first.get(key).get("type").equals(second.get(key).get("type"))) {
-                throw new IllegalArgumentException("Invalid metric combination, types are different. " + key + " (" + first.get(key).get("type") + ", " + second.get(key).get("type") + ").");
-            } else {
-                Map<String, Object> merged = new HashMap<String, Object>();
-                merged.put("value", ((Number) first.get(key).get("value")).longValue() + ((Number) second.get(key).get("value")).longValue());
-                merged.put("type", first.get(key).get("type"));
-                first.put(key, merged);
-            }
-        }
-
-        return first;
     }
 
     private void updateWriteBuffer(String entityId, long timestamp, Metrics metrics) {
