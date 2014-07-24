@@ -12,10 +12,6 @@ object BalboaCommon {
         "commons-logging" % "commons-logging" % "1.1.1",
         "org.codehaus.jackson" % "jackson-core-asl" % "1.9.12",
         "org.codehaus.jackson" % "jackson-mapper-asl" % "1.9.12"
-    ),
-    dependenciesSnippet :=
-      <xml.group>
-        <exclude org="commons-logging" module="commons-logging"/>
-      </xml.group>
+    )
   )
 }
