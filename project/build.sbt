@@ -1,12 +1,12 @@
 resolvers := Seq(
-  "socrata maven" at "https://repo.socrata.com/artifactory/libs-release",
-  Resolver.url("socrata ivy", new URL("https://repo.socrata.com/artifactory/ivy-libs-release"))(Resolver.ivyStylePatterns)
+  "socrata maven" at "https://repository-socrata-oss.forge.cloudbees.com/release"
 )
 
-externalResolvers <<= resolvers map { rs =>
-  Resolver.withDefaultResolvers(rs, mavenCentral = false)
-}
-
-addSbtPlugin("com.socrata" % "socrata-sbt" % "0.3.1")
+addSbtPlugin("com.socrata" % "socrata-cloudbees-sbt" % "1.2.3")
 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.6.0")
+
+libraryDependencies ++= Seq(
+  "com.rojoma" %% "simple-arm" % "1.2.0",
+  "com.rojoma" %% "rojoma-json" % "2.0.0"
+)

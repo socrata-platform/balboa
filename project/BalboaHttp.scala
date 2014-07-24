@@ -3,7 +3,7 @@ import Keys._
 
 import sbtassembly.Plugin._
 import sbtassembly.Plugin.AssemblyKeys._
-import com.socrata.socratasbt.SocrataSbt._
+import com.socrata.cloudbeessbt.SocrataCloudbeesSbt._
 import SocrataSbtKeys._
 import sys.process.Process
 import com.rojoma.simplearm.util._
@@ -33,7 +33,8 @@ object BalboaHttp {
     Seq(file)
   }
 
-  lazy val settings: Seq[Setting[_]] = BuildSettings.buildSettings ++ socrataProjectSettings(assembly = true) ++ net.virtualvoid.sbt.graph.Plugin.graphSettings ++ Seq(
+  lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings(assembly = true) ++ net.virtualvoid.sbt.graph.Plugin.graphSettings ++ Seq(
+    mainClass in assembly := Some("com.socrata.balboa.server.Main"),
     libraryDependencies ++= Seq(
       "com.socrata" %% "socrata-http" % "1.3.2",
       "com.rojoma" %% "rojoma-json" % "[2.1.0, 3.0.0)",
@@ -41,7 +42,6 @@ object BalboaHttp {
       "junit" % "junit" % "4.5" % "test"
     ),
     resourceGenerators in Compile <+= (resourceManaged in Compile, version in Compile, scalaVersion in Compile) map tagVersion,
-    jarName in assembly <<= name(_ + "-jar-with-dependencies.jar"),
     mergeStrategy in assembly <<= (mergeStrategy in assembly) { old => {
         case PathList("org","slf4j","impl", xs @ _*) => MergeStrategy.first
         case x => old(x)
