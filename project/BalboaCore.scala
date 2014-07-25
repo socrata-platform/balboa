@@ -7,6 +7,7 @@ import SocrataSbtKeys._
 object BalboaCore {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings() ++ net.virtualvoid.sbt.graph.Plugin.graphSettings ++ Seq(
     libraryDependencies ++= Seq(
+        "junit" % "junit" % "4.5" % "test",
         "com.netflix.astyanax" % "astyanax" % "1.56.26"
       ),
     dependenciesSnippet :=
