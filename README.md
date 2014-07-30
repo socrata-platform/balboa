@@ -18,7 +18,7 @@ resolvers := Seq(
 ```
 libraryDependencies ++= Seq(
   ...
-  "com.socrata" % "balboa-client" % "0.2.0",
+  "com.socrata" % "balboa-client" % "0.13.0",
   ...
 )
 ```
@@ -52,7 +52,7 @@ At this point, balboa-client should be capable of depositing metrics into balboa
 
 ## Releases
 
-As of 0.2.0, balboa is versioned with [Semantic Versioning](http://www.semver.org), and uses the [sbt-release](https://github.com/sbt/sbt-release) plugin. To release balboa, run `sbt release` from the project root.
+As of 0.13.0, balboa is versioned with [Semantic Versioning](http://www.semver.org), and uses the [sbt-release](https://github.com/sbt/sbt-release) plugin. To release balboa, run `sbt release` from the project root.
 
 ## License
 Balboa is licensed under the [Apache 2.0](https://github.com/socrata/balboa/blob/master/LICENSE.md) license.
