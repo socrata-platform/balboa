@@ -2,7 +2,7 @@ resolvers := Seq(
   "socrata maven" at "https://repository-socrata-oss.forge.cloudbees.com/release"
 )
 
-addSbtPlugin("com.socrata" % "socrata-cloudbees-sbt" % "1.2.3")
+addSbtPlugin("com.socrata" % "socrata-cloudbees-sbt" % "1.2.4")
 
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.6.0")
 
