@@ -2,6 +2,7 @@ package com.socrata.balboa.server.rest
 
 import scala.collection.JavaConverters._
 
+import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 import javax.servlet.http.HttpServletRequest
 import com.socrata.http.server.HttpResponse
@@ -108,6 +109,9 @@ object MetricsRest {
     }
   }
 
+  def response(typ: String, body: Array[Byte]) =
+    ContentType(typ) ~> Header("Content-length", body.length.toString) ~> Stream(_.write(body))
+
   def series(req: HttpServletRequest): HttpResponse = {
     val entityId = extractEntityId(req)
     val qs = new QueryExtractor(req)
@@ -128,9 +132,8 @@ object MetricsRest {
 
     try
     {
-      val iter = ds.slices(entityId, period, startDate, endDate)
-
-      OK ~> ContentType(json) ~> Content(renderJson(iter))
+      val body = renderJson(ds.slices(entityId, period, startDate, endDate)).getBytes(UTF_8)
+      OK ~> response(json, body)
     }
     finally
     {
@@ -153,16 +156,14 @@ object MetricsRest {
   }
 
   private def render(format: String, metrics: Metrics): HttpResponse = {
-    val sendData = if(format == protobuf) {
+    val bytes = if(format == protobuf) {
       val mapper = new ProtocolBuffersMetrics
       mapper.merge(metrics)
-
-      val bytes = mapper.serialize
-      Stream(_.write(bytes))
+      mapper.serialize
     } else {
-      Content(renderJson(metrics))
+      renderJson(metrics).getBytes(UTF_8)
     }
-    OK ~> ContentType(format) ~> sendData
+    OK ~> response(format, bytes)
   }
 
   private def renderJson(obj: Any) =
