@@ -67,7 +67,7 @@ Commands:
 	list [filters...]  : Dump all of the entity keys in a balboa store to stdout, with an optional entity regex
 ```
 
-# Example: Dump Metrics for Entity "foo"
+###### Example: Dump Metrics for Entity "foo"
 
 ```
 java -cp balboa-admin-assembly-0.14.1-SNAPSHOT.jar com.socrata.balboa.admin.BalboaAdmin dump foo
@@ -77,7 +77,7 @@ java -cp balboa-admin-assembly-0.14.1-SNAPSHOT.jar com.socrata.balboa.admin.Balb
 "foo","1414886400000","datasets","absolute","387"
 ...
 ```
-# Example: Fill Metrics for Entity "foo"
+####### Example: Fill Metrics for Entity "foo"
 
 ```
 java -cp balboa-admin-assembly-0.14.1-SNAPSHOT.jar com.socrata.balboa.admin.BalboaAdmin fill dataset.counts.out.fixed
