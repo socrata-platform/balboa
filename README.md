@@ -50,6 +50,43 @@ Balboa has default configuration files for each runnable project, under `[projec
 
 At this point, balboa-client should be capable of depositing metrics into balboa server, which can then be queried through the REST API.
 
+##### Admin Tool
+
+BalboaAdmin is a tool for dumping and loading metrics. It is extemely useful for correcting metrics which have been incorrectly set; or for migrating metrics across environments.
+
+```
+> java -cp balboa-admin-assembly-0.14.1-SNAPSHOT.jar com.socrata.balboa.admin.BalboaAdmin
+Balboa admin utility:
+       java -jar balboa-admin <command> [args]
+
+Commands:
+	fsck [filters...]  : Check the balboa file system and validate the correctness of the tiers. This will probably take a long time.
+	fill file          : Restore balboa metrics from [file].
+	dump [filters...]  : Dump all of the data in a balboa store to stdout in a format suitable for fill, with an optional entity regex
+	dump-only entityId : Dump a specific entity in a format suitable for fill
+	list [filters...]  : Dump all of the entity keys in a balboa store to stdout, with an optional entity regex
+```
+
+# Example: Dump Metrics for Entity "foo"
+
+```
+java -cp balboa-admin-assembly-0.14.1-SNAPSHOT.jar com.socrata.balboa.admin.BalboaAdmin dump foo
+"foo","1414875600000","datasets","absolute","387"
+"foo","1414879200000","datasets","absolute","387"
+"foo","1414882800000","datasets","absolute","387"
+"foo","1414886400000","datasets","absolute","387"
+...
+```
+# Example: Fill Metrics for Entity "foo"
+
+```
+java -cp balboa-admin-assembly-0.14.1-SNAPSHOT.jar com.socrata.balboa.admin.BalboaAdmin fill dataset.counts.out.fixed
+Reading from file dataset.counts.out.fixed
+INFO - Persisted entity: foo with 1 absolute and 0 aggregated metrics - took 73ms
+INFO - Persisted entity: foo with 1 absolute and 0 aggregated metrics - took 15ms
+INFO - Persisted entity: foo with 1 absolute and 0 aggregated metrics - took 14ms
+```
+
 ## Releases
 
 As of 0.13.0, balboa is versioned with [Semantic Versioning](http://www.semver.org), and uses the [sbt-release](https://github.com/sbt/sbt-release) plugin. To release balboa, run `sbt release` from the project root.
