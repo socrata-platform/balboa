@@ -3,6 +3,59 @@
 **Balboa** is Socrata's internal tenant metrics system. It provides a JMS-based service for inserting metrics into a Cassandra cluster, with an HTTP REST API for metric retrieval.
 
 ## Usage
+
+### REST API
+#### Range Queries
+```
+GET /metrics/{entity}/range?start={YYYY-MM-DD HH:MM:SS:mmmm}&end={YYYY-MM-DD HH:MM:SS:mmmm}
+```
+
+200: Returns a JSON in the form of:
+
+```
+
+{
+  {metric name 1}: {
+    value: {aggregate value for range},
+    type: "{aggregate|absolute}"
+  },
+  {metric name 2} {... }
+  ...
+  {metric name n} {... }
+}
+```
+
+Where metric name is a particular, tracked metric within an entity.
+
+
+#### Series Queries
+```
+GET /metrics/{entity}/series?start={YYYY-MM-DD HH:MM:SS:mmmm}&end={YYYY-MM-DD HH:MM:SS:mmmm}&period={YEARLY|MONTHLY|DAILY|HOURLY|FIFTEEN_MINUTE}
+```
+
+200: Returns JSON in the form of:
+
+```
+[
+   {
+      start: {time0:start},
+      end: {time1},
+      metrics: { }
+   },
+   {
+      start: {time1},
+      end: {time2},
+      metrics: { }
+   },
+...
+   {
+      start: {time n-1},
+      end: {time n:end},
+      metrics: { }
+   },
+]
+```
+
 ### Client
 **Balboa-client** is a library which handles insertion of metrics into a JMS queue for consumption by balboa-jms.  To include it in a project:
 
