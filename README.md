@@ -7,7 +7,9 @@
 ### REST API
 #### Range Queries
 ```
-GET /metrics/{entity}/range?start={YYYY-MM-DD HH:MM:SS:mmmm}&end={YYYY-MM-DD HH:MM:SS:mmmm}
+GET /metrics/{entity}/range?
+   start={YYYY-MM-DD HH:MM:SS:mmmm}&
+   end={YYYY-MM-DD HH:MM:SS:mmmm}
 ```
 
 200: Returns a JSON in the form of:
@@ -25,12 +27,15 @@ GET /metrics/{entity}/range?start={YYYY-MM-DD HH:MM:SS:mmmm}&end={YYYY-MM-DD HH:
 }
 ```
 
-Where metric name is a particular, tracked metric within an entity.
+Where metric name is a particular, tracked metric within an entity. Metrics can be either aggregate metrics ( accumulated within a period ) or absolute (replaced within a period).
 
 
 #### Series Queries
 ```
-GET /metrics/{entity}/series?start={YYYY-MM-DD HH:MM:SS:mmmm}&end={YYYY-MM-DD HH:MM:SS:mmmm}&period={YEARLY|MONTHLY|DAILY|HOURLY|FIFTEEN_MINUTE}
+GET /metrics/{entity}/series?
+   start={YYYY-MM-DD HH:MM:SS:mmmm}&
+   end={YYYY-MM-DD HH:MM:SS:mmmm}&
+   period={YEARLY|MONTHLY|DAILY|HOURLY|FIFTEEN_MINUTE}
 ```
 
 200: Returns JSON in the form of:
