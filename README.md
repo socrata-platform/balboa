@@ -76,7 +76,7 @@ resolvers := Seq(
 ```
 libraryDependencies ++= Seq(
   ...
-  "com.socrata" % "balboa-client" % "0.13.0",
+  "com.socrata" % "balboa-client_2.10" % "0.14.0",
   ...
 )
 ```
@@ -102,7 +102,7 @@ Balboa has default configuration files for each runnable project, under `[projec
 2. Assuming Cassandra and ActiveMQ are installed, create the Cassandra schema:
 `cassandra-cli < etc/balboa-cassandra.schema`. By default, this creates the `Metrics2012` keyspace. If a different keyspace is desired, tweak the schema file as necessary.
 
-3. Start balboa-jms with `java -jar [JAR] [JMS_SERVER] [KEYSPACE]`. In a typical developer setup, this might look something like `java -jar balboa-jms/target/scala-2.10/balboa-jms-assembly-[VERSION].jar failover:tcp://localhost:61616 Metrics2012`.
+3. Start balboa-jms with `java -jar [JAR] [NUM_THREADS] [JMS_SERVER] [KEYSPACE]`. In a typical developer setup, this might look something like `java -jar balboa-jms/target/scala-2.10/balboa-jms-assembly-[VERSION].jar 1 failover:tcp://localhost:61616 Metrics2012`.
 
 4. Start balboa-http with `java -jar [JAR] [PORT]`. In a typical developer setup, this might look something like `java -jar balboa-http/target/scala-2.10/balboa-http-assembly-[VERSION].jar 2012`.
 
