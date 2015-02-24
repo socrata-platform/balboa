@@ -18,7 +18,6 @@ public class JsonMessage extends Message
     public JsonMessage(String serialized) throws IOException
     {
         super();
-
         deserialize(serialized);
     }
 
@@ -61,5 +60,16 @@ public class JsonMessage extends Message
         setEntityId(other.getEntityId());
         setMetrics(other.getMetrics());
         setTimestamp(other.getTimestamp());
+    }
+
+    @Override
+    public String toString() {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(this);
+        } catch (IOException e) {
+            // For to String fail silently
+            return "JsonMessage{}";
+        }
     }
 }

@@ -4,36 +4,51 @@ import java.io.{IOException, File, FileReader}
 import java.util.Properties
 import java.util.concurrent.Executors
 
-import com.socrata.balboa.kafka.BalboaConfig
-import com.socrata.balboa.kafka.consumer.{DSConsumer, TestConsumer}
+import com.socrata.balboa.kafka.consumer.BalboaConsumer
+import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.metrics.data.{DataStoreFactory, DataStore}
 import kafka.consumer.ConsumerConfig
 
 /**
- * Created by Michael Hotan, michael.hotan@socrata.com on 2/17/15.
- *
  * Balboa Kafka Main Application:
  *
  * Entry point for Balboa Kafka Consumer.  This application starts a service that listens
  * on a configurable list of ZooKeeper Host Ports.  This service currently listens for all published Tenant Metrics.
- *
  */
 object Main extends App {
+
+  val DEFAULT_NUM_PARTITIONS = 8
+  val DEFAULT_CONSUMER_WAITTIME = 1000
 
   /**
    * Parse handles command line configuration.
    */
   val parser = new scopt.OptionParser[BalboaConfig]("balboa-kafka") {
-    opt[File]('f', "configFile") action { (x,c) => c.copy(configFile = x) } validate {
-      x => if (x.exists()) success else failure("Configuration does not exist") } text("Kafka configuration file")
+
+    // Configuration file
+    opt[File]('f', "configFile") action { (x, c) => c.copy(configFile = x)} validate { x => if (x.exists()) success
+    else failure("Configuration does not exist")} text "Kafka configuration file"
+
+    // Zookeeper servers.
     opt[String]('z', "zookeepers") action { (x,c) => c.copy(zookeepers = x.trim)} validate { x => if (x.split(',').length
       > 0) success else failure("Option --zookeepers must have 1 or more host:port names") } text("Comma separated " +
       "list of zookeeper host:port")
-    opt[String]('g', "groupid") action { (x,c) => c.copy(groupId = x.trim) } text("Consumer group id")
-    opt[String]('t', "topic") action {(x,c) => c.copy(topic = x)} text("The topic to consume")
-    opt[Int]('n', "threads") action {(x,c) => c.copy(threads = x)} text("Number of threads to use") validate(x => if
+
+    // The Kafka group id.
+    opt[String]('g', "groupid") action { (x,c) => c.copy(groupId = x.trim) } text "Consumer group id"
+
+    // The Kafka Topic to list to
+    opt[String]('t', "topic") action {(x,c) => c.copy(topic = x)} text "The topic to consume"
+
+    // Number of threads to spawn to start ingesting data.
+    opt[Int]('n', "threads") action {(x,c) => c.copy(threads = x)} text "Number of threads to use" validate (x => if
     (x > 0) success else failure("Must have positive number of threads"))
+
+    // Wait time for a consumer thread
+    opt[Long]('w', "waittime") action {(x,c) => c.copy(waitTime = x)} text "Time a single consumer is allotted to " +
+      s"wait before continuing to consume messages. Default: $DEFAULT_CONSUMER_WAITTIME ms" validate (x => if (x > 0)
+      success else failure("Must have positive wait time"))
   }
 
   // Retrieve the default data store.
@@ -47,26 +62,23 @@ object Main extends App {
         case Right(properties) => properties
         case Left(message) => sys.error(s"Unable to create properties: $message")
       }
-
-      // Kafka Consumer configuration.
       val consumerConfig: ConsumerConfig = new ConsumerConfig(props)
-      val threads: Int = props.getProperty("balboa.kafka.topic.partitions", "1").toInt
+      val threads: Int = props.getProperty("balboa.kafka.topic.partitions", s"$DEFAULT_NUM_PARTITIONS").toInt
       val topic: String = props.getProperty("balboa.kafka.topic")
 
-      val cg: BalboaConsumerGroup = BalboaConsumerGroup.init(consumerConfig, topic)
-      BalboaConsumerGroup.getStreams(cg, threads) match {
-        case Some(streams) =>
-          // For each available stream create a consumer to ingest the stream.
-          val executor = Executors.newFixedThreadPool(threads)
-          streams.foreach(stream => executor.submit(DSConsumer(stream, DataStoreFactory.get())))
-        case None => Console.println("No Available Stream to print")
+      ConsumerGroup.init(consumerConfig, topic, threads) match {
+        case Some(cg) => ConsumerGroup.runWorkerThreads[Message, BalboaConsumer](cg,
+          s => BalboaConsumer(s, config.waitTime, DataStoreFactory.get()))
+        case None =>
+          sys.error(s"Illegal configuration.  Check number of threads: $threads are positive and $topic is a nonnull " +
+            s"nor empty word")
       }
 
     case None =>
-      // TODO More descriptive error and harder penalty for configuration failure.
-      sys.error("Illegal Configuration")
+      // Usage should be printed if there is an error
+      // Stop the application before continuing any further
+      sys.exit(1)
   }
-
 
   /**
    * Given a BalboaConfiguration instance create a respective Properties file
@@ -110,24 +122,28 @@ object Main extends App {
     properties.setProperty("zookeeper.connect", zookeepers)
     properties.setProperty("group.id", groupId)
     properties.setProperty("balboa.kafka.topic", topic)
-    properties.setProperty("balboa.kafka.topic.partitions", "8")
+    properties.setProperty("balboa.kafka.topic.partitions", threads.toString)
     // This would be the appropiate place to set default values.
     properties
   }
 
+  /**
+   * Private class that represents Balboa Kafka Configuration.  This configuration is just used for
+   * interpreting command line arguments.  It provides a nice convention for extending the interface.
+   *
+   * @param configFile Configuration file.
+   * @param zookeepers Comma separated list of zookeepers with port
+   * @param groupId The Group ID this consumer belongs too.
+   * @param topic Kafka Topic to list for.
+   * @param waitTime The time a thread is allotted to wait for a consumer
+   */
+  case class BalboaConfig( configFile: File = null,
+                           zookeepers: String = null,
+                           groupId: String = null,
+                           topic: String = null,
+                           threads: Int = DEFAULT_NUM_PARTITIONS,
+                           waitTime: Long = DEFAULT_CONSUMER_WAITTIME)
+
 }
 
-/**
- * Private class that represents Balboa Kafka Configuration.  This configuration is just used for
- * interpreting command line arguments.  It provides a nice convention for extending the interface.
- *
- * @param configFile Configuration file.
- * @param zookeepers Comma separated list of zookeepers with port
- * @param groupId The Group this consumer belongs too.
- * @param topic The Topic to list to.
- */
-sealed case class BalboaConfig( configFile: File = null,
-                                zookeepers: String = null,
-                                groupId: String = null,
-                                topic: String = null,
-                                threads: Int = 1)
+
