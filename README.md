@@ -2,6 +2,10 @@
 
 **Balboa** is Socrata's internal tenant metrics system. It provides a JMS-based service for inserting metrics into a Cassandra cluster, with an HTTP REST API for metric retrieval.
 
+## Update:
+
+**Feb 2015**: 
+
 ## Usage
 
 ### REST API
@@ -107,6 +111,8 @@ Balboa has default configuration files for each runnable project, under `[projec
 4. Start balboa-http with `java -jar [JAR] [PORT]`. In a typical developer setup, this might look something like `java -jar balboa-http/target/scala-2.10/balboa-http-assembly-[VERSION].jar 2012`.
 
 At this point, balboa-client should be capable of depositing metrics into balboa server, which can then be queried through the REST API.
+
+### Setup (balboa-kafka)
 
 ##### Admin Tool
 
