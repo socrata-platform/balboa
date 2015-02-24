@@ -27,7 +27,7 @@ public class BalboaFastFailCheck {
     private AtomicLong failFastUntilTime = new AtomicLong(0);
     private int mult = 1;
     private volatile boolean inFailureMode = false;
-    private Object lock = new Object();
+    private final Object lock = new Object();
     private Exception cause = null;
 
     private final TimeService timeService;

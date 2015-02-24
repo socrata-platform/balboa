@@ -5,7 +5,7 @@ object Balboa extends Build {
     "balboa",
     file("."),
     settings = BuildSettings.buildSettings ++ Seq(Keys.parallelExecution := false)
-  ) aggregate (balboaCommon, balboaCore, balboaHttp, balboaJms, balboaAdmin, balboaClient)
+  ) aggregate (balboaCommon, balboaCore, balboaHttp, balboaJms, balboaAdmin, balboaClient, balboaKafka)
 
   lazy val balboaCommon = Project(
     "balboa-common",
@@ -42,4 +42,10 @@ object Balboa extends Build {
     file("balboa-client"),
     settings = BalboaClient.settings
   ) dependsOn(balboaCommon)
+
+  lazy val balboaKafka = Project(
+    "balboa-kafka",
+    file("balboa-kafka"),
+  settings = BalboaKafka.settings
+  ) dependsOn(balboaCore)
 }
