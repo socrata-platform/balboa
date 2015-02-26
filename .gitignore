@@ -12,3 +12,4 @@ tmp
 /project/project/target/
 /.idea/
 /.idea_modules/
+docker/*.jar
