@@ -5,15 +5,16 @@ import sbtassembly.Plugin.AssemblyKeys._
 
 object BalboaKafka {
 
-  val stageDocker = TaskKey[Unit]("stageDocker", "Copies assembly jar to docker directory")
+  val stageConsumer = TaskKey[Unit]("stageForDocker", "Stages a Balboa Kafka Consumer to the docker " +
+    "directory.")
 
   // Task that handles migrating the assembly jar to docker directory for staging
-  val stageDockerTask = stageDocker <<= assembly map { (f) =>
-    println("Staging file for Docker: " + Keys.version)
-    // TODO Remove current version and replace with LATEST wtf why can't I do this
+  val stageConsumerTask = stageConsumer <<= assembly map { (f) =>
     val dockerDir = new File("docker")
     dockerDir.mkdir()
-    IO.copyFile(f, dockerDir / f.getName)
+    // TODO Remove current version dynamically and replace with LATEST wtf
+    // How do you force the evaluation of Keys.version???
+    IO.copyFile(f, dockerDir / "balboa-kafka-consumer.jar")
   }
 
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings(assembly = true) ++
@@ -26,5 +27,5 @@ object BalboaKafka {
         "commons-logging" % "commons-logging" % "1.1.1",
         "com.github.scopt" %% "scopt" % "3.3.0"
       )
-    ) ++ Seq(stageDockerTask)
+    ) ++ Seq(stageConsumerTask)
 }
