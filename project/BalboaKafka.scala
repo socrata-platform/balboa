@@ -10,11 +10,13 @@ object BalboaKafka {
 
   // Task that handles migrating the assembly jar to docker directory for staging
   val stageConsumerTask = stageConsumer <<= assembly map { (f) =>
-    val dockerDir = new File("docker")
+    val dockerDir = f.getParentFile.getParentFile.getParentFile / "docker"
     dockerDir.mkdir()
+    val c = dockerDir / "balboa-kafka-consumer.jar"
+    println("Copying file to " + c)
     // TODO Remove current version dynamically and replace with LATEST wtf
     // How do you force the evaluation of Keys.version???
-    IO.copyFile(f, dockerDir / "balboa-kafka-consumer.jar")
+    IO.copyFile(f, c)
   }
 
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings(assembly = true) ++

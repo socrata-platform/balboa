@@ -13,3 +13,4 @@ tmp
 /.idea/
 /.idea_modules/
 docker/*.jar
+balboa-kafka/docker/*.jar
