@@ -4,7 +4,7 @@ set -ev
 
 # Parse Jinja2 templates and replace them with configurations.
 /bin/env_parse ${BALBOA_KAFKA_CONSUMER_CONFIG}.j2
-/bin/env_parse ${BALBOA_KAFKA_CONSUMER_LOGBACK}.j2
+# /bin/env_parse ${BALBOA_KAFKA_CONSUMER_LOGBACK}.j2
 
 # Run It!
 exec /usr/bin/java \
