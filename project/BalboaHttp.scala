@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+import Dependencies._
 
 import sbtassembly.Plugin._
 import sbtassembly.Plugin.AssemblyKeys._
@@ -35,14 +36,10 @@ object BalboaHttp {
 
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings(assembly = true) ++ net.virtualvoid.sbt.graph.Plugin.graphSettings ++ Seq(
     mainClass in assembly := Some("com.socrata.balboa.server.Main"),
-    libraryDependencies ++= Seq(
-      "com.socrata" %% "socrata-http" % "1.3.2",
-      "com.rojoma" %% "rojoma-json" % "[2.1.0, 3.0.0)",
-      "com.rojoma" %% "simple-arm" % "[1.1.10, 2.0.0)",
-      "junit" % "junit" % "4.5" % "test"
-    ),
+    libraryDependencies <++= scalaVersion {libraries(_)},
     resourceGenerators in Compile <+= (resourceManaged in Compile, version in Compile, scalaVersion in Compile) map tagVersion,
-    mergeStrategy in assembly <<= (mergeStrategy in assembly) { old => {
+    mergeStrategy in assembly <<= (mergeStrategy in assembly) {
+      (old) =>  {
         case PathList("org","slf4j","impl", xs @ _*) => MergeStrategy.first
         case x => old(x)
       }
@@ -53,5 +50,12 @@ object BalboaHttp {
         <conflict org="com.socrata" manager="latest-compatible" />
         <conflict org="com.rojoma" manager="latest-compatible" />
       </xml.group>
+  )
+
+  def libraries(implicit scalaVersion: String) = Seq(
+    junit,
+    rojoma_json,
+    simple_arm,
+    socrata_http
   )
 }
