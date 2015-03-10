@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
-public class MetricFileQueue extends AbstractMetricQueue {
+public class MetricFileQueue extends AbstractJavaMetricQueue {
     private static final Logger log = LoggerFactory.getLogger(MetricFileQueue.class);
     private static MetricFileQueue instance;
     private static long MAX_METRICS_PER_FILE = 20000;

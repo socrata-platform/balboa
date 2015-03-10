@@ -11,7 +11,7 @@ trait MessageQueueComponent {
     def stop():Unit
   }
 
-  def MessageQueue():MessageQueue
+  def MessageQueue():MessageQueueLike
 }
 
 trait EmergencyFileWriterComponent {

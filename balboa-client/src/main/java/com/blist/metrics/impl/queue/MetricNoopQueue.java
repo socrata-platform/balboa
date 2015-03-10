@@ -4,7 +4,7 @@ import com.socrata.metrics.AbstractMetricQueue;
 import com.socrata.metrics.IdParts;
 import com.socrata.balboa.metrics.Metric;
 
-public class MetricNoopQueue extends AbstractMetricQueue
+public class MetricNoopQueue extends AbstractJavaMetricQueue
 {
     @Override
     public void create(IdParts entity, IdParts name, long value, long timestamp, Metric.RecordType recordType) {
