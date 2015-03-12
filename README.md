@@ -2,10 +2,6 @@
 
 **Balboa** is Socrata's internal tenant metrics system. It provides a JMS-based service for inserting metrics into a Cassandra cluster, with an HTTP REST API for metric retrieval.
 
-## Update:
-
-**Feb 2015**: 
-
 ## Usage
 
 ### REST API

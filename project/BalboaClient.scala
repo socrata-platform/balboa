@@ -21,7 +21,6 @@ object BalboaClient {
     simple_arm,
     log4j
   )
-
 }
 
 object BalboaClientJMS {
@@ -51,8 +50,5 @@ object BalboaClientKafka {
       </xml.group>
   )
 
-  def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ Seq(
-    kafka,
-    scopt
-  )
+  def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ BalboaKafkaCommon.libraries
 }

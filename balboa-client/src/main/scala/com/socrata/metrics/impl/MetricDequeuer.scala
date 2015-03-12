@@ -1,9 +1,10 @@
 package com.socrata.metrics.impl
 
+import java.util.concurrent.{Executors, TimeUnit}
+
 import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.metrics.collection.PreBufferQueue
-import com.socrata.metrics.components.{MetricEntry, BufferItem, BufferComponent}
-import java.util.concurrent.{TimeUnit, Executors, ExecutorService}
+import com.socrata.metrics.components.{BufferComponent, BufferItem, MetricEntry}
 import org.apache.commons.logging.LogFactory
 
 trait MetricDequeuerService {

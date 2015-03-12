@@ -2,33 +2,57 @@ package com.socrata.metrics.impl
 
 import com.socrata.balboa.metrics.Message
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MessageQueueComponent}
-import org.apache.commons.logging.LogFactory
-
-trait KafkaConfiguration
+import com.socrata.metrics.producer.{BalboaKafkaProducer, BalboaProducer}
+import org.slf4j.LoggerFactory
 
 /**
- * Kafka component that manages sending metric messages to
+ * Kafka component that manages sending metric messages to a Kafka Cluster identified
+ * by the brokers in [[KafkaInformation]].  This service requires
  */
 trait KafkaComponent extends MessageQueueComponent {
-   self: KafkaInformation with EmergencyFileWriterComponent =>
+  self: KafkaInformation with EmergencyFileWriterComponent =>
 
-  val producer = KafkaProducer
+  private val Log = LoggerFactory.getLogger(classOf[KafkaComponent])
 
   /**
-   * Kafka Queue impersonator for backward compatibility reasons.
+   * Internal Dispatching instance that sends messages via a Kafka Producer.
    */
-  class KafkaQueueImpersonator extends MessageQueueLike {
+  class KafkaDispatcher extends MessageQueueLike {
 
-    // Start should create a Kafka Producer
+    // Force clients
+    var producer: BalboaKafkaProducer[String, Message] = null
+
+    /**
+     * Prepares a KafkaProducer to send messages to the Kafka Cluster.
+     */
     override def start(): Unit = {
-      // NOOP
+      Log.debug("Starting ")
+      producer = BalboaProducer.cons(topic, brokers) match {
+        case Left(error) =>
+          Log.warn("Unable to create producer due to: %s".format(error))
+          null
+        case Right(p) => p
+      }
     }
 
-    override def stop(): Unit =
+    /**
+     * Stop
+     */
+    override def stop(): Unit = {
+      // Closing the producer doesn't really allow this
+      Log.debug("Shutting down Kafka Producer")
+      producer.close()
+      producer = null
+    }
 
-    override def send(msg: Message): Unit = ???
+    override def send(msg: Message): Unit = producer match {
+      case p: BalboaKafkaProducer[String, Message] => p.send(msg)
+      case _ =>
+        Log.warn(s"Unable to send message $msg. Did you call MessageQueueComponent.start()?")
+
+    }
   }
 
-  override def MessageQueue(): MessageQueueLike = new KafkaQueueImpersonator
+  override def MessageQueue(): MessageQueueLike = new KafkaDispatcher
 
 }

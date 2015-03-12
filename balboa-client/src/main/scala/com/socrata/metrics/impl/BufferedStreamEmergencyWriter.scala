@@ -1,9 +1,11 @@
 package com.socrata.metrics.impl
 
+import java.io.{BufferedOutputStream, File, FileOutputStream}
+
 import com.socrata.balboa.metrics.Message
-import java.io.{BufferedOutputStream, FileOutputStream, File}
-import scala.collection.JavaConverters._
 import com.socrata.metrics.components.EmergencyFileWriterComponent
+
+import scala.collection.JavaConverters._
 
 trait BufferedStreamEmergencyWriterComponent extends EmergencyFileWriterComponent {
 

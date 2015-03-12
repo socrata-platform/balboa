@@ -42,15 +42,9 @@ object ConsumerTestUtil {
     json
   }
 
-  def testStringMessage(key: Array[Byte], message: Array[Byte]): Either[String, String] = (key, message)
-  match {
-    case (k: Array[Byte], m: Array[Byte]) =>
-      Right(combine(new String(k.map(_.toChar)), new String(m.map(_.toChar))))
-    case (_, m: Array[Byte]) =>
-      Right(combine(null, new String(m.map(_.toChar))))
-    case (k: Array[Byte], _) =>
-      Right(combine(new String(k.map(_.toChar)), null))
-    case _=> Left("Cannot convert null reference to byte array")
+  def testStringMessage(message: Array[Byte]): String = message match {
+    case m: Array[Byte] => new String(m.map(_.toChar))
+    case _=>null
   }
 
   def combine(k: String, m: String): String = s"$k:$m"

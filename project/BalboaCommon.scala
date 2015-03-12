@@ -16,3 +16,16 @@ object BalboaCommon {
     jackson_mapper_asl
   )
 }
+
+object BalboaKafkaCommon {
+
+  lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings() ++ Seq(
+    libraryDependencies <++= scalaVersion {libraries(_)})
+
+  def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
+    kafka,
+    kafka_test,
+    scopt,
+    scalatest
+  )
+}

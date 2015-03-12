@@ -17,7 +17,7 @@ object Dependencies {
     val commons_logging = "1.1.1"
     val jackson = "1.9.12"
     val junit = "4.5"
-    val kafka = "[0.8.2.0, 0.9.0.0)"
+    val kafka = "[0.8.2.1, 0.9.0.0)"
     val log4j = "1.2.16"
     val mockito = "1.+"
     val newman = "1.3.5"
@@ -40,6 +40,7 @@ object Dependencies {
   val jackson_mapper_asl = "org.codehaus.jackson" % "jackson-mapper-asl" % versions.jackson
   val junit = "junit" % "junit" % versions.junit % "test"
   val kafka = "org.apache.kafka" %% "kafka" % versions.kafka
+  val kafka_test = kafka % "test" classifier "test"
   val log4j = "log4j" % "log4j" % versions.log4j
   val mockito = "org.mockito" % "mockito-core" % versions.mockito % "test"
   // Functionally Nice REST Client Currently newman only supports scala version 2.9.2 and 2.10

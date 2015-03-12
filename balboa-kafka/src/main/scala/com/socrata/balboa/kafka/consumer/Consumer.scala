@@ -2,12 +2,11 @@ package com.socrata.balboa.kafka.consumer
 
 import java.io.IOException
 
-import com.socrata.balboa.metrics.Message
-import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, DataStore}
-import com.socrata.balboa.metrics.impl.JsonMessage
+import com.socrata.balboa.metrics.data.BalboaFastFailCheck
 import kafka.consumer.{ConsumerIterator, KafkaStream}
 import kafka.message.MessageAndMetadata
-import org.apache.commons.logging.{LogFactory, Log}
+import kafka.serializer.{StringDecoder, Decoder, Encoder}
+import org.apache.commons.logging.{Log, LogFactory}
 
 /**
  * Generic Kafka Consumer.  Consumers will be continuously running service threads.  Therefore,
@@ -18,15 +17,18 @@ import org.apache.commons.logging.{LogFactory, Log}
  *
  * @param stream Kafka Stream for ingesting data
  * @param waitTime The amount of time to wait if the consumers dependency are not ready (ms).
- * @tparam A Message type
+ * @tparam A Type of the Message.
  */
 abstract class KafkaConsumer[A](stream: KafkaStream[Array[Byte],Array[Byte]], waitTime: Long)
-  extends Runnable {
+  extends Runnable with Decoder[A] {
   // Notes:
   // 1. We used abstract classes because parameters are required
   // 2. Variance: ???.  Currently going with the safe choice of invariance.
 
   protected val log: Log = LogFactory.getLog(classOf[KafkaConsumer[A]])
+
+  // Currently default the Decoder for keys to Strings
+  val keyDecoder = new StringDecoder()
 
   override def run(): Unit = {
     val it: ConsumerIterator[Array[Byte], Array[Byte]] = stream.iterator()
@@ -39,43 +41,22 @@ abstract class KafkaConsumer[A](stream: KafkaStream[Array[Byte],Array[Byte]], wa
   }
 
   /**
-   * Converts a Kafka key, message pair into an instance of type "A".
-   * <b>
-   *  For a reference to Kafka Messages see: {@link http://kafka.apache.org/documentation.html#messages}
-   *
-   * @param key Kafka message key
-   * @param message Kafka message content
-   * @return A converted key-message pair or a reason for the failure.
-   */
-  protected def convert(key: Array[Byte], message: Array[Byte]): Either[String, A]
-
-  /**
    * Receiver for incoming messages.  This method should only be overridden if
    * you have a any special decoding needs.  If you
    * This method calls onMessage(JsonMessage)
    *
    * @param mm Received Kafka Message
    */
-  private def onMessageAndMetaData(mm: MessageAndMetadata[Array[Byte],Array[Byte]]): Unit = {
-    if (mm == null) {
-      log.warn(s"Message and Metadata from Kafka Stream $stream is null. Skipping")
-      return
-    }
-    if (mm.message() == null) {
-      log.warn(s"Message from Kafka Stream $stream is null. Skipping")
-      return
-    }
-    convert(mm.key(), mm.message()) match {
-      case Left(error) =>
-        log.error(s"Unable to Convert Kafka MessageAndMetaData, Reason: $error")
-      case Right(m) => onMessage(m)
-    }
+  private def onMessageAndMetaData(mm: MessageAndMetadata[Array[Byte],Array[Byte]]): Unit = (mm.key(), mm.message()) match {
+    case (k: Array[Byte], m: Array[Byte]) => onMessage(Some(keyDecoder.fromBytes(k)), fromBytes(m))
+    case (_, m: Array[Byte]) => onMessage(None, fromBytes(m))
+    case _=> log.warn(s"Message Received from Kafka Stream $stream is null. Skipping")
   }
 
   /**
    * Function that handles the reception of new Messages
    */
-  protected def onMessage(message: A): Unit
+  protected def onMessage(key: Option[String] = None, message: A): Unit
 
   /**
    * @return Whether or not this consumer is ready to consume the next message.
@@ -92,7 +73,6 @@ abstract class KafkaConsumer[A](stream: KafkaStream[Array[Byte],Array[Byte]], wa
       Thread.sleep(waitTime)
     }
   }
-
 }
 
 /**
@@ -112,7 +92,7 @@ abstract class PersistentConsumer[A](stream: KafkaStream[Array[Byte],Array[Byte]
    * Attempt to persist new messages where ever the subclass defines
    */
   @annotation.tailrec
-  final override protected def onMessage(message: A): Unit = {
+  final override protected def onMessage(key: Option[String] = None, message: A): Unit = {
     // Note: Scala compiler will unravel this tail recursion into a while loop,
     // As an effect, Having the node or killing the service will potentially result in message loss
     try {
@@ -123,7 +103,7 @@ abstract class PersistentConsumer[A](stream: KafkaStream[Array[Byte],Array[Byte]
         // Wrap the exception to provide a more descriptive message.
         fastFailCheck.markFailure(new IOException(s"Error persisting message: $message", e))
         waitUntilReady()
-        onMessage(message)
+        onMessage(key, message)
       case e: Exception =>
         // TODO  non recoverable exception
         throw e

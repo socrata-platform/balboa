@@ -8,7 +8,7 @@ import java.util.Date;
 /**
  * Scala binding for AbstractMetricQueue.  @see com.socrata.metrics.AbstractMetricQueue
  */
-abstract class AbstractJavaMetricQueue extends AbstractMetricQueue {
+public abstract class AbstractJavaMetricQueue extends AbstractMetricQueue {
 
     @Override
     public Metric.RecordType create$default$5() {

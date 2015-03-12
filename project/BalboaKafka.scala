@@ -25,11 +25,9 @@ object BalboaKafka {
       libraryDependencies <++= scalaVersion {libraries(_)}
     ) ++ Seq(stageConsumerTask)
 
-  def libraries(implicit scalaVersion: String) = Seq(
+  def libraries(implicit scalaVersion: String) = BalboaKafkaCommon.libraries ++ Seq(
     mockito,
     scalatest,
-    kafka,
-    commons_logging,
-    scopt
+    commons_logging
   )
 }

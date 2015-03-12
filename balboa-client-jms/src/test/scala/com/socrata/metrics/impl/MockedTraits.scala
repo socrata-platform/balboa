@@ -8,13 +8,14 @@ import org.apache.commons.logging.LogFactory
 trait TestMessageQueueComponent extends MessageQueueComponent {
   val testLog = LogFactory.getLog(classOf[MessageQueue])
 
+  val dumpingQueue = Queue.empty[Message]
+
   class MessageQueue() extends MessageQueueLike {
-    val dumpingQueue = Queue.empty[Message]
 
     def start() {}
     def send(msg:Message) { dumpingQueue.enqueue(msg) }
     def stop() { testLog.info("Shutdown BalboaClient") }
   }
 
-  def MessageQueue() = new MessageQueue()
+  override def MessageQueue() = new MessageQueue()
 }

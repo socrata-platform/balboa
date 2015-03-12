@@ -4,9 +4,10 @@ import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, TimeUnit}
 
+import com.socrata.balboa.kafka.codec.StringCodecLike
 import com.socrata.balboa.kafka.consumer.KafkaConsumerSpecSetup.{ConsumerDefaults, MockKafkaStream, TestKafkaConsumer}
 import com.socrata.balboa.kafka.consumer.PersistentConsumerSpecSetup.TestPersistentConsumer
-import com.socrata.balboa.kafka.test.util.{SlowTest, ConsumerTestUtil, MultiThreadedTest}
+import com.socrata.balboa.kafka.test.util.{ConsumerTestUtil, MultiThreadedTest, SlowTest}
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck
 import kafka.consumer.{ConsumerIterator, KafkaStream}
 import org.mockito.Mockito
@@ -38,12 +39,12 @@ object KafkaConsumerSpecSetup extends MockitoSugar {
   trait TestKafkaConsumer extends MockKafkaStream with ConsumerDefaults {
     var messages = List[String]()
     val isReady = new AtomicBoolean(true)
-    val kafkaConsumer: KafkaConsumer[String] = new KafkaConsumer[String](mStream, waitTime) {
+    val kafkaConsumer: KafkaConsumer[String] = new KafkaConsumer[String](mStream, waitTime) with StringCodecLike {
 
-      override protected def convert(key: Array[Byte], message: Array[Byte]): Either[String, String] =
-        ConsumerTestUtil.testStringMessage(key, message)
-
-      override protected def onMessage(message: String): Unit = messages = messages :+ message
+      /**
+       * Function that handles the reception of new Messages
+       */
+      override protected def onMessage(key: Option[String], message: String): Unit = messages = messages :+ message
 
       override protected def ready: Boolean = isReady.get()
     }
@@ -144,7 +145,7 @@ object PersistentConsumerSpecSetup extends MockitoSugar {
 
   trait TestPersistentConsumer extends MockKafkaStream with ConsumerDefaults {
     var messages = List[String]()
-    val persConsumer = new PersistentConsumer[String](mStream, waitTime) {
+    val persConsumer = new PersistentConsumer[String](mStream, waitTime) with StringCodecLike {
 
       var failedOnce: Boolean = false
 
@@ -156,8 +157,6 @@ object PersistentConsumerSpecSetup extends MockitoSugar {
         messages :+ message
       }
 
-      override protected def convert(key: Array[Byte], message: Array[Byte]): Either[String, String] =
-        ConsumerTestUtil.testStringMessage(key, message)
     }
   }
 }
