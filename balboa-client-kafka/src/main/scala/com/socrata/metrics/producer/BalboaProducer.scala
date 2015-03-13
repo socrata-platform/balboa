@@ -1,5 +1,7 @@
 package com.socrata.metrics.producer
 
+import java.util.Properties
+
 import com.socrata.balboa.kafka.codec.{BalboaMessageCodec, StringCodec}
 import com.socrata.balboa.kafka.util.AddressAndPort
 import com.socrata.balboa.metrics.Message
@@ -10,7 +12,8 @@ import com.socrata.balboa.metrics.Message
 object BalboaProducer {
 
   def cons(topic: String,
-           brokers: List[AddressAndPort] = List.empty): Either[String, BalboaKafkaProducer[String, Message]] =
-    BalboaKafkaProducer.cons[String, Message, StringCodec, BalboaMessageCodec](topic, brokers)
+           brokers: List[AddressAndPort] = List.empty,
+           properties : Option[Properties] = None): Either[String, BalboaKafkaProducer[String, Message]] =
+    BalboaKafkaProducer.cons[String, Message, StringCodec, BalboaMessageCodec](topic, brokers, properties)
 
 }

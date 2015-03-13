@@ -1,7 +1,5 @@
 package com.socrata.consul.rest
 
-import com.socrata.balboa.metrics.Metrics
-import com.socrata.consul.rest.ConsulCatalogSpecSetup.LocalCatalog
 import org.scalatest.WordSpec
 
 /**

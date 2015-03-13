@@ -25,9 +25,9 @@ object Balboa extends Build {
     balboaCommon)
 
   lazy val balboaClientKafka = project("balboa-kafka-client", Some("balboa-client-kafka"), BalboaClientKafka,
-    balboaClientCore, balboaKafkaCommon)
+    balboaClientCore, balboaKafkaCommon % "test->test;compile->compile")
 
-  lazy val balboaKafka = project("balboa-kafka", None, BalboaKafka, balboaCore, balboaKafkaCommon)
+  lazy val balboaKafka = project("balboa-kafka", None, BalboaKafka, balboaCore, balboaClientKafka)
 
   // Private Helper Methods
 

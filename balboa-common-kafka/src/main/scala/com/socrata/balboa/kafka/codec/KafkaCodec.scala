@@ -3,6 +3,7 @@ package com.socrata.balboa.kafka.codec
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.impl.JsonMessage
 import kafka.serializer.{Decoder, Encoder}
+import org.apache.commons.logging.LogFactory
 
 /**
  * Base Specification for Encoding and Decoding anything that is sent via Kafka
@@ -17,6 +18,8 @@ trait KafkaCodec[A] extends Decoder[A] with Encoder[A]
  * Codec for transforming Metrics Messages.
  */
 trait BalboaMessageCodecLike extends KafkaCodec[Message] {
+
+  private val Log = LogFactory.getLog(classOf[BalboaMessageCodecLike])
 
   /**
    * Preconditions: message entity id, timestamp, and metrics should not be null.
@@ -35,10 +38,11 @@ trait BalboaMessageCodecLike extends KafkaCodec[Message] {
    * Postconditions: null on failure to serialize or deserialize.
    *
    * See: [[kafka.serializer.Decoder]]
+   * @return null if failed to convert bytes to [[Message]]
    */
   override def fromBytes(bytes: Array[Byte]): Message = bytesToJSON(bytes) match {
     case Left(error) =>
-      //      TODO Log error
+      Log.error(s"Failed to convert bytes to message. Error: $error")
       null
     case Right(message) => message
   }
@@ -72,7 +76,7 @@ trait BalboaMessageCodecLike extends KafkaCodec[Message] {
 }
 
 /**
- *
+ * Codec that converts Strings to Bytes.
  */
 trait StringCodecLike extends KafkaCodec[String] {
 

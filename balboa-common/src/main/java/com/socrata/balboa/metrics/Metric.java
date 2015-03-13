@@ -43,6 +43,7 @@ public class Metric {
         return type.hashCode() + value.hashCode();
     }
 
+    // TODO Is there a reason we are being a little looser with equality using instanceof instead of class equality?
     @Override
     public boolean equals(Object o) {
         if (o instanceof Metric) {

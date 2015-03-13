@@ -21,7 +21,7 @@ object BalboaKafka {
 
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings(assembly = true) ++
     Seq(mainClass in assembly :=
-      Some("com.socrata.balboa.kafka.BalboaConsumerCLI"),
+      Some("com.socrata.balboa.kafka.BalboaKafkaConsumerCLI"),
       libraryDependencies <++= scalaVersion {libraries(_)}
     ) ++ Seq(stageConsumerTask)
 
