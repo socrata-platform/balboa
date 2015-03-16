@@ -1,4 +1,4 @@
-package com.socrata.balboa.kafka.util
+package com.socrata.balboa.common.kafka.util
 
 /**
  * Kafka environment settings for Staging and RC.

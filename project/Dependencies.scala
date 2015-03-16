@@ -42,7 +42,7 @@ object Dependencies {
   val kafka = "org.apache.kafka" %% "kafka" % versions.kafka
   val kafka_test = kafka % "test" classifier "test"
   val log4j = "log4j" % "log4j" % versions.log4j
-  val mockito = "org.mockito" % "mockito-core" % versions.mockito % "test"
+  val mockito_test = "org.mockito" % "mockito-core" % versions.mockito % "test"
   // Functionally Nice REST Client Currently newman only supports scala version 2.9.2 and 2.10
   val newman = "com.stackmob" %% "newman" % versions.newman
   val opencsv = "net.sf.opencsv" % "opencsv" % versions.opencsv

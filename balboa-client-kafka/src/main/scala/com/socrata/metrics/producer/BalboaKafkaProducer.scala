@@ -2,8 +2,8 @@ package com.socrata.metrics.producer
 
 import java.util.Properties
 
-import com.socrata.balboa.kafka.Constants
-import com.socrata.balboa.kafka.util.AddressAndPort
+import com.socrata.balboa.common.kafka.Constants
+import com.socrata.balboa.common.kafka.util.AddressAndPort
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.Encoder
 
@@ -51,11 +51,11 @@ sealed case class ::[K,M](topic: String, producer: Producer[K,M]) extends Balboa
 object BalboaKafkaProducer {
 
   /**
-   * Creates a Kafka Producer with a list of brokers and a specific topic.
+   * Creates a Kafka Producer with a list of brokers and a specific topic.  In Progress: If no list of brokers
+   * is provided then consul will attempted to be used to discover broker services.
    *
    * @param topic Kafka topic to publish to.
-   * @param brokers A list of Kafka brokers.  If none is provided then consul will attempted to
-   *                be used to discover broker services.
+   * @param brokers A list of Kafka brokers.
    * @param properties Properties to use that overwrite defaults found [[Constants.producerDefaultProps]].  It does not
    *                   overwrite the key or message encoders.  Those will always be defined in the type parameter.
    * @tparam K Key type

@@ -1,8 +1,6 @@
 package com.socrata.integration.kafka.util
 
-import com.socrata.balboa.kafka.codec.StringCodec
-import kafka.consumer.{ConsumerIterator, KafkaStream}
-import kafka.utils.TestUtils
+import com.socrata.balboa.common.kafka.codec.StringCodec
 import org.junit.Assert._
 import org.junit.Test
 

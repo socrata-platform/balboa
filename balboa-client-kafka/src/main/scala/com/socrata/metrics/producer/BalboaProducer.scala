@@ -2,8 +2,8 @@ package com.socrata.metrics.producer
 
 import java.util.Properties
 
-import com.socrata.balboa.kafka.codec.{BalboaMessageCodec, StringCodec}
-import com.socrata.balboa.kafka.util.AddressAndPort
+import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.kafka.util.AddressAndPort
 import com.socrata.balboa.metrics.Message
 
 /**
@@ -11,6 +11,9 @@ import com.socrata.balboa.metrics.Message
  */
 object BalboaProducer {
 
+  /**
+   * @return A [[BalboaKafkaProducer]] that sends keys as [[String]] and kafka messages as Balboa [[Message]]s
+   */
   def cons(topic: String,
            brokers: List[AddressAndPort] = List.empty,
            properties : Option[Properties] = None): Either[String, BalboaKafkaProducer[String, Message]] =

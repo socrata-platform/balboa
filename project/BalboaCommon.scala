@@ -9,7 +9,6 @@ object BalboaCommon {
 
   def libraries(implicit scalaVersion: String) = Seq(
     junit,
-    newman,
     protobuf_java,
     commons_logging,
     jackson_core_asl,

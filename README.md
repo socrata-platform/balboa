@@ -1,6 +1,29 @@
 # Balboa
 
-**Balboa** is Socrata's internal tenant metrics system. It provides a JMS-based service for inserting metrics into a Cassandra cluster, with an HTTP REST API for metric retrieval.
+**Balboa** is Socrata's internal tenant metrics system. This project is composed of different types of subprojects.
+
+### Core
+
+TODO: Complete README refactor
+
+### Common
+
+TODO: Complete README refactor
+
+### HTTP
+
+TODO: Complete README refactor
+
+### Clients
+
+Client libraries provide a mechanism to publish metrics to an existing messaging bus.
+
+* Balboa JMS Client: TODO: Complete README refactor
+* [Balboa Kafka Client](balboa/balboa-client-kafka/README.md)
+
+### Services
+
+TODO: Complete README refactor
 
 ## Usage
 

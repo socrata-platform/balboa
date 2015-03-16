@@ -1,19 +1,18 @@
 package com.socrata.metrics.impl
 
-
-import com.socrata.balboa.kafka.util.AddressAndPort
+import com.socrata.balboa.common.kafka.util.AddressAndPort
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{MetricEnqueuer, MetricEntry, MetricLoggerComponent}
 import org.apache.commons.logging.LogFactory
 
 /**
- * Information that pertains of how to setup and configure Kafka
+ * Information that pertains of how to setup and configure producers to communicate with Kafka.
  */
-trait KafkaInformation {
+trait KafkaProducerInformation {
 
   /**
-   * @return List of Kafka Brokers that exists within this environment
+   * @return List of Kafka Brokers that exists within this environment.
    */
   def brokers: List[AddressAndPort]
 
@@ -38,7 +37,7 @@ trait MetricLoggerToKafka extends MetricLoggerComponent {
   private val Log = LogFactory.getLog(classOf[MetricLogger])
 
   /**
-   * Internal Metric Logger that is based off of [[MetricLogger]]
+   * Internal Metric Logger that is based off of [[MetricLogger]].
    */
   class MetricLogger extends MetricLoggerLike {
     self: MetricEnqueuer with MetricDequeuerService =>
@@ -63,30 +62,38 @@ trait MetricLoggerToKafka extends MetricLoggerComponent {
   }
 
   /**
-   * Overridden method that uses different parameter names.
+   * Produces a Metric Logger used to consume a dispatch metrics to a set of Kafka brokers.
    *
-   * See: [[MetricLoggerComponent]]
+   * <br>
+   * Note:
+   * <ul>
+   *   <li>This is an overridden method that uses different parameter names.</li>
+   *   <li>The server list can be a subset of Kafka servers from a given cluster.  This list of servers is only used for
+   *   identifying metadata.</li>
+   * </ul>
    *
-   * @param serverList Comma separated list of server names.
+   * See: [[MetricLoggerComponent]].
+   *
+   * @param brokerList Comma separated list of "host:port" Kafka brokers.
    * @param topic Kafka topic to use.
    * @param backupFileName File where to put back up files
    * @return Logging component that is able to log metric messages.
    */
-  override def MetricLogger(serverList: String, topic: String, backupFileName: String): MetricLogger =
+  override def MetricLogger(brokerList: String, topic: String, backupFileName: String): MetricLogger =
     new MetricLogger() with MetricEnqueuer
       with MetricDequeuerService
       with HashMapBufferComponent
       with KafkaComponent
       with LinkedBlockingPreBufferQueue
       with BufferedStreamEmergencyWriterComponent
-      with KafkaInformation {
-      lazy val brokers = AddressAndPort.parse(serverList)
+      with KafkaProducerInformation {
+      lazy val brokers = AddressAndPort.parse(brokerList)
       lazy val topic: String = topic
       lazy val backupFile: String = backupFile
     }
 }
 
 /**
- * Java binding for [[MetricLoggerToKafka]].
+ * Used for a Java binding for [[MetricLoggerToKafka]].
  */
 class MetricLoggerToKafkaJava extends MetricLoggerToKafka

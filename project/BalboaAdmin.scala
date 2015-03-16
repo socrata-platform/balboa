@@ -5,7 +5,7 @@ import sbtassembly.Plugin.AssemblyKeys._
 
 object BalboaAdmin {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings(assembly = true) ++ Seq(
-    mainClass in assembly := Some("com.socrata.balboa.jms.BalboaJms"),
+    mainClass in assembly := Some("com.socrata.balboa.admin.BalboaAdmin"),
     libraryDependencies <++= scalaVersion { libraries(_) }
   )
 

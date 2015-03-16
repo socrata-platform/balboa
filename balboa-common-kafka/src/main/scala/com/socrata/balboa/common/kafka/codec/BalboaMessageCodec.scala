@@ -1,4 +1,4 @@
-package com.socrata.balboa.kafka.codec
+package com.socrata.balboa.common.kafka.codec
 
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.impl.JsonMessage

@@ -5,7 +5,7 @@ import sbt._
 
 object BalboaClient {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings() ++ Seq(
-    crossScalaVersions := Seq("2.8.2", "2.10.1"),
+    crossScalaVersions := Seq("2.8.2", "2.10.4", "2.11.+"),
     libraryDependencies <++= scalaVersion {libraries(_)},
     dependenciesSnippet :=
       <xml.group>
@@ -24,30 +24,18 @@ object BalboaClient {
 }
 
 object BalboaClientJMS {
-  lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings() ++ Seq(
-    libraryDependencies <++= scalaVersion {libraries(_)},
-    dependenciesSnippet :=
-      <xml.group>
-        <conflict org="com.socrata" manager="latest-compatible" />
-        <conflict org="com.rojoma" manager="latest-compatible" />
-     </xml.group>
+  lazy val settings: Seq[Setting[_]] = BalboaClient.settings ++ Seq(
+    libraryDependencies <++= scalaVersion {libraries(_)}
   )
 
   def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ Seq(
-    junit,
-    scalatest,
     activemq
   )
 }
 
 object BalboaClientKafka {
-  lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings() ++ Seq(
-    libraryDependencies <++= scalaVersion {libraries(_)},
-    dependenciesSnippet :=
-      <xml.group>
-        <conflict org="com.socrata" manager="latest-compatible" />
-        <conflict org="com.rojoma" manager="latest-compatible" />
-      </xml.group>
+  lazy val settings: Seq[Setting[_]] = BalboaClient.settings ++ Seq(
+    libraryDependencies <++= scalaVersion {libraries(_)}
   )
 
   def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ BalboaKafkaCommon.libraries

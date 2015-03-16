@@ -2,11 +2,11 @@ package com.socrata.metrics.impl
 
 import java.io.File
 
-import com.socrata.balboa.kafka.codec.{BalboaMessageCodec, StringCodec}
-import com.socrata.balboa.kafka.util.{TestMetricsStuff, AddressAndPort, StagingAndRCEnvironment}
+import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.kafka.util.{TestMetricsStuff, AddressAndPort, StagingAndRCEnvironment}
 import com.socrata.balboa.metrics.Message
 import com.socrata.integration.kafka.util.{BalboaClientTestUtils, BalboaMessageClientTestHarness}
-import com.socrata.metrics.components.{MessageQueueComponent, EmergencyFileWriterComponent}
+import com.socrata.metrics.components.{EmergencyFileWriterComponent, MessageQueueComponent}
 import org.junit.Assert._
 import org.junit.Test
 
@@ -33,7 +33,7 @@ with TestMetricsStuff.TestMessages with MetricLoggerToKafka {
 
   override def setUp(): Unit = {
     super.setUp()
-    component = new TestComponent() with KafkaComponent with QueueEmergencyWriter with KafkaInformation {
+    component = new TestComponent() with KafkaComponent with QueueEmergencyWriter with KafkaProducerInformation {
       override def brokers: List[AddressAndPort] = AddressAndPort.parse(brokerList)
       override def backupFile: String = File.createTempFile("emergency", "data").getAbsolutePath
       override def topic: String = topic_internal

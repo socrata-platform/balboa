@@ -2,20 +2,17 @@ package com.socrata.integration.kafka.util
 
 import java.util.Properties
 
-import com.socrata.balboa.kafka.codec.{BalboaMessageCodec, StringCodec, KafkaCodec}
-import com.socrata.balboa.kafka.util.AddressAndPort
+import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.kafka.util.AddressAndPort
 import com.socrata.balboa.metrics.Message
 import com.socrata.metrics.producer.BalboaKafkaProducer
-import junit.framework.Assert._
 import kafka.consumer._
 import kafka.integration.KafkaServerTestHarness
 import kafka.server.KafkaConfig
-import kafka.utils.TestUtils._
-import kafka.utils.{Utils, TestUtils}
+import kafka.utils.TestUtils
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.scalatest.BeforeAndAfterEach
 
-import scala.Predef.error
 import scala.collection.{Map, mutable}
 
 /**

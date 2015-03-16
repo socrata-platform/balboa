@@ -1,4 +1,4 @@
-package com.socrata.balboa.kafka.codec
+package com.socrata.balboa.common.kafka.codec
 
 import kafka.utils.VerifiableProperties
 

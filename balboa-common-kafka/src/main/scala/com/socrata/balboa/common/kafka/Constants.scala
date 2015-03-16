@@ -1,4 +1,4 @@
-package com.socrata.balboa.kafka
+package com.socrata.balboa.common.kafka
 
 import java.util.Properties
 

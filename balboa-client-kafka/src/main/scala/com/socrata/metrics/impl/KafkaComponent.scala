@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory
 
 /**
  * Kafka component that manages sending metric messages to a Kafka Cluster identified
- * by the brokers in [[KafkaInformation]].  This class actually fabricates the queue abstraction for backwards
+ * using the metadata broker list found in [[KafkaProducerInformation]].  This class fabricates the queue abstraction for backwards
  *  compatibility purposes.  A call to send to [[com.socrata.metrics.components.MessageQueueComponent.MessageQueueLike.send()]]
  *  actually attempts to send a message synchronously to a Kafka Cluster.
  *
@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory
  *   exception the message is automatically written to the emergency file.
  */
 trait KafkaComponent extends MessageQueueComponent {
-  self: KafkaInformation with EmergencyFileWriterComponent =>
+  self: KafkaProducerInformation with EmergencyFileWriterComponent =>
 
   def properties: Properties = new Properties()
 
@@ -36,7 +36,7 @@ trait KafkaComponent extends MessageQueueComponent {
     /** Need to call [[start()]] to initialize this*/
     var producer: BalboaKafkaProducer[String, Message] = null
 
-    /** File writer for incomplete jobs See [[EmergencyFileWriter()]] */
+    /** File writer for incomplete sent messages. See [[EmergencyFileWriter()]] */
     val emergencyFileWriter = EmergencyFileWriter(new File(backupFile))
 
     /** See [[MessageQueueLike.start()]] */
@@ -80,9 +80,16 @@ trait KafkaComponent extends MessageQueueComponent {
      * is written to the emergency file.
      *
      * @param p Producer to use to send file.
-     * @param msg The Message to send.
+     * @param msg The [[Message]] to send.
      */
     private def sendAndHandleError(p: BalboaKafkaProducer[String, Message], msg: Message) = {
+
+      /*
+      Dev Notes: Kafka did a poor job documenting which error is thrown in the case of a send failure.  We had to refer
+      to the source code to identify that most errors are wrapped FailedToSendMessageException.  This is not a reliable
+      assumption and prone to the introduction of new Checked Exceptions.
+       */
+
       try {
         p.send(msg)
       } catch {

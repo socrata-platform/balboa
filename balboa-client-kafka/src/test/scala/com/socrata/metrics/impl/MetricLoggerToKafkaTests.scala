@@ -2,15 +2,16 @@ package com.socrata.metrics.impl
 
 import java.io.File
 
-import com.socrata.balboa.kafka.codec.{BalboaMessageCodec, StringCodec}
-import com.socrata.balboa.kafka.util.{AddressAndPort, StagingAndRCEnvironment}
+import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.kafka.util.{AddressAndPort, StagingAndRCEnvironment}
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.integration.kafka.util.{BalboaClientTestUtils, BalboaMessageClientTestHarness}
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
-import com.socrata.metrics.components.{MetricEnqueuer, EmergencyFileWriterComponent}
-import org.junit.Test
+import com.socrata.metrics.components.{EmergencyFileWriterComponent, MetricEnqueuer}
 import org.junit.Assert._
+import org.junit.Test
+
 import scala.collection.mutable.Queue
 
 /**
@@ -85,7 +86,7 @@ class MetricLoggerToKafkaTests extends BalboaMessageClientTestHarness with Metri
       with KafkaComponent
       with LinkedBlockingPreBufferQueue
       with QueueEmergencyWriter // Don't write the message out to a file
-      with KafkaInformation {
+      with KafkaProducerInformation {
       lazy val brokers = AddressAndPort.parse(s)
       lazy val topic: String = t
       lazy val backupFile: String = b

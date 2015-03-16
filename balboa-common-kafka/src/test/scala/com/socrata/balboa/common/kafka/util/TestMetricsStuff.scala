@@ -1,4 +1,4 @@
-package com.socrata.balboa.kafka.util
+package com.socrata.balboa.common.kafka.util
 
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.{Metric, Metrics}
