@@ -63,7 +63,7 @@ object BalboaKafka {
     // This might work: https://github.com/ritschwumm/xsbt-reflect
     val c = dockerDir / "balboa-kafka-consumer.jar"
     println("Staging for Docker by copying Balboa Consumer Assembly Jar to " + c)
-    IO.copyFile(f, c, true)
+    IO.copyFile(f, c)
   }
 
   lazy val settings: Seq[Setting[_]] = BalboaService.settings ++ Seq(
@@ -72,6 +72,7 @@ object BalboaKafka {
       stageConsumerTask,
       mergeStrategy in assembly := {
         case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first
+        case "config/config.properties"                    => MergeStrategy.last
         case x =>
           val oldStrategy = (mergeStrategy in assembly).value
           oldStrategy(x)
