@@ -5,6 +5,7 @@ import Keys._
 import sbtassembly.Plugin.AssemblyKeys._
 import com.socrata.cloudbeessbt.SocrataCloudbeesSbt._
 import SocrataSbtKeys._
+import sbtassembly.Plugin.{MergeStrategy, PathList}
 
 /**
  * Base Service build settings.  Created this to try and reduce dependency collisions.
@@ -68,7 +69,13 @@ object BalboaKafka {
   lazy val settings: Seq[Setting[_]] = BalboaService.settings ++ Seq(
       mainClass in assembly := Some("com.socrata.balboa.kafka.BalboaKafkaConsumerCLI"),
       libraryDependencies <++= scalaVersion {libraries(_)},
-      stageConsumerTask
+      stageConsumerTask,
+      mergeStrategy in assembly := {
+        case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first
+        case x =>
+          val oldStrategy = (mergeStrategy in assembly).value
+          oldStrategy(x)
+      }
     )
 
   def libraries(implicit scalaVersion: String) = BalboaKafkaCommon.libraries ++ Seq(

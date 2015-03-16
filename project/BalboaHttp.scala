@@ -38,11 +38,13 @@ object BalboaHttp {
     mainClass in assembly := Some("com.socrata.balboa.server.Main"),
     libraryDependencies <++= scalaVersion {libraries(_)},
     resourceGenerators in Compile <+= (resourceManaged in Compile, version in Compile, scalaVersion in Compile) map tagVersion,
-    mergeStrategy in assembly <<= (mergeStrategy in assembly) {
-      (old) =>  {
-        case PathList("org","slf4j","impl", xs @ _*) => MergeStrategy.first
-        case x => old(x)
-      }
+    mergeStrategy in assembly := {
+      case PathList("javax", "servlet", xs @ _*) => MergeStrategy.first
+      case PathList("org","slf4j","impl", xs @ _*) => MergeStrategy.first
+      case "about.html" => MergeStrategy.discard
+      case x =>
+        val oldStrategy = (mergeStrategy in assembly).value
+        oldStrategy(x)
     },
     dependenciesSnippet :=
       <xml.group>
