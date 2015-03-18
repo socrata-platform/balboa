@@ -61,6 +61,11 @@ trait BalboaKafkaComponent extends MessageQueueComponent {
       to the source code to identify that most errors are wrapped FailedToSendMessageException.  This is not a reliable
       assumption and prone to the introduction of new Checked Exceptions.
        */
+      producer match {
+        case p: BalboaKafkaProducer =>
+        case _ =>
+          start()
+      }
 
       producer.send(msg)
     } catch {

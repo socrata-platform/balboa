@@ -19,8 +19,9 @@ object BalboaCommon {
 object BalboaKafkaCommon {
 
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings() ++ Seq(
-    libraryDependencies <++= scalaVersion {libraries(_)})
-
+    libraryDependencies <++= scalaVersion {libraries(_)},
+    parallelExecution in Test := false
+  )
   def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
     kafka,
     kafka_test,

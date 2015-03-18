@@ -77,7 +77,8 @@ object BalboaKafka {
         case x =>
           val oldStrategy = (mergeStrategy in assembly).value
           oldStrategy(x)
-      }
+      },
+      testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
     )
 
   def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++
