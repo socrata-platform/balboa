@@ -44,6 +44,7 @@ with MetricsTestStuff.TestMessages with MetricLoggerToKafka {
     emergencyQueue.clear()
     component.stop()
     super.tearDown()
+    if (zookeeper != null) zookeeper.shutdown()
   }
 
   @Test def testSendAndReceiveOfOneMessage(): Unit = {
