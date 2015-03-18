@@ -1,5 +1,3 @@
-<snippet>
-  <content><![CDATA[
 # Balboa Kafka Client
 
 This project provides an extensible library for publishing any serializable entity to an existing Kafka Cluster.
@@ -17,29 +15,30 @@ This project is published as a maven repository and can be utilized and referenc
 
 SBT:
 1. Add the Socrata release repository to the project's `build.sbt`:
-```
-resolvers := Seq(
-  "socrata maven" at "https://repository-socrata-oss.forge.cloudbees.com/release"
-)
-```
-
-2. Add the balboa-client dependency to the project's library dependencies:
 
 ```
-libraryDependencies ++= Seq(
-  ...
-  "com.socrata" % "balboa-kafka-client" %% "0.14.0",
-  ...
-)
+ resolvers := Seq(
+   "socrata maven" at "https://repository-socrata-oss.forge.cloudbees.com/release"
+ )
+ ```
+
+ 2. Add the balboa-client dependency to the project's library dependencies:
+
+ ```
+ libraryDependencies ++= Seq(
+   ...
+   "com.socrata" % "balboa-kafka-client" %% "0.14.0",
+   ...
+ )
 ```
 
 Others: TODO
 
 ## Usage and Code Example
 
-We are currently not allowing the auto creation of topic outside of testing environments to prevent unwanted hard to
-recover collisions.  We will continue to iterate and devise a way pragmatic process for individual teams to easily create topics without
- namespace collisions.  For now please consult with the Metrics team to create a topic.
+We are currently not allowing the auto creation of topic outside of testing environments to prevent unwanted namespace
+ collisions.  We will continue to iterate and devise a way pragmatic process for individual teams to easily create topics
+ without namespace collisions.  For now please consult with the Metrics team to create a topic.
 
 In order to begin logging Balboa Metrics all you need to do is include the trait in your wrapper class.  It is considered
 generally good practice to utilize the singleton pattern.  Having a minimal number of producers is ideal for minimizing the number
@@ -91,7 +90,3 @@ TODO: Write credits
 
 A short snippet describing the license (MIT, Apache, etc.)
 TODO: Write license
-
-]]></content>
-  <tabTrigger>readme</tabTrigger>
-</snippet>

@@ -1,5 +1,7 @@
 package com.socrata.balboa.service.consumer
 
+import java.util.concurrent.Callable
+
 /**
  * Trait that defines the underlying requirement for consuming elements of parameterized type.
  *
@@ -12,13 +14,22 @@ trait ConsumerComponent[A] {
    * Underlying consumer that is meant to continuous consume messages until shutdown, stopped, or the method of consumption
    *  does not block and the consumer completes.
    */
-  trait ConsumerLike extends Runnable {
+  trait ConsumerLike extends Callable[Option[Exception]] with AutoCloseable {
+
+    /**
+     * Start the consumption process.  This is a synchronous call.
+     *
+     * @return Some(exception) if something unexpected happened while starting up.
+     */
+    def start(): Option[Exception]
 
     /**
      * Called when the client wishes to gracefully shutdown any currently running consumptions or halts the consumer from
      * waiting any further for following requests.
+     *
+     * @return Some(exception) if something unexpected happened while shutting down.
      */
-    def stop(): Unit
+    def stop(): Option[Exception]
 
     /**
      * Ingests the element.  Returns an error if ingestion fails in the form of an optional description.
@@ -28,6 +39,15 @@ trait ConsumerComponent[A] {
      */
     def consume(item: A): Option[String]
 
-  }
+    /**
+     * Starts the consumption process.  If you want to start the consumption process explicitly this is the same
+     * as effectively calling [[start()]]
+     */
+    final override def call(): Option[Exception] = this.start()
 
+    /**
+     * Auto closes by call [[stop()]].
+     */
+    final override def close(): Unit = this.stop()
+  }
 }

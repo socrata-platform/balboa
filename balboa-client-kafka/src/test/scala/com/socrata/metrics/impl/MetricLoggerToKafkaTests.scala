@@ -2,10 +2,10 @@ package com.socrata.metrics.impl
 
 import java.io.File
 
-import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
-import com.socrata.balboa.common.kafka.util.{AddressAndPort, StagingAndRCEnvironment}
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.Metric.RecordType
+import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.kafka.util.{AddressAndPort, StagingAndRCEnvironment}
 import com.socrata.integration.kafka.util.{BalboaClientTestUtils, BalboaMessageClientTestHarness}
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MetricEnqueuer}
@@ -83,7 +83,7 @@ class MetricLoggerToKafkaTests extends BalboaMessageClientTestHarness with Metri
     new MetricLogger() with MetricEnqueuer
       with MetricDequeuerService
       with HashMapBufferComponent
-      with KafkaComponent
+      with BalboaKafkaComponent
       with LinkedBlockingPreBufferQueue
       with QueueEmergencyWriter // Don't write the message out to a file
       with KafkaProducerInformation {

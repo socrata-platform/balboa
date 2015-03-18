@@ -1,25 +1,72 @@
-<snippet>
-  <content><![CDATA[
 # Balboa Kafka Service
 
-TODO: Write a project description
+This project provides an extensible library for subscribing to a Kafka topic and ingest messages from an existing Kafka
+Cluster.  This library provides defines a simple interface for creating necessary components for Kafka Message consumption.
 
 ## Motivation
 
-A short description of the motivation behind the creation and maintenance of the project. This should explain **why** the project exists.
+Kafka has become a proven distributed messaging bus for real-time data pipelines.  One of the most popular messaging patterns
+ is the publish and subscribe pattern.  Kafka has been proven to be a multi-purpose message system that can be utilized
+ and managed in a large scale distributed environment.
+
 
 ## Installation
 
-TODO: Describe the installation process
+This project is published as a maven repository and can be utilized and referenced as such through socrata's public
+ release library.
+
+ SBT:
+ 1. Add the Socrata release repository to the project's `build.sbt`:
+
+ ```
+  resolvers := Seq(
+    "socrata maven" at "https://repository-socrata-oss.forge.cloudbees.com/release"
+  )
+ ```
+
+2. Add the balboa-client dependency to the project's library dependencies:
+
+  ```
+  libraryDependencies ++= Seq(
+    ...
+    "com.socrata" % "balboa-kafka-service" %% "0.14.0",
+    ...
+  )
+ ```
+
+Others: TODO
 
 ## Usage and Code Example
 
-Show what the library does as concisely as possible, developers should be able to figure out **how** your project solves their problem by looking at the code example. Make sure the API you are showing off is obvious, and that your code is short and concise.
-TODO: Write usage instructions
+We are currently not allowing the auto creation of topic outside of testing environments to prevent unwanted namespace
+ collisions.  We will continue to iterate and devise a way pragmatic process for individual teams to easily create topics
+ without namespace collisions.  For now please consult with the Metrics team to create a topic.
+
+Creating content to send
+------------------------
+1. Create your message type and optional Key Type.  Your message type can be considered the end to end abstract data entity that travels from
+ producers to consumers.
+2. Create your [KafkaCodec](balboa-common-kafka/src/main/scala/com/socrata/balboa/service/kafka/codec/KafkaCodec.scala)
+for your message and key types.
+3. Discuss with the Metrics team about getting a [Kafka topic](http://kafka.apache.org/documentation.html#introduction)
+provisioned for you.
+
+Subscribing to messages you define can be summarized in the following steps.
+-----------------------------------------------------------------------------
+1. Create your own subclass of [KafkaConsumerComponent](TODO)
+2. Create your own subclass of [KafkaConsumerGroupComponent](TODO)
+3. Create your own subclass of [KafkaConsumerCLIBase](TODO)
+4. Point assembly to your subclass of KafkaConsumerCLIBase
+`mainClass in assembly := Some("your.subclass.of.KafkaConsumerCLIBase")`
 
 ## Tests
 
-Describe and show how to run the tests with code examples.
+Currently there is an issue with testing with SBT via the command line.  Creating a Zookeeper server resolves in address
+already in use exception.  We believe this is some how related to tests colliding with eachother.
+
+```
+sbt balboa-kafka-service/test
+```
 
 ## Contributing
 
@@ -43,7 +90,3 @@ TODO: Write credits
 
 A short snippet describing the license (MIT, Apache, etc.)
 TODO: Write license
-
-]]></content>
-  <tabTrigger>readme</tabTrigger>
-</snippet>

@@ -34,7 +34,6 @@ public class BufferedDataStoreTest {
         public Iterator<Metrics> find(String entityId, Period period, Date date) throws IOException { throw new UnsupportedOperationException(); }
         public Iterator<Metrics> find(String entityId, Period period, Date start, Date end) throws IOException { throw new UnsupportedOperationException(); }
         public Iterator<Metrics> find(String entityId, Date start, Date end) throws IOException { throw new UnsupportedOperationException(); }
-
     }
 
     class MockTimeService extends TimeService {

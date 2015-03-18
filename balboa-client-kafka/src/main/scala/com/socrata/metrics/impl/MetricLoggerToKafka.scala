@@ -1,13 +1,13 @@
 package com.socrata.metrics.impl
 
-import com.socrata.balboa.common.kafka.util.AddressAndPort
 import com.socrata.balboa.metrics.Metric.RecordType
+import com.socrata.balboa.common.kafka.util.AddressAndPort
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{MetricEnqueuer, MetricEntry, MetricLoggerComponent}
 import org.apache.commons.logging.LogFactory
 
 /**
- * Information that pertains of how to setup and configure producers to communicate with Kafka.
+ * Information that pertains to how to setup and configure producers that will communicate with Kafka.
  */
 trait KafkaProducerInformation {
 
@@ -32,9 +32,10 @@ trait KafkaProducerInformation {
  * Entry point for how to funnel Metric logs entries to Kafka.
  */
 trait MetricLoggerToKafka extends MetricLoggerComponent {
+  private val Log = LogFactory.getLog(classOf[MetricLogger])
+
   val delay = 120L
   val interval = 120L
-  private val Log = LogFactory.getLog(classOf[MetricLogger])
 
   /**
    * Internal Metric Logger that is based off of [[MetricLogger]].
@@ -83,7 +84,7 @@ trait MetricLoggerToKafka extends MetricLoggerComponent {
     new MetricLogger() with MetricEnqueuer
       with MetricDequeuerService
       with HashMapBufferComponent
-      with KafkaComponent
+      with BalboaKafkaComponent
       with LinkedBlockingPreBufferQueue
       with BufferedStreamEmergencyWriterComponent
       with KafkaProducerInformation {

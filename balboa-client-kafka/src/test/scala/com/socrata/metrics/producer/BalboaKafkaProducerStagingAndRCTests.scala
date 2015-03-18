@@ -1,8 +1,8 @@
 package com.socrata.metrics.producer
 
-import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
-import com.socrata.balboa.common.kafka.util.{TestMetricsStuff, StagingAndRCEnvironment}
 import com.socrata.balboa.metrics.Message
+import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.kafka.util.{StagingAndRCEnvironment, MetricsTestStuff}
 import com.socrata.integration.kafka.util.{BalboaClientTestUtils, BalboaMessageClientTestHarness}
 import kafka.common.FailedToSendMessageException
 import kafka.server.KafkaServer
@@ -15,7 +15,7 @@ import org.junit.Test
  * actual deployed staging and RC environments.
  */
 class BalboaKafkaProducerStagingAndRCTests extends BalboaMessageClientTestHarness
-with TestMetricsStuff.TestMessages {
+with MetricsTestStuff.TestMessages {
 
   override val numPartitions: Int = StagingAndRCEnvironment.NUM_PARTITIONS
   override val replicationFactor: Int = StagingAndRCEnvironment.REPLICATION_FACTOR
@@ -61,7 +61,7 @@ with TestMetricsStuff.TestMessages {
   }
 
   def downServerTestHelper(downServers: Seq[KafkaServer],
-                           producers: Seq[BalboaKafkaProducer[String, Message]],
+                           producers: Seq[GenericKafkaProducer[String,Message,StringCodec,BalboaMessageCodec]],
                            inputMessages: Message*) = {
     downServers.foreach(s => {
       s.shutdown()

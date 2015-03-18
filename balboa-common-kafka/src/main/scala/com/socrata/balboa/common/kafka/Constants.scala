@@ -11,8 +11,8 @@ object Constants {
   val PRODUCER_TYPE = "sync"
 
   // See: Kafka Producer Config: request.required.acks
-  // Verify that one broker gets the message
-  val REQUEST_REQUIRED_ACKS = "1"
+  // Full syncronization.
+  val REQUEST_REQUIRED_ACKS = (-1).toString
 
   /**
    * While this returns the base configuration for producers, the returned property
@@ -24,7 +24,7 @@ object Constants {
     val p = new Properties()
     p.setProperty("request.required.acks", REQUEST_REQUIRED_ACKS)
     p.setProperty("producer.type", PRODUCER_TYPE)
-    // Add more default producer configs here...
+    // Add more Socrata default producer configs here...
     p
   }
 

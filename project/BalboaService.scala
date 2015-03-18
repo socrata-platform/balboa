@@ -67,8 +67,9 @@ object BalboaKafka {
   }
 
   lazy val settings: Seq[Setting[_]] = BalboaService.settings ++ Seq(
-      mainClass in assembly := Some("com.socrata.balboa.kafka.BalboaKafkaConsumerCLI"),
+      mainClass in assembly := Some("com.socrata.balboa.common.kafka.BalboaKafkaConsumerCLI"),
       libraryDependencies <++= scalaVersion {libraries(_)},
+      parallelExecution in Test := false,
       stageConsumerTask,
       mergeStrategy in assembly := {
         case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first
@@ -79,7 +80,8 @@ object BalboaKafka {
       }
     )
 
-  def libraries(implicit scalaVersion: String) = BalboaKafkaCommon.libraries ++ Seq(
+  def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++
+    BalboaKafkaCommon.libraries ++ Seq(
     mockito_test
     // Add more dependencies for Kafka Service here...
   )

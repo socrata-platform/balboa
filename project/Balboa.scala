@@ -6,8 +6,8 @@ object Balboa extends Build {
     file("."),
     settings = BuildSettings.buildSettings ++ Seq(Keys.parallelExecution := false)
   ) aggregate (balboaCommon, balboaCore, balboaHttp, balboaServiceCore, balboaJms,
-    balboaAdmin, balboaClientCore, balboaClientJMS, balboaKafkaCommon, balboaClientKafka,
-    balboaKafka)
+    balboaAdmin, balboaClientCore, balboaClientJMS, balboaKafkaCommon, balboaKafkaClient,
+    balboaKafkaService)
 
   lazy val balboaCommon = project("balboa-common", None, BalboaCommon)
 
@@ -32,10 +32,11 @@ object Balboa extends Build {
   lazy val balboaKafkaCommon = project("balboa-kafka-common", Some("balboa-common-kafka"), BalboaKafkaCommon,
     balboaCommon)
 
-  lazy val balboaClientKafka = project("balboa-kafka-client", Some("balboa-client-kafka"), BalboaClientKafka,
+  lazy val balboaKafkaClient = project("balboa-kafka-client", Some("balboa-client-kafka"), BalboaClientKafka,
     balboaClientCore, balboaKafkaCommon % "test->test;compile->compile")
 
-  lazy val balboaKafka = project("balboa-kafka-service", Some("balboa-service-kafka"), BalboaKafka, balboaServiceCore, balboaClientKafka)
+  lazy val balboaKafkaService = project("balboa-kafka-service", Some("balboa-service-kafka"),
+    BalboaKafka, balboaServiceCore, balboaKafkaClient % "test->test;compile->compile")
 
   // Private Helper Methods
 

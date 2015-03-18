@@ -1,4 +1,4 @@
-# Default Balboa Properties
+# Overload Default Balboa Properties
 ########################################
 
 cassandra.servers = {{ CASSANDRA_ENSEMBLE }}
@@ -10,7 +10,7 @@ balboa.datastore = cassandra
 
 zookeeper.connect = {{ ZOOKEEPER_ENSEMBLE }}
 zookeeper.session.timeout.ms = 1000000
-group.id = balboa_consumer
+group.id = {{ CONSUMER_GROUP }}
 
 # Balboa defined Kafka Properties
 # The topic this specific service will be listening for

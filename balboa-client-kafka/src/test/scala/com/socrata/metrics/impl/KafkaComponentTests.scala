@@ -2,9 +2,9 @@ package com.socrata.metrics.impl
 
 import java.io.File
 
-import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
-import com.socrata.balboa.common.kafka.util.{TestMetricsStuff, AddressAndPort, StagingAndRCEnvironment}
 import com.socrata.balboa.metrics.Message
+import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.kafka.util.{AddressAndPort, StagingAndRCEnvironment, MetricsTestStuff}
 import com.socrata.integration.kafka.util.{BalboaClientTestUtils, BalboaMessageClientTestHarness}
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MessageQueueComponent}
 import org.junit.Assert._
@@ -13,10 +13,10 @@ import org.junit.Test
 import scala.collection.mutable.Queue
 
 /**
- * Kafka Component Tests.  See [[KafkaComponent]].  Test basic functionality of KafkaComponent.
+ * Kafka Component Tests.  See [[BalboaKafkaComponent]].  Test basic functionality of KafkaComponent.
  */
 class KafkaComponentTests extends BalboaMessageClientTestHarness
-with TestMetricsStuff.TestMessages with MetricLoggerToKafka {
+with MetricsTestStuff.TestMessages with MetricLoggerToKafka {
 
   override val numPartitions: Int = StagingAndRCEnvironment.NUM_PARTITIONS
   override val replicationFactor: Int = StagingAndRCEnvironment.REPLICATION_FACTOR
@@ -33,7 +33,7 @@ with TestMetricsStuff.TestMessages with MetricLoggerToKafka {
 
   override def setUp(): Unit = {
     super.setUp()
-    component = new TestComponent() with KafkaComponent with QueueEmergencyWriter with KafkaProducerInformation {
+    component = new TestComponent() with BalboaKafkaComponent with QueueEmergencyWriter with KafkaProducerInformation {
       override def brokers: List[AddressAndPort] = AddressAndPort.parse(brokerList)
       override def backupFile: String = File.createTempFile("emergency", "data").getAbsolutePath
       override def topic: String = topic_internal

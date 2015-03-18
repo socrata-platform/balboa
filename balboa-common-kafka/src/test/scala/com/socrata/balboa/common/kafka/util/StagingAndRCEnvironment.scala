@@ -8,7 +8,7 @@ object StagingAndRCEnvironment {
   /**
    * Currently have a partition number of 4
    */
-  val NUM_PARTITIONS: Int = 4
+  val NUM_PARTITIONS: Int = 8
 
   /**
    * Current replication factor of three so that we can have at most up to two nodes down at any time.

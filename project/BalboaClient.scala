@@ -35,7 +35,8 @@ object BalboaClientJMS {
 
 object BalboaClientKafka {
   lazy val settings: Seq[Setting[_]] = BalboaClient.settings ++ Seq(
-    libraryDependencies <++= scalaVersion {libraries(_)}
+    libraryDependencies <++= scalaVersion {libraries(_)},
+    parallelExecution in Test := false
   )
 
   def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ BalboaKafkaCommon.libraries

@@ -2,12 +2,13 @@ package com.socrata.integration.kafka.util
 
 import java.util.Properties
 
-import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
-import com.socrata.balboa.common.kafka.util.AddressAndPort
 import com.socrata.balboa.metrics.Message
-import com.socrata.metrics.producer.BalboaKafkaProducer
+import com.socrata.balboa.common.kafka.codec.{KafkaCodec, BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.kafka.util.AddressAndPort
+import com.socrata.metrics.producer.{BalboaKafkaProducer, GenericKafkaProducer}
 import kafka.consumer._
 import kafka.integration.KafkaServerTestHarness
+import kafka.serializer.Encoder
 import kafka.server.KafkaConfig
 import kafka.utils.TestUtils
 import org.apache.kafka.clients.producer.ProducerConfig
@@ -28,7 +29,8 @@ import scala.collection.{Map, mutable}
  * TearDown is conducted within [[BeforeAndAfterEach.afterEach()]].  Within each test case teardown process Kafka servers,
  * producers, and consumers are all stopped.
  */
-trait BalboaClientTestHarness[K, M] extends KafkaServerTestHarness {
+trait BalboaClientTestHarness[K,M,KE <: KafkaCodec[K],ME <: KafkaCodec[M]]
+  extends KafkaServerTestHarness {
 
   val producerCount: Int
   val consumerCount: Int
@@ -63,7 +65,7 @@ trait BalboaClientTestHarness[K, M] extends KafkaServerTestHarness {
    */
   protected def genProducer(topic: String,
                             brokers: List[AddressAndPort] = List.empty,
-                            properties: Option[Properties] = None): BalboaKafkaProducer[K,M]
+                            properties: Option[Properties] = None): GenericKafkaProducer[K,M,KE,ME]
 
   /**
    * This number is assigned by the current number of Kafka servers inside our cluster.
@@ -74,7 +76,7 @@ trait BalboaClientTestHarness[K, M] extends KafkaServerTestHarness {
   lazy val serverConfig = new Properties
   override lazy val configs = {
     val cfgs = TestUtils.createBrokerConfigs(serverCount)
-    cfgs.map(_.putAll(serverConfig))
+    cfgs.foreach(_.putAll(serverConfig))
     cfgs.map(new KafkaConfig(_))
   }
 
@@ -82,7 +84,7 @@ trait BalboaClientTestHarness[K, M] extends KafkaServerTestHarness {
    * A buffer of different Consumer Connector that all point to different
    */
   var consumers = mutable.Buffer[ConsumerConnector]()
-  var producers = mutable.Buffer[BalboaKafkaProducer[K, M]]()
+  var producers = mutable.Buffer[GenericKafkaProducer[K,M,KE,ME]]()
 
   /**
    * Mapping from Consumer group to all the consumers that belong in that group.
@@ -147,32 +149,30 @@ trait BalboaClientTestHarness[K, M] extends KafkaServerTestHarness {
   }
 }
 
-trait StringClientTestHarness extends BalboaClientTestHarness[String, String] {
+case class StringKafkaProducer(topic: String,
+                               brokers: List[AddressAndPort],
+                               properties: Option[Properties])
+  extends GenericKafkaProducer[String, String, StringCodec, StringCodec](topic, brokers, properties)
+
+trait StringClientTestHarness extends BalboaClientTestHarness[String, String, StringCodec, StringCodec] {
 
   /**
    * See [[BalboaClientTestHarness.genProducer()]].
    */
   override def genProducer(topic: String,
                            brokers: List[AddressAndPort],
-                           properties: Option[Properties]): BalboaKafkaProducer[String, String] =
-    BalboaKafkaProducer.cons[String, String, StringCodec, StringCodec](
-      topic, AddressAndPort.parse(this.bootstrapUrl), Some(producerConfig)) match {
-      case Left(error) => throw new IllegalStateException("Unable to initialize producers: " + error)
-      case Right(p) => p
-    }
+                           properties: Option[Properties]): GenericKafkaProducer[String, String, StringCodec, StringCodec] =
+    StringKafkaProducer(topic, brokers, properties)
 }
 
-trait BalboaMessageClientTestHarness extends BalboaClientTestHarness[String, Message] {
+trait BalboaMessageClientTestHarness extends BalboaClientTestHarness[String, Message, StringCodec, BalboaMessageCodec] {
 
   /**
    * See [[BalboaClientTestHarness.genProducer()]]
    */
   override protected def genProducer(topic: String,
                                      brokers: List[AddressAndPort],
-                                     properties: Option[Properties]): BalboaKafkaProducer[String, Message] =
-    BalboaKafkaProducer.cons[String, Message, StringCodec, BalboaMessageCodec](
-      topic, AddressAndPort.parse(this.bootstrapUrl), Some(producerConfig)) match {
-      case Left(error) => throw new IllegalStateException("Unable to initialize producers: " + error)
-      case Right(p) => p
-    }
+                                     properties: Option[Properties]):
+  GenericKafkaProducer[String, Message, StringCodec, BalboaMessageCodec] = BalboaKafkaProducer(topic, brokers, properties)
+
 }

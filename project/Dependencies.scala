@@ -17,6 +17,7 @@ object Dependencies {
     val commons_logging = "1.1.1"
     val jackson = "1.9.12"
     val junit = "4.5"
+    val jopt_simple = "4.8"
     val kafka = "[0.8.2.1, 0.9.0.0)"
     val log4j = "1.2.16"
     val mockito = "1.+"
@@ -39,6 +40,7 @@ object Dependencies {
   val jackson_core_asl = "org.codehaus.jackson" % "jackson-core-asl" % versions.jackson
   val jackson_mapper_asl = "org.codehaus.jackson" % "jackson-mapper-asl" % versions.jackson
   val junit = "junit" % "junit" % versions.junit % "test"
+  val jopt_simple = "net.sf.jopt-simple" % "jopt-simple" % versions.jopt_simple
   val kafka = "org.apache.kafka" %% "kafka" % versions.kafka
   val kafka_test = kafka % "test" classifier "test"
   val log4j = "log4j" % "log4j" % versions.log4j

@@ -24,7 +24,7 @@ object BalboaKafkaCommon {
   def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
     kafka,
     kafka_test,
-    scopt,
+    jopt_simple,
     scalatest
   )
 }
