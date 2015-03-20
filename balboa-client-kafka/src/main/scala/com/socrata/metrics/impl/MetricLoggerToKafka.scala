@@ -24,7 +24,7 @@ trait KafkaProducerInformation {
   /**
    * @return The back up file where failed writes will go.
    */
-  def backupFile: String
+  def emergencyBackUpFile: String
 
 }
 
@@ -77,10 +77,12 @@ trait MetricLoggerToKafka extends MetricLoggerComponent {
    *
    * @param brokerList Comma separated list of "host:port" Kafka brokers.
    * @param topic Kafka topic to use.
-   * @param backupFileName File where to put back up files
+   * @param emergencyFileName File where to put back up files
    * @return Logging component that is able to log metric messages.
    */
-  override def MetricLogger(brokerList: String, topic: String, backupFileName: String): MetricLogger =
+  override def MetricLogger(brokerList: String, topic: String, emergencyFileName: String): MetricLogger = {
+    val t = topic
+    val ebf = emergencyFileName
     new MetricLogger() with MetricEnqueuer
       with MetricDequeuerService
       with HashMapBufferComponent
@@ -89,9 +91,11 @@ trait MetricLoggerToKafka extends MetricLoggerComponent {
       with BufferedStreamEmergencyWriterComponent
       with KafkaProducerInformation {
       lazy val brokers = AddressAndPort.parse(brokerList)
-      lazy val topic: String = topic
-      lazy val backupFile: String = backupFile
+      lazy val topic: String = t
+      lazy val emergencyBackUpFile: String = ebf
+
     }
+  }
 }
 
 /**

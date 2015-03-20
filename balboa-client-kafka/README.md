@@ -8,6 +8,9 @@ Kafka has become a proven distributed messaging bus for real-time data pipelines
 publishing messages to Kafka Clusters.  Currently, this project focuses heavily on publishing Balboa Metrics to an existing
  cluster.
 
+ We want to provide everyone with the ability to easily ingrain Kafka Producers and Consumers in there services with as little
+ learning and dependencies as possible.
+
 ## Installation
 
 This project is published as a maven repository and can be utilized and referenced as such through socrata's public
@@ -36,9 +39,7 @@ Others: TODO
 
 ## Usage and Code Example
 
-We are currently not allowing the auto creation of topic outside of testing environments to prevent unwanted namespace
- collisions.  We will continue to iterate and devise a way pragmatic process for individual teams to easily create topics
- without namespace collisions.  For now please consult with the Metrics team to create a topic.
+### Metric Logging
 
 In order to begin logging Balboa Metrics all you need to do is include the trait in your wrapper class.  It is considered
 generally good practice to utilize the singleton pattern.  Having a minimal number of producers is ideal for minimizing the number
@@ -57,6 +58,31 @@ trait MyLogger extends MetricLoggerToKafka {
 }
 
 ```
+
+### Topic Naming
+
+Socrata Kafka clusters are currently configured to **allow** the auto creation of topics within all environments.  This
+configuration is within chef git@git.socrata.com:socrata-kafka-cookbook.git.  Please refer to the Kafka Manager for your
+respective environment for available topic names.  Please precede all of your topics with your respective team name followed
+by a ".". IE. *"which.some.query.topic"*, *"metrics.tenant.v1"*.  This will help control namespace collisions and allow
+each team to manage there own topics with less fear of collision.
+
+### Creating your own Kafka producer with your own Message type
+
+Creating content to send
+------------------------
+1. Create your message type and optional Key Type.  Your message type can be considered the end to end abstract data entity that travels from
+ producers to consumers.
+2. Create your [KafkaCodec](balboa-common-kafka/src/main/scala/com/socrata/balboa/service/kafka/codec/KafkaCodec.scala)
+for your message and key types.
+3. Discuss with the Metrics team about getting a [Kafka topic](http://kafka.apache.org/documentation.html#introduction)
+provisioned for you.
+
+Creating a producer to send your content
+----------------------------------------
+1. Identify what the name of your topic.  Please refer to above.
+2. Identify the IP address of the desired Kafka brokers.
+3. Create your own implementation of [GenericKafkaProducer]() using the Codecs you created earlier.
 
 ## Tests
 

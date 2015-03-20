@@ -67,10 +67,6 @@ trait BalboaClientTestHarness[K,M,KE <: KafkaCodec[K],ME <: KafkaCodec[M]]
                             brokers: List[AddressAndPort] = List.empty,
                             properties: Option[Properties] = None): GenericKafkaProducer[K,M,KE,ME]
 
-  /**
-   * This number is assigned by the current number of Kafka servers inside our cluster.
-   */
-  val DEFAULT_SERVER_COUNT = 4
   lazy val producerConfig = new Properties
   lazy val consumerConfig = new Properties
   lazy val serverConfig = new Properties
@@ -122,6 +118,7 @@ trait BalboaClientTestHarness[K,M,KE <: KafkaCodec[K],ME <: KafkaCodec[M]]
     producers.map(_.close())
     consumers.map(_.shutdown())
     super.tearDown()
+    if (zookeeper != null) zookeeper.shutdown()
   }
 
   /**

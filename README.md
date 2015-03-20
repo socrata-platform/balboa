@@ -18,12 +18,14 @@ TODO: Complete README refactor
 
 Client libraries provide a mechanism to publish metrics to an existing messaging bus.
 
-* Balboa JMS Client: TODO: Complete README refactor
+* [Balboa JMS Client] TODO: Complete README refactor
 * [Balboa Kafka Client](balboa/balboa-client-kafka/README.md)
 
 ### Services
 
 TODO: Complete README refactor
+* [Balboa JMS Service] TODO: Complete README refactor
+* [Balboa Kafka Service](balboa/balboa-service-kafka/README.md)
 
 ## Usage
 

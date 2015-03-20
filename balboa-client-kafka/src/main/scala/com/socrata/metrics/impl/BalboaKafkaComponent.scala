@@ -1,6 +1,7 @@
 package com.socrata.metrics.impl
 
 import java.io.File
+import java.nio.file.{Path, Paths, Files}
 import java.util.Properties
 
 import com.socrata.balboa.metrics.Message
@@ -37,7 +38,14 @@ trait BalboaKafkaComponent extends MessageQueueComponent {
     var producer: BalboaKafkaProducer = null
 
     /** File writer for incomplete sent messages. See [[EmergencyFileWriter()]] */
-    val emergencyFileWriter = EmergencyFileWriter(new File(backupFile))
+    val emergencyFileWriter: Option[EmergencyFileWriter] = emergencyBackUpFile match {
+      case s: String =>
+        val p: Path = Paths.get(s)
+        if (!Files.exists(p))
+          Files.createFile(p)
+        Some(EmergencyFileWriter(p.toFile))
+      case _ => None
+    }
 
     /** See [[MessageQueueLike.start()]] */
     override def start(): Unit = {
@@ -70,8 +78,13 @@ trait BalboaKafkaComponent extends MessageQueueComponent {
       producer.send(msg)
     } catch {
       case e: FailedToSendMessageException =>
-        Log.error(s"Unable to send message $msg.  writing to emergency file", e)
-        emergencyFileWriter.send(msg)
+        val errMsg = s"Unable to send message $msg.  writing to emergency file: $emergencyBackUpFile"
+        Log.error(errMsg, e)
+        System.err.println(errMsg)
+        emergencyFileWriter match {
+          case Some(efw) => efw.send(msg)
+          case None => // NOOP
+        }
     }
   }
 

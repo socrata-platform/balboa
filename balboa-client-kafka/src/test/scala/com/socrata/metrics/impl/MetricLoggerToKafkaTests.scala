@@ -89,7 +89,7 @@ class MetricLoggerToKafkaTests extends BalboaMessageClientTestHarness with Metri
       with KafkaProducerInformation {
       lazy val brokers = AddressAndPort.parse(s)
       lazy val topic: String = t
-      lazy val backupFile: String = b
+      lazy val emergencyBackUpFile: String = b
     }
 }
 

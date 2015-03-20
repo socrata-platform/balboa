@@ -35,7 +35,7 @@ with MetricsTestStuff.TestMessages with MetricLoggerToKafka {
     super.setUp()
     component = new TestComponent() with BalboaKafkaComponent with QueueEmergencyWriter with KafkaProducerInformation {
       override def brokers: List[AddressAndPort] = AddressAndPort.parse(brokerList)
-      override def backupFile: String = File.createTempFile("emergency", "data").getAbsolutePath
+      override def emergencyBackUpFile: String = File.createTempFile("emergency", "data").getAbsolutePath
       override def topic: String = topic_internal
     }
   }
@@ -44,7 +44,6 @@ with MetricsTestStuff.TestMessages with MetricLoggerToKafka {
     emergencyQueue.clear()
     component.stop()
     super.tearDown()
-    if (zookeeper != null) zookeeper.shutdown()
   }
 
   @Test def testSendAndReceiveOfOneMessage(): Unit = {

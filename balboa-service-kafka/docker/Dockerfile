@@ -2,8 +2,6 @@ FROM socrata/java
 
 # Forward the ZooKeeper and Cassandra Port.
 # TODO Expose JMX
-EXPOSE 2181
-EXPOSE 9160
 
 ### Environment Variables
 ENV BALBOA_ROOT /srv/balboa-kafka-consumer

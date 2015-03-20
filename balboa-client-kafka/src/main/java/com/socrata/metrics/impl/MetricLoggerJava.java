@@ -10,12 +10,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Java wrapper around MetricLoggerToKafka.
+ * Java wrapper around @see {@link com.socrata.metrics.impl.MetricLoggerToKafka}.
  */
 public class MetricLoggerJava extends AbstractJavaMetricQueue {
 
     /**
-     * Mapping topics => MetricLoggers.  Allows for the
+     * Mapping topics => MetricLoggers.
      */
     private static Map<String, MetricLoggerJava> instances = new HashMap<>();
 
@@ -34,8 +34,11 @@ public class MetricLoggerJava extends AbstractJavaMetricQueue {
         if (instances.containsKey(topic)) {
             return instances.get(topic);
         } else {
-            MetricLoggerJava logger = new MetricLoggerJava(topic);
-            instances.put(topic, logger);
+            MetricLoggerJava logger;
+            synchronized (MetricLoggerJava.class) {
+                logger = new MetricLoggerJava(topic);
+                instances.put(topic, logger);
+            }
             return logger;
         }
     }

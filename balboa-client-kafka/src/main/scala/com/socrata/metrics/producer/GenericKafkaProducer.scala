@@ -1,7 +1,7 @@
 package com.socrata.metrics.producer
 
 import java.util.Properties
-import com.socrata.balboa.common.kafka.Constants
+
 import com.socrata.balboa.common.kafka.util.AddressAndPort
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.Encoder
@@ -9,8 +9,8 @@ import kafka.serializer.Encoder
 /**
  * A wrapper around Kafka [[Producer]].  This Producer is restricted to exactly one Kafka Topic.  This
  * producers responsibility is to provide many of the default properties for Kafka [[Producer]].  To see the
- * current default settings reference [[Constants.producerDefaultProps]].  You can override any of the default
- * properties with passing in your own properties.
+ * current default settings reference [[producerDefaultProps]].  You can override any of the default
+ * properties with passing in your own [[Properties]].  The only
  *
  * @param topic Kafka topic to produce to.
  * @param brokers Kafka Broker metadata list.
@@ -21,13 +21,21 @@ import kafka.serializer.Encoder
  * @tparam ME Encoder for M. Must have a constructor argument signature of `properties: VerifiableProperties = null`
  */
 class GenericKafkaProducer[K,M,KE <: Encoder[K]: Manifest,ME <: Encoder[M]: Manifest](topic: String,
-                                                                                      brokers: List[AddressAndPort] = List.empty,
+                                                                                      brokers: List[AddressAndPort],
                                                                                       properties: Option[Properties] = None)
   extends AutoCloseable {
 
+  // See: Kafka Producer Config: producer.type
+  // Call will block the current thread
+  private val PRODUCER_TYPE = "sync"
+
+  // See: Kafka Producer Config: request.required.acks
+  // Full syncronization.
+  private val REQUEST_REQUIRED_ACKS = (-1).toString
+
   // Dynamically configure encoder by name.
   val producer = {
-    val p = Constants.producerDefaultProps
+    val p = producerDefaultProps
     properties match {
       case Some(other) => p.putAll(other)
       case None => // NOOP
@@ -37,7 +45,7 @@ class GenericKafkaProducer[K,M,KE <: Encoder[K]: Manifest,ME <: Encoder[M]: Mani
 
     brokers match {
       case Nil =>
-      // TODO Implement Consul Service discovery.
+        throw new IllegalArgumentException("Cannot create a Generic Kafka Producer with an empty broker list.")
       case l =>
         p.setProperty("metadata.broker.list", l.map(aap => aap.toString).mkString(","))
     }
@@ -67,5 +75,20 @@ class GenericKafkaProducer[K,M,KE <: Encoder[K]: Manifest,ME <: Encoder[M]: Mani
    *  See: [[Producer.close]]
    */
   override def close() = producer.close()
+
+  /**
+   * While this returns the base configuration for producers, the returned property
+   *  instance still require metadata.broker.list, serializer.class, key.serializer.class.
+   *
+   * @return Default Properties for producers.
+   */
+  protected def producerDefaultProps: Properties = {
+    val p = new Properties()
+    p.setProperty("request.required.acks", REQUEST_REQUIRED_ACKS)
+    p.setProperty("producer.type", PRODUCER_TYPE)
+    // BalboaKafka Developers: Add more Socrata default producer configs here...
+    // These configurations should coincide with how Kafka Brokers are configured.
+    p
+  }
 
 }
