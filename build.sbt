@@ -1,3 +1,3 @@
 name := "Balboa"
 
-scalaVersion := "2.10.+"
+scalaVersion := "2.10.4"

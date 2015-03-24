@@ -6,6 +6,17 @@ import com.socrata.balboa.metrics.measurements.combining.Summation;
 import org.codehaus.jackson.annotate.JsonCreator;
 
 public class Metric {
+
+    /**
+     * There is the ability to pre aggregate metrics with additional clients or services.  This enumeration
+     * allows you to defined whether your metric is pre aggregated or in absolute form.  You can think of this
+     * enumeration as a characteristic tag for a specific metric.
+     *
+     * <br>
+     *     Example Absolute Metric:
+     * <br>
+     *     Example Aggregate Metric: Total data sets downloaded
+     */
     public enum RecordType {
         AGGREGATE,
         ABSOLUTE;
@@ -32,6 +43,7 @@ public class Metric {
         return type.hashCode() + value.hashCode();
     }
 
+    // TODO Is there a reason we are being a little looser with equality using instanceof instead of class equality?
     @Override
     public boolean equals(Object o) {
         if (o instanceof Metric) {

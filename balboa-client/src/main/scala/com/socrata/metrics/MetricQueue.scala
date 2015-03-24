@@ -1,12 +1,14 @@
 package com.socrata.metrics
 
-import com.socrata.balboa.metrics.Metric
+import java.util.Date
 
+import com.socrata.balboa.metrics.Metric
+import com.socrata.metrics.MetricQueue.{AccessChannel, Action}
 
 object MetricQueue {
   val AGGREGATE_GRANULARITY: Long = 120 * 1000
 
-  final object Action extends Enumeration {
+  object Action extends Enumeration {
     type Action = Value
     val SHARE = Value("share")
     val COMMENT = Value("comment")
@@ -15,14 +17,14 @@ object MetricQueue {
     val FAVORITE = Value("favorite")
   }
 
-  final object Import extends Enumeration {
+  object Import extends Enumeration {
     type Import = Value
     val REPLACE = Value("replace")
     val IMPORT = Value("import")
     val APPEND = Value("append")
   }
 
-  final object AccessChannel extends Enumeration {
+  object AccessChannel extends Enumeration {
     type AccessChannel = Value
     val DOWNLOAD = Value("download")
     val WEBSITE = Value("website")
@@ -36,69 +38,222 @@ object MetricQueue {
 
 }
 
-abstract trait MetricQueue {
+/**
+ * Base interface that all metrics producers must implement.
+ */
+trait MetricQueue {
 
-  def create(entity: IdParts, name: IdParts, value: Long, timestamp: Long, recordType: Metric.RecordType)
+  /**
+   * Interface for receiving a Metric
+   *
+   * @param entity Entity which this Metric belongs to (ex: a domain).
+   * @param name Name of the Metric to store.
+   * @param value Numeric value of this metric.
+   * @param timestamp Time when this metric was created.
+   * @param recordType Type of metric to add, See [[Metric.RecordType]] for more information.
+   */
+  def create(entity: IdParts, name: IdParts, value: Long,
+             timestamp: Long = new Date().getTime, recordType: Metric.RecordType = Metric.RecordType.AGGREGATE)
 
-  def create(entity: IdParts, name: IdParts, value: Long, timestamp: Long)
+}
 
-  def create(entity: IdParts, name: IdParts, value: Long)
+/**
+ * Metric Queue for Socrata specific metrics.
+ */
+trait SocrataMetricQueue extends MetricQueue {
 
-  def logViewChildLoaded(parentViewUid:ViewUid, childViewUid:ViewUid, displaytype: String)
+  // TODO: Convert display type to enum
+  def logViewChildLoaded(parentViewUid:ViewUid, childViewUid:ViewUid, displaytype: String) {
+    if (displaytype == null || displaytype.isEmpty) {
+      create(MetricIdParts(Fluff("children-loaded-"), parentViewUid), MetricIdParts(Fluff("filter-"), childViewUid), 1)
+    }
+    else if (displaytype == "map") {
+      create(MetricIdParts(Fluff("children-loaded-"), parentViewUid), MetricIdParts(Fluff("map-" ), childViewUid), 1)
+    }
+    else if (displaytype == "chart") {
+      create(MetricIdParts(Fluff("children-loaded-"), parentViewUid), MetricIdParts(Fluff("chart-"), childViewUid), 1)
+    }
+  }
 
-  def logViewSearch(viewUid:ViewUid, query:QueryString)
+  def logViewSearch(view:ViewUid, query:QueryString) {
+    create(MetricIdParts(Fluff("searches-"), view), MetricIdParts(Fluff("search-"), query), 1)
+  }
 
-  def logUserSearch(domainId:DomainId, query:QueryString)
+  def logUserSearch(domainId:DomainId, query:QueryString) {
+    create(MetricIdParts(Fluff("searches-"), domainId), MetricIdParts(Fluff("users-search-"), query), 1)
+  }
 
-  def logDatasetSearch(domainId:DomainId, query:QueryString)
+  def logDatasetSearch(domainId:DomainId, query:QueryString) {
+    create(MetricIdParts(Fluff("searches-"), domainId), MetricIdParts(Fluff("datasets-search-"), query), 1)
+  }
 
-  def logUserCreated(domainId:DomainId)
+  def logUserCreated(domainId:DomainId) {
+    create(domainId, Fluff("users-created"), 1)
+  }
 
-  def logFilteredViewCreated(domainId:DomainId, parentViewUid: ViewUid)
+  def logAppTokenCreated(domainId:DomainId) {
+    create(domainId, Fluff("app-token-created"), 1)
+  }
 
-  def logFilteredViewDeleted(domainId:DomainId, parentViewUid:ViewUid)
+  def logAppTokenRequest(tokenUid:AppToken, domainId:DomainId, ip:Ip) {
+    create(Fluff("ip-applications"), MetricIdParts(Fluff("application-"), tokenUid, Fluff("-"),  ip), 1)
+    create(MetricIdParts(domainId, Fluff("-applications")), MetricIdParts(Fluff("application-"),tokenUid), 1)
+    create(MetricIdParts(Fluff("applications")), MetricIdParts(Fluff("application-"), tokenUid), 1)
+    create(MetricIdParts(Fluff("application-"),tokenUid), MetricIdParts(Fluff("requests")), 1)
+  }
 
-  def logDatasetCreated(domainId:DomainId, viewUid:ViewUid, isBlob: Boolean, isHref: Boolean)
+  def logAppTokenRequestForView(viewUid:ViewUid, token:AppToken) {
+    create(MetricIdParts(Fluff("view-"), viewUid, Fluff("-apps")), MetricIdParts(if (token == null) Fluff("anon") else token), 1)
+  }
 
-  def logDatasetDeleted(domainId:DomainId, viewUid:ViewUid, isBlob: Boolean, isHref: Boolean)
+  def logApiQueryForView(viewUid:ViewUid, query:QueryString) {
+    create(MetricIdParts(Fluff("view-"), viewUid,Fluff("-query")), MetricIdParts(if (query == null || (query.query == "")) Fluff("select *") else query), 1)
+    create(viewUid, Fluff("queries-served"), 1)
+  }
 
-  def logMapCreated(domainId:DomainId, parentUid:ViewUid)
+  def logSocrataAppTokenUsed(ip:Ip) {
+    // TODO? Shouldn't this have an implementation?
+  }
 
-  def logMapDeleted(domainId:DomainId, parentViewUid:ViewUid)
+  def logMapCreated(domainId:DomainId, parentUid:ViewUid) {
+    create(domainId, Fluff("maps-created"), 1)
+    create(parentUid, Fluff("maps-created"), 1)
+  }
 
-  def logChartCreated(domainId:DomainId, parentViewUid:ViewUid)
+  def logMapDeleted(domainId:DomainId, parentViewUid:ViewUid) {
+    create(domainId, Fluff("maps-deleted"), 1)
+    create(parentViewUid, Fluff("maps-deleted"), 1)
+  }
 
-  def logChartDeleted(domainId:DomainId, parentViewUid:ViewUid)
+  def logChartCreated(domainId:DomainId, parentViewUid:ViewUid) {
+    create(domainId, Fluff("charts-created"), 1)
+    create(parentViewUid, Fluff("charts-created"), 1)
+  }
 
-  def logRowsCreated(count: Int, domainId:DomainId, viewUid:ViewUid, appTokenId:AppToken)
+  def logChartDeleted(domainId:DomainId, parentViewUid:ViewUid) {
+    create(domainId, Fluff("charts-deleted"), 1)
+    create(parentViewUid, Fluff("charts-deleted"), 1)
+  }
 
-  def logRowsDeleted(count: Int, domainId:DomainId, viewUid:ViewUid, appTokenUid:AppToken)
+  def logFilteredViewCreated(domainId:DomainId, parentViewUid:ViewUid) {
+    create(domainId, Fluff("filters-created"), 1)
+    create(parentViewUid, Fluff("filters-created"), 1)
+  }
 
-  def logPublish(url:ReferrerUri, viewUid:ViewUid, domainId:DomainId)
+  def logFilteredViewDeleted(domainId:DomainId, parentViewUid:ViewUid) {
+    create(domainId, Fluff("filters-deleted"), 1)
+    create(parentViewUid, Fluff("filters-deleted"), 1)
+  }
 
-  def logDatasetReferrer(url:ReferrerUri, viewUid:ViewUid)
+  def logDatasetCreated(domainId:DomainId, viewUid:ViewUid, isBlob: Boolean, isHref: Boolean) {
+    if (isBlob) {
+      create(domainId, Fluff("datasets-created-blobby"), 1)
+    }
+    if (isHref) {
+      create(domainId, Fluff("datasets-created-href"), 1)
+    }
+    create(domainId, Fluff("datasets-created"), 1)
+  }
 
-  def logAction(actionType:MetricQueue.Action.Value, viewUid:ViewUid, domainId:DomainId, value:Int, tokenUid:AppToken)
+  def logDatasetDeleted(domainId:DomainId, viewUid:ViewUid, isBlob: Boolean, isHref: Boolean) {
+    if (isBlob) {
+      create(domainId, Fluff("datasets-deleted-blobby"), 1)
+    }
+    if (isHref) {
+      create(domainId, Fluff("datasets-deleted-href"), 1)
+    }
+    create(domainId, Fluff("datasets-deleted"), 1)
+  }
 
-  def logRowAccess(accessChannel:MetricQueue.AccessChannel.Value, domainId:DomainId, viewUid:ViewUid, count:Int, appTokenUid:AppToken)
+  def logRowsCreated(count: Int, domainId:DomainId, viewUid:ViewUid, token:AppToken) {
+    create(domainId, Fluff("rows-created"), count)
+    create(viewUid, Fluff("rows-created"), count)
+  }
 
-  def logBytesInOrOut(inOrOut: String, viewUid:ViewUid, domainId:DomainId, bytes: Long)
+  def logRowsDeleted(count: Int, domainId:DomainId, viewUid:ViewUid, token:AppToken) {
+    create(domainId, Fluff("rows-deleted"), count)
+    create(viewUid, Fluff("rows-deleted"), count)
+    logAppTokenOnView(viewUid, token)
+  }
 
-  def logGeocoding(domainId:DomainId, viewUid:ViewUid, count: Int)
+  def logDatasetReferrer(referrer:ReferrerUri, viewUid:ViewUid) {
+    try {
+      create(MetricIdParts(Fluff("referrer-hosts-"), viewUid), MetricIdParts(Fluff("referrer-"), Host(referrer.getHost())), 1)
+      create(MetricIdParts(Fluff("referrer-paths-"), viewUid, Fluff("-"), Host(referrer.getHost())), MetricIdParts(Fluff("path-"), Path(referrer.getPath)), 1)
+    }
+  }
 
-  def logDatasetDiskUsage(timestamp: Long, viewUid:ViewUid, authorUid:UserUid, bytes: Long)
+  def logPublish(referrer:ReferrerUri, viewUid:ViewUid, domainId:DomainId) {
+    try {
+      create(MetricIdParts(Fluff("publishes-uids-"), domainId),MetricIdParts(Fluff("uid-"), viewUid), 1)
+      create(MetricIdParts(Fluff("publishes-hosts-"), viewUid),MetricIdParts(Fluff("referrer-"), Host(referrer.getHost())), 1)
+      create(MetricIdParts(Fluff("publishes-paths-"), viewUid, Fluff("-"), Host(referrer.getHost())),MetricIdParts(Fluff("path-"), Path(referrer.getPath)), 1)
+      create(MetricIdParts(Fluff("publishes-hosts-"), domainId),MetricIdParts(Fluff("referrer-"), Host(referrer.getHost())), 1)
+      create(MetricIdParts(Fluff("publishes-paths-"), domainId , Fluff("-"), Host(referrer.getHost())),MetricIdParts(Fluff("path-"), Path(referrer.getPath)), 1)
+    }
+  }
 
-  def logDomainDiskUsage(timestamp: Long, domainId:DomainId, bytes: Long)
 
-  def logUserDomainDiskUsage(timestamp: Long, userUid:UserUid, domainId:DomainId, bytes: Long)
+  //(actionType: com.socrata.metrics.MetricQueue.Action.Value, viewUid: com.socrata.metrics.ViewUid, domainId: com.socrata.metrics.DomainId, value: Integer, tokenUid: com.socrata.metrics.AppToken)Unit
+  def logAction(t:MetricQueue.Action.Value, viewUid:ViewUid, domainId:DomainId, value:Int=1, tokenUid:AppToken) {
+    if (t eq Action.RATING) {
+      create(viewUid, Fluff("ratings-total"), value)
+      create(viewUid, Fluff("ratings-count"), 1)
+      create(domainId, Fluff("ratings-total"), value)
+      create(domainId, Fluff("ratings-count"), 1)
+    }
+    else if (t eq Action.VIEW) {
+      create(viewUid, Fluff("view-loaded"), 1)
+      create(domainId, Fluff("view-loaded"), 1)
+      create(MetricIdParts(Fluff("views-loaded-"), domainId), MetricIdParts(Fluff("view-") , viewUid), 1)
+    }
+    else {
+      create(viewUid, Fluff(t.toString + "s"), value)
+      create(domainId, Fluff(t.toString + "s"), value)
+    }
+    logAppTokenOnView(viewUid, tokenUid)
+  }
 
-  def logAppTokenCreated(domainId:DomainId)
+  def logBytesInOrOut(inOrOut: String, viewUid:ViewUid, domainId:DomainId, bytes: Long) {
+    if (viewUid != null) {
+      create(MetricIdParts(viewUid), MetricIdParts(Fluff("bytes-" + inOrOut)), bytes)
+    }
+    create(domainId, Fluff("bytes-" + inOrOut), bytes)
+  }
 
-  def logAppTokenRequest(tokenUid:AppToken, domainId:DomainId, ip:Ip)
+  def logRowAccess(accessType:MetricQueue.AccessChannel.Value, domainId:DomainId, viewUid:ViewUid, count: Int, token:AppToken) {
+    create(viewUid, Fluff("rows-accessed-" + accessType), 1)
+    create(domainId, Fluff("rows-accessed-" + accessType), 1)
+    if (AccessChannel.DOWNLOAD eq accessType) {
+      create(MetricIdParts(Fluff("views-downloaded-"), domainId), MetricIdParts(Fluff("view-"), viewUid), 1)
+    }
+    create(viewUid, Fluff("rows-loaded-" + accessType), count)
+    create(domainId, Fluff("rows-loaded-" + accessType), count)
+    logAppTokenOnView(viewUid, token)
+  }
 
-  def logAppTokenRequestForView(viewUid:ViewUid, token:AppToken)
+  def logGeocoding(domainId:DomainId, viewUid:ViewUid, count: Int) {
+    create(viewUid, Fluff("geocoding-requests"), count)
+    create(domainId, Fluff("geocoding-requests"), count)
+  }
 
-  def logApiQueryForView(viewUid:ViewUid, query:QueryString)
+  def logDatasetDiskUsage(timestamp: Long, viewUid:ViewUid, authorUid:UserUid, bytes: Long) {
+    create(viewUid, Fluff("disk-usage"), bytes, timestamp, Metric.RecordType.ABSOLUTE)
+    create(MetricIdParts(Fluff("user-"), authorUid, Fluff("-views-disk-usage")), MetricIdParts(Fluff("view-"), viewUid), bytes, timestamp, Metric.RecordType.ABSOLUTE)
+  }
 
-  def logSocrataAppTokenUsed(ip:Ip)
+  def logDomainDiskUsage(timestamp: Long, domainId:DomainId, bytes: Long) {
+    create(domainId, Fluff("disk-usage"), bytes, timestamp, Metric.RecordType.ABSOLUTE)
+  }
+
+  def logUserDomainDiskUsage(timestamp: Long, userUid:UserUid, domainId:DomainId, bytes: Long) {
+    create(MetricIdParts(domainId, Fluff("-users-disk-usage")), MetricIdParts(Fluff("user-"), userUid), bytes, timestamp, Metric.RecordType.ABSOLUTE)
+  }
+
+  private def logAppTokenOnView(realViewUid:ViewUid, token:AppToken) {
+    if (token != null) {
+      create(MetricIdParts(realViewUid, Fluff("-apps")), MetricIdParts(token), 1)
+      create(MetricIdParts(Fluff("app-"), token), MetricIdParts(realViewUid), 1)
+    }
+  }
 }
