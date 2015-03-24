@@ -2,10 +2,10 @@ package com.socrata.metrics.impl
 
 import java.io.File
 
-import com.socrata.balboa.metrics.Message
-import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
 import com.socrata.balboa.common.kafka.util.{AddressAndPort, StagingAndRCEnvironment}
+import com.socrata.balboa.metrics.Message
+import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.integration.kafka.util.{BalboaClientTestUtils, BalboaMessageClientTestHarness}
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MetricEnqueuer}

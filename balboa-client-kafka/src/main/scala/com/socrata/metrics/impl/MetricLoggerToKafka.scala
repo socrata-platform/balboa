@@ -1,7 +1,7 @@
 package com.socrata.metrics.impl
 
-import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.common.kafka.util.AddressAndPort
+import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{MetricEnqueuer, MetricEntry, MetricLoggerComponent}
 import org.apache.commons.logging.LogFactory

@@ -1,7 +1,6 @@
 package com.socrata.balboa.service.kafka
 
-import java.io.{FileNotFoundException, File, FileReader, IOException}
-import java.util
+import java.io.{File, FileNotFoundException}
 import java.util.Properties
 
 import com.socrata.balboa.metrics.config.Configuration
@@ -71,25 +70,26 @@ trait KafkaConsumerCLIBase[K,M] extends App {
       val collectionOfFiles = set.valuesOf("configFile")
       collectionOfFiles.get(0) match {
         case f: File => propertiesFromFile(f)
-        case x => throw new ClassCastException("JOpt fail to return file.")
+        case x => throw new IllegalArgumentException("JOpt fail to return file.")
       }
     } else {
       val zookeepers = set.valueOf("zookeepers") match {
         case z: String => z
-        case _ => throw new ClassCastException()
+        case _ => throw new IllegalArgumentException("Missing required argument: \"zookeepers\"")
       }
       val appName = set.valueOf("appName") match {
         case a: String => a
-        case _ => throw new ClassCastException()
+        case _ => throw new IllegalArgumentException("Missing required argument: \"appName\"")
       }
       val topic = set.valueOf("topic") match {
         case t: String => t
-        case _ => throw new ClassCastException()
+        case _ => throw new IllegalArgumentException("Missing required argument: \"topic\"")
       }
       val partitions = set.valueOf("partitions") match {
         case p: Integer => p
-        case _ => throw new ClassCastException()
+        case _ => throw new IllegalArgumentException("Missing required argument: \"partitions\"")
       }
+      // We are using the application name for the Kafka group ID.
       propertiesFromArguments(zookeepers, appName, topic, partitions)
     }
   }

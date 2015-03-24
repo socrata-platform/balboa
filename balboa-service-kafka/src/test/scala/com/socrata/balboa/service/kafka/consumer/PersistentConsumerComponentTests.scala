@@ -3,8 +3,8 @@ package com.socrata.balboa.service.kafka.consumer
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 
-import com.socrata.balboa.metrics.data.BalboaFastFailCheck
 import com.socrata.balboa.common.kafka.codec.StringCodec
+import com.socrata.balboa.metrics.data.BalboaFastFailCheck
 import com.socrata.balboa.service.kafka.consumer.PersistentConsumerComponentSetup.TestPersistentKafkaConsumerSetup
 import com.socrata.balboa.service.kafka.test.util.{ConsumerTestUtil, SlowTest}
 import kafka.consumer.{ConsumerIterator, KafkaStream}

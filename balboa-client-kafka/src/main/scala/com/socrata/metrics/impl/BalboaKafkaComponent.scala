@@ -1,12 +1,11 @@
 package com.socrata.metrics.impl
 
-import java.io.File
-import java.nio.file.{Path, Paths, Files}
+import java.nio.file.{Files, Path, Paths}
 import java.util.Properties
 
 import com.socrata.balboa.metrics.Message
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MessageQueueComponent}
-import com.socrata.metrics.producer.{GenericKafkaProducer, BalboaKafkaProducer}
+import com.socrata.metrics.producer.BalboaKafkaProducer
 import kafka.common.FailedToSendMessageException
 import org.slf4j.LoggerFactory
 
@@ -70,20 +69,19 @@ trait BalboaKafkaComponent extends MessageQueueComponent {
       assumption and prone to the introduction of new Checked Exceptions.
        */
       producer match {
-        case p: BalboaKafkaProducer =>
-        case _ =>
-          start()
+        case p: BalboaKafkaProducer => // Producer already ready.
+        case _ => start()
       }
 
       producer.send(msg)
     } catch {
       case e: FailedToSendMessageException =>
         val errMsg = s"Unable to send message $msg.  writing to emergency file: $emergencyBackUpFile"
+        // Always log that an error occurred
         Log.error(errMsg, e)
-        System.err.println(errMsg)
         emergencyFileWriter match {
           case Some(efw) => efw.send(msg)
-          case None => // NOOP
+          case None => System.err.println(errMsg)
         }
     }
   }

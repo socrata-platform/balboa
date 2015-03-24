@@ -1,12 +1,12 @@
 package com.socrata.balboa.service.kafka.consumer
 
+import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.data.DataStore
-import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
-import kafka.consumer.{ConsumerConnector, Consumer, ConsumerConfig, KafkaStream}
+import kafka.consumer.{Consumer, ConsumerConfig, ConsumerConnector, KafkaStream}
 
 /**
- * A [[KafkaConsumerGroupComponent[String, Message]] that is meant to handle Balboa specific traffic.
+ * A [[KafkaConsumerGroupComponent[String, Message]] that is meant to handle Balboa specific Kafka message traffic.
  */
 sealed trait BalboaConsumerGroupLike extends KafkaConsumerGroupComponent[String, Message] with DataStoreConsumerComponent
 

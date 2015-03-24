@@ -1,7 +1,7 @@
 package com.socrata.balboa.service.kafka.consumer
 
 import com.socrata.balboa.service.consumer.ConsumerComponent
-import kafka.consumer.{ConsumerTimeoutException, ConsumerIterator, KafkaStream}
+import kafka.consumer.{ConsumerIterator, KafkaStream}
 import kafka.message.MessageAndMetadata
 
 /**
