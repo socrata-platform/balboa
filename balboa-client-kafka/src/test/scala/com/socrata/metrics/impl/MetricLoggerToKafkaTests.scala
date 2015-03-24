@@ -1,6 +1,7 @@
 package com.socrata.metrics.impl
 
 import java.io.File
+import java.nio.file.{Paths, Files}
 
 import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
 import com.socrata.balboa.common.kafka.util.{AddressAndPort, StagingAndRCEnvironment}
@@ -42,6 +43,8 @@ class MetricLoggerToKafkaTests extends BalboaMessageClientTestHarness with Metri
   override def tearDown(): Unit = {
     logger.stop()
     emergencyQueue.clear()
+    val file = Paths.get("file_name_that_does_not_matter").toFile
+    if (file.exists()) file.delete()
     super.tearDown()
   }
 
