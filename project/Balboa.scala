@@ -1,4 +1,5 @@
 import sbt._
+import sbtdocker.DockerPlugin
 
 object Balboa extends Build {
   lazy val balboa = Project(
@@ -37,37 +38,40 @@ object Balboa extends Build {
 
   lazy val balboaKafkaService = project("balboa-kafka-service", Some("balboa-service-kafka"),
     BalboaKafka, balboaServiceCore, balboaKafkaClient % "test->test;compile->compile")
+    .enablePlugins(DockerPlugin)
 
   // Private Helper Methods
 
   val projectName: String = "balboa"
 
   /**
+   * TODO Doesn't work with SBT 13.* Currently not used.
+   *
    * @return A reference to all the project instances for this build
    */
   private def allOtherProjects = for {
     method <- getClass.getDeclaredMethods.map(m => {
-//      m.setAccessible(true)
+      //      m.setAccessible(true)
       m
     }).toSeq
     if method.getParameterTypes.isEmpty && classOf[Project].isAssignableFrom(method.getReturnType) && method.getName != projectName
   } yield {
-    method.invoke(this).asInstanceOf[Project] : ProjectReference
-  }
+      method.invoke(this).asInstanceOf[Project] : ProjectReference
+    }
 
-/**
- * Wrapper method that creates a project.  If the directory name of the project.
- *
- * @param name Name of the project
- * @param directoryName If the directory name is different the project name update this.
- * @param settings Object that contains settings variable
- * @param dependencies List of project dependency references.
- * @return An object defining this project
- */
-private def project(name: String, directoryName: Option[String], settings: {
-  def settings: Seq[Setting[_]] }, dependencies: ClasspathDep[ProjectReference]*) =
-  Project(name, directoryName match {
-    case Some(dir) => file(dir)
-    case None => file(name)
-  }, settings = settings.settings) dependsOn(dependencies: _*)
+  /**
+   * Wrapper method that creates a project.  If the directory name of the project.
+   *
+   * @param name Name of the project
+   * @param directoryName If the directory name is different the project name update this.
+   * @param settings Object that contains settings method implementation.
+   * @param dependencies List of project dependency references.
+   * @return An object defining this project
+   */
+  private def project(name: String, directoryName: Option[String], settings: {
+    def settings: Seq[Setting[_]] }, dependencies: ClasspathDep[ProjectReference]*) =
+    Project(name, directoryName match {
+      case Some(dir) => file(dir)
+      case None => file(name)
+    }, settings = settings.settings) dependsOn(dependencies: _*)
 }
