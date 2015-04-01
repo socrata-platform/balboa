@@ -1,22 +1,22 @@
 # Overload Default Balboa Properties
 ########################################
 
-cassandra.servers = {{ CASSANDRA_ENSEMBLE }}
+cassandra.servers = {{ CASSANDRAS }}
 cassandra.keyspace = Metric2012
 balboa.datastore = cassandra
 
 # Kafka Properties
 ########################################
 
-zookeeper.connect = {{ ZOOKEEPER_ENSEMBLE }}
+zookeeper.connect = {{ ZOOKEEPERS }}
 zookeeper.session.timeout.ms = 1000000
-group.id = {{ CONSUMER_GROUP }}
+group.id = balboa-kafka-consumer
 
 # Balboa defined Kafka Properties
 # The topic this specific service will be listening for
-balboa.kafka.topic = {{ KAFKA_TOPIC }}
+balboa.kafka.topic = {{ TOPIC }}
 # The default number of partitions for a topic
-balboa.kafka.topic.partitions = 8
+balboa.kafka.topic.partitions = {{ THREADS }}
 
 # Balboa Consumer Properties
 ########################################

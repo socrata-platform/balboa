@@ -87,24 +87,26 @@ trait KafkaConsumerCLIBase[K,M] extends App {
       // Put all the configurations found at Configuration default
       props.putAll(Configuration.get())
     }
-    val zookeepers = set.valueOf("zookeepers") match {
-      case z: String => z
-      case _ => throw new IllegalArgumentException("Missing required argument: \"zookeepers\"")
+    set.valueOf("zookeepers") match {
+      case z: String =>
+        props.setProperty(ZOOKEEPER_PROPERTY_KEY, z)
+      case _ => // NOOP
     }
-    val appName = set.valueOf("appName") match {
-      case a: String => a
-      case _ => throw new IllegalArgumentException("Missing required argument: \"appName\"")
+    set.valueOf("appName") match {
+      case a: String =>
+        props.setProperty(GROUPID_PROPERTY_KEY, a)
+      case _ => // NOOP
     }
-    val topic = set.valueOf("topic") match {
-      case t: String => t
-      case _ => throw new IllegalArgumentException("Missing required argument: \"topic\"")
+    set.valueOf("topic") match {
+      case t: String =>
+        props.setProperty(TOPIC_PROPERTY_KEY, t)
+      case _ => // NOOP
     }
-    val partitions = set.valueOf("threads") match {
-      case p: Integer => p
-      case _ => throw new IllegalArgumentException("Missing required argument: \"threads\"")
+    set.valueOf("threads") match {
+      case p: Integer =>
+        props.setProperty(TOPIC_PARTITIONS_PROPERTY_KEY, p.toString)
+      case _ => // NOOP
     }
-    // We are using the application name for the Kafka group ID.
-    props.putAll(propertiesFromArguments(zookeepers, appName, topic, partitions))
     props
   }
 
@@ -117,15 +119,14 @@ trait KafkaConsumerCLIBase[K,M] extends App {
   protected def optionParser(): OptionParser = {
     val optParser: OptionParser = new OptionParser()
     val confOpt = optParser.accepts("configFile", "Configuration File.").withRequiredArg().ofType(classOf[File])
-    optParser.accepts("zookeepers", "Comma separated list of Zookeeper server:port(s)").requiredUnless(confOpt)
-      .withRequiredArg().ofType(classOf[String]).defaultsTo("localhost:2181")
-    optParser.accepts("appName", "Application Name").requiredUnless(confOpt).withRequiredArg()
-      .ofType(classOf[String]).defaultsTo(this.getClass.getSimpleName).describedAs("A name associated with this " +
-      "consumer.  This will be used as a Kafka \"group id\".")
-    optParser.accepts("topic", "Kafka topic to subscribe to.").requiredUnless(confOpt)
+    optParser.accepts("zookeepers", "Comma separated list of Zookeeper server:port's")
       .withRequiredArg().ofType(classOf[String])
-    optParser.accepts("threads", "Number of consumer threads for this Consumer application.").requiredUnless(confOpt)
-      .withRequiredArg().ofType(classOf[Int]).defaultsTo(1)
+    optParser.accepts("appName", "Application Name").withRequiredArg()
+      .ofType(classOf[String]).describedAs("A name associated with this " +
+      "consumer.  This will be used as a Kafka \"group id\".")
+    optParser.accepts("topic", "Kafka topic to subscribe to.").withRequiredArg().ofType(classOf[String])
+    optParser.accepts("threads", "Number of consumer threads for this Consumer application.")
+      .withRequiredArg().ofType(classOf[Int])
     optParser
   }
 
@@ -139,29 +140,11 @@ trait KafkaConsumerCLIBase[K,M] extends App {
    * @return The Properties generated from a file.
    */
   private def propertiesFromFile(file: File): Properties = file match {
-    case _ if !file.exists() => throw new FileNotFoundException(s"File $file not found")
+    case _: File if !file.exists() => throw new FileNotFoundException(s"File $file not found")
     case _ =>
       // Cheat and override any current System property configuration
       System.setProperty("balboa.config", file.getAbsolutePath)
       Configuration.get()
-  }
-
-
-  /**
-   * Creates bare bones properties configuration given command line arguments.
-   *
-   * @param zookeepers Comma separated list of zookeeper host.
-   * @param groupId the Group Id this consumer belongs in
-   * @return The Property instance for these zookeepers and groupid
-   */
-  private def propertiesFromArguments(zookeepers: String, groupId: String, topic: String, threads: Int): Properties = {
-    val properties = new Properties()
-    properties.setProperty(ZOOKEEPER_PROPERTY_KEY, zookeepers)
-    properties.setProperty(GROUPID_PROPERTY_KEY, groupId)
-    properties.setProperty(TOPIC_PROPERTY_KEY, topic)
-    properties.setProperty(TOPIC_PARTITIONS_PROPERTY_KEY, threads.toString)
-    // This would be the appropriate place to set default values.
-    properties
   }
 
 }

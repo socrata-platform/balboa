@@ -73,22 +73,22 @@ object BalboaKafka {
   val commandLineArguments = settingKey[Seq[String]]("Application command line arguments.")
 
   val javaRunTimeArguments = settingKey[Seq[String]]("Java Runtime configuration variables.")
-  //  val stageConsumer = TaskKey[Unit]("stageForDocker", "Stages a Balboa Kafka Consumer to the docker " +
-  //    "directory.")
-  //
-  //  // Make the docker task depend on the assembly task, which generates a fat JAR fil
-  //  /**
-  //   * Handles staging an assembly Jar for deploying to Docker and apps-marathon.
-  //   */
-  //  val stageConsumerTask = stageConsumer <<= assembly map { (f) =>
-  //    val dockerDir = f.getParentFile.getParentFile.getParentFile / "docker"
-  //    dockerDir.mkdir()
-  //    // TODO Need access to SBT variables at runtime.
-  //    // This might work: https://github.com/ritschwumm/xsbt-reflect
-  //    val c = dockerDir / "balboa-kafka-consumer.jar"
-  //    println("Staging for Docker by copying Balboa Consumer Assembly Jar to " + c)
-  //    IO.copyFile(f, c)
-  //  }
+
+  val stageForDocker = taskKey[Unit]("Stages a Balboa Kafka Consumer to the docker " +
+    "directory.")
+
+  /**
+   * Stage the assembly jar for use in a docker script.
+   */
+  val stageForDockerTask = stageForDocker := {
+    val log = Keys.streams.value.log
+    val assemblyJar = assembly.value
+    val dockerDir = baseDirectory.value / "docker"
+    dockerDir.mkdir()
+    val copy = dockerDir / s"${name.value}-LATEST.jar"
+    log.info(s"Staging assembly jar at ${copy}")
+    IO.copyFile(assemblyJar, copy)
+  }
 
   val stageForMarathon = taskKey[Unit]("Stages the docker image for a follow up marathon deployment.")
 
@@ -103,6 +103,7 @@ object BalboaKafka {
         val oldStrategy = (mergeStrategy in assembly).value
         oldStrategy(x)
     },
+    stageForDockerTask,
     docker <<= (docker dependsOn assembly),
     appName := name.value,
     threads := 8,
@@ -119,13 +120,6 @@ object BalboaKafka {
       seq
     },
     commandLineArguments := {
-//      val a = appName.value match {
-//        case s: String if !s.trim.isEmpty =>
-//          s.trim
-//        case _ =>
-//          // If not specified default to the project name.
-//          "${APPNAME}"
-//      }
       val z: List[String] = zookeepers.value match {
         case Nil => List("${ZOOKEEPERS}")
         case zs => zs
