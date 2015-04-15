@@ -2,8 +2,8 @@ package com.socrata.balboa.admin;
 
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
-import com.socrata.balboa.admin.tools.Dumper;
 import com.socrata.balboa.admin.tools.Checker;
+import com.socrata.balboa.admin.tools.Dumper;
 import com.socrata.balboa.admin.tools.Filler;
 import com.socrata.balboa.admin.tools.Lister;
 

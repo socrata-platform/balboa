@@ -1,15 +1,17 @@
 package com.socrata.balboa.server.rest
 
-import scala.collection.JavaConverters._
-import com.socrata.http.server.{Service, HttpResponse}
-import com.socrata.http.server.responses._
-import com.socrata.http.server.implicits._
-import com.socrata.balboa.metrics.data.DataStoreFactory
 import java.util.regex.Pattern
-import org.codehaus.jackson.map.{SerializationConfig, ObjectMapper}
-import org.codehaus.jackson.map.annotate.JsonSerialize
 import javax.servlet.http.HttpServletRequest
+
 import com.rojoma.json.ast.JString
+import com.socrata.balboa.metrics.data.DataStoreFactory
+import com.socrata.http.server.implicits._
+import com.socrata.http.server.responses._
+import com.socrata.http.server.{HttpResponse, Service}
+import org.codehaus.jackson.map.annotate.JsonSerialize
+import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
+
+import scala.collection.JavaConverters._
 
 object EntitiesRest extends Service[HttpServletRequest, HttpResponse] {
   val ds = DataStoreFactory.get

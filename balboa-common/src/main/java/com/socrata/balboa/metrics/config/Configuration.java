@@ -11,6 +11,12 @@ public abstract class Configuration extends Properties {
     public static Configuration instance;
     private List<Period> supportedPeriods;
 
+    /**
+     * Retrieves the synchronized singleton instance of this Balboa Configuration.
+     *
+     * @return The Balboa Configuration instance.
+     * @throws IOException If unable to read the configuration file.
+     */
     public static synchronized Configuration get() throws IOException {
         String environment = System.getProperty("socrata.env");
         if (environment == null) {
@@ -31,11 +37,11 @@ public abstract class Configuration extends Properties {
     /**
      * Don't use this, it's only for mocking.
      */
-    synchronized public void setSupportedTypes(List<Period> supportedPeriods) {
+     public synchronized void setSupportedTypes(List<Period> supportedPeriods) {
         this.supportedPeriods = supportedPeriods;
     }
 
-    synchronized public List<Period> getSupportedPeriods() {
+    public synchronized List<Period> getSupportedPeriods() {
         if (supportedPeriods == null) {
             String[] types = getProperty("balboa.summaries").split(",");
 
@@ -48,21 +54,42 @@ public abstract class Configuration extends Properties {
         return supportedPeriods;
     }
 
-    public static class ConfigurationException extends RuntimeException {
-        public ConfigurationException() {
-            super();
-        }
+    /**
+     * Return a String Property for key.  Generalized method to be used
+     *
+     *
+     * @param key The Key that references a String.
+     * @return The String value
+     * @throws IllegalArgumentException in case there is no property or it is not a String.
+     */
+    public synchronized String getString(String key) {
+        require(key);
+        return getProperty(key);
+    }
 
-        public ConfigurationException(String s) {
-            super(s);
-        }
+    /**
+     * Returns a String or a default property.
+     *
+     * @param key The key to look up.
+     * @param defaultValue The default value if the key does not exist
+     * @return The value associated to by the key or the default value if it does not exist
+     */
+    public synchronized String getString(String key, String defaultValue) {
+        if (!containsKey(key))
+            return defaultValue;
+        else
+            return getProperty(key);
+    }
 
-        public ConfigurationException(String s, Throwable throwable) {
-            super(s, throwable);
-        }
+    // Private Helper Methods.
 
-        public ConfigurationException(Throwable throwable) {
-            super(throwable);
-        }
+    /**
+     * Ensure a specific key is the properties.
+     * @param key Key.
+     * @return this if self.
+     */
+    private void require(String key) {
+        if (!containsKey(key))
+            throw new IllegalArgumentException("Missing Configuration \"" + key + "\"");
     }
 }

@@ -13,6 +13,7 @@ public class CompoundIterator<T> implements Iterator<T>
     {
     }
 
+    @SafeVarargs
     public CompoundIterator(Iterator<T>... everything)
     {
         for (Iterator<T> iter : everything)

@@ -1,15 +1,15 @@
 package com.socrata.balboa.server
 
-import com.socrata.http.server.SocrataServerJetty
 import javax.servlet.http.HttpServletRequest
+
 import com.socrata.balboa.metrics.config.Configuration
-import rest.{VersionRest, MetricsRest, EntitiesRest}
-import org.apache.log4j.PropertyConfigurator
+import com.socrata.balboa.server.rest.{EntitiesRest, MetricsRest, VersionRest}
 import com.socrata.http.routing.{HttpMethods, SimpleRoute, SimpleRouter}
-import com.socrata.http.server.{Service, HttpResponse, SimpleFilter}
-import com.socrata.http.server.responses._
 import com.socrata.http.server.implicits._
+import com.socrata.http.server.responses._
+import com.socrata.http.server.{HttpResponse, Service, SimpleFilter, SocrataServerJetty}
 import com.socrata.util.logging.LazyStringLogger
+import org.apache.log4j.PropertyConfigurator
 
 class Main
 

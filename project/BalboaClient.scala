@@ -19,7 +19,8 @@ object BalboaClient {
     scalatest,
     socrata_utils,
     simple_arm,
-    log4j
+    log4j,
+    mockito_test
   )
 }
 
@@ -41,4 +42,12 @@ object BalboaClientKafka {
   )
 
   def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ BalboaKafkaCommon.libraries
+}
+
+object BalboaClientDispatcher {
+  lazy val settings: Seq[Setting[_]] = BalboaClient.settings ++ Seq(
+    libraryDependencies <++= scalaVersion {libraries(_)}
+  )
+
+  def libraries(implicit scalaVersion: String) = BalboaClient.libraries
 }

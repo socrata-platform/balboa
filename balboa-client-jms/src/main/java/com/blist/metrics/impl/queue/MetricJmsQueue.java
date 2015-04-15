@@ -1,16 +1,14 @@
 package com.blist.metrics.impl.queue;
 
+import com.socrata.balboa.metrics.Metric;
+import com.socrata.metrics.IdParts;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jms.*;
-
-import com.socrata.balboa.metrics.Metric;
-import com.socrata.balboa.metrics.*;
-import com.socrata.metrics.*;
-
-import java.util.Date;
+import javax.jms.Connection;
+import javax.jms.ConnectionFactory;
+import javax.jms.JMSException;
 
 /** Prefer to use MetricJmsQueueNotSingleton if possible. */
 public class MetricJmsQueue extends AbstractJavaMetricQueue {

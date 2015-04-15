@@ -1,5 +1,6 @@
 package com.socrata.balboa.common.kafka.util
 
+import com.socrata.balboa.metrics.util.AddressAndPort
 import org.scalatest.WordSpec
 
 class AddressAndPortSpec extends WordSpec {

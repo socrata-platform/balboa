@@ -1,7 +1,7 @@
 package com.socrata.balboa.metrics.data;
 
 import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.metrics.config.PropertiesConfiguration;
+import com.socrata.balboa.metrics.config.ConfigurationException;
 import com.socrata.balboa.metrics.data.impl.*;
 
 import java.io.IOException;
@@ -22,7 +22,7 @@ public class DataStoreFactory
             }
             return defaultDataStore;
         } catch (IOException e) {
-            throw new PropertiesConfiguration.ConfigurationException("Unable to determine which datastore to use because the configuration couldn't be read.", e);
+            throw new ConfigurationException("Unable to determine which datastore to use because the configuration couldn't be read.", e);
         }
     }
 
@@ -47,7 +47,7 @@ public class DataStoreFactory
         }
         else
         {
-            throw new PropertiesConfiguration.ConfigurationException("Unknown datastore '" + datastore + "'.");
+            throw new ConfigurationException("Unknown datastore '" + datastore + "'.");
         }
     }
 }

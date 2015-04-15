@@ -1,17 +1,19 @@
 package com.socrata.balboa.metrics.data.impl
 
-import com.socrata.balboa.metrics.Metric.RecordType
-import com.netflix.astyanax.{Keyspace, AstyanaxContext, MutationBatch}
-import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, Period}
-import com.socrata.balboa.metrics.{Metrics, Metric}
-import com.netflix.astyanax.model.{Row, ConsistencyLevel, ColumnList}
-import scala.collection.JavaConverters._
-import java.{util => ju}
-import com.netflix.astyanax.retry.{ExponentialBackoff}
 import java.io.IOException
+import java.{util => ju}
+
 import com.netflix.astyanax.connectionpool.OperationResult
-import scala.{ collection => sc}
+import com.netflix.astyanax.model.{ColumnList, ConsistencyLevel, Row}
+import com.netflix.astyanax.retry.ExponentialBackoff
+import com.netflix.astyanax.{AstyanaxContext, Keyspace, MutationBatch}
+import com.socrata.balboa.metrics.Metric.RecordType
+import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, Period}
+import com.socrata.balboa.metrics.{Metric, Metrics}
 import org.apache.commons.logging.LogFactory
+
+import scala.collection.JavaConverters._
+import scala.{collection => sc}
 
 /**
  * Query Implementation

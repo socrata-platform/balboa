@@ -1,20 +1,21 @@
 package com.socrata.balboa.metrics.data.impl
 
-import com.netflix.astyanax.{Keyspace, AstyanaxContext}
-import com.netflix.astyanax.connectionpool.impl.{CountingConnectionPoolMonitor, ConnectionPoolConfigurationImpl}
-import com.socrata.balboa.metrics.data.{DateRange, Period}
-import com.socrata.balboa.metrics.config.Configuration
-import com.socrata.balboa.metrics.Metric.RecordType
+import java.{util => ju}
+
+import com.netflix.astyanax.AstyanaxContext.Builder
+import com.netflix.astyanax.connectionpool.NodeDiscoveryType
+import com.netflix.astyanax.connectionpool.impl.{ConnectionPoolConfigurationImpl, CountingConnectionPoolMonitor}
+import com.netflix.astyanax.impl.AstyanaxConfigurationImpl
 import com.netflix.astyanax.model.ColumnFamily
 import com.netflix.astyanax.serializers.StringSerializer
-import com.netflix.astyanax.AstyanaxContext.Builder
-import com.netflix.astyanax.impl.AstyanaxConfigurationImpl
-import com.netflix.astyanax.connectionpool.NodeDiscoveryType
 import com.netflix.astyanax.thrift.ThriftFamilyFactory
-import java.{util => ju}
+import com.netflix.astyanax.{AstyanaxContext, Keyspace}
+import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.Timeslice
+import com.socrata.balboa.metrics.config.Configuration
+import com.socrata.balboa.metrics.data.{DateRange, Period}
+
 import scala.{collection => sc}
-import annotation.tailrec
 
 /**
  * Holds Connection Pool and Common ColumnFamily definitions

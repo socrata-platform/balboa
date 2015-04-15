@@ -90,6 +90,7 @@ public class Metrics extends HashMap<String, Metric> {
         }
     }
 
+    @SafeVarargs
     public static Metrics summarize(Iterator<Metrics>... everything) throws IOException {
         Metrics metrics = new Metrics();
 

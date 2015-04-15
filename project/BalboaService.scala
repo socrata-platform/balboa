@@ -1,5 +1,4 @@
 import java.nio.charset.StandardCharsets
-import java.nio.file.attribute.PosixFilePermissions
 import java.nio.file.{Files, Paths}
 import java.util.Calendar
 

@@ -1,14 +1,14 @@
-import sbt._
-import Keys._
 import Dependencies._
-
-import sbtassembly.Plugin._
-import sbtassembly.Plugin.AssemblyKeys._
-import com.socrata.cloudbeessbt.SocrataCloudbeesSbt._
-import SocrataSbtKeys._
-import sys.process.Process
-import com.rojoma.simplearm.util._
 import com.rojoma.json.util.JsonUtil._
+import com.rojoma.simplearm.util._
+import com.socrata.cloudbeessbt.SocrataCloudbeesSbt.SocrataSbtKeys._
+import com.socrata.cloudbeessbt.SocrataCloudbeesSbt._
+import sbt.Keys._
+import sbt._
+import sbtassembly.Plugin.AssemblyKeys._
+import sbtassembly.Plugin._
+
+import scala.sys.process.Process
 
 object BalboaHttp {
 

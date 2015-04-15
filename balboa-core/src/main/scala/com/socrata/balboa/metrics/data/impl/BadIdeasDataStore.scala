@@ -1,10 +1,12 @@
 package com.socrata.balboa.metrics.data.impl
 
-import com.socrata.balboa.metrics.data.{Period, DataStore}
+import java.{util => ju}
+
 import com.socrata.balboa.metrics.Metrics
-import java.{ util => ju}
+import com.socrata.balboa.metrics.data.{DataStore, Period}
+import org.apache.commons.logging.{Log, LogFactory}
+
 import scala.collection.JavaConverters._
-import org.apache.commons.logging.{LogFactory, Log}
 
 /**
  * All the bad ideas go here. Things which are not clear from the API, or which seem odd.

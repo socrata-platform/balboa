@@ -1,9 +1,10 @@
 package com.socrata.balboa.metrics.data.impl
-import org.junit.Test
-import com.socrata.balboa.metrics.data.{DataStore, Period}
 import java.util.Date
-import com.socrata.balboa.metrics.{Metric, Metrics}
+
 import com.socrata.balboa.metrics.Metric.RecordType
+import com.socrata.balboa.metrics.data.Period
+import com.socrata.balboa.metrics.{Metric, Metrics}
+import org.junit.Test
 
 /**
  *

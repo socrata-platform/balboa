@@ -1,7 +1,6 @@
-import sbt._
-import Keys._
-
 import com.socrata.cloudbeessbt.SocrataCloudbeesSbt
+import sbt.Keys._
+import sbt._
 
 object BuildSettings {
   val buildSettings: Seq[Setting[_]] = Defaults.defaultSettings ++ SocrataCloudbeesSbt.socrataBuildSettings ++ Seq(

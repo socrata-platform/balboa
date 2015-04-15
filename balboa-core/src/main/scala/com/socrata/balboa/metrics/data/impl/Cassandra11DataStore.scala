@@ -1,12 +1,14 @@
 package com.socrata.balboa.metrics.data.impl
 
-import com.socrata.balboa.metrics.data.{QueryOptimizer, Period, DateRange}
 import java.{util => ju}
-import com.socrata.balboa.metrics.{Metric, Metrics, Timeslice}
+
 import com.socrata.balboa.metrics.Metric.RecordType
-import scala.collection.JavaConverters._
 import com.socrata.balboa.metrics.config.Configuration
-import org.apache.commons.logging.{LogFactory, Log}
+import com.socrata.balboa.metrics.data.{DateRange, Period, QueryOptimizer}
+import com.socrata.balboa.metrics.{Metric, Metrics, Timeslice}
+import org.apache.commons.logging.LogFactory
+
+import scala.collection.JavaConverters._
 
 /**
  * DataStore Implementation for Cassandra 1.1

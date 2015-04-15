@@ -1,20 +1,21 @@
 package com.socrata.balboa.server.rest
 
-import scala.collection.JavaConverters._
-
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 import javax.servlet.http.HttpServletRequest
-import com.socrata.http.server.HttpResponse
-import com.socrata.http.server.responses._
-import com.socrata.http.server.implicits._
-import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, Period}
-import com.socrata.balboa.server.ServiceUtils
-import com.socrata.balboa.metrics.{Timeslice, Metrics}
-import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics
-import org.codehaus.jackson.map.{SerializationConfig, ObjectMapper}
-import org.codehaus.jackson.map.annotate.JsonSerialize
+
 import com.rojoma.json.ast.JString
+import com.socrata.balboa.metrics.Metrics
+import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, Period}
+import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics
+import com.socrata.balboa.server.ServiceUtils
+import com.socrata.http.server.HttpResponse
+import com.socrata.http.server.implicits._
+import com.socrata.http.server.responses._
+import org.codehaus.jackson.map.annotate.JsonSerialize
+import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
+
+import scala.collection.JavaConverters._
 
 class MetricsRest
 

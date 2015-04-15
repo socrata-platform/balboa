@@ -1,6 +1,5 @@
 package com.socrata.balboa.admin.tools;
 
-import com.socrata.balboa.metrics.Timeslice;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.*;
 
