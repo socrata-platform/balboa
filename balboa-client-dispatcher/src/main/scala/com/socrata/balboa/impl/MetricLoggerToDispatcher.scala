@@ -69,6 +69,6 @@ trait MetricLoggerToDispatcher extends BaseMetricLoggerComponent {
   /**
    * @return a space separated list of available client types.
    */
-  private def availableClientTypeString = ClientType.values.map(t => s"\"$t\"").mkString(" ")
+  private def availableClientTypeString = ClientType.values.map(_.toString).mkString(" ")
 
 }
