@@ -27,7 +27,7 @@ SBT:
  ```
  libraryDependencies ++= Seq(
    ...
-   "com.socrata" % "balboa-dispatcher-client" %% "0.14.0",
+   "com.socrata" % "balboa-dispatcher-client" %% "[0.15, )",
    ...
  )
 ```
@@ -42,22 +42,24 @@ The Metric Dispatcher is fully dependent on the runtime configuration file.  IE.
  an example of required properties.  Notice balboa.dispatcher.types value is a comma separated list of 
  
 ```
- # Declare the desired client types you want to utilize
+ # Declare the desired client types you want to utilize in a comma separated list.
  balboa.dispatcher.types = "jms,kafka"
+ # All failed client writes will fall into this directory.  IE. "path/to/directory/jms"
  balboa.emergency.backup.dir = "path/to/directory"
  
- # You must define the required properties for each desired client
- # For JMS.  
+ # Client Specific Configuration Details
+ 
+ # Client Type: JMS
  # Where is the activemq server.
  balboa.jms.activemq.server = "server:port"
  # Where is the activemq server.
  balboa.jms.activemq.queue = "queue"
- 
- # For Kafka
+
+ # Client Type: KAFKA
  # List of Kafka brokers for pulling down metadata
  balboa.kafka.brokers = "server1:port1,server2:port2,server3:port3"
  # Kafka Topic
- balboa.kafka.topic = "some_topic" 
+ balboa.kafka.topic = "some_topic"
 ```
 
 Include the MetricLoggerToDispatcher trait in your class, object, or other trait.  Then call MetricLogger() to get a 

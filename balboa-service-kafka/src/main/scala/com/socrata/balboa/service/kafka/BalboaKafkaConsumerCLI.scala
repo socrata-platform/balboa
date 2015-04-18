@@ -18,6 +18,7 @@ object BalboaKafkaConsumerCLI extends KafkaConsumerCLIBase[String, Message] {
 
   private val TOPIC_PERSISTENT_CONSUMER_WAITTIME_KEY = "balboa.kafka.consumer.persistent.waittime"
   private val CASSANDRA_SERVERS_KEY = "cassandra.servers"
+  private val LOCAL_CASSANDRA = "localhost:6062"
   // Default the time we wait for a data store to
   val DEFAULT_PERSISTENT_CONSUMER_WAITTIME = 1000
 
@@ -36,10 +37,14 @@ object BalboaKafkaConsumerCLI extends KafkaConsumerCLIBase[String, Message] {
   /** See [[KafkaConsumerCLIBase.optionParser()]] */
   override protected def optionParser(): joptsimple.OptionParser = {
     val p = super.optionParser()
-    p.accepts("waitTime", "The length of time to wait when the data store is down.").withRequiredArg()
-      .ofType(classOf[Int]).defaultsTo(DEFAULT_PERSISTENT_CONSUMER_WAITTIME)
-    p.accepts("cassandras", "Comma separated list of host:port cassandra nodes").withRequiredArg()
+    p.accepts("waitTime", "The length of time to wait when the data store is down.")
+      .withRequiredArg()
+      .ofType(classOf[Int])
+      .defaultsTo(DEFAULT_PERSISTENT_CONSUMER_WAITTIME)
+    p.accepts("cassandras", "Comma separated list of host:port cassandra nodes")
+      .withRequiredArg()
       .ofType(classOf[String])
+      .defaultsTo(LOCAL_CASSANDRA)
     p
   }
 

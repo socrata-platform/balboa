@@ -18,13 +18,13 @@ object DispatcherConfig {
     val clientStrings: Array[String] = Configuration.get().getString(Keys.DISPATCHER_CLIENT_TYPES).split(',')
 
     // Notify that we found an invalid Client Type with a graceful log message
-    clientStrings.filterNot(s => isClientType(s)) match {
+    clientStrings.filterNot(isClientType) match {
       case a: Array[String] if a.nonEmpty => Log.warn(s"$a not a valid client type, acceptable client " +
         s"types ${ClientType.values}")
-      case _ =>
+      case _ => // Success No weird Client Types.
     }
 
-    clientStrings.filter(s => isClientType(s)).map(s => ClientType.withName(s))
+    clientStrings.filter(isClientType).map(ClientType.withName)
   }
 
   private def isClientType(s: String): Boolean = ClientType.values.exists(t => t.toString.equals(s))
