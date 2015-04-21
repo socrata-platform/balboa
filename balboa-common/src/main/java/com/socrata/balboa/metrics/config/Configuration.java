@@ -3,9 +3,7 @@ package com.socrata.balboa.metrics.config;
 import com.socrata.balboa.metrics.data.Period;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 public abstract class Configuration extends Properties {
     public static Configuration instance;
@@ -52,6 +50,29 @@ public abstract class Configuration extends Properties {
         }
 
         return supportedPeriods;
+    }
+
+    /**
+     * Finds list of values that are comma separated for a given list.
+     *
+     * @param key Property key.
+     * @return The list of values for a particular key.
+     */
+    public synchronized List<String> getList(String key) {
+        return getList(key, null);
+    }
+
+    /**
+     * Given a key to find in the property file find the list of values for that key.  If the delimiter is
+     * null, "," will be used as a default delimiter.
+     *
+     * @param key The key to find the value for.
+     * @param delimiter The delimiter String REGEX that is used to extract values
+     * @return List of String Values for a specific key
+     */
+    public synchronized List<String> getList(String key, String delimiter) {
+        delimiter = delimiter == null ? "," : delimiter;
+        return new ArrayList<>(Arrays.asList(getString(key).split(delimiter)));
     }
 
     /**
