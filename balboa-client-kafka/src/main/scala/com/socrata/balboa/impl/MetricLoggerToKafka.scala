@@ -52,7 +52,8 @@ trait MetricLoggerToKafka extends BaseMetricLoggerComponent {
   }
 
   /**
-   * Creates a Metric Logger To Kafka from using [[com.socrata.balboa.metrics.config.Configuration]].
+   * Creates a Metric Logger To Kafka from using [[com.socrata.balboa.metrics.config.Configuration]].  This instantiator
+   * exclusively relies on a properties file to extract a list of brokers.
    *
    * See [[MetricLoggerComponent.MetricLogger()]]
    */
@@ -62,11 +63,7 @@ trait MetricLoggerToKafka extends BaseMetricLoggerComponent {
     with BalboaKafkaComponent
     with LinkedBlockingPreBufferQueue
     with BufferedStreamEmergencyWriterComponent
-    with KafkaProducerInformation {
-    override lazy val brokers = KafkaClientConfig.brokers.toList
-    override lazy val topic: String = KafkaClientConfig.topic
-    override lazy val file: File = KafkaClientConfig.emergencyBackUpDir
-  }
+    with ConfiguredKafkaProducerInfo
 }
 
 /**

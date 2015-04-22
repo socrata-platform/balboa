@@ -3,6 +3,7 @@ package com.socrata.balboa.impl;
 import com.blist.metrics.impl.queue.AbstractJavaMetricQueue;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.config.Configuration;
+import com.socrata.balboa.metrics.config.Keys;
 import com.socrata.metrics.IdParts;
 
 import java.io.IOException;
@@ -51,7 +52,7 @@ public class MetricLoggerJava extends AbstractJavaMetricQueue {
     private MetricLoggerJava(String topic) {
         String brokerList;
         try {
-            brokerList = Configuration.get().getProperty("balboa.client.kafka.brokers", "localhost:9062");
+            brokerList = Configuration.get().getProperty(Keys.KAFKA_METADATA_BROKERLIST, "localhost:9062");
         } catch (IOException e) {
             throw new IllegalStateException("Unable to load configuration", e);
         }

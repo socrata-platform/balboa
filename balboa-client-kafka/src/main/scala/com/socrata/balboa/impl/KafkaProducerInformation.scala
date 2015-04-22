@@ -23,8 +23,11 @@ trait KafkaProducerInformation extends EmergencyFileParameter {
 
 }
 
+/**
+ * Kafka Configuration details that exclusively rely on configuration by property files.
+ */
 trait ConfiguredKafkaProducerInfo extends KafkaProducerInformation {
-  override lazy val brokers = KafkaClientConfig.brokers.toList
+  override def brokers = KafkaClientConfig.brokers.toList
   override lazy val topic = KafkaClientConfig.topic
   override lazy val file: File = KafkaClientConfig.emergencyBackUpFile("kafka")
 }
