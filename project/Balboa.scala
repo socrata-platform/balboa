@@ -1,11 +1,14 @@
+import com.socrata.eu.diversit.sbt.plugin.WebDavPlugin.WebDav
 import sbt._
 import sbtdocker.DockerPlugin
 
 object Balboa extends Build {
+
+  // WebDav.mkcol := {} Stops this library from trying to publish with WebDav.
   lazy val balboa = Project(
     projectName,
     file("."),
-    settings = BuildSettings.buildSettings ++ Seq(Keys.parallelExecution := false)
+    settings = BuildSettings.buildSettings ++ Seq(Keys.parallelExecution := false, WebDav.mkcol := {})
   ) aggregate (balboaCommon, balboaCore, balboaHttp, balboaServiceCore, balboaJms,
     balboaAdmin, balboaClientCore, balboaClientJMS, balboaKafkaCommon, balboaKafkaClient,
     balboaKafkaService, balboaClientDispatcher) // Add new project definitions here.
