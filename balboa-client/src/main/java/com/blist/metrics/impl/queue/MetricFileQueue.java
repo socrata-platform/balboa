@@ -1,7 +1,8 @@
 package com.blist.metrics.impl.queue;
 
-import com.socrata.metrics.*;
 import com.socrata.balboa.metrics.Metric;
+import com.socrata.metrics.IdParts;
+import com.socrata.metrics.MetricQueue$;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

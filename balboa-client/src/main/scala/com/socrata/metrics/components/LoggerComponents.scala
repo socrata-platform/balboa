@@ -1,10 +1,52 @@
 package com.socrata.metrics.components
 
+import com.socrata.balboa.impl.MetricDequeuerService
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.metrics.collection.PreBufferQueue
+import org.apache.commons.logging.LogFactory
 
 case class MetricEntry(entityId:String, name:String, value:Number, timestamp:Long, recordType:RecordType)
 
+/**
+ * Base Metric Logger Component that defines a requirement for
+ * a enqueue and dequeue service.
+ */
+trait BaseMetricLoggerComponent extends MetricLoggerComponent {
+  private val Log = LogFactory.getLog(classOf[BaseMetricLoggerComponent])
+
+  val delay = 120L
+  val interval = 120L
+
+  /**
+   * Internal Metric Logger that is based off of [[MetricLogger]].
+   */
+  class MetricLogger extends MetricLoggerLike {
+    self: MetricEnqueuer with MetricDequeuerService =>
+    var acceptEnqueues = true
+    val metricDequeuer = MetricDequeuer()
+    val started = metricDequeuer.start(delay, interval)
+
+    /** See [[MetricLoggerLike.logMetric()]] */
+    override def logMetric(entityId: String, name: String, value: Number, timestamp: Long, recordType: RecordType): Unit = {
+      if (acceptEnqueues)
+        enqueue(MetricEntry(entityId, name, value, timestamp, recordType))
+      else
+        throw new IllegalStateException(s"${getClass.getSimpleName} has already been stopped")
+    }
+
+    /** See [[MetricLoggerLike.stop()]] */
+    override def stop(): Unit = {
+      acceptEnqueues = false
+      Log.info(s"Beginning ${getClass.getSimpleName} shutdown")
+      metricDequeuer.stop()
+    }
+  }
+
+}
+
+/**
+ * Abstract definition of Metric Logger Component
+ */
 trait MetricLoggerComponent {
   type MetricLogger <: MetricLoggerLike
 
@@ -32,15 +74,21 @@ trait MetricLoggerComponent {
   }
 
   /**
-   * Method left for legacy reasons.  This function implies that all metric loggers should follow the same structure
-   *  messaging structure as many point to messaging buses.  The
+   * Method that creates a Metric Logger using a String interp
    *
-   * @param serverName The Messaging Server name
+   * @param servers The Messaging Server name
    * @param queueName The name of the queue to place the message.
    * @param backupFileName Where to place the back up files
    * @return MetricLogger
    */
-  def MetricLogger(serverName:String, queueName:String, backupFileName:String):MetricLogger
+  def MetricLogger(servers:String, queueName:String, backupFileName:String):MetricLogger
+
+  /**
+   * Creates a Metric Logger using a client defined set of parameters.
+   *
+   * @return [[MetricLoggerLike]] instance.
+   */
+  def MetricLogger(): MetricLogger
 }
 
 trait MetricEnqueuer {

@@ -1,9 +1,8 @@
 package com.socrata.metrics
 
-import com.socrata.balboa.metrics.Metric
 import java.util.Date
-import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.metrics.MetricQueue.{AccessChannel, Action}
+
+import com.socrata.balboa.metrics.Metric
 
 abstract class AbstractMetricQueue extends SocrataMetricQueue {
 

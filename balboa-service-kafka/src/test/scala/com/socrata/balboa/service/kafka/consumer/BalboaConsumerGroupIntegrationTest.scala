@@ -1,11 +1,11 @@
 package com.socrata.balboa.service.kafka.consumer
 
 import java.util.concurrent.Future
-
-import com.socrata.balboa.common.kafka.util.MetricsTestStuff
-import com.socrata.balboa.common.kafka.util.MetricsTestStuff.TestMessages
+import com.socrata.balboa.util.MetricsTestStuff
+import MetricsTestStuff.TestMessages
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.service.kafka.test.util.StagingAndRCServiceTestHarness
+import com.socrata.balboa.util.MetricsTestStuff
 import kafka.consumer.{ConsumerConfig, ConsumerTimeoutException}
 import kafka.utils.TestUtils
 import org.junit.Assert._

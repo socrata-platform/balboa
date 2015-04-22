@@ -2,10 +2,10 @@ package com.socrata.balboa.service.kafka.test.util
 
 import java.util.Calendar
 
+import com.socrata.balboa.common.kafka.codec.KafkaCodec
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.impl.JsonMessage
 import com.socrata.balboa.metrics.{Metric, Metrics}
-import com.socrata.balboa.common.kafka.codec.KafkaCodec
 import kafka.message.{Message, MessageAndMetadata}
 import kafka.serializer.DefaultDecoder
 

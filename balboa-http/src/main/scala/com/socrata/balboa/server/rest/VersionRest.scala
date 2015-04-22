@@ -1,11 +1,12 @@
 package com.socrata.balboa.server.rest
 
-import com.socrata.http.server._
 import javax.servlet.http.HttpServletRequest
-import com.socrata.http.server.responses._
-import com.socrata.http.server.implicits._
-import com.socrata.balboa.metrics.data.BalboaFastFailCheck
+
 import com.rojoma.simplearm.util._
+import com.socrata.balboa.metrics.data.BalboaFastFailCheck
+import com.socrata.http.server._
+import com.socrata.http.server.implicits._
+import com.socrata.http.server.responses._
 
 /**
  * Version/Health-Check

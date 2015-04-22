@@ -22,6 +22,8 @@ trait KafkaConsumerCLIBase[K,M] extends App {
   private val TOPIC_PROPERTY_KEY = "balboa.kafka.topic"
   private val TOPIC_PARTITIONS_PROPERTY_KEY = "balboa.kafka.topic.partitions"
 
+  private val LOCAL_ZOOKEEPER = "localhost:2181"
+
   //////////////////////////////////////////////////////////////////////////////////////////
   /////// Running the Application
 
@@ -84,28 +86,27 @@ trait KafkaConsumerCLIBase[K,M] extends App {
         case x => throw new IllegalArgumentException("JOpt fail to return file.")
       }
     } else {
-      // Put all the configurations found at Configuration default
       props.putAll(Configuration.get())
-    }
-    set.valueOf("zookeepers") match {
-      case z: String =>
-        props.setProperty(ZOOKEEPER_PROPERTY_KEY, z)
-      case _ => // NOOP
-    }
-    set.valueOf("appName") match {
-      case a: String =>
-        props.setProperty(GROUPID_PROPERTY_KEY, a)
-      case _ => // NOOP
-    }
-    set.valueOf("topic") match {
-      case t: String =>
-        props.setProperty(TOPIC_PROPERTY_KEY, t)
-      case _ => // NOOP
-    }
-    set.valueOf("threads") match {
-      case p: Integer =>
-        props.setProperty(TOPIC_PARTITIONS_PROPERTY_KEY, p.toString)
-      case _ => // NOOP
+      set.valueOf("zookeepers") match {
+        case z: String =>
+          props.setProperty(ZOOKEEPER_PROPERTY_KEY, z)
+        case _ => // NOOP
+      }
+      set.valueOf("appName") match {
+        case a: String =>
+          props.setProperty(GROUPID_PROPERTY_KEY, a)
+        case _ => // NOOP
+      }
+      set.valueOf("topic") match {
+        case t: String =>
+          props.setProperty(TOPIC_PROPERTY_KEY, t)
+        case _ => // NOOP
+      }
+      set.valueOf("threads") match {
+        case p: Integer =>
+          props.setProperty(TOPIC_PARTITIONS_PROPERTY_KEY, p.toString)
+        case _ => // NOOP
+      }
     }
     props
   }
@@ -118,15 +119,27 @@ trait KafkaConsumerCLIBase[K,M] extends App {
    */
   protected def optionParser(): OptionParser = {
     val optParser: OptionParser = new OptionParser()
-    val confOpt = optParser.accepts("configFile", "Configuration File.").withRequiredArg().ofType(classOf[File])
+    // Can use a single configuration file for all command line application.
+    val confOpt = optParser.accepts("configFile", "Configuration File.")
+      .withRequiredArg()
+      .ofType(classOf[File])
     optParser.accepts("zookeepers", "Comma separated list of Zookeeper server:port's")
-      .withRequiredArg().ofType(classOf[String])
-    optParser.accepts("appName", "Application Name").withRequiredArg()
-      .ofType(classOf[String]).describedAs("A name associated with this " +
-      "consumer.  This will be used as a Kafka \"group id\".")
-    optParser.accepts("topic", "Kafka topic to subscribe to.").withRequiredArg().ofType(classOf[String])
+      .withRequiredArg()
+      .ofType(classOf[String])
+      .defaultsTo(LOCAL_ZOOKEEPER)
+    optParser.accepts("appName", "Application Name")
+      .requiredUnless("configFile")
+      .withRequiredArg()
+      .ofType(classOf[String])
+      .describedAs("A name associated with this consumer.  This will be used as a Kafka \"group id\".")
+    optParser.accepts("topic", "Kafka topic to subscribe to.")
+      .requiredUnless("configFile")
+      .withRequiredArg()
+      .ofType(classOf[String])
     optParser.accepts("threads", "Number of consumer threads for this Consumer application.")
-      .withRequiredArg().ofType(classOf[Int])
+      .withRequiredArg()
+      .ofType(classOf[Int])
+      .defaultsTo(1)
     optParser
   }
 

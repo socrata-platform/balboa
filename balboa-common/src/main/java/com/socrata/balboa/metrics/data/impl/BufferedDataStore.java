@@ -3,6 +3,7 @@ package com.socrata.balboa.metrics.data.impl;
 import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.Timeslice;
 import com.socrata.balboa.metrics.config.Configuration;
+import com.socrata.balboa.metrics.config.ConfigurationException;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.Period;
 import org.apache.commons.logging.Log;
@@ -52,7 +53,7 @@ public class BufferedDataStore extends DataStoreImpl {
             Configuration config = Configuration.get();
             AGGREGATE_GRANULARITY = Long.parseLong(config.getProperty("buffer.granularity"));
         } catch (IOException e) {
-            throw new Configuration.ConfigurationException("BufferedDataStore Configuration Error", e);
+            throw new ConfigurationException("BufferedDataStore Configuration Error", e);
         }
 
     }

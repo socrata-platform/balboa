@@ -1,7 +1,8 @@
 package com.socrata.metrics.collection
 
-import com.socrata.metrics.components.MetricEntry
 import java.util.concurrent.LinkedBlockingQueue
+
+import com.socrata.metrics.components.MetricEntry
 
 trait PreBufferQueue {
   def queue:SocrataAbstractQueue[MetricEntry]

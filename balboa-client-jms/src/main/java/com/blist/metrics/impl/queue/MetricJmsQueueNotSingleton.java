@@ -1,22 +1,19 @@
 package com.blist.metrics.impl.queue;
 
+import com.socrata.balboa.metrics.Metric;
+import com.socrata.balboa.metrics.Metrics;
+import com.socrata.balboa.metrics.impl.JsonMessage;
+import com.socrata.metrics.IdParts;
+import com.socrata.metrics.MetricQueue$;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import javax.jms.*;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import javax.jms.*;
-
-import static com.socrata.util.deepcast.DeepCast.*;
-import com.socrata.balboa.metrics.impl.JsonMessage;
-import com.socrata.balboa.metrics.Metric;
-import com.socrata.balboa.metrics.*;
-import com.socrata.metrics.*;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 
 /**

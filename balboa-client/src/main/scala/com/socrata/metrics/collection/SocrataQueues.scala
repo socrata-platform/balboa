@@ -1,6 +1,7 @@
 package com.socrata.metrics.collection
 
-import java.util.concurrent.{TimeUnit, LinkedBlockingQueue}
+import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
+
 import scala.collection.mutable.Queue
 
 trait SocrataAbstractQueue[Q] {

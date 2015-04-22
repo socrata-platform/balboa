@@ -1,7 +1,7 @@
 package com.socrata.balboa.server.rest
 
-import javax.servlet.http.HttpServletRequest
 import java.net.URLDecoder
+import javax.servlet.http.HttpServletRequest
 
 class QueryExtractor(params: Map[String, String]) {
   def this(req: HttpServletRequest) = this(QueryExtractor.breakOut(req.getQueryString))

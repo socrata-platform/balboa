@@ -29,7 +29,7 @@ This project is published as a maven repository and can be utilized and referenc
   ```
   libraryDependencies ++= Seq(
     ...
-    "com.socrata" % "balboa-kafka-service" %% "0.14.0",
+    "com.socrata" % "balboa-kafka-service" %% "0.15.+",
     ...
   )
  ```
@@ -38,15 +38,26 @@ Others: TODO
 
 ## Usage and Code Example
 
-We are currently not allowing the auto creation of topic outside of testing environments to prevent unwanted namespace
- collisions.  We will continue to iterate and devise a way pragmatic process for individual teams to easily create topics
- without namespace collisions.  For now please consult with the Metrics team to create a topic.
+Terminology
+-----------
+
+* appName : An Application name you define.  This allows you to create multiple instances of the same application.  
+The appName is a direct association to Kafka Consumer Group.  This guarantees that Kafka will send a single message 
+to one of the running applications.
+* topic : The Kafka topic to listen for.
+
+Running out of the box
+----------------------
+
+`cd balboa && sbt assembly`
+`sbt balboa-kafka-service/run "-appName=<YourApplicationName> -topic=<Topic>"`
 
 Creating content to send
 ------------------------
 1. Create your message type and optional Key Type.  Your message type can be considered the end to end abstract data entity that travels from
  producers to consumers.
-2. Create your [KafkaCodec](balboa-common-kafka/src/main/scala/com/socrata/balboa/service/kafka/codec/KafkaCodec.scala)
+2. Create your [KafkaCodec](../balboa-common-kafka/src/main/scala/com/socrata/balboa/service/kafka/codec/KafkaCodec
+.scala)
 for your message and key types.
 3. Discuss with the Metrics team about getting a [Kafka topic](http://kafka.apache.org/documentation.html#introduction)
 provisioned for you.

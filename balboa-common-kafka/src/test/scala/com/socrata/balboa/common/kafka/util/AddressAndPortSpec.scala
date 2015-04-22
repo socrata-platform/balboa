@@ -1,10 +1,11 @@
 package com.socrata.balboa.common.kafka.util
 
+import com.socrata.balboa.metrics.util.AddressAndPort
 import org.scalatest.WordSpec
 
 class AddressAndPortSpec extends WordSpec {
 
-  "An AddressAndPortSpec" should {
+  "An AddressAndPort" should {
 
     "return an empty list with an empty String" in {
       var result = AddressAndPort.parse("")

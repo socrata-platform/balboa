@@ -2,7 +2,7 @@ package com.socrata.metrics.producer
 
 import java.util.Properties
 
-import com.socrata.balboa.common.kafka.util.AddressAndPort
+import com.socrata.balboa.metrics.util.AddressAndPort
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 import kafka.serializer.Encoder
 

@@ -1,7 +1,7 @@
 package com.socrata.metrics
 
-import java.util.UUID
 import java.net.URL
+import java.util.UUID
 
 /**
  * A way of statically typing some of the entity/metric name keys

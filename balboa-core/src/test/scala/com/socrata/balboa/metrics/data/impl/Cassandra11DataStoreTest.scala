@@ -1,14 +1,15 @@
 package com.socrata.balboa.metrics.data.impl
 
-import com.socrata.balboa.metrics.{Timeslice, Metric, Metrics}
-import org.junit.{Before, Test, Ignore}
-import junit.framework.Assert
-import com.socrata.balboa.metrics.data.{DateRange, Period}
-import java.util.{TimeZone, GregorianCalendar, Date}
-import scala.collection.JavaConverters._
 import java.util.concurrent.TimeUnit
+import java.util.{Date, GregorianCalendar, TimeZone}
+
 import com.socrata.balboa.metrics.Metric.RecordType
-import java.util
+import com.socrata.balboa.metrics.data.{DateRange, Period}
+import com.socrata.balboa.metrics.{Metric, Metrics}
+import junit.framework.Assert
+import org.junit.{Before, Ignore, Test}
+
+import scala.collection.JavaConverters._
 
 /**
  *

@@ -12,7 +12,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import javax.jms.*;
-import javax.jms.Message;
 import javax.naming.NamingException;
 import java.io.IOException;
 import java.util.ArrayList;

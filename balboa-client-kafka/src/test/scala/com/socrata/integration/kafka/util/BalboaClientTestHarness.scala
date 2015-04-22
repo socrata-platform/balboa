@@ -3,8 +3,8 @@ package com.socrata.integration.kafka.util
 import java.util.Properties
 
 import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, KafkaCodec, StringCodec}
-import com.socrata.balboa.common.kafka.util.AddressAndPort
 import com.socrata.balboa.metrics.Message
+import com.socrata.balboa.metrics.util.AddressAndPort
 import com.socrata.metrics.producer.{BalboaKafkaProducer, GenericKafkaProducer}
 import kafka.consumer._
 import kafka.integration.KafkaServerTestHarness

@@ -8,9 +8,12 @@ import com.socrata.balboa.metrics.data.Period;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class BufferedDataStoreTest {
 

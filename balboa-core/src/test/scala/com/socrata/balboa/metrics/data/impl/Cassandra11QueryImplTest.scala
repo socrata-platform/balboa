@@ -1,13 +1,14 @@
 package com.socrata.balboa.metrics.data.impl
 
-import org.junit.{Ignore, Test}
-import com.socrata.balboa.metrics.{Metrics, Metric}
-import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, Period, DateRange}
-import junit.framework.Assert
-import java.util.Date
-import com.socrata.balboa.metrics.config.Configuration
 import java.io.IOException
+import java.util.Date
+
+import com.socrata.balboa.metrics.Metric.RecordType
+import com.socrata.balboa.metrics.config.Configuration
+import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, DateRange, Period}
+import com.socrata.balboa.metrics.{Metric, Metrics}
+import junit.framework.Assert
+import org.junit.{Ignore, Test}
 
 /**
  * Integration Test; Tests Ignored Manually
