@@ -42,11 +42,6 @@ trait BaseMetricLoggerComponent extends MetricLoggerComponent {
     }
   }
 
-  // TODO There is some unecesary duplication between MetricLoggerComponents
-  // implementation.  What needs to be done is deprecate MetricLogger(String, String, String)
-  // method and replace it with a more generic MetricLogger(MetricLoggerInformation)
-  // for the sake of time I am postponing this to a later refactor.
-
 }
 
 /**
