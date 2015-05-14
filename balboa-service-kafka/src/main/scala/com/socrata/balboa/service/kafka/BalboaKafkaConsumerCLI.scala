@@ -6,7 +6,7 @@ import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.data.{DataStore, DataStoreFactory}
 import com.socrata.balboa.service.kafka.consumer.{BalboaConsumerGroup, KafkaConsumerGroupComponent}
 import joptsimple.OptionSet
-import kafka.consumer.ConsumerConfig
+import kafka.consumer.{Consumer, ConsumerConfig}
 
 /**
  * Balboa Kafka Main Application:
@@ -31,8 +31,23 @@ object BalboaKafkaConsumerCLI extends KafkaConsumerCLIBase[String, Message] {
   lazy val waitTime: Int = properties.getInt(TOPIC_PERSISTENT_CONSUMER_WAITTIME_KEY)
 
   /** See [[KafkaConsumerCLIBase.consumerGroup()]] */
-  override def consumerGroup(): KafkaConsumerGroupComponent[String, Message] = new BalboaConsumerGroup(
-    new ConsumerConfig(properties.props), topic, partitions, ds, waitTime)
+  override def consumerGroup(): KafkaConsumerGroupComponent[String, Message] = {
+    val config = new ConsumerConfig(properties.props)
+    println(s"Kafka Config: $config")
+    println(s"ZK Config: ${config.zkConnect}")
+    println(s"Topic: $topic")
+    println(s"Partitions: $partitions")
+    println(s"Data Store: $ds")
+    println(s"Wait time: $waitTime")
+    println(s"Creating consumer connector...")
+    val cc = Consumer.create(config)
+    println(s"Created consumer connector: $cc")
+    println(s"Creating Balboa Consumer Group...")
+    val g = new BalboaConsumerGroup(cc, topic, partitions, ds, waitTime)
+    println(s"Group $g created")
+    g
+  }
+
 
   /** See [[KafkaConsumerCLIBase.optionParser()]] */
   override protected def optionParser(): joptsimple.OptionParser = {

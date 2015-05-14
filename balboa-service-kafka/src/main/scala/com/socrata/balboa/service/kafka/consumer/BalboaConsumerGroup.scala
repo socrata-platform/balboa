@@ -31,34 +31,44 @@ case class BalboaConsumerGroup(connector: ConsumerConnector,
            topic: String,
            partitionsForTopic: Int,
            dataStore: DataStore,
-           waitTime: Long) = this(Consumer.create(consumerConfig), topic, partitionsForTopic, dataStore, waitTime)
+           waitTime: Long) = {
+    this(Consumer.create(consumerConfig), topic, partitionsForTopic, dataStore, waitTime)
+    println("Instantiated Consumer Connector and BalboaConsumerGroup.")
+  }
 
   /**
    * Create the streams on demand.
    */
-  lazy val streams: List[KafkaStream[String,Message]] = connector.createMessageStreams[String, Message](
-    Map((topic, partitionsForTopic)), new StringCodec(), new BalboaMessageCodec())(topic)
+  lazy val streams: List[KafkaStream[String,Message]] = {
+    println("Instantiated Streams.")
+    connector.createMessageStreams[String, Message](Map((topic, partitionsForTopic)), new StringCodec(), new BalboaMessageCodec())(topic)
+  }
 
   /**
    * Each consumer will have each own individual stream to consume.
    *
    * @return A list of Kafka Consumers that belong exclusively to this group.
    */
-  override val consumers: List[KafkaConsumer] = this.streams.map(s => {
-    val d = this.dataStore
-    val w = this.waitTime
-    new BalboaConsumer() with DataStoreConsumerExternalComponents with PersistentKafkaConsumerReadiness {
-      lazy val dataStore: DataStore = d
-      lazy val waitTime: Long = w
-      lazy val stream = s
-    }
-  })
+  override val consumers: List[KafkaConsumer] = {
+    println("Instantiated Consumers.")
+    this.streams.map(s => {
+      val d = this.dataStore
+      val w = this.waitTime
+      new BalboaConsumer() with DataStoreConsumerExternalComponents with PersistentKafkaConsumerReadiness {
+        lazy val dataStore: DataStore = d
+        lazy val waitTime: Long = w
+        lazy val stream = s
+      }
+    })
+  }
+
 
   /**
    * Shutdowns all the consumer threads but stopping all the streams via the consumer connector.
    */
   override def stop(): Option[Exception] = {
     try {
+      println("Stopping Consumer group.")
       connector.shutdown()
       super.stop()
     } catch {

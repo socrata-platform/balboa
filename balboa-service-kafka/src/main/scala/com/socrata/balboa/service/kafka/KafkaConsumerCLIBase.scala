@@ -29,9 +29,12 @@ trait KafkaConsumerCLIBase[K,M] extends App {
 
   override def main(args: Array[String]): Unit = {
     super.main(args)
+    println("Creating Consumer Group")
     val g = consumerGroup()
+    println("Completed Creating Consumer Group")
 
     // Add the shutdown hook.
+    println("Adding Shutdown hook")
     scala.sys.addShutdownHook(try {
       g.stop()
     } catch {
@@ -39,6 +42,7 @@ trait KafkaConsumerCLIBase[K,M] extends App {
       case t: Throwable => Log.warn(s"Unknown error while stopping consumer group.", t)
     })
 
+    println("Starting consumer group")
     Log.info(s"Starting $g...")
     g.start()
   }
@@ -124,19 +128,21 @@ trait KafkaConsumerCLIBase[K,M] extends App {
       .withRequiredArg()
       .ofType(classOf[File])
     optParser.accepts("zookeepers", "Comma separated list of Zookeeper server:port's")
+      .requiredUnless(confOpt)
       .withRequiredArg()
       .ofType(classOf[String])
       .defaultsTo(LOCAL_ZOOKEEPER)
     optParser.accepts("appName", "Application Name")
-      .requiredUnless("configFile")
+      .requiredUnless(confOpt)
       .withRequiredArg()
       .ofType(classOf[String])
       .describedAs("A name associated with this consumer.  This will be used as a Kafka \"group id\".")
     optParser.accepts("topic", "Kafka topic to subscribe to.")
-      .requiredUnless("configFile")
+      .requiredUnless(confOpt)
       .withRequiredArg()
       .ofType(classOf[String])
     optParser.accepts("threads", "Number of consumer threads for this Consumer application.")
+      .requiredUnless(confOpt)
       .withRequiredArg()
       .ofType(classOf[Int])
       .defaultsTo(1)

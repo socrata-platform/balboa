@@ -31,6 +31,7 @@ public class DataStoreFactory
         String datastore = (String)conf.get("balboa.datastore");
 
         if (datastore.equals("buffered-cassandra")) {
+            System.out.println("Using buffered cassandra");
             return new BufferedDataStore(
                     new BadIdeasDataStore(
                             new Cassandra11DataStore(
@@ -40,6 +41,7 @@ public class DataStoreFactory
 
         if (datastore.equals("cassandra"))
         {
+            System.out.println("Using non buffered cassandra");
             return new BadIdeasDataStore(
                     new Cassandra11DataStore(
                             new Cassandra11QueryImpl(

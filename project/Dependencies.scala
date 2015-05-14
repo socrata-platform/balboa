@@ -18,7 +18,7 @@ object Dependencies {
     val jackson = "1.9.12"
     val junit = "4.5"
     val jopt_simple = "4.8"
-    val kafka = "[0.8.2.1, 0.9.0.0)"
+    val kafka = "0.8.2.0"
     val log4j = "1.2.16"
     val mockito = "1.+"
     val newman = "1.3.5"
