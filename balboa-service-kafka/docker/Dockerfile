@@ -5,7 +5,7 @@ FROM socrata/java
 
 ### Environment Variables
 ENV BALBOA_ROOT /srv/balboa-kafka-consumer
-ENV BALBOA_KAFKA_CONSUMER_ARTIFACT balboa-kafka-service-LATEST.jar
+ENV BALBOA_KAFKA_CONSUMER_ARTIFACT balboa-kafka-service-assembly.jar
 ENV BALBOA_KAFKA_CONSUMER_CONFIG balboa-kafka.properties
 # ENV BALBOA_KAFKA_CONSUMER_LOGBACK logback.xml
 
