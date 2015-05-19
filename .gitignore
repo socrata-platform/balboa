@@ -17,3 +17,4 @@ balboa-kafka/docker/*.jar
 marathon.properties
 balboa-kafka-consumer.jar
 balboa-kafka-service-LATEST.jar
+staging_config.properties

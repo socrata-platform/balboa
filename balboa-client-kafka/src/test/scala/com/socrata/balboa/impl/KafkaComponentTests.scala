@@ -49,6 +49,7 @@ with MetricsTestStuff.TestMessages with MetricLoggerToKafka {
   }
 
   @Test def testSendAndReceiveOfOneMessage(): Unit = {
+    println(manyElemMessage)
     component.start()
     component.send(emptyMessage)
     validateConsumedMessages(emptyMessage)

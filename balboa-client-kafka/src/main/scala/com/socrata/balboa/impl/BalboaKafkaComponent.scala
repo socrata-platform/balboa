@@ -79,7 +79,7 @@ trait BalboaKafkaComponent extends MessageQueueComponent {
         Log.error(errMsg, e)
         emergencyFileWriter match {
           case Some(efw) => efw.send(msg)
-          case None => System.err.println(errMsg)
+          case None => Log.error(errMsg)
         }
     }
   }

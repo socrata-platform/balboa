@@ -7,6 +7,7 @@ import com.socrata.balboa.metrics.data.{DataStore, DataStoreFactory}
 import com.socrata.balboa.service.kafka.consumer.{BalboaConsumerGroup, KafkaConsumerGroupComponent}
 import joptsimple.OptionSet
 import kafka.consumer.{Consumer, ConsumerConfig}
+import org.apache.commons.logging.LogFactory
 
 /**
  * Balboa Kafka Main Application:
@@ -15,6 +16,8 @@ import kafka.consumer.{Consumer, ConsumerConfig}
  * on a configurable list of ZooKeeper Host Ports.  This service currently listens for all published Tenant Metrics.
  */
 object BalboaKafkaConsumerCLI extends KafkaConsumerCLIBase[String, Message] {
+
+  private val Log = LogFactory.getLog(this.getClass)
 
   private val TOPIC_PERSISTENT_CONSUMER_WAITTIME_KEY = "balboa.kafka.consumer.persistent.waittime"
   private val CASSANDRA_SERVERS_KEY = "cassandra.servers"
@@ -33,18 +36,12 @@ object BalboaKafkaConsumerCLI extends KafkaConsumerCLIBase[String, Message] {
   /** See [[KafkaConsumerCLIBase.consumerGroup()]] */
   override def consumerGroup(): KafkaConsumerGroupComponent[String, Message] = {
     val config = new ConsumerConfig(properties.props)
-    println(s"Kafka Config: $config")
-    println(s"ZK Config: ${config.zkConnect}")
-    println(s"Topic: $topic")
-    println(s"Partitions: $partitions")
-    println(s"Data Store: $ds")
-    println(s"Wait time: $waitTime")
-    println(s"Creating consumer connector...")
+    Log.info(s"Creating consumer connector...")
     val cc = Consumer.create(config)
-    println(s"Created consumer connector: $cc")
-    println(s"Creating Balboa Consumer Group...")
+    Log.info(s"Created consumer connector: $cc")
+    Log.info(s"Creating Balboa Consumer Group...")
     val g = new BalboaConsumerGroup(cc, topic, partitions, ds, waitTime)
-    println(s"Group $g created")
+    Log.info(s"Group $g created")
     g
   }
 

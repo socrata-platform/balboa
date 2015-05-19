@@ -4,6 +4,7 @@ import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.data.DataStore
 import kafka.consumer.{Consumer, ConsumerConfig, ConsumerConnector, KafkaStream}
+import org.apache.commons.logging.LogFactory
 
 /**
  * A [[KafkaConsumerGroupComponent[String, Message]] that is meant to handle Balboa specific Kafka message traffic.
@@ -27,20 +28,21 @@ case class BalboaConsumerGroup(connector: ConsumerConnector,
                                dataStore: DataStore,
                                waitTime: Long) extends BalboaConsumerGroupLike {
 
+  private val Log = LogFactory.getLog(this.getClass)
+
   def this(consumerConfig: ConsumerConfig,
            topic: String,
            partitionsForTopic: Int,
            dataStore: DataStore,
            waitTime: Long) = {
     this(Consumer.create(consumerConfig), topic, partitionsForTopic, dataStore, waitTime)
-    println("Instantiated Consumer Connector and BalboaConsumerGroup.")
   }
 
   /**
    * Create the streams on demand.
    */
   lazy val streams: List[KafkaStream[String,Message]] = {
-    println("Instantiated Streams.")
+    Log.info(s"Initializing Kafka Streams for topic $topic using $partitionsForTopic")
     connector.createMessageStreams[String, Message](Map((topic, partitionsForTopic)), new StringCodec(), new BalboaMessageCodec())(topic)
   }
 
@@ -50,7 +52,7 @@ case class BalboaConsumerGroup(connector: ConsumerConnector,
    * @return A list of Kafka Consumers that belong exclusively to this group.
    */
   override val consumers: List[KafkaConsumer] = {
-    println("Instantiated Consumers.")
+    Log.info("Initializing individual BalboaConsumers")
     this.streams.map(s => {
       val d = this.dataStore
       val w = this.waitTime
@@ -68,17 +70,16 @@ case class BalboaConsumerGroup(connector: ConsumerConnector,
    */
   override def stop(): Option[Exception] = {
     try {
-      println("Stopping Consumer group.")
+      Log.info(s"Stopping ${this.toString}.")
       connector.shutdown()
       super.stop()
     } catch {
-      case e: Exception => Some(e)
+      case e: Exception =>
+        Log.warn(s"Exception caught while attempting to shutdown ${this.toString}. Exception: ${e}")
+        Some(e)
     }
   }
 
-  override def toString: String = {
-    val c = this.getClass
-    val size = consumers.size
-    s"$c topic: $topic number of consumers: $size data store: $dataStore"
-  }
+  override def toString: String = s"[${this.getClass}, topic: $topic, " +
+    s"number of consumers: ${consumers.size}, datastore: $dataStore]"
 }

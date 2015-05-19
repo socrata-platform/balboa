@@ -14,7 +14,7 @@ import org.apache.commons.logging.LogFactory
  */
 trait KafkaConsumerCLIBase[K,M] extends App {
 
-  protected val Log = LogFactory.getLog(this.getClass)
+  private val Log = LogFactory.getLog(this.getClass)
 
   private val APPLICATION_NAME_KEY = "balboa.kafka.application.name"
   private val ZOOKEEPER_PROPERTY_KEY = "zookeeper.connect"
@@ -29,12 +29,12 @@ trait KafkaConsumerCLIBase[K,M] extends App {
 
   override def main(args: Array[String]): Unit = {
     super.main(args)
-    println("Creating Consumer Group")
+    Log.info("Creating Consumer Group")
     val g = consumerGroup()
-    println("Completed Creating Consumer Group")
+    Log.info("Completed Creating Consumer Group")
 
     // Add the shutdown hook.
-    println("Adding Shutdown hook")
+    Log.info("Adding Shutdown hook")
     scala.sys.addShutdownHook(try {
       g.stop()
     } catch {
@@ -42,7 +42,6 @@ trait KafkaConsumerCLIBase[K,M] extends App {
       case t: Throwable => Log.warn(s"Unknown error while stopping consumer group.", t)
     })
 
-    println("Starting consumer group")
     Log.info(s"Starting $g...")
     g.start()
   }

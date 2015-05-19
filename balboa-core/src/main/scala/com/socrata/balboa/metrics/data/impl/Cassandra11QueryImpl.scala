@@ -82,6 +82,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
 
   def persist(entityId: String, bucket:ju.Date, period: Period, aggregates: sc.Map[String, Metric], absolutes: sc.Map[String, Metric]) {
     val entityKey = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
+    log.info("Using entity/row key " + entityKey + " at period " + period)
     fastfail.proceedOrThrow()
 
 
@@ -112,6 +113,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
       case e: Exception =>
         val wrapped = new IOException("Error writing metrics " + entityKey + " from " + period, e)
         fastfail.markFailure(wrapped)
+        log.error("Error writing metrics " + entityKey + " from " + period, e)
         throw wrapped
     }
   }

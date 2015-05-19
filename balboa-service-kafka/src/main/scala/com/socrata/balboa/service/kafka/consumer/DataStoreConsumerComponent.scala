@@ -18,6 +18,9 @@ trait DataStoreConsumerExternalComponents extends KafkaConsumerStreamProvider[St
 
 }
 
+/**
+ * A Data Store Consumer is a Kafka Consumer Component that persistently attempts to
+ */
 trait DataStoreConsumerComponent extends PersistentKafkaConsumerComponent[String, Message] {
 
   class BalboaConsumer() extends PersistentKafkaConsumer {
