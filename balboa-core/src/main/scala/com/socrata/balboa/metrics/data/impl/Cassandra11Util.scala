@@ -63,6 +63,16 @@ object Cassandra11Util {
       Iterator.empty
     }
   }
+
+  /**
+   * Return an iterable list of metrics time slices.
+   *
+   * @param queryImpl Underlying Cassandra Query mechanism
+   * @param entityId The entity id to find the metric for.
+   * @param period The period interval to define a spceific granularity.
+   * @param query A list of dates that fall within respective date ranges boundby the period.
+   * @return A iterable list of time sliced metrics.
+   */
   def sliceIterator(queryImpl:Cassandra11Query, entityId:String, period:Period, query:List[ju.Date]):Iterator[Timeslice] = {
     query.iterator.map { date =>
           val range = DateRange.create(period, date)

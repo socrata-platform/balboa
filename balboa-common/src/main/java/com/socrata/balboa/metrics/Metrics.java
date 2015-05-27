@@ -1,17 +1,26 @@
 package com.socrata.balboa.metrics;
 
 import com.socrata.balboa.metrics.data.CompoundIterator;
+import com.socrata.balboa.metrics.measurements.combining.Combinator;
+import com.socrata.balboa.metrics.measurements.combining.Summation;
 
 import java.io.IOException;
 import java.util.*;
 
 /**
- * A bag of metrics which can be merged through summation or
- * replace operations.
+ * A collection of metrics.  Metrics are identified by a name key and the correlated Metric value.
  * <p/>
  * Warning; merge operations on Metrics are not immutable.
  */
 public class Metrics extends HashMap<String, Metric> {
+
+    /*
+    - TODO: Migrate Metrics to Scala
+    - TODO: Make Metrics a simpler data structure. Mapping name to Metric requires a lot of looping which can get tediously
+    - TODO Implement solid functional practices.
+    - TODO: combining data leads to data loss.
+     */
+
     public Metrics(int i, float v) {
         super(i, v);
     }
@@ -52,7 +61,24 @@ public class Metrics extends HashMap<String, Metric> {
         return results;
     }
 
+    /**
+     * Combines a Metric name based off of a provided pattern.  For all metrics that match that name
+     *
+     * @param pattern The Regex pattern to match the metric name.
+     * @return A combined Single mappping the of the result of the matching and combining.  "result" => Number
+     */
     public Metrics combine(String pattern) {
+        return combine(pattern, null);
+    }
+
+    /**
+     * Combines this collection of metrics by matching all metric names with a argument pattern.
+     *
+     * @param pattern Metric name pattern to match to.
+     * @param com Explicit Combinator.  Can be null.ential
+     * @return
+     */
+    public Metrics combine(String pattern, Combinator<Number> com) {
         Metrics results = new Metrics(1);
         Metric combined = null;
 
@@ -61,7 +87,7 @@ public class Metrics extends HashMap<String, Metric> {
                 if (combined == null) {
                     combined = entry.getValue();
                 } else {
-                    combined.combine(entry.getValue());
+                    combined.combine(entry.getValue(), com);
                 }
             }
         }

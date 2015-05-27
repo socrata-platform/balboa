@@ -1,6 +1,23 @@
 package com.socrata.balboa.metrics;
 
+/**
+ * Mutable class that represents a segment of time.
+ */
 public class Timeslice {
+
+    /*
+     - TODO: Why not use a date range?
+     - TODO: Make Immutable.
+     - TODO: Port to Scala
+     */
+
+    /*
+    Abstract Representation
+    start - the beginning of the time slice
+    end   - The end of the time slice
+    metrics - Collection of metrics that pertain to the client for the declared time slice
+     */
+
     long start;
     long end;
     Metrics metrics;
@@ -11,6 +28,7 @@ public class Timeslice {
         this.metrics = metrics;
     }
 
+    // TODO Remove uneeded.
     public Timeslice() {}
 
     public long getStart() {

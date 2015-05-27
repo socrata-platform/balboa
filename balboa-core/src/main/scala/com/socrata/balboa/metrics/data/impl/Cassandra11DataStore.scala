@@ -13,8 +13,6 @@ import scala.collection.JavaConverters._
 /**
  * DataStore Implementation for Cassandra 1.1
  *
- *
- *
  */
 class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext()))
   extends DataStoreImpl {

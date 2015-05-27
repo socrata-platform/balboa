@@ -26,6 +26,7 @@ object Main extends App {
     new SimpleRoute(Set(HttpMethods.GET), "entities") -> EntitiesRest,
     new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r, "range") -> MetricsRest.range,
     new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r, "series") -> MetricsRest.series,
+    new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r, "absolute_series") -> MetricsRest.absoluteSeries,
     new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r) -> MetricsRest.get
   )
 
