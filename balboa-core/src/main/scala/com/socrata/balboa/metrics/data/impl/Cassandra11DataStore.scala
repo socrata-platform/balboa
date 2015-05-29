@@ -107,7 +107,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
   def find(entityId: String, period:Period, date: ju.Date): ju.Iterator[Metrics] = {
     val requestPeriod = getValidGranularity(period)
     val range = DateRange.create(period, date)
-    find(entityId, requestPeriod, range.start, range.end)
+    find(entityId, requestPeriod, range.getStart, range.getEnd)
   }
 
   /**
@@ -132,7 +132,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
    */
   def find(entityId: String, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = {
     val range:DateRange = new DateRange(start, end)
-    val optimalSlices = new QueryOptimizer().optimalSlices(range.start, range.end).asScala
+    val optimalSlices = new QueryOptimizer().optimalSlices(range.getStart, range.getEnd).asScala
     val query = optimalSlices.flatMap{ case (k,v) => Map(k -> v.asScala.map(_.toDates(k)).flatMap(i => i.asScala).toList)}.toMap
     // create the query set from the optimal slice
     Cassandra11Util.metricsIterator(queryImpl, entityId, query).asJava
@@ -160,7 +160,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     while (period != null && period != Period.REALTIME)
     {
       val range:DateRange = DateRange.create(period, new ju.Date(timestamp))
-      queryImpl.persist(entityId, range.start, period, aggregates, absolutes)
+      queryImpl.persist(entityId, range.getStart, period, aggregates, absolutes)
       // Skip to the next largest period which we are configured
       // to use.
       period = period.moreGranular

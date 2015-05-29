@@ -7,8 +7,8 @@ import java.util.*;
  */
 public class DateRange {
 
-    public Date start;
-    public Date end;
+    private final Date start;
+    private final Date end;
 
     public DateRange(Date start, Date end) {
         if (start.after(end)) {
@@ -19,9 +19,22 @@ public class DateRange {
         this.end = end;
     }
 
+    /**
+     * @return The very start of this date range.
+     */
+    public Date getStart() {
+        return start;
+    }
+
+    /**
+     * @return The end of this date range.
+     */
+    public Date getEnd() {
+        return end;
+    }
+
     public static boolean liesOnBoundary(Date date, Period typeOfBoundary) {
         DateRange range = DateRange.create(typeOfBoundary, date);
-
         return range.start.equals(date) || range.end.equals(date);
     }
 
@@ -383,17 +396,19 @@ public class DateRange {
     }
 
     @Override
-    public int hashCode() {
-        return start.hashCode() + end.hashCode();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DateRange dateRange = (DateRange) o;
+        if (!end.equals(dateRange.end)) return false;
+        if (!start.equals(dateRange.start)) return false;
+        return true;
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof DateRange)) {
-            return false;
-        }
-
-        DateRange other = (DateRange) obj;
-        return other.start.equals(start) && other.end.equals(end);
+    public int hashCode() {
+        int result = start.hashCode();
+        result = 31 * result + end.hashCode();
+        return result;
     }
 }

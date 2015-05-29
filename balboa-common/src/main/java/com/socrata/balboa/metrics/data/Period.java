@@ -1,22 +1,39 @@
 package com.socrata.balboa.metrics.data;
 
+import com.socrata.balboa.metrics.measurements.combining.Combinator;
+
 import java.util.Collection;
 import java.util.Collections;
 
 /**
- *
+ * Time interval for a specific period of time.  IE. Monthly represents a month by month period.
  */
 public enum Period {
-    FOREVER,
-    YEARLY,
-    MONTHLY,
-    WEEKLY,
-    DAILY,
-    HOURLY,
-    FIFTEEN_MINUTE,
-    MINUTELY,
-    SECONDLY,
-    REALTIME;
+    FOREVER(0),
+    YEARLY(1),
+    MONTHLY(2),
+    WEEKLY(3),
+    DAILY(4),
+    HOURLY(5),
+    FIFTEEN_MINUTE(6),
+    MINUTELY(7),
+    SECONDLY(8),
+    REALTIME(9);
+
+    private final int granLevel;
+
+    /**
+     * The Granularity level.
+     *
+     * @param granularityLevel The Granularity level of this Period.
+     */
+    private Period(int granularityLevel) {
+        this.granLevel = granularityLevel;
+    }
+
+    public int getGranularityLevel() {
+        return granLevel;
+    }
 
     @Override
     public String toString() {

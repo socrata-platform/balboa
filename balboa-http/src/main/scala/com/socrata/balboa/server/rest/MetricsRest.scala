@@ -7,14 +7,13 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
 import com.rojoma.json.ast.JString
 import com.socrata.balboa.metrics.Metrics
+import com.socrata.balboa.metrics.data.impl.PeriodComparator
 import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, Period}
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics
-import com.socrata.balboa.metrics.measurements.combining.Summation
-import com.socrata.balboa.server.ServiceUtils
+import com.socrata.balboa.server.{MetricsService, Constants, ServiceUtils}
 import com.socrata.http.server.HttpResponse
 import com.socrata.http.server.implicits._
 import com.socrata.http.server.responses._
-import com.sun.tools.internal.ws.wsdl.document.http.HTTPUrlReplacement
 import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
 
@@ -23,12 +22,18 @@ import scala.collection.JavaConverters._
 class MetricsRest
 
 object MetricsRest {
+
+  /*
+  - TODO : Migrate business logic to MetricsService
+  - TODO : Move String constants to Constant.
+   */
+
   val seriesMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "series queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
   val rangeMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "range queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
   val periodMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "period queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
 
-  val json = "application/json; charset=utf-8"
-  val protobuf = "application/x-protobuf"
+  val JSON = "application/json; charset=utf-8"
+  val PROTOBUF = "application/x-protobuf"
   val ds = DataStoreFactory.get()
 
   def extractEntityId(req: HttpServletRequest): String = {
@@ -47,6 +52,15 @@ object MetricsRest {
   def br(parameter: String, msg: String) =
     BadRequest ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 400, "message": "Unable to parse """ + parameter + """ : """ + JString(msg).toString.drop(1).dropRight(1) + """"}""")
 
+  /**
+   * @param samplePeriod The sample period of the existing absolute metrics
+   * @param targetPeriod The target period we want for the metrics sample
+   * @return Return a Bad Request response that details sample and target period mismatch.
+   */
+  def illegalPeriodMatch(samplePeriod: Period, targetPeriod: Period) = BadRequest~>
+    ContentType("application/json; charset=utf-8") ~>
+    Content("""{"error": 400, "message": "Sample period """ + samplePeriod + """ is of a lower granularity level then target period """ + targetPeriod + """"}""")
+
   def get(req: HttpServletRequest): HttpResponse = {
     val entityId = extractEntityId(req)
     val qs = new QueryExtractor(req)
@@ -59,7 +73,7 @@ object MetricsRest {
     val combine = qs[String]("combine").map(_.right.get)
     val field = qs[String]("field").map(_.right.get)
 
-    val mediaType = bestMediaType(req, json, protobuf).getOrElse { return unacceptable }
+    val mediaType = bestMediaType(req, JSON, PROTOBUF).getOrElse { return unacceptable }
 
     val begin = System.currentTimeMillis()
 
@@ -67,7 +81,7 @@ object MetricsRest {
 
     try
     {
-      val iter = ds.find(entityId, period, range.start, range.end)
+      val iter = ds.find(entityId, period, range.getStart, range.getEnd)
       var metrics = Metrics.summarize(iter)
 
       combine.foreach { c => metrics = metrics.combine(c) }
@@ -100,7 +114,7 @@ object MetricsRest {
     val startDate = ServiceUtils.parseDate(start).getOrElse { return malformedDate(start) }
     val endDate = ServiceUtils.parseDate(end).getOrElse { return malformedDate(end) }
 
-    val mediaType = bestMediaType(req, json, protobuf).getOrElse { return unacceptable }
+    val mediaType = bestMediaType(req, JSON, PROTOBUF).getOrElse { return unacceptable }
 
     val begin = System.currentTimeMillis()
 
@@ -157,14 +171,13 @@ object MetricsRest {
     val startDate = ServiceUtils.parseDate(start).getOrElse { return malformedDate(start) }
     val endDate = ServiceUtils.parseDate(end).getOrElse { return malformedDate(end) }
 
-    bestMediaType(req, json).getOrElse { return unacceptable }
+    bestMediaType(req, JSON).getOrElse { return unacceptable }
 
     val begin = System.currentTimeMillis()
 
     try
     {
-      val body = renderJson(ds.slices(entityId, period, startDate, endDate)).getBytes(UTF_8)
-      OK ~> response(json, body)
+      OK ~> response(JSON, renderJson(ds.slices(entityId, period, startDate, endDate)).getBytes(UTF_8))
     }
     finally
     {
@@ -178,7 +191,8 @@ object MetricsRest {
    *
    * Required HttpRequest parameters:
    *    period - The target period we want the aggregation at
-   *    sample_period - The
+   *    sample_period - The granularity that exists for the absolute metric.
+   *    metric_name - The Metric name of this
    *
    * @param req The HTTP Request that contains
    * @return The response that embodies
@@ -186,11 +200,31 @@ object MetricsRest {
   def absoluteSeries(req: HttpServletRequest): HttpResponse = {
     extractSeriesParameters(req) match {
       case Right(resp) => resp
-      case Left(entityId, period, startDate, endDate) =>
+      case Left((entityId, targetPeriod, startDate, endDate)) =>
         val qs = new QueryExtractor(req)
+        val samplePeriod = qs[Period](Constants.SAMPLE_PERIOD_PARAM).getOrElse { return required(Constants.SAMPLE_PERIOD_PARAM) }.right.get
+        val metricName = qs[String](Constants.METRIC_NAME_PARAM).getOrElse  { return required(Constants.METRIC_NAME_PARAM) }.right.get
 
-//        TODO
-        OK
+        // Identify the whether the sample period is of higher granularity.
+        new PeriodComparator().compare(samplePeriod, targetPeriod) match {
+          case i: Int if i < 0 => // Error Sample period of lower granularity
+            illegalPeriodMatch(samplePeriod, targetPeriod)
+          case i: Int if i > 0 => // Sample period is of higher granularity.
+            // Find all the absolute values for the sample period
+            val sampleTimeSlices = MetricsService.series(entityId, samplePeriod, startDate, endDate)
+
+            // Map the target period to a list of date ranges for the target period.
+            val dates = new DateRange(startDate, endDate).toDates(targetPeriod).asScala.toList
+            val dateRanges = dates.zip(dates.tail).map(tuple => new DateRange(tuple._1, tuple._2))
+
+            val
+
+            OK
+          case i: Int if i == 0 =>
+            // If the sample period same as target period
+            // Fall back to the default behaviour.
+            OK ~> renderJsonResponse(MetricsService.series(entityId, targetPeriod, startDate, endDate))
+        }
     }
   }
 
@@ -211,7 +245,7 @@ object MetricsRest {
   }
 
   private def render(format: String, metrics: Metrics): HttpResponse = {
-    val bytes = if(format == protobuf) {
+    val bytes = if(PROTOBUF.equals(format)) {
       val mapper = new ProtocolBuffersMetrics
       mapper.merge(metrics)
       mapper.serialize
@@ -227,9 +261,16 @@ object MetricsRest {
     mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true)
     mapper.getSerializationConfig.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
     mapper.configure(SerializationConfig.Feature.WRITE_ENUMS_USING_TO_STRING, true)
-
     mapper.writeValueAsString(obj)
   }
+
+  /**
+   * Renders a JSON Http response with the parameterized object as its body.
+   *
+   * @param obj Object to serialize to JSON.
+   * @return HTTP Response with JSON Body.
+   */
+  private def renderJsonResponse(obj: Any) = response(JSON, renderJson(obj).getBytes(UTF_8))
 
   /**
    * Extracts the base series query parameters from HttpServletRequest.
