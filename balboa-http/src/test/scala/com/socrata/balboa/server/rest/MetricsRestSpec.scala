@@ -1,25 +1,22 @@
 package com.socrata.balboa.server.rest
 
-import com.socrata.balboa.metrics.data.DataStore
-import org.scalatest.WordSpec
-import org.scalatest.mock.EasyMockSugar
+import org.scalatest.{BeforeAndAfterEach, WordSpec}
+import org.scalatest.mock.MockitoSugar
 
-object MetricsRestSpecSetup {
-
-  trait MockDataStore extends EasyMockSugar {
-    val ds = mock[DataStore]
-  }
+object MetricsRestSpecSetup extends MockitoSugar {
 
 }
 
 /**
  * Unit Test for Metrics Rest Service.
  */
-class MetricsRestSpec extends WordSpec {
+class MetricsRestSpec extends WordSpec with BeforeAndAfterEach {
 
-  "Metrics REST Service" should {
+  "A Metrics REST Service" when {
 
-    ""
+    "calling a get request" should {
+
+    }
 
   }
 

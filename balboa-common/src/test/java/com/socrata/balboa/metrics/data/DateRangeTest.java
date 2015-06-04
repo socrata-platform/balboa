@@ -28,23 +28,41 @@ public class DateRangeTest {
     public void testEquals() throws Exception {
         DateRange r1 = DateRange.create(Period.MONTHLY, new Date(0));
         DateRange r2 = DateRange.create(Period.MONTHLY, new Date(0));
-
         Assert.assertEquals(r1, r2);
-        r2.end = new Date(r2.end.getTime() + 1);
-        Assert.assertFalse(r1.equals(r2));
-        r2.start = new Date(r2.start.getTime() + 1);
-        Assert.assertFalse(r1.equals(r2));
+    }
+
+    /**
+     * Given to date ranges where they differentiate at a higher level of granularity make sure they are still equal.
+     */
+    @Test
+    public void testEqualsHigherGranularityPeriod() {
+        Calendar base = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        base.set(2015, Calendar.JANUARY, 1, 1, 0);
+        DateRange r1 = DateRange.create(Period.HOURLY, base.getTime());
+        base.set(2015, Calendar.JANUARY, 1, 1, 1);
+        DateRange r2 = DateRange.create(Period.HOURLY, base.getTime());
+        Assert.assertEquals("Dates with an Hour Granularity", r1, r2);
+    }
+
+    @Test
+    public void testNotEqualsLowerGranularityPeriod() {
+        Calendar base = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        base.set(2015, Calendar.JANUARY, 1, 2, 0);
+        DateRange r1 = DateRange.create(Period.HOURLY, base.getTime());
+        base.set(2015, Calendar.JANUARY, 1, 1, 0);
+        DateRange r2 = DateRange.create(Period.HOURLY, base.getTime());
+        Assert.assertNotSame("Dates with an Hour Granularity", r1, r2);
     }
 
     @Test
     public void testInclude() throws Exception {
         DateRange range = DateRange.create(Period.MONTHLY, new Date(0));
 
-        Assert.assertFalse(range.includes(new Date(range.start.getTime() - 1)));
-        Assert.assertTrue(range.includes(range.start));
-        Assert.assertTrue(range.includes(range.end));
-        Assert.assertTrue(range.includes(new Date(range.start.getTime() + 1)));
-        Assert.assertFalse(range.includes(new Date(range.end.getTime() + 1)));
+        Assert.assertFalse(range.includes(new Date(range.getStart().getTime() - 1)));
+        Assert.assertTrue(range.includes(range.getStart()));
+        Assert.assertTrue(range.includes(range.getEnd()));
+        Assert.assertTrue(range.includes(new Date(range.getStart().getTime() + 1)));
+        Assert.assertFalse(range.includes(new Date(range.getEnd().getTime() + 1)));
     }
 
     @Test
@@ -56,11 +74,11 @@ public class DateRangeTest {
 
         cal.set(2010, 1, 12, 16, 59, 12);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), range.start);
+        Assert.assertEquals(cal.getTime(), range.getStart());
 
         cal.set(2010, 1, 12, 16, 59, 12);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), range.end);
+        Assert.assertEquals(cal.getTime(), range.getEnd());
     }
 
     @Test
@@ -72,11 +90,11 @@ public class DateRangeTest {
 
         cal.set(2010, 1, 12, 16, 59, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), range.start);
+        Assert.assertEquals(cal.getTime(), range.getStart());
 
         cal.set(2010, 1, 12, 16, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), range.end);
+        Assert.assertEquals(cal.getTime(), range.getEnd());
     }
 
     @Test
@@ -109,11 +127,11 @@ public class DateRangeTest {
 
         cal.set(2010, 1, 12, 16, 45, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), range.start);
+        Assert.assertEquals(cal.getTime(), range.getStart());
 
         cal.set(2010, 1, 12, 16, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), range.end);
+        Assert.assertEquals(cal.getTime(), range.getEnd());
 
         cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
         cal.set(2010, 1, 12, 16, 34, 12);
@@ -122,11 +140,11 @@ public class DateRangeTest {
 
         cal.set(2010, 1, 12, 16, 30, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), range.start);
+        Assert.assertEquals(cal.getTime(), range.getStart());
 
         cal.set(2010, 1, 12, 16, 44, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), range.end);
+        Assert.assertEquals(cal.getTime(), range.getEnd());
 
     }
 
@@ -140,11 +158,11 @@ public class DateRangeTest {
 
         cal.set(2010, 1, 12, 16, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), range.start);
+        Assert.assertEquals(cal.getTime(), range.getStart());
 
         cal.set(2010, 1, 12, 16, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), range.end);
+        Assert.assertEquals(cal.getTime(), range.getEnd());
     }
 
     @Test
@@ -156,11 +174,11 @@ public class DateRangeTest {
 
         cal.set(2010, 1, 1, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), range.start);
+        Assert.assertEquals(cal.getTime(), range.getStart());
 
         cal.set(2010, 1, 28, 23, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), range.end);
+        Assert.assertEquals(cal.getTime(), range.getEnd());
     }
 
     @Test
@@ -172,11 +190,11 @@ public class DateRangeTest {
 
         cal.set(2010, 1, 7, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), range.start);
+        Assert.assertEquals(cal.getTime(), range.getStart());
 
         cal.set(2010, 1, 13, 23, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), range.end);
+        Assert.assertEquals(cal.getTime(), range.getEnd());
     }
 
     @Test
@@ -188,11 +206,11 @@ public class DateRangeTest {
 
         cal.set(2010, 4, 30, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), range.start);
+        Assert.assertEquals(cal.getTime(), range.getStart());
 
         cal.set(2010, 5, 5, 23, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), range.end);
+        Assert.assertEquals(cal.getTime(), range.getEnd());
     }
 
     @Test
@@ -204,11 +222,11 @@ public class DateRangeTest {
 
         cal.set(2010, 5, 2, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), range.start);
+        Assert.assertEquals(cal.getTime(), range.getStart());
 
         cal.set(2010, 5, 2, 23, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), range.end);
+        Assert.assertEquals(cal.getTime(), range.getEnd());
     }
 
     @Test
@@ -220,11 +238,11 @@ public class DateRangeTest {
 
         cal.set(2010, 1, 1, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), range.start);
+        Assert.assertEquals(cal.getTime(), range.getStart());
 
         cal.set(2010, 1, 28, 23, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), range.end);
+        Assert.assertEquals(cal.getTime(), range.getEnd());
     }
 
     @Test
@@ -236,10 +254,10 @@ public class DateRangeTest {
 
         cal.set(2010, 1, 1, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), range.start);
+        Assert.assertEquals(cal.getTime(), range.getStart());
 
         cal.set(2010, 1, 28, 23, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), range.end);
+        Assert.assertEquals(cal.getTime(), range.getEnd());
     }
 }

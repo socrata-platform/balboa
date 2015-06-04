@@ -13,6 +13,7 @@ object Dependencies {
    */
   private object versions {
     val activemq = "5.2.0"
+    // TODO Update Cassandra version
     val astyanax = "1.56.26"
     val commons_logging = "1.1"
     val jackson = "1.9.12"
@@ -30,6 +31,7 @@ object Dependencies {
     val slf4j_log4j = "1.7.12"
     val scopt = "3.3.0"
     val simple_arm = "[1.1.10, 2.0.0)"
+    // TODO Update Socrata HTTP
     val socrata_http = "1.3.3"
     val socrata_utils = "[0.6.0, 1.0.0)"
   }

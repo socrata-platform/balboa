@@ -16,22 +16,33 @@ import scala.collection.JavaConverters._
 import scala.{collection => sc}
 
 /**
- * Query Implementation
- *
+ * Query Layer for existing Cassandra Database.
  */
 class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra11Query {
 
+  /*
+  - TODO Cannot query for a specific metric.
+   */
+
   private val log = LogFactory.getLog(classOf[Cassandra11QueryImpl])
 
+  /**
+   * Fetches the metrics for a specific Entity ID, [[Period]], and [[ju.Date]].
+   *
+   * @param entityId The Entity to fetch metrics for.
+   * @param period The [[Period]] to fetch data within.
+   * @param bucket The Time bucket for this entity key
+   * @return The metrics for this time bucket at the specified Period granularity.
+   */
   def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {
     val entityKey: String = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
     val ret: Metrics = new Metrics()
     // aggregate column family
-    val aggResults: ColumnList[String] = fetch_cf(RecordType.AGGREGATE, entityKey, period).getResult
+    val aggResults: ColumnList[String] = fetchColumnFamily(RecordType.AGGREGATE, entityKey, period).getResult
     aggResults.asScala.map(c => ret.put(c.getName, new Metric(Metric.RecordType.AGGREGATE, c.getLongValue())))
 
     // absolutes column family
-    val absResults: ColumnList[String] = fetch_cf(RecordType.ABSOLUTE, entityKey, period).getResult
+    val absResults: ColumnList[String] = fetchColumnFamily(RecordType.ABSOLUTE, entityKey, period).getResult
     absResults.asScala.map(c => ret.put(c.getName, new Metric(Metric.RecordType.ABSOLUTE, c.getLongValue())))
 
     ret
@@ -62,7 +73,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
     }
   }
 
-  def fetch_cf(recordType: RecordType, entityKey: String, period: Period) = {
+  private def fetchColumnFamily(recordType: RecordType, entityKey: String, period: Period) = {
     fastfail.proceedOrThrow()
     try {
       val retVal: OperationResult[com.netflix.astyanax.model.ColumnList[String]] = context.getEntity.prepareQuery(Cassandra11Util.getColumnFamily(period, recordType))

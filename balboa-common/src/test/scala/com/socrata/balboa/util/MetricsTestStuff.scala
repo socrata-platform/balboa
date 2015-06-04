@@ -1,26 +1,118 @@
 package com.socrata.balboa.util
 
+import java.util.{TimeZone, Calendar}
+
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.impl.JsonMessage
 import com.socrata.balboa.metrics.{Metric, Metrics}
 
 /**
- * Premade testing objects.
+ * Balboa Testing Objects.
  */
 object MetricsTestStuff {
+
+  trait TestEntityIDs {
+    // For Lack of a better entity ID name.
+    val balboa = "balboa"
+
+    val allEntityIDs = Seq(balboa)
+  }
 
   /**
    * Metrics
    */
   trait TestMetrics {
+    val cats = ("cats", metric(1))
+    val giraffes = ("giraffes", metric(2))
+    val dogs = ("dogs", metric(3))
+    val penguins = ("penguins", metric(1000000))
+    val monkeys = ("monkeys", metric(5))
+    val rhinos = ("rhinos", metric(5))
+    val abs_alive_cats = ("alive_cats", metric(100, RecordType.ABSOLUTE))
+    val abs_alive_penguins = ("alive_penguins", metric(100, RecordType.ABSOLUTE))
     val emptyMetrics = new Metrics()
-    val oneElemMetrics = metrics(("cats", metric(1)))
-    val manyElemMetrics = metrics(("cats", metric(1)),
-      ("giraffes", metric(2)),
-      ("dogs", metric(3)),
-      ("penguins", metric(1000000)),
-      ("monkeys", metric(5)),
-      ("rhinos", metric(6)))
+    val oneElemMetrics = metrics(cats, abs_alive_cats)
+    val manyElemMetrics = metrics(cats, giraffes, dogs, penguins, monkeys, rhinos, abs_alive_penguins)
+    val allMetrics = Seq(emptyMetrics, oneElemMetrics, manyElemMetrics)
+  }
+
+  /**
+   * TimeStamps for Balboa testing.
+   */
+  trait TestTimeStamps {
+    val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+
+    // Times Within the same hour
+    cal.set(2015, 1, 1, 12, 0, 0)
+    val t20150101_1200_0 = cal.getTime
+    cal.set(2015, 1, 1, 12, 1, 0)
+    val t20150101_1201_0 = cal.getTime
+    cal.set(2015, 1, 1, 12, 2, 0)
+    val t20150101_1202_0 = cal.getTime
+    cal.set(2015, 1, 1, 12, 3, 0)
+    val t20150101_1203_0 = cal.getTime
+    cal.set(2015, 1, 1, 12, 4, 0)
+    val t20150101_1204_0 = cal.getTime
+    cal.set(2015, 1, 1, 12, 5, 0)
+    val t20150101_1205_0 = cal.getTime
+
+    val sameHour = Seq(t20150101_1200_0,
+      t20150101_1201_0,
+      t20150101_1202_0,
+      t20150101_1203_0,
+      t20150101_1204_0,
+      t20150101_1205_0)
+
+    // Times Within the same day
+    cal.set(2015, 1, 1, 13, 0, 0)
+    val t20150101_1301_0 = cal.getTime
+    cal.set(2015, 1, 1, 14, 0, 0)
+    val t20150101_1401_0 = cal.getTime
+    cal.set(2015, 1, 1, 15, 0, 0)
+    val t20150101_1501_0 = cal.getTime
+    cal.set(2015, 1, 1, 16, 0, 0)
+    val t20150101_1601_0 = cal.getTime
+
+    val sameDay = sameHour ++ Seq(t20150101_1301_0,
+      t20150101_1401_0,
+      t20150101_1501_0,
+      t20150101_1601_0)
+
+    // Times within the same month
+    cal.set(2015, 1, 2, 12, 0, 0)
+    val t20150102_1601_0 = cal.getTime
+    cal.set(2015, 1, 3, 12, 0, 0)
+    val t20150103_1601_0 = cal.getTime
+    cal.set(2015, 1, 4, 12, 0, 0)
+    val t20150104_1601_0 = cal.getTime
+    cal.set(2015, 1, 5, 12, 0, 0)
+    val t20150105_1601_0 = cal.getTime
+
+    val sameMonth = sameDay ++ Seq(
+      t20150102_1601_0,
+      t20150103_1601_0,
+      t20150104_1601_0,
+      t20150105_1601_0
+    )
+
+    // Times within the same year
+    cal.set(2015, 2, 1, 12, 0, 0)
+    val t20150200_1601_0 = cal.getTime
+    cal.set(2015, 3, 1, 12, 0, 0)
+    val t20150300_1601_0 = cal.getTime
+    cal.set(2015, 4, 1, 12, 0, 0)
+    val t20150400_1601_0 = cal.getTime
+    cal.set(2015, 5, 1, 12, 0, 0)
+    val t20150500_1601_0 = cal.getTime
+
+    val sameYear = sameMonth ++ Seq(
+      t20150200_1601_0,
+      t20150300_1601_0,
+      t20150400_1601_0,
+      t20150500_1601_0
+    )
+
+    val allTimeStamps = sameYear
   }
 
   /**

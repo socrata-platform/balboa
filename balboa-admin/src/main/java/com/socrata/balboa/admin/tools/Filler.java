@@ -42,7 +42,7 @@ public class Filler
             Metrics original = new Metrics();
             original.put(name, metric);
 
-            long aligned = DateRange.create(mostGranular, when).start.getTime();
+            long aligned = DateRange.create(mostGranular, when).getStart().getTime();
 
             if (!items.containsKey(aligned))
             {

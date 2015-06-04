@@ -3,19 +3,46 @@ package com.socrata.balboa.server.rest
 import java.net.URLDecoder
 import javax.servlet.http.HttpServletRequest
 
+import org.apache.commons.logging.LogFactory
+
+import scala.util.{Success, Failure, Try}
+
 class QueryExtractor(params: Map[String, String]) {
+
+  private val Log = LogFactory.getLog(this.getClass)
+
   def this(req: HttpServletRequest) = this(QueryExtractor.breakOut(req.getQueryString))
 
-  def apply[T: Extractable](name: String): Option[Either[String, T]] = {
-    params.get(name).map { rawValue =>
-      Extractable[T].extract(rawValue)
-    }
+  /**
+   * Attempts to Extract the value from raw input.  What is returned is the [[Try]] instance
+   * that encapsulates the extraction job.
+   *
+   * @param name The Parameter name.
+   * @tparam T The type to extract the parameter to.
+   * @return The [[Try]] instance representing the extraction.
+   */
+  def apply[T: Extractable](name: String): Try[T] = params.get(name) match {
+      case Some(s) => Extractable[T].extract(s)
+      case _ => Failure(new IllegalArgumentException(s"Parameter $name Not Found!"))
   }
 
-  def apply[T: Extractable](name: String, orElse: => T): Either[String, T] = {
-    params.get(name).map { rawValue =>
-      Extractable[T].extract(rawValue)
-    }.getOrElse(Right(orElse))
+  /**
+   * Attempts to extract the parameter value and convert it to the correct type.  Gracefully fails and
+   * resorts to input backup.
+   *
+   * @param name The name of the parameter to check.
+   * @param orElse The function to use upon failure or missing parameter with "name".
+   * @tparam T The type to extract the parameter value to.
+   * @return The [[Option]] that represents the existence of the Extracted value.  [[Some]] on success, [[None]] on failure.
+   */
+  def apply[T: Extractable](name: String, orElse: () => Option[T]): Option[T] = params.get(name) match {
+    case Some(s) => Extractable[T].extract(s) match {
+      case Success(e) => Some(e)
+      case Failure(t) =>
+        Log.error(s"Unable to parse $s due to ${t.getMessage}")
+        orElse()
+    }
+    case _ => orElse()
   }
 }
 
@@ -26,3 +53,4 @@ object QueryExtractor {
       URLDecoder.decode(key, "UTF-8") -> URLDecoder.decode(value, "UTF-8")
     }.toMap
 }
+

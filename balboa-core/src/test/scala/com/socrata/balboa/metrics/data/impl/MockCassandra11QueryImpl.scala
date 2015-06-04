@@ -9,7 +9,7 @@ import com.socrata.balboa.metrics.{Metric, Metrics}
 import scala.{collection => sc}
 
 /**
- *
+ * Mock Cassandra Query implementation.  Persist and Fetch don't actually work well together.
  */
 class MockCassandra11QueryImpl extends Cassandra11Query {
   var persists = List[APersist]()

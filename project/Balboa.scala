@@ -15,9 +15,9 @@ object Balboa extends Build {
 
   lazy val balboaCommon = project("balboa-common", None, BalboaCommon)
 
-  lazy val balboaCore = project("balboa-core", None, BalboaCore, balboaCommon)
+  lazy val balboaCore = project("balboa-core", None, BalboaCore, balboaCommon % "test->test;compile->compile")
 
-  lazy val balboaHttp = project("balboa-http", None, BalboaHttp, balboaCore)
+  lazy val balboaHttp = project("balboa-http", None, BalboaHttp, balboaCore % "test->test;compile->compile")
 
   lazy val balboaServiceCore = project("balboa-service-core", None, BalboaService, balboaCore)
 

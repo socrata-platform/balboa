@@ -49,15 +49,22 @@ public class Metrics extends HashMap<String, Metric> {
         return union;
     }
 
+    /**
+     * Filter out metrics that don't match an inputted Regex Pattern.
+     *
+     * @param pattern Regex Pattern to match againse
+     * @return The resulting Metrics after filter
+     */
     public Metrics filter(String pattern) {
-        Metrics results = new Metrics(size());
+        if (pattern == null)
+            return this;
 
+        Metrics results = new Metrics(size());
         for (Map.Entry<String, Metric> entry : entrySet()) {
             if (entry.getKey().matches(pattern)) {
                 results.put(entry.getKey(), entry.getValue());
             }
         }
-
         return results;
     }
 
@@ -101,15 +108,32 @@ public class Metrics extends HashMap<String, Metric> {
         return results;
     }
 
+    /**
+     * Mutates: This
+     * Merges this with a new set of Metric.
+     *
+     * @param other The Metrics to merge with.
+     */
     public void merge(Metrics other) {
+        merge(other, null);
+    }
+
+    /**
+     * Mutates: This
+     * Merges this with a new set of Metric.
+     *
+     * @param other The Metrics to merge with.
+     * @param com Combinator used to combine Metrics together.
+     */
+    public void merge(Metrics other, Combinator<Number> com) {
         // Get the union of the two key sets.
-        Set<String> unionKeys = new HashSet<String>(keySet());
+        Set<String> unionKeys = new HashSet<>(keySet());
         unionKeys.addAll(other.keySet());
 
         // Combine the two maps.
         for (String key : unionKeys) {
             if (containsKey(key)) {
-                get(key).combine(other.get(key));
+                get(key).combine(other.get(key), com);
             } else if (other.containsKey(key)) {
                 put(key, other.get(key));
             }
@@ -120,7 +144,7 @@ public class Metrics extends HashMap<String, Metric> {
     public static Metrics summarize(Iterator<Metrics>... everything) throws IOException {
         Metrics metrics = new Metrics();
 
-        Iterator<Metrics> iter = new CompoundIterator<Metrics>(everything);
+        Iterator<Metrics> iter = new CompoundIterator<>(everything);
 
         while (iter.hasNext()) {
             metrics.merge(iter.next());

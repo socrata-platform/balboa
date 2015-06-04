@@ -1,14 +1,17 @@
 package com.socrata.balboa.metrics;
 
+import com.socrata.balboa.metrics.measurements.combining.Combinator;
+
 /**
  * Mutable class that represents a segment of time.
  */
-public class Timeslice {
+public class Timeslice implements Cloneable {
 
     /*
      - TODO: Why not use a date range?
      - TODO: Make Immutable.
      - TODO: Port to Scala
+     - TODO: Rename to Metrics Bucket, Bucket of metrics for a particular Time Range.
      */
 
     /*
@@ -55,9 +58,20 @@ public class Timeslice {
         this.metrics = metrics;
     }
 
+
     public void addTimeslice(Timeslice other) {
+        addTimeslice(other, null);
+    }
+
+    // TODO Replace with Scala + method
+    /**
+     * Merges a time slice with this.  This expands the time boundary to encapsulate both time slices.
+     *
+     * @param other The other time slice to add.
+     */
+    public void addTimeslice(Timeslice other, Combinator c) {
         if (this.metrics != null)
-            this.metrics.merge(other.getMetrics());
+            this.metrics.merge(other.getMetrics(), c);
         else
             this.metrics = new Metrics(other.getMetrics());
         if (start > other.getStart()) start = other.getStart();

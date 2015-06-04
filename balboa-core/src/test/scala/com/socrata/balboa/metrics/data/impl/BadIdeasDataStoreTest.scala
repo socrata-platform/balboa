@@ -10,7 +10,7 @@ import org.junit.Test
  *
  */
 class BadIdeasDataStoreTest {
-  val badIdeas = new BadIdeasDataStore(new MockDataStore)
+  val badIdeas = new BadIdeasDataStore(new MockCassandraDataStore)
 
   @Test(expected = classOf[IllegalArgumentException])
   def testCantPersistUnderscoredColumns {
