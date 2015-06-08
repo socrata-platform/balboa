@@ -3,8 +3,7 @@ package com.socrata.balboa.common.kafka.codec
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.impl.JsonMessage
 import kafka.utils.VerifiableProperties
-import org.apache.commons.logging.LogFactory
-
+import org.slf4j.LoggerFactory
 
 /**
  * Reusable Balboa Kafka Message Codec.  This is class can be used by Kafka defined how to serialize and deserialize
@@ -20,7 +19,7 @@ class BalboaMessageCodec(properties: VerifiableProperties = null) extends Balboa
  */
 trait BalboaMessageCodecLike extends KafkaCodec[Message] {
 
-  private val Log = LogFactory.getLog(classOf[BalboaMessageCodecLike])
+  private val Log = LoggerFactory.getLogger(classOf[BalboaMessageCodecLike])
 
   /**
    * Preconditions: message entity id, timestamp, and metrics should not be null.

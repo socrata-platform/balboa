@@ -3,8 +3,8 @@ package com.socrata.balboa.metrics.data;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.config.ConfigurationException;
 import com.socrata.balboa.metrics.data.impl.TimeService;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * increase the timeout.
  */
 public class BalboaFastFailCheck {
-    private static Log log = LogFactory.getLog(BalboaFastFailCheck.class);
+    private static final Logger log = LoggerFactory.getLogger(BalboaFastFailCheck.class);
     private static final BalboaFastFailCheck INSTANCE = new BalboaFastFailCheck(new TimeService());
 
     // Initial failure delay

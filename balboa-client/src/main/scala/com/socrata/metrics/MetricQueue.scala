@@ -58,7 +58,7 @@ trait MetricQueue {
 }
 
 /**
- * Metric Queue for Socrata specific metrics.
+ * TODO: This Class should die.  Socrata specific class in
  */
 trait SocrataMetricQueue extends MetricQueue {
 

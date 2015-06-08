@@ -6,7 +6,7 @@ import com.socrata.balboa.metrics.measurements.combining._
 import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.metrics.MetricQueue
 import com.socrata.metrics.components.{BufferComponent, BufferItem, MessageQueueComponent}
-import org.apache.commons.logging.LogFactory
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.HashMap
@@ -15,7 +15,7 @@ import scala.collection.mutable.HashMap
 trait HashMapBufferComponent extends BufferComponent {
   self: MessageQueueComponent =>
 
-  private val log = LogFactory.getLog(classOf[Buffer])
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   class Buffer extends BufferLike {
     val bufferMap = HashMap.empty[String, BufferItem]

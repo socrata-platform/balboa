@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
-import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -150,13 +150,13 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
             msg.setEntityId(entityId);
             msg.setMetrics(metrics);
             msg.setTimestamp(timestamp);
-            try {
-                producer.send(session.createTextMessage(new String(msg.serialize())));
-            } catch (IOException e) {
-                log.error("Unable to serialize metric for entity " + entityId, e);
-            }
-        } catch (JMSException e) {
-            log.error("Unable to queue a message because there was a JMS error.");
+            byte[] bytes = msg.serialize();
+            producer.send(session.createTextMessage(new String(bytes)));
+            long currentTime = new Date().getTime();
+            create("metrics-internal", "message-size-v1", bytes.length, currentTime, Metric.RecordType.AGGREGATE);
+            create("metrics-internal", "message-count-v1", 1, currentTime, Metric.RecordType.AGGREGATE);
+        } catch (Exception e) {
+            log.error("Unable to emit metrics", e);
             throw new RuntimeException("Unable to queue a message because there was a JMS error.", e);
         }
     }

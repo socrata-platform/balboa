@@ -5,13 +5,13 @@ import java.util.concurrent.{Executors, TimeUnit}
 import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.metrics.collection.PreBufferQueue
 import com.socrata.metrics.components.{BufferComponent, BufferItem, MetricEntry}
-import org.apache.commons.logging.LogFactory
+import org.slf4j.LoggerFactory
 
 trait MetricDequeuerService {
   self: BufferComponent with PreBufferQueue =>
 
   val timeout = 500L
-  private val log = LogFactory.getLog(classOf[MetricDequeuer])
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   class MetricDequeuer {
     var keepRunning = true

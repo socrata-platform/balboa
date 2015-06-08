@@ -5,9 +5,10 @@ import java.util.Properties
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.data.{DataStore, DataStoreFactory}
 import com.socrata.balboa.service.kafka.consumer.{BalboaConsumerGroup, KafkaConsumerGroupComponent}
+import com.typesafe.scalalogging.slf4j.Logger
 import joptsimple.OptionSet
 import kafka.consumer.{Consumer, ConsumerConfig}
-import org.apache.commons.logging.LogFactory
+import org.slf4j.LoggerFactory
 
 /**
  * Balboa Kafka Main Application:
@@ -17,7 +18,7 @@ import org.apache.commons.logging.LogFactory
  */
 object BalboaKafkaConsumerCLI extends KafkaConsumerCLIBase[String, Message] {
 
-  private val Log = LogFactory.getLog(this.getClass)
+  private val Log = Logger(LoggerFactory getLogger this.getClass)
 
   private val TOPIC_PERSISTENT_CONSUMER_WAITTIME_KEY = "balboa.kafka.consumer.persistent.waittime"
   private val CASSANDRA_SERVERS_KEY = "cassandra.servers"

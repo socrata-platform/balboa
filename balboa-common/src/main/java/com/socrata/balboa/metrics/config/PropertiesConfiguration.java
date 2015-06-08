@@ -1,7 +1,7 @@
 package com.socrata.balboa.metrics.config;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,7 +15,7 @@ import java.io.InputStream;
  */
 public class PropertiesConfiguration extends Configuration
 {
-    private static Log log() { return LogFactory.getLog(PropertiesConfiguration.class); }
+    private static final Logger logger = LoggerFactory.getLogger(PropertiesConfiguration.class);
 
     public PropertiesConfiguration() throws IOException
     {

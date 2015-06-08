@@ -14,13 +14,9 @@ object BalboaClient {
       </xml.group>
   )
 
-  def libraries(implicit scalaVersion: String) = Seq(
-    junit,
-    scalatest,
+  def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
     socrata_utils,
-    simple_arm,
-    log4j,
-    mockito_test
+    simple_arm
   )
 }
 

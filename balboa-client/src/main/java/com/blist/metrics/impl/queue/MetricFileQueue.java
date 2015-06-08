@@ -7,12 +7,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MetricFileQueue extends AbstractJavaMetricQueue {
     private static final Logger log = LoggerFactory.getLogger(MetricFileQueue.class);
-    private static MetricFileQueue instance;
-    private static long MAX_METRICS_PER_FILE = 20000;
 
+    /**
+     * Mapping between directories and Metric File Queues
+     */
+    private static Map<File, MetricFileQueue> instances = new HashMap<>();
+    private static long MAX_METRICS_PER_FILE = 20000;
 
     private File directory;
     private long reopenTime;
@@ -21,12 +26,19 @@ public class MetricFileQueue extends AbstractJavaMetricQueue {
     private FileOutputStream fileStream = null;
     private BufferedOutputStream stream = null;
 
-    public MetricFileQueue(File directory, String namespace) {
+    private MetricFileQueue(File directory) {
+        this(directory, "");
+    }
+
+    private MetricFileQueue(File directory, String namespace) {
         this.directory = subdir(directory, namespace);
     }
 
     private static File subdir(File directory, String namespace) {
-        if ("".equals(namespace)) return directory;
+        if (namespace == null) {
+            namespace = "";
+        }
+        if (namespace.isEmpty()) return directory;
         else return new File(directory, namespace);
     }
 
@@ -104,14 +116,14 @@ public class MetricFileQueue extends AbstractJavaMetricQueue {
         return s.getBytes("utf-8");
     }
 
-    public static synchronized MetricFileQueue getInstance(String filequeueRoot, String namespace) {
-        if (instance == null) {
-            File directory = new File(filequeueRoot);
-            directory.mkdirs();
-            instance = new MetricFileQueue(directory, namespace);
+    public static synchronized MetricFileQueue getInstance(File directory) {
+        MetricFileQueue q = instances.get(directory);
+        if (q == null) {
+            directory.mkdir();
+            q = new MetricFileQueue(directory);
+            instances.put(directory, q);
         }
-
-        return instance;
+        return q;
     }
 
     public void create(IdParts entity, IdParts name, long value, long timestamp, Metric.RecordType type) {

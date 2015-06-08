@@ -3,7 +3,6 @@ package com.socrata.balboa.metrics.data;
 import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.config.ConfigurationException;
 import com.socrata.balboa.metrics.data.impl.*;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
