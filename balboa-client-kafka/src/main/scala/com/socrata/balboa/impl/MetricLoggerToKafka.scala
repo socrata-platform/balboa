@@ -3,7 +3,6 @@ package com.socrata.balboa.impl
 import java.io.File
 import java.nio.file.Paths
 
-import com.socrata.balboa.config.KafkaClientConfig
 import com.socrata.balboa.metrics.util.AddressAndPort
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{BaseMetricLoggerComponent, MetricEnqueuer, MetricLoggerComponent}

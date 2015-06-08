@@ -1,9 +1,10 @@
 package com.socrata.balboa.config
 
 import com.socrata.balboa.config.ClientType.ClientType
-import scala.collection.JavaConverters._
 import com.socrata.balboa.metrics.config.{Configuration, Keys}
 import org.slf4j.LoggerFactory
+
+import scala.collection.JavaConverters._
 
 /**
  * All inclusive Configuration file

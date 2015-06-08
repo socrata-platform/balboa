@@ -13,10 +13,10 @@ trait ServerInformation {
   def backupFile:File
 }
 
-trait ConfiguredServerInformation extends ServerInformation {
-  override def activeServer = JMSClientConfig.activemqServer
-  override lazy val activeQueue = JMSClientConfig.activemqQueue
-  override lazy val backupFile = JMSClientConfig.emergencyBackUpFile("jms")
+trait ConfiguredServerInformation extends ServerInformation with JMSClientConfig {
+  override def activeServer = activemqServer
+  override lazy val activeQueue = activemqQueue
+  override lazy val backupFile = emergencyBackUpFile("jms")
 }
 
 trait MetricLoggerToQueue extends BaseMetricLoggerComponent {

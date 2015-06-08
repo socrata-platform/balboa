@@ -3,7 +3,9 @@ package com.socrata.balboa.service.kafka.consumer
 import java.io.IOException
 
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck
+import com.typesafe.scalalogging.slf4j.Logger
 import org.apache.commons.logging.LogFactory
+import org.slf4j.LoggerFactory
 
 trait PersistentKafkaConsumerReadiness extends KafkaConsumerReadiness {
 
@@ -26,7 +28,7 @@ trait PersistentKafkaConsumerComponent[K,M] extends KafkaConsumerComponent[K,M] 
   trait PersistentKafkaConsumer extends KafkaConsumer {
     self: KafkaConsumerStreamProvider[K,M] with PersistentKafkaConsumerReadiness =>
 
-    private val Log = LogFactory.getLog(classOf[PersistentKafkaConsumer])
+    private val Log = Logger(LoggerFactory getLogger this.getClass)
 
     /**
      * Attempt to persist a message.

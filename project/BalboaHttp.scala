@@ -2,7 +2,6 @@ import Dependencies._
 import com.rojoma.json.util.JsonUtil._
 import com.rojoma.simplearm.util._
 import com.socrata.cloudbeessbt.SocrataCloudbeesSbt.SocrataSbtKeys._
-import com.socrata.cloudbeessbt.SocrataCloudbeesSbt._
 import sbt.Keys._
 import sbt._
 import sbtassembly.Plugin.AssemblyKeys._

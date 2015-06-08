@@ -2,10 +2,20 @@ package com.socrata.balboa.metrics.config;
 
 import com.socrata.balboa.metrics.data.Period;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
 
 public abstract class Configuration extends Properties {
+
+    /**
+     * TODO: Can't figure out why we are mutex locking Configuration Queries.
+     */
+
     public static Configuration instance;
     private List<Period> supportedPeriods;
 
@@ -76,6 +86,30 @@ public abstract class Configuration extends Properties {
     }
 
     /**
+     * The File found with the configuration key.
+     *
+     * @param key The Configuration Key to get.
+     * @return The file pointed to by the configuration key.
+     */
+    public synchronized File getFile(String key) {
+        require(key);
+        return Paths.get(getProperty(key)).toFile();
+    }
+
+    /**
+     * The File found with the configuration key.
+     *
+     * @param key The Configuration Key to get.
+     * @return The file pointed to by the configuration key.
+     */
+    public synchronized File getFile(String key, File defaultValue) {
+        if (!containsKey(key))
+            return defaultValue;
+        else
+            return getFile(key);
+    }
+
+    /**
      * Return a String Property for key.  Generalized method to be used
      *
      *
@@ -101,6 +135,38 @@ public abstract class Configuration extends Properties {
         else
             return getProperty(key);
     }
+
+    /**
+     * Returns integer property.
+     *
+     * @param key The key that points to Int value.
+     * @return The integer
+     * @throws java.lang.IllegalArgumentException If key does not exist.
+     */
+    public synchronized int getInt(String key) {
+        require(key);
+        return Integer.valueOf(getProperty(key));
+    }
+
+    public synchronized int getInt(String key, int defaultValue) {
+        if (!containsKey(key))
+            return defaultValue;
+        else
+            return getInt(key);
+    }
+
+    public synchronized long getLong(String key) {
+        require(key);
+        return Long.valueOf(getProperty(key));
+    }
+
+    public synchronized long getLong(String key, long defaultValue) {
+        if (!containsKey(key))
+            return defaultValue;
+        else
+            return getLong(key);
+    }
+
 
     // Private Helper Methods.
 

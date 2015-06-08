@@ -8,6 +8,7 @@ package com.socrata.balboa.metrics.config;
 public class Keys {
 
     // TODO: Migrate all the String literal keys into here.
+    // TODO: Migrate Keys to individual sub projects after Restructure.
     // Currently Balboa Scatters String literals all over the source code.
 
     private static final String ROOT_CONFIG_NAMESPACE = "balboa";

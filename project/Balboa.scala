@@ -27,6 +27,8 @@ object Balboa extends Build {
 
   lazy val balboaAdmin = project("balboa-admin", None, BalboaAdmin, balboaCore)
 
+  lazy val balboaAgent = project("balboa-agent", None, BalboaAgent, balboaClientJMS, balboaCommon)
+
   lazy val balboaClientCore = project("balboa-client-core", Some("balboa-client"), BalboaClient,
     balboaCommon % "test->test;compile->compile")
 

@@ -5,16 +5,17 @@ import java.util.Properties
 
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.service.kafka.consumer.KafkaConsumerGroupComponent
+import com.typesafe.scalalogging.slf4j.Logger
 import joptsimple.{OptionParser, OptionSet}
 import kafka.utils.VerifiableProperties
-import org.apache.commons.logging.LogFactory
+import org.slf4j.LoggerFactory
 
 /**
  * Base Trait for running a consumer group through a command line application.
  */
 trait KafkaConsumerCLIBase[K,M] extends App {
 
-  private val Log = LogFactory.getLog(this.getClass)
+  private val Log = Logger(LoggerFactory getLogger this.getClass)
 
   private val APPLICATION_NAME_KEY = "balboa.kafka.application.name"
   private val ZOOKEEPER_PROPERTY_KEY = "zookeeper.connect"

@@ -1,7 +1,7 @@
 import java.nio.file.Files
 
 import com.socrata.balboa.config.CoreClientConfig
-import com.socrata.balboa.metrics.config.{Keys, Configuration}
+import com.socrata.balboa.metrics.config.{Configuration, Keys}
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, WordSpec}
 
 class CoreClientConfigSpec extends WordSpec with BeforeAndAfterAll with BeforeAndAfter with CoreClientConfig {

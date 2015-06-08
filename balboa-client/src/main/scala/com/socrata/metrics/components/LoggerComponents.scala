@@ -3,7 +3,7 @@ package com.socrata.metrics.components
 import com.socrata.balboa.impl.MetricDequeuerService
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.metrics.collection.PreBufferQueue
-import org.apache.commons.logging.LogFactory
+import org.slf4j.LoggerFactory
 
 case class MetricEntry(entityId:String, name:String, value:Number, timestamp:Long, recordType:RecordType)
 
@@ -12,7 +12,8 @@ case class MetricEntry(entityId:String, name:String, value:Number, timestamp:Lon
  * a enqueue and dequeue service.
  */
 trait BaseMetricLoggerComponent extends MetricLoggerComponent {
-  private val Log = LogFactory.getLog(classOf[BaseMetricLoggerComponent])
+
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   val delay = 120L
   val interval = 120L
@@ -37,7 +38,7 @@ trait BaseMetricLoggerComponent extends MetricLoggerComponent {
     /** See [[MetricLoggerLike.stop()]] */
     override def stop(): Unit = {
       acceptEnqueues = false
-      Log.info(s"Beginning ${getClass.getSimpleName} shutdown")
+      log.info(s"Beginning ${getClass.getSimpleName} shutdown")
       metricDequeuer.stop()
     }
   }

@@ -1,12 +1,12 @@
 package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.data.DataStore;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class DataStoreImpl implements DataStore
 {
-    private static Log log = LogFactory.getLog(DataStoreImpl.class);
+    private static final Logger log = LoggerFactory.getLogger(DataStoreImpl.class);
 
     public void heartbeat() {
         // noop
