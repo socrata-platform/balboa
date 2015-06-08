@@ -30,7 +30,7 @@ object Main extends App {
     new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r) -> MetricsRest.get
   )
 
-  def logger = new SimpleFilter[HttpServletRequest, HttpResponse] {
+  def httpLogger = new SimpleFilter[HttpServletRequest, HttpResponse] {
     def apply(req: HttpServletRequest, serv: BalboaService) = {
       log.info("Server in-bound request: " + req.getMethod + " " + req.getRequestURI + Option(req.getQueryString).map("?" + _).getOrElse(""))
       serv(req)
@@ -45,6 +45,6 @@ object Main extends App {
         NotFound ~> ContentType("application/json") ~> Content("{\"error\": 404, \"message\": \"Not found.\"}")
     }
 
-  val server = new SocrataServerJetty(logger andThen service, port = args(0).toInt)
+  val server = new SocrataServerJetty(httpLogger andThen service, port = args(0).toInt)
   server.run()
 }

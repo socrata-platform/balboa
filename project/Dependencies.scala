@@ -48,6 +48,7 @@ object Dependencies {
   val log4j = "log4j" % "log4j" % versions.log4j
 
   val balboa_logging = Seq(scala_logging, slf4j_log4j, log4j)
+  val balboa_logging_test = Seq(scala_logging % "test", slf4j_log4j % "test", log4j % "test")
 
   val activemq = "org.apache.activemq" % "activemq-core" % versions.activemq
   val astyanax = "com.netflix.astyanax" % "astyanax" % versions.astyanax

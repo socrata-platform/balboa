@@ -56,7 +56,8 @@ object MetricsTestStuff {
     cal.set(2015, 1, 1, 12, 5, 0)
     val t20150101_1205_0 = cal.getTime
 
-    val sameHour = Seq(t20150101_1200_0,
+    val sameHour = Seq(
+      t20150101_1200_0,
       t20150101_1201_0,
       t20150101_1202_0,
       t20150101_1203_0,
@@ -65,51 +66,51 @@ object MetricsTestStuff {
 
     // Times Within the same day
     cal.set(2015, 1, 1, 13, 0, 0)
-    val t20150101_1301_0 = cal.getTime
+    val t20150101_1300_0 = cal.getTime
     cal.set(2015, 1, 1, 14, 0, 0)
-    val t20150101_1401_0 = cal.getTime
+    val t20150101_1400_0 = cal.getTime
     cal.set(2015, 1, 1, 15, 0, 0)
-    val t20150101_1501_0 = cal.getTime
+    val t20150101_1500_0 = cal.getTime
     cal.set(2015, 1, 1, 16, 0, 0)
-    val t20150101_1601_0 = cal.getTime
+    val t20150101_1600_0 = cal.getTime
 
-    val sameDay = sameHour ++ Seq(t20150101_1301_0,
-      t20150101_1401_0,
-      t20150101_1501_0,
-      t20150101_1601_0)
+    val sameDay = sameHour ++ Seq(t20150101_1300_0,
+      t20150101_1400_0,
+      t20150101_1500_0,
+      t20150101_1600_0)
 
     // Times within the same month
     cal.set(2015, 1, 2, 12, 0, 0)
-    val t20150102_1601_0 = cal.getTime
+    val t20150102_1200_0 = cal.getTime
     cal.set(2015, 1, 3, 12, 0, 0)
-    val t20150103_1601_0 = cal.getTime
+    val t20150103_1200_0 = cal.getTime
     cal.set(2015, 1, 4, 12, 0, 0)
-    val t20150104_1601_0 = cal.getTime
+    val t20150104_1200_0 = cal.getTime
     cal.set(2015, 1, 5, 12, 0, 0)
-    val t20150105_1601_0 = cal.getTime
+    val t20150105_1200_0 = cal.getTime
 
     val sameMonth = sameDay ++ Seq(
-      t20150102_1601_0,
-      t20150103_1601_0,
-      t20150104_1601_0,
-      t20150105_1601_0
+      t20150102_1200_0,
+      t20150103_1200_0,
+      t20150104_1200_0,
+      t20150105_1200_0
     )
 
     // Times within the same year
     cal.set(2015, 2, 1, 12, 0, 0)
-    val t20150200_1601_0 = cal.getTime
+    val t20150201_1200_0 = cal.getTime
     cal.set(2015, 3, 1, 12, 0, 0)
-    val t20150300_1601_0 = cal.getTime
+    val t20150301_1200_0 = cal.getTime
     cal.set(2015, 4, 1, 12, 0, 0)
-    val t20150400_1601_0 = cal.getTime
+    val t20150401_1200_0 = cal.getTime
     cal.set(2015, 5, 1, 12, 0, 0)
-    val t20150500_1601_0 = cal.getTime
+    val t20150501_1200_0 = cal.getTime
 
     val sameYear = sameMonth ++ Seq(
-      t20150200_1601_0,
-      t20150300_1601_0,
-      t20150400_1601_0,
-      t20150500_1601_0
+      t20150201_1200_0,
+      t20150301_1200_0,
+      t20150401_1200_0,
+      t20150501_1200_0
     )
 
     val allTimeStamps = sameYear

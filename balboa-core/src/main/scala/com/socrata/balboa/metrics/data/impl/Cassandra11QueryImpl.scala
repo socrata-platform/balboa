@@ -34,7 +34,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
    * @param bucket The Time bucket for this entity key
    * @return The metrics for this time bucket at the specified Period granularity.
    */
-  def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {
+  override def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {
     val entityKey: String = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
     val ret: Metrics = new Metrics()
     // aggregate column family
@@ -54,7 +54,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
    * Returns all the row keys in a tier as an iterator with many, many duplicate strings. This is very slow. Do
    * not use this outside the admin tool.
    */
-  def getAllEntityIds(recordType: RecordType, period: Period): Iterator[String] = {
+  override def getAllEntityIds(recordType: RecordType, period: Period): Iterator[String] = {
     fastfail.proceedOrThrow()
     try {
       val retVal: Iterator[String] = context.getEntity.prepareQuery(Cassandra11Util.getColumnFamily(period, recordType))
@@ -91,7 +91,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
     }
   }
 
-  def persist(entityId: String, bucket:ju.Date, period: Period, aggregates: sc.Map[String, Metric], absolutes: sc.Map[String, Metric]) {
+  override def persist(entityId: String, bucket:ju.Date, period: Period, aggregates: sc.Map[String, Metric], absolutes: sc.Map[String, Metric]) {
     val entityKey = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
     log.info("Using entity/row key " + entityKey + " at period " + period)
     fastfail.proceedOrThrow()

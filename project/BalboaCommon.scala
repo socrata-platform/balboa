@@ -18,7 +18,7 @@ object BalboaCommon {
     jackson_core_asl,
     jackson_mapper_asl,
     jopt_simple
-  ) ++ balboa_logging
+  ) ++ balboa_logging ++ balboa_logging_test
 }
 
 object BalboaKafkaCommon {

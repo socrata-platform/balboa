@@ -2,6 +2,7 @@ package com.socrata.balboa.server
 
 import java.util.Date
 
+import com.socrata.balboa.logging.BalboaLogging
 import com.socrata.balboa.metrics.data.impl.PeriodComparator
 import com.socrata.balboa.metrics.data.{DataStore, DateRange, Period}
 import com.socrata.balboa.metrics.measurements.combining.Summation
@@ -15,9 +16,7 @@ import scala.util.{Failure, Success, Try}
 /**
  * Service layer that provides Metrics related functionality.
  */
-object MetricsService {
-
-  private val Log = LogFactory.getLog(this.getClass)
+object MetricsService extends BalboaLogging {
 
   /*
   Development Notes:
@@ -60,7 +59,7 @@ object MetricsService {
       (_ => Try(require(combineFilter != null, "Combine Filter cannot be null"))) flatMap
       (_ => Try(require(metricFilter != null, "Metric Filter cannot be null"))) flatMap
       (_ => {
-        Log.debug(s"Invoking Period for Entity ID: $entityID, date: $date, period: $period")
+        logger.debug(s"Invoking Period for Entity ID: $entityID, date: $date, period: $period")
         val range = DateRange.create(period, date)
         Try(ds.find(entityID, period, range.getStart, range.getEnd))
       }) flatMap (iterator => {
@@ -68,7 +67,7 @@ object MetricsService {
       // Option.foreach optionally uses the evaluation of that option
       combineFilter.foreach(f => metrics = metrics.combine(f))
       metricFilter.foreach(f => metrics = metrics.filter(f))
-      Log.debug(s"Completed finding the Period for Entity ID: $entityID, date: $date, period: $period")
+      logger.debug(s"Completed finding the Period for Entity ID: $entityID, date: $date, period: $period")
       Success(metrics)
     })
   }

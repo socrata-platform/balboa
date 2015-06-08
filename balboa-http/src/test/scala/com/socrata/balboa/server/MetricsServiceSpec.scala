@@ -2,7 +2,7 @@ package com.socrata.balboa.server
 
 import java.util.Date
 
-import com.socrata.balboa.metrics.data.{Period, DataStore}
+import com.socrata.balboa.metrics.data.{DateRange, Period, DataStore}
 import com.socrata.balboa.metrics.data.impl.MockCassandraDataStore
 import com.socrata.balboa.server.MetricsServiceSpecSetup.{SimpleMockDataStore, EmptyMockDataStore, TestData, MockDataStoreBase}
 import com.socrata.balboa.util.MetricsTestStuff.{TestEntityIDs, TestMetrics, TestTimeStamps}
@@ -73,22 +73,11 @@ class MetricsServiceSpec extends WordSpec with BeforeAndAfterEach {
         assert(MetricsService.period(balboa, new Date(), Period.FOREVER, None, null).isFailure)
       }
 
-      "return no metrics for a period where there is no data" in new EmptyMockDataStore {
-//        val res = MetricsService.period("entityID", new Date(), Period.HOURLY, None, None)
-//        assert(res.isSuccess)
-//        assert(res.get.isEmpty)
-      }
-
-      "return the aggregation of metrics within the a specific Time Window" in new SimpleMockDataStore {
-
-      }
-
     }
 
-    "calculating a series" when {
+    "calculating a series" should {
 
-      "" should  {
-
+      "fail when Entity ID is null" in new EmptyMockDataStore {
       }
 
     }

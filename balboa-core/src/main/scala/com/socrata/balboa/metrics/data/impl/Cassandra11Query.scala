@@ -9,7 +9,7 @@ import com.socrata.balboa.metrics.{Metric, Metrics}
 import scala.{collection => sc}
 
 /**
- * Queries the underlying datastore
+ * Queries the underlying datastore.
  */
 trait Cassandra11Query {
   def getAllEntityIds(recordType:RecordType, period:Period):Iterator[String]
