@@ -34,10 +34,10 @@ object BalboaAgent extends App with Config with BalboaLogging {
     val sleepOpt = optParser.accepts(CLIParamKeys.sleepTime, "Scheduled amount of time (ms) that the service will sleep before restarting.")
       .withRequiredArg()
       .ofType(classOf[Long])
-    val amqServerOpt = optionParser.accepts(CLIParamKeys.amqServer, "Active MQ Server to connect to.")
+    val amqServerOpt = optParser.accepts(CLIParamKeys.amqServer, "Active MQ Server to connect to.")
       .withRequiredArg()
       .ofType(classOf[String])
-    val amqQueueOpt = optionParser.accepts(CLIParamKeys.amqQueue, "Active MQ Queue to publish to.")
+    val amqQueueOpt = optParser.accepts(CLIParamKeys.amqQueue, "Active MQ Queue to publish to.")
       .withRequiredArg()
       .ofType(classOf[String])
 
@@ -45,7 +45,7 @@ object BalboaAgent extends App with Config with BalboaLogging {
     val set: OptionSet = optParser.parse(args: _*)
     set.valueOf(fileOpt) match {
       case d: File =>
-        logger info s"Overwriting file to ${d.getAbsolutePath}"
+        logger info s"Overwriting directory to ${d.getAbsolutePath}"
         dataDir = d
       case _ => // NOOP
     }
@@ -73,17 +73,5 @@ object BalboaAgent extends App with Config with BalboaLogging {
     new MetricConsumer(dataDir, st, amqServer, amqQueue).run()
   }
 
-  protected def optionParser(): OptionParser = {
-    val optParser: OptionParser = new OptionParser()
-    // Can use a single configuration file for all command line application.
-    val confOpt = optParser.accepts(CLIParamKeys.dataDir, "Directory that contains Metrics Data.")
-      .withRequiredArg()
-      .ofType(classOf[File])
-    optParser.accepts(CLIParamKeys.sleepTime, "Scheduled amount of time (ms) that the service will sleep before restarting.")
-      .requiredUnless(confOpt)
-      .withRequiredArg()
-      .ofType(classOf[Long])
-    optParser
-  }
 
 }
