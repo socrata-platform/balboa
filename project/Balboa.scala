@@ -11,7 +11,7 @@ object Balboa extends Build {
     settings = BuildSettings.buildSettings ++ Seq(Keys.parallelExecution := false, WebDav.mkcol := {})
   ) aggregate (balboaCommon, balboaCore, balboaHttp, balboaServiceCore, balboaJms,
     balboaAdmin, balboaClientCore, balboaClientJMS, balboaKafkaCommon, balboaKafkaClient,
-    balboaKafkaService, balboaClientDispatcher) // Add new project definitions here.
+    balboaKafkaService, balboaClientDispatcher, balboaTmp) // Add new project definitions here.
 
   lazy val balboaCommon = project("balboa-common", None, BalboaCommon)
 
@@ -50,6 +50,8 @@ object Balboa extends Build {
   lazy val balboaClientDispatcher = project("balboa-dispatcher-client", Some("balboa-client-dispatcher"),
     BalboaClientDispatcher,
     balboaClientJMS % "test->test;compile->compile", balboaKafkaClient % "test->test;compile->compile")
+
+  lazy val balboaTmp = project("balboa-tmp", None, BalboaTmp, balboaClientCore, balboaCommon)
 
   // NOTE: Add your new project or submodule here.
 

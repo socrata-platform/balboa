@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -ev
+
+/bin/env_parse ${BALBOA_TMP_CONFIG}.j2
+
+# Run It!
+exec /usr/bin/java -jar \
+    -Dbalboa.config=${BALBOA_TMP_CONFIG} \
+     $BALBOA_TMP_ARTIFACT
