@@ -3,6 +3,7 @@ package com.socrata.balboa.tickertape
 import java.io.File
 
 import com.blist.metrics.impl.queue.MetricFileQueue
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.metrics.{Fluff, MetricIdPart}
 import joptsimple.{OptionParser, OptionSet}
 
@@ -56,7 +57,6 @@ object BalboaTickerTape extends App with Config with BalboaLogging {
         case i: Int =>
           logger info s"Overwriting batch size to $i"
           bs = i
-        case _ => //NOOP
       }
     }
 
