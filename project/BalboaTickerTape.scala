@@ -2,10 +2,10 @@ import sbt.Keys._
 import sbt._
 import sbtassembly.Plugin.AssemblyKeys._
 
-object BalboaTmp {
+object BalboaTickerTape {
   
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings(assembly = true) ++ Seq(
-    mainClass in assembly := Some("com.socrata.balboa.tmp.BalboaTmp"),
+    mainClass in assembly := Some("com.socrata.balboa.tickertape.BalboaTickerTape"),
     libraryDependencies <++= scalaVersion { libraries(_) }
   )
 
