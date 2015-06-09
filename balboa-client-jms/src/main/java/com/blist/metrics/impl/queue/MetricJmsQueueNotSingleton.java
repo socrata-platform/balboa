@@ -1,12 +1,12 @@
 package com.blist.metrics.impl.queue;
 
+import com.socrata.balboa.common.logging.JavaBalboaLogging;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.impl.JsonMessage;
 import com.socrata.metrics.IdParts;
 import com.socrata.metrics.MetricQueue$;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
 import java.util.Date;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  * messages that the metrics service consumes.
  */
 public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
-    private static final Logger log = LoggerFactory.getLogger(MetricJmsQueue.class);
+    private static final Logger log = JavaBalboaLogging.instance(MetricJmsQueueNotSingleton.class);
     private final Buffer writeBuffer = new Buffer();
     private final Session session;
     private final Destination queue;
@@ -70,7 +70,7 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
 
     private class UpdateTimer extends Thread {
         public final Semaphore shutdown = new Semaphore(0);
-        
+
         public UpdateTimer(String threadName) {
             setName(threadName);
         }

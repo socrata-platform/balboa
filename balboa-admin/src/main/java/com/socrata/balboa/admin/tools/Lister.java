@@ -19,7 +19,7 @@ public class Lister {
             Period mostGranular = Period.mostGranular(Configuration.get().getSupportedPeriods());
 
             Date epoch = new Date(0);
-            Date cutoff = DateRange.create(mostGranular, new Date()).start;
+            Date cutoff = DateRange.create(mostGranular, new Date()).getStart();
 
             DataStore ds = DataStoreFactory.get();
             Iterator<String> entities;

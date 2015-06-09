@@ -1,13 +1,14 @@
 package com.socrata.balboa.impl
 
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.balboa.metrics.Message
 import com.socrata.metrics.components.MessageQueueComponent
-import org.apache.commons.logging.LogFactory
 
 import scala.collection.mutable.Queue
 
-trait TestMessageQueueComponent extends MessageQueueComponent {
-  val testLog = LogFactory.getLog(classOf[MessageQueue])
+trait TestMessageQueueComponent extends MessageQueueComponent with BalboaLogging {
+
+  val testLog = logger
 
   val dumpingQueue = Queue.empty[Message]
 

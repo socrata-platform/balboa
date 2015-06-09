@@ -27,7 +27,7 @@ public class Checker
         DataStore ds = DataStoreFactory.get();
 
         DateRange range = DateRange.create(lessGranular(period), start);
-        Metrics moreGranularResults = Metrics.summarize(ds.find(entityId, period, range.start, range.end));
+        Metrics moreGranularResults = Metrics.summarize(ds.find(entityId, period, range.getStart(), range.getEnd()));
         Metrics lessGranularResults = Metrics.summarize(ds.find(entityId, lessGranular(period), start));
 
         Map<String, List<Number>> results = new HashMap<String, List<Number>>();
@@ -125,8 +125,8 @@ public class Checker
                                     "\t%s[%s] (%s -> %s %s/%s): %s != %s",
                                     entity,
                                     entry.getKey(),
-                                    range.start.toString(),
-                                    range.end.toString(),
+                                    range.getStart().toString(),
+                                    range.getEnd().toString(),
                                     period.toString(),
                                     lessGranular(period).toString(),
                                     first,
@@ -138,7 +138,7 @@ public class Checker
                     }
                 }
 
-                current = new Date(DateRange.create(leastGranular, current).end.getTime() + 1);
+                current = new Date(DateRange.create(leastGranular, current).getEnd().getTime() + 1);
             }
 
             if (!errored) valid();

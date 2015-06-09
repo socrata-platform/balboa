@@ -53,8 +53,7 @@ object BalboaHttp {
       </xml.group>
   )
 
-  def libraries(implicit scalaVersion: String) = Seq(
-    junit,
+  def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
     rojoma_json,
     simple_arm,
     socrata_http

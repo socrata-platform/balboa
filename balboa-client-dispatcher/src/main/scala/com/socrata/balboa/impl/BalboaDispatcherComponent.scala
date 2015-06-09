@@ -1,8 +1,8 @@
 package com.socrata.balboa.impl
 
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.balboa.metrics.Message
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MessageQueueComponent}
-import org.slf4j.LoggerFactory
 
 /**
  * Component that contains a collection of other [[MessageQueueComponent]]s.  When a metrics
@@ -13,9 +13,7 @@ import org.slf4j.LoggerFactory
 trait BalboaDispatcherComponent extends MessageQueueComponent {
   self: DispatcherInformation with EmergencyFileWriterComponent =>
 
-  class MessageDispatcher extends MessageQueueLike {
-
-    private val Log = LoggerFactory.getLogger(classOf[MessageDispatcher])
+  class MessageDispatcher extends MessageQueueLike with BalboaLogging {
 
     /**
      * Create all the internal queues at queue creation time.

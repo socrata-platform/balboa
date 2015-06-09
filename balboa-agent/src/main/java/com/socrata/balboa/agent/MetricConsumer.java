@@ -2,12 +2,12 @@ package com.socrata.balboa.agent;
 
 import com.blist.metrics.impl.queue.MetricJmsQueue;
 import com.socrata.balboa.agent.util.FileUtils;
+import com.socrata.balboa.common.logging.JavaBalboaLogging;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.metrics.Fluff;
 import com.socrata.metrics.MetricIdPart;
 import com.socrata.metrics.MetricQueue;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.*;
@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public class MetricConsumer implements Runnable {
 
 
-    private static final Logger log = LoggerFactory.getLogger(MetricConsumer.class);
+    private static final Logger log = JavaBalboaLogging.instance(MetricConsumer.class);
     private static final String TIMESTAMP = "timestamp";
     private static final String ENTITY_ID = "entityId";
     private static final String NAME = "name";

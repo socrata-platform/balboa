@@ -1,5 +1,6 @@
 package com.socrata.balboa.metrics.data.impl;
 
+import com.socrata.balboa.common.logging.JavaBalboaLogging;
 import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.Timeslice;
 import com.socrata.balboa.metrics.config.Configuration;
@@ -7,7 +8,6 @@ import com.socrata.balboa.metrics.config.ConfigurationException;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.Period;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Date;
@@ -35,7 +35,7 @@ import java.util.Map;
  *    future timestamp of that metric.
  */
 public class BufferedDataStore extends DataStoreImpl {
-    private static final Logger log = LoggerFactory.getLogger(BufferedDataStore.class);
+    private static final Logger log = JavaBalboaLogging.instance(BufferedDataStore.class);
     public  final long AGGREGATE_GRANULARITY;
     private final DataStore underlying;
     private long currentSlice = -1;

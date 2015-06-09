@@ -2,8 +2,8 @@ package com.socrata.metrics.producer
 
 import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
 import com.socrata.balboa.common.kafka.util.StagingAndRCEnvironment
+import com.socrata.balboa.common.util.MetricsTestStuff
 import com.socrata.balboa.metrics.Message
-import com.socrata.balboa.util.MetricsTestStuff
 import com.socrata.integration.kafka.util.{BalboaClientTestUtils, BalboaMessageClientTestHarness}
 import kafka.common.FailedToSendMessageException
 import kafka.server.KafkaServer

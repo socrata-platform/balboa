@@ -2,8 +2,8 @@ package com.socrata.balboa.impl
 
 import java.io.File
 
+import com.socrata.balboa.common.util.AddressAndPort
 import com.socrata.balboa.config.KafkaClientConfig
-import com.socrata.balboa.metrics.util.AddressAndPort
 import com.socrata.metrics.config.EmergencyFileParameter
 
 /**

@@ -1,9 +1,7 @@
 package com.socrata.balboa.common.kafka.codec
 
 import com.socrata.balboa.common.kafka.codec.BalboaMessageCodecSpecSetup.Codec
-import com.socrata.balboa.util.MetricsTestStuff
-import MetricsTestStuff.TestMessages
-import com.socrata.balboa.util.MetricsTestStuff
+import com.socrata.balboa.common.util.MetricsTestStuff.TestMessages
 import org.scalatest.WordSpec
 
 /**

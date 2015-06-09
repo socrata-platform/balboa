@@ -3,8 +3,8 @@ package com.socrata.metrics.producer
 import java.util.Properties
 
 import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.util.AddressAndPort
 import com.socrata.balboa.metrics.Message
-import com.socrata.balboa.metrics.util.AddressAndPort
 
 /**
  * Convenient wrapper for creating a Kafka Producer meant for Balboa purposes.

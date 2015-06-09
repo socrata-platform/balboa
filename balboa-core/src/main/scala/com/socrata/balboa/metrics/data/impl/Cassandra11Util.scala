@@ -41,13 +41,13 @@ object Cassandra11Util {
         Stream(acc)
       } else {
         val c = input.head
-        if(c.getEnd <= range.end.getTime) {
+        if(c.getEnd <= range.getEnd.getTime) {
           acc.addTimeslice(c)
           loop(input.tail, acc, range)
         } else {
           val newRange = DateRange.create(period, new ju.Date(c.getStart))
-          c.setStart(newRange.start.getTime)
-          c.setEnd(newRange.end.getTime)
+          c.setStart(newRange.getStart.getTime)
+          c.setEnd(newRange.getEnd.getTime)
           acc #:: loop(input.tail, c, newRange)
         }
       }
@@ -56,17 +56,27 @@ object Cassandra11Util {
     if(raw.hasNext) {
       val firstTimeslice = raw.next()
       val firstRange = DateRange.create(period,new ju.Date(firstTimeslice.getStart))
-      firstTimeslice.setStart(firstRange.start.getTime)
-      firstTimeslice.setEnd(firstRange.end.getTime)
+      firstTimeslice.setStart(firstRange.getStart.getTime)
+      firstTimeslice.setEnd(firstRange.getEnd.getTime)
       loop(raw.toStream, firstTimeslice, firstRange).iterator
     } else {
       Iterator.empty
     }
   }
+
+  /**
+   * Return an iterable list of metrics time slices.
+   *
+   * @param queryImpl Underlying Cassandra Query mechanism
+   * @param entityId The entity id to find the metric for.
+   * @param period The period interval to define a spceific granularity.
+   * @param query A list of dates that fall within respective date ranges boundby the period.
+   * @return A iterable list of time sliced metrics.
+   */
   def sliceIterator(queryImpl:Cassandra11Query, entityId:String, period:Period, query:List[ju.Date]):Iterator[Timeslice] = {
     query.iterator.map { date =>
           val range = DateRange.create(period, date)
-          new Timeslice(range.start.getTime, range.end.getTime, queryImpl.fetch(entityId, period, date))
+          new Timeslice(range.getStart.getTime, range.getEnd.getTime, queryImpl.fetch(entityId, period, date))
     }.filter(_ != null)
   }
 

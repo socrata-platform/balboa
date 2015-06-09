@@ -1,18 +1,17 @@
 package com.socrata.balboa.impl
 
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.balboa.config.ClientType.ClientType
 import com.socrata.balboa.config.{ClientType, DispatcherConfig}
 import com.socrata.balboa.metrics.config.Keys
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components._
-import org.slf4j.LoggerFactory
 
 /**
  * Metric Logger that internally uses a dispatcher for sending metrics
  * to multiple endpoints.
  */
-trait MetricLoggerToDispatcher extends BaseMetricLoggerComponent {
-  private val Log = LoggerFactory.getLogger(classOf[MetricLoggerToDispatcher])
+trait MetricLoggerToDispatcher extends BaseMetricLoggerComponent with BalboaLogging {
 
   /**
    * NOTE: This method is being replaced with [[MetricLogger()]].

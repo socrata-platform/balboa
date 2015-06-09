@@ -15,9 +15,9 @@ object Balboa extends Build {
 
   lazy val balboaCommon = project("balboa-common", None, BalboaCommon)
 
-  lazy val balboaCore = project("balboa-core", None, BalboaCore, balboaCommon)
+  lazy val balboaCore = project("balboa-core", None, BalboaCore, balboaCommon % "test->test;compile->compile")
 
-  lazy val balboaHttp = project("balboa-http", None, BalboaHttp, balboaCore)
+  lazy val balboaHttp = project("balboa-http", None, BalboaHttp, balboaCore % "test->test;compile->compile")
 
   lazy val balboaServiceCore = project("balboa-service-core", None, BalboaService, balboaCore)
 
@@ -56,21 +56,6 @@ object Balboa extends Build {
   // Private Helper Methods
 
   val projectName: String = "balboa"
-
-  /**
-   * TODO Doesn't work with SBT 13.* Currently not used.
-   *
-   * @return A reference to all the project instances for this build
-   */
-  private def allOtherProjects = for {
-    method <- getClass.getDeclaredMethods.map(m => {
-      //      m.setAccessible(true)
-      m
-    }).toSeq
-    if method.getParameterTypes.isEmpty && classOf[Project].isAssignableFrom(method.getReturnType) && method.getName != projectName
-  } yield {
-      method.invoke(this).asInstanceOf[Project] : ProjectReference
-    }
 
   /**
    * Wrapper method that creates a project.  If the directory name of the project.

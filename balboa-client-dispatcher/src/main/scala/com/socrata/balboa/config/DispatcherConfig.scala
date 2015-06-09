@@ -1,17 +1,15 @@
 package com.socrata.balboa.config
 
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.balboa.config.ClientType.ClientType
 import com.socrata.balboa.metrics.config.{Configuration, Keys}
-import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
 /**
  * All inclusive Configuration file
  */
-object DispatcherConfig {
-
-  private val Log = LoggerFactory.getLogger("DispatcherConfig")
+object DispatcherConfig extends BalboaLogging {
 
   /**
    * @return Client Types parsed from configuration.
@@ -21,7 +19,7 @@ object DispatcherConfig {
 
     // Notify that we found an invalid Client Type with a graceful log message
     clientStrings.filterNot(isClientType) match {
-      case a: Seq[String] if a.nonEmpty => Log.warn(s"$a not a valid client type, acceptable client " +
+      case a: Seq[String] if a.nonEmpty => logger.warn(s"$a not a valid client type, acceptable client " +
         s"types ${ClientType.values}")
       case _ => // Success No weird Client Types.
     }

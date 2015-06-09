@@ -2,9 +2,9 @@ package com.socrata.balboa.impl
 
 import java.io.File
 
+import com.socrata.balboa.common.util.MetricsTestStuff
 import com.socrata.balboa.impl.BalboaDispatcherComponentSetup.DispatcherSetup
 import com.socrata.balboa.metrics.Message
-import com.socrata.balboa.util.MetricsTestStuff
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MessageQueueComponent}
 import org.scalatest.{BeforeAndAfter, WordSpec}
 
@@ -78,7 +78,7 @@ trait QueueEmergencyWriter extends EmergencyFileWriterComponent {
   override def EmergencyFileWriter(file: File): EmergencyFileWriter = new EmergencyFileWriter(file)
 }
 
-case class FakeQueueComponent extends MessageQueueComponent {
+case class FakeQueueComponent() extends MessageQueueComponent {
 
   val queue = mutable.Queue.empty[Message]
   var started = false

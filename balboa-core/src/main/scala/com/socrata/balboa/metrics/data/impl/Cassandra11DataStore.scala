@@ -2,25 +2,21 @@ package com.socrata.balboa.metrics.data.impl
 
 import java.{util => ju}
 
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.metrics.data.{DateRange, Period, QueryOptimizer}
 import com.socrata.balboa.metrics.{Metric, Metrics, Timeslice}
-import org.apache.commons.logging.LogFactory
 
 import scala.collection.JavaConverters._
 
 /**
  * DataStore Implementation for Cassandra 1.1
  *
- *
- *
  */
 class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext()))
-  extends DataStoreImpl {
-  private val log = LogFactory.getLog(classOf[Cassandra11DataStore])
+  extends DataStoreImpl with BalboaLogging {
   private val timeSvc = new TimeService()
-
 
   /**
    * Retrieve an iterator that contains all the entity ids that the pattern
@@ -109,7 +105,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
   def find(entityId: String, period:Period, date: ju.Date): ju.Iterator[Metrics] = {
     val requestPeriod = getValidGranularity(period)
     val range = DateRange.create(period, date)
-    find(entityId, requestPeriod, range.start, range.end)
+    find(entityId, requestPeriod, range.getStart, range.getEnd)
   }
 
   /**
@@ -134,7 +130,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
    */
   def find(entityId: String, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = {
     val range:DateRange = new DateRange(start, end)
-    val optimalSlices = new QueryOptimizer().optimalSlices(range.start, range.end).asScala
+    val optimalSlices = new QueryOptimizer().optimalSlices(range.getStart, range.getEnd).asScala
     val query = optimalSlices.flatMap{ case (k,v) => Map(k -> v.asScala.map(_.toDates(k)).flatMap(i => i.asScala).toList)}.toMap
     // create the query set from the optimal slice
     Cassandra11Util.metricsIterator(queryImpl, entityId, query).asJava
@@ -162,7 +158,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     while (period != null && period != Period.REALTIME)
     {
       val range:DateRange = DateRange.create(period, new ju.Date(timestamp))
-      queryImpl.persist(entityId, range.start, period, aggregates, absolutes)
+      queryImpl.persist(entityId, range.getStart, period, aggregates, absolutes)
       // Skip to the next largest period which we are configured
       // to use.
       period = period.moreGranular
@@ -171,7 +167,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
       }
 
     }
-    log.info("Persisted entity: " + entityId + " with " + absolutes.size + " absolute and " + aggregates.size + " aggregated metrics - took " + (timeSvc.currentTimeMillis() - start) + "ms")
+    logger.info("Persisted entity: " + entityId + " with " + absolutes.size + " absolute and " + aggregates.size + " aggregated metrics - took " + (timeSvc.currentTimeMillis() - start) + "ms")
   }
 
 

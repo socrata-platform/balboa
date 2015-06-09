@@ -1,9 +1,9 @@
 package com.socrata.balboa.common.kafka.codec
 
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.impl.JsonMessage
 import kafka.utils.VerifiableProperties
-import org.slf4j.LoggerFactory
 
 /**
  * Reusable Balboa Kafka Message Codec.  This is class can be used by Kafka defined how to serialize and deserialize
@@ -17,9 +17,7 @@ class BalboaMessageCodec(properties: VerifiableProperties = null) extends Balboa
 /**
  * Codec for transforming Metrics Messages.
  */
-trait BalboaMessageCodecLike extends KafkaCodec[Message] {
-
-  private val Log = LoggerFactory.getLogger(classOf[BalboaMessageCodecLike])
+trait BalboaMessageCodecLike extends KafkaCodec[Message] with BalboaLogging {
 
   /**
    * Preconditions: message entity id, timestamp, and metrics should not be null.
@@ -42,7 +40,7 @@ trait BalboaMessageCodecLike extends KafkaCodec[Message] {
    */
   override def fromBytes(bytes: Array[Byte]): Message = bytesToJSON(bytes) match {
     case Left(error) =>
-      Log.error(s"Failed to convert bytes to message. Error: $error")
+      logger.error(s"Failed to convert bytes to message. Error: $error")
       null
     case Right(message) => message
   }

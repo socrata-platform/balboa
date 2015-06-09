@@ -27,9 +27,9 @@ class Cassandra11DataStoreTest {
 
   def getPersistExpect(ts:Long) =
     List[APersist](
-      new APersist(testEntity + "-" + DateRange.create(Period.MONTHLY, new Date(ts)).start.getTime, Period.MONTHLY, Map(aggMetricName -> aggMetric), Map(absMetricName -> absMetric)),
-      new APersist(testEntity + "-" + DateRange.create(Period.DAILY, new Date(ts)).start.getTime, Period.DAILY, Map(aggMetricName -> aggMetric),  Map(absMetricName -> absMetric)),
-      new APersist(testEntity + "-" + DateRange.create(Period.HOURLY, new Date(ts)).start.getTime, Period.HOURLY, Map(aggMetricName -> aggMetric), Map(absMetricName -> absMetric)))
+      new APersist(testEntity + "-" + DateRange.create(Period.MONTHLY, new Date(ts)).getStart.getTime, Period.MONTHLY, Map(aggMetricName -> aggMetric), Map(absMetricName -> absMetric)),
+      new APersist(testEntity + "-" + DateRange.create(Period.DAILY, new Date(ts)).getStart.getTime, Period.DAILY, Map(aggMetricName -> aggMetric),  Map(absMetricName -> absMetric)),
+      new APersist(testEntity + "-" + DateRange.create(Period.HOURLY, new Date(ts)).getStart.getTime, Period.HOURLY, Map(aggMetricName -> aggMetric), Map(absMetricName -> absMetric)))
 
   @Before
   def setUp {
@@ -222,7 +222,7 @@ class Cassandra11DataStoreTest {
     mock.metricsToReturn = new Metrics(Map(aggMetricName -> aggMetric).asJava)
     val startPeriod = DateRange.create(requestPeriod, new Date(startMS)) // start from the reference point
     var endPeriod = DateRange.create(requestPeriod, new Date(endMS))
-    val dr = new DateRange(startPeriod.start, endPeriod.end)
+    val dr = new DateRange(startPeriod.getStart, endPeriod.getEnd)
     val inRanges = dr.toDates(supportedPeriod).asScala.toList; // requesting as the supported period
     val expectedRanges = dr.toDates(requestPeriod).asScala.toList
 

@@ -1,21 +1,19 @@
 package com.socrata.balboa.impl
 
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.impl.JsonMessage
 import com.socrata.balboa.metrics.measurements.combining._
 import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.metrics.MetricQueue
 import com.socrata.metrics.components.{BufferComponent, BufferItem, MessageQueueComponent}
-import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.HashMap
 
 // Not Thread Safe; access must be synchronized by caller (MetricDequeuer)
-trait HashMapBufferComponent extends BufferComponent {
+trait HashMapBufferComponent extends BufferComponent with BalboaLogging {
   self: MessageQueueComponent =>
-
-  private val log = LoggerFactory.getLogger(this.getClass)
 
   class Buffer extends BufferLike {
     val bufferMap = HashMap.empty[String, BufferItem]
@@ -85,7 +83,7 @@ trait HashMapBufferComponent extends BufferComponent {
 
     def stop() {
       if (bufferMap.size > 0) {
-        log.info("Flushing " + bufferMap.size + " metrics from BalboaClient buffer before shutting down ...")
+        logger.info("Flushing " + bufferMap.size + " metrics from BalboaClient buffer before shutting down ...")
         flush()
       }
       messageQueue.stop()

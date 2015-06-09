@@ -4,8 +4,8 @@ import java.util.Properties
 
 import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
 import com.socrata.balboa.common.kafka.util.StagingAndRCEnvironment
+import com.socrata.balboa.common.util.AddressAndPort
 import com.socrata.balboa.metrics.Message
-import com.socrata.balboa.metrics.util.AddressAndPort
 import com.socrata.balboa.service.kafka.consumer.{BalboaConsumerGroup, KafkaConsumerGroupComponent}
 import com.socrata.integration.kafka.util.BalboaClientTestHarness
 import com.socrata.metrics.producer.{BalboaKafkaProducer, GenericKafkaProducer}

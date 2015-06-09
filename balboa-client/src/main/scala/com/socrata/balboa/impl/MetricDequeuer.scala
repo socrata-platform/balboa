@@ -2,16 +2,15 @@ package com.socrata.balboa.impl
 
 import java.util.concurrent.{Executors, TimeUnit}
 
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.metrics.collection.PreBufferQueue
 import com.socrata.metrics.components.{BufferComponent, BufferItem, MetricEntry}
-import org.slf4j.LoggerFactory
 
-trait MetricDequeuerService {
+trait MetricDequeuerService extends BalboaLogging {
   self: BufferComponent with PreBufferQueue =>
 
   val timeout = 500L
-  private val log = LoggerFactory.getLogger(this.getClass)
 
   class MetricDequeuer {
     var keepRunning = true
@@ -38,7 +37,7 @@ trait MetricDequeuerService {
       override def run() {
         val numFlushed = buffer.synchronized { buffer.flush() }
         val queueSize = queue.size
-        if (numFlushed < queueSize) log.warn("The metric queue contains " + queueSize + " elements; the last buffer flush emptied out " + numFlushed + " elements.")
+        if (numFlushed < queueSize) logger.warn("The metric queue contains " + queueSize + " elements; the last buffer flush emptied out " + numFlushed + " elements.")
       }
     }
 
@@ -59,11 +58,11 @@ trait MetricDequeuerService {
       keepRunning = false
       dequeueExecutor.shutdown()
       while(!dequeueExecutor.awaitTermination(timeout, TimeUnit.MILLISECONDS))
-        log.info("Emptying out BalboaClient queue; " + queue.size + " elements left.")
+        logger.info("Emptying out BalboaClient queue; " + queue.size + " elements left.")
       dequeueExecutor.shutdownNow()
       flushExecutor.shutdown()
       while(!flushExecutor.awaitTermination(timeout, TimeUnit.MILLISECONDS))
-        log.info("Allowing BalboaClient buffer to finish flushing; " + actualBuffer.size() + " elements left.")
+        logger.info("Allowing BalboaClient buffer to finish flushing; " + actualBuffer.size() + " elements left.")
       flushExecutor.shutdownNow()
       actualBuffer.stop()
     }

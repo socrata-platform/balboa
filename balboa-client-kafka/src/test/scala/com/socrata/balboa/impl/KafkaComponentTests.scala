@@ -4,9 +4,8 @@ import java.io.File
 
 import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
 import com.socrata.balboa.common.kafka.util.StagingAndRCEnvironment
+import com.socrata.balboa.common.util.{AddressAndPort, MetricsTestStuff}
 import com.socrata.balboa.metrics.Message
-import com.socrata.balboa.metrics.util.AddressAndPort
-import com.socrata.balboa.util.MetricsTestStuff
 import com.socrata.integration.kafka.util.{BalboaClientTestUtils, BalboaMessageClientTestHarness}
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MessageQueueComponent}
 import org.junit.Assert._
@@ -49,7 +48,6 @@ with MetricsTestStuff.TestMessages with MetricLoggerToKafka {
   }
 
   @Test def testSendAndReceiveOfOneMessage(): Unit = {
-    println(manyElemMessage)
     component.start()
     component.send(emptyMessage)
     validateConsumedMessages(emptyMessage)

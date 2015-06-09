@@ -3,19 +3,16 @@ package com.socrata.balboa.service.kafka
 import java.io.{File, FileNotFoundException}
 import java.util.Properties
 
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.service.kafka.consumer.KafkaConsumerGroupComponent
-import com.typesafe.scalalogging.slf4j.Logger
 import joptsimple.{OptionParser, OptionSet}
 import kafka.utils.VerifiableProperties
-import org.slf4j.LoggerFactory
 
 /**
  * Base Trait for running a consumer group through a command line application.
  */
-trait KafkaConsumerCLIBase[K,M] extends App {
-
-  private val Log = Logger(LoggerFactory getLogger this.getClass)
+trait KafkaConsumerCLIBase[K,M] extends App with BalboaLogging {
 
   private val APPLICATION_NAME_KEY = "balboa.kafka.application.name"
   private val ZOOKEEPER_PROPERTY_KEY = "zookeeper.connect"
@@ -30,20 +27,20 @@ trait KafkaConsumerCLIBase[K,M] extends App {
 
   override def main(args: Array[String]): Unit = {
     super.main(args)
-    Log.info("Creating Consumer Group")
+    logger.info("Creating Consumer Group")
     val g = consumerGroup()
-    Log.info("Completed Creating Consumer Group")
+    logger.info("Completed Creating Consumer Group")
 
     // Add the shutdown hook.
-    Log.info("Adding Shutdown hook")
+    logger.info("Adding Shutdown hook")
     scala.sys.addShutdownHook(try {
       g.stop()
     } catch {
-      case e: Exception => Log.warn("Unable to stop consumer group. ", e)
-      case t: Throwable => Log.warn(s"Unknown error while stopping consumer group.", t)
+      case e: Exception => logger.warn("Unable to stop consumer group. ", e)
+      case t: Throwable => logger.warn(s"Unknown error while stopping consumer group.", t)
     })
 
-    Log.info(s"Starting $g...")
+    logger.info(s"Starting $g...")
     g.start()
   }
 

@@ -1,4 +1,4 @@
-package com.socrata.balboa.metrics.util
+package com.socrata.balboa.common.util
 
 import java.net.InetAddress
 

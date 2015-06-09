@@ -1,9 +1,9 @@
 package com.socrata.balboa.metrics.measurements.serialization;
 
 import com.google.protobuf.ByteString;
+import com.socrata.balboa.common.logging.JavaBalboaLogging;
 import com.socrata.balboa.metrics.measurements.serialization.impl.NumbersProtos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -11,7 +11,7 @@ import java.math.BigInteger;
 
 public class ProtocolBuffersSerializer implements Serializer
 {
-    private static final Logger log = LoggerFactory.getLogger(ProtocolBuffersSerializer.class);
+    private static final Logger log = JavaBalboaLogging.instance(ProtocolBuffersSerializer.class);
 
     public NumbersProtos.PBNumber proto(Number value)
     {

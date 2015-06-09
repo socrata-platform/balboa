@@ -9,9 +9,12 @@ import com.socrata.balboa.metrics.{Metric, Metrics}
 import scala.{collection => sc}
 
 /**
- *
+ * Mock Cassandra Query implementation.  Persist and Fetch don't actually correlate to any real Mock Data Store behaviour.
  */
 class MockCassandra11QueryImpl extends Cassandra11Query {
+
+  // TODO This type of Mock Object can easily be replaced with Mockito or another Mock library
+
   var persists = List[APersist]()
   var fetches = List[AFetch]()
   var entities = List[AEntitySearch]()

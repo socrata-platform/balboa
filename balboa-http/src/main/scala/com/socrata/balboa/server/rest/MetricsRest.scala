@@ -64,7 +64,7 @@ object MetricsRest {
 
     try
     {
-      val iter = ds.find(entityId, period, range.start, range.end)
+      val iter = ds.find(entityId, period, range.getStart, range.getEnd)
       var metrics = Metrics.summarize(iter)
 
       combine.foreach { c => metrics = metrics.combine(c) }

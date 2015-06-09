@@ -3,7 +3,7 @@ import com.socrata.cloudbeessbt.SocrataCloudbeesSbt.SocrataSbtKeys._
 import sbt.Keys._
 import sbt._
 import sbtassembly.Plugin.AssemblyKeys._
-import sbtassembly.Plugin.{MergeStrategy, PathList}
+import sbtassembly.Plugin.MergeStrategy
 
 /**
  * Base Service build settings.  Created this to try and reduce dependency collisions.
@@ -78,5 +78,5 @@ object BalboaKafka {
     parallelExecution in Test := false
   )
 
-  def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ BalboaKafkaCommon.libraries
+  def libraries(implicit scalaVersion: String) = BalboaService.libraries ++ BalboaKafkaCommon.libraries
 }

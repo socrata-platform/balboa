@@ -1,7 +1,7 @@
 package com.socrata.balboa.config
 
+import com.socrata.balboa.common.util.AddressAndPort
 import com.socrata.balboa.metrics.config.{Configuration, Keys}
-import com.socrata.balboa.metrics.util.AddressAndPort
 
 /**
  * Kafka Client Configuration Object
