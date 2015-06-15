@@ -1,6 +1,7 @@
 import com.socrata.eu.diversit.sbt.plugin.WebDavPlugin.WebDav
+import com.typesafe.sbt.packager.debian.JDebPackaging
+import com.typesafe.sbt.packager.universal.UniversalPlugin
 import sbt._
-import sbtdocker.DockerPlugin
 
 object Balboa extends Build {
 
@@ -28,6 +29,8 @@ object Balboa extends Build {
   lazy val balboaAdmin = project("balboa-admin", None, BalboaAdmin, balboaCore)
 
   lazy val balboaAgent = project("balboa-agent", None, BalboaAgent, balboaClientJMS, balboaCommon)
+    .enablePlugins(UniversalPlugin)
+    .enablePlugins(JDebPackaging)
 
   lazy val balboaClientCore = project("balboa-client-core", Some("balboa-client"), BalboaClient,
     balboaCommon % "test->test;compile->compile")
@@ -45,7 +48,6 @@ object Balboa extends Build {
 
   lazy val balboaKafkaService = project("balboa-kafka-service", Some("balboa-service-kafka"),
     BalboaKafka, balboaServiceCore, balboaKafkaClient % "test->test;compile->compile")
-    .enablePlugins(DockerPlugin)
 
   lazy val balboaClientDispatcher = project("balboa-dispatcher-client", Some("balboa-client-dispatcher"),
     BalboaClientDispatcher,
