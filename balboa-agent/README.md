@@ -42,6 +42,21 @@ Others: TODO
 * _agent_ : Standalone process that both consumes and emits metrics.
 * _amq_ : Active MQ
 
+### Build
+
+Balboa Agent can be built as a typical assembly jar
+
+```
+sbt balboa-agent/assembly
+```
+
+This project also incorporates [Sbt Native Packager](http://www.scala-sbt.org/sbt-native-packager/). And builds a simple debian
+ package that wraps an assembly jar.  This assembly jar can be found at the debian install root /balboa-agent/bin/balboa-agent-assembly.jar.
+
+```
+sbt balboa-agent/debian:packageBin
+```
+
 ### Configuration
 
 Configuration is done through Balboa Configuration properties or via the command line.  Command line arguments overwrite
