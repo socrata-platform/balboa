@@ -3,7 +3,7 @@ import com.socrata.cloudbeessbt.SocrataCloudbeesSbt.SocrataSbtKeys._
 import sbt.Keys._
 import sbt._
 import sbtassembly.Plugin.AssemblyKeys._
-import sbtassembly.Plugin.{MergeStrategy, PathList}
+import sbtassembly.Plugin.MergeStrategy
 
 /**
  * Base Service build settings.  Created this to try and reduce dependency collisions.
@@ -43,7 +43,7 @@ object BalboaJms {
       </xml.group>
   )
 
-  def libraries(implicit scalaVersion: String) = Seq(
+  def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
     activemq
     // Add more dependencies for JMS Service here...
   )

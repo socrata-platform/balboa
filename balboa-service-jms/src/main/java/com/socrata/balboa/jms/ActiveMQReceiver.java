@@ -8,8 +8,8 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQMessageConsumer;
 import org.apache.activemq.ActiveMQSession;
 import org.apache.activemq.transport.TransportListener;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
 import javax.naming.NamingException;
@@ -54,7 +54,7 @@ import java.util.List;
  */
 public class ActiveMQReceiver implements WatchDog.WatchDogListener
 {
-    private static Log log = LogFactory.getLog(ActiveMQReceiver.class);
+    private static Logger log = LoggerFactory.getLogger(ActiveMQReceiver.class);
     private List<Listener> listeners;
 
     public static class TransportLogger implements TransportListener
