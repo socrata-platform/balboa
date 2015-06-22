@@ -62,7 +62,7 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
         @Override
         public void onCommand(Object o)
         {
-            log.error("Active MQ Command: " + o.toString());
+            log.debug("Active MQ Command: " + o.toString());
         }
 
         @Override

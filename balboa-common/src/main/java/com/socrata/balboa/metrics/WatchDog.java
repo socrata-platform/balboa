@@ -58,7 +58,7 @@ public class WatchDog {
             log.debug("Ensure all listeners started");
             for (WatchDogListener listener : listeners)
                 listener.ensureStarted();
-            log.debug("We checked on them all");
+            log.debug("We checked on them allq");
         }
 
         log.debug("Heartbeating");
