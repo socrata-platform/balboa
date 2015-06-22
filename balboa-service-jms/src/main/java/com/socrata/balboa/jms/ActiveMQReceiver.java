@@ -62,6 +62,7 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
         @Override
         public void onCommand(Object o)
         {
+            log.error("Active MQ Command: " + o.toString());
         }
 
         @Override
@@ -112,7 +113,7 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
                 JsonMessage message = new JsonMessage(text.getText());
 
                 ds.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
-
+                log.debug("Committing session...");
                 session.commit();
             }
             catch (Exception e)
@@ -180,6 +181,7 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
             stopped = false;
             for (Listener listener : listeners)
                 listener.restart();
+            log.debug("Restarting all listeners");
         }
     }
 
@@ -190,20 +192,24 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
             stopped = true;
             for (Listener listener : listeners)
                 listener.stop();
+            log.debug("Stopping all listeners");
         }
     }
 
     public boolean isStopped() {
+        log.debug("Is stopped: " + Boolean.toString(stopped));
         return stopped;
     }
 
     @Override
     public void heartbeat() {
-        // noop
+        log.debug("Heartbeat. Got my heartbeat");
     }
 
     public void ensureStarted() {
+        log.debug("Ensuring started");
         if (stopped) {
+            log.debug("Starting");
             onStart();
         }
     }
