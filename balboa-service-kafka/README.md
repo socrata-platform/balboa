@@ -29,7 +29,7 @@ This project is published as a maven repository and can be utilized and referenc
   ```
   libraryDependencies ++= Seq(
     ...
-    "com.socrata" % "balboa-kafka-service" %% "0.15.+",
+    "com.socrata" %% "balboa-service-kafka" % "0.16.+",
     ...
   )
  ```
