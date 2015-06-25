@@ -69,7 +69,7 @@ trait MetricLoggerComponent {
     def logMetric(entityId:String, name:String, value:Number, timestamp:Long, recordType:RecordType):Unit
 
     /**
-     * Attempt to stop any outgoing messages.
+     * Stop accepting messages, and flush any that have already been accepted.
      */
     def stop():Unit
   }

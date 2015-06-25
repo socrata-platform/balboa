@@ -27,7 +27,7 @@ SBT:
  ```
  libraryDependencies ++= Seq(
    ...
-   "com.socrata" % "balboa-dispatcher-client" %% "[0.16, )",
+   "com.socrata" %% "balboa-client-dispatcher" % "0.16.+",
    ...
  )
 ```

@@ -24,7 +24,7 @@ object Balboa extends Build {
 
   // Keep the same project name for dependency reasons.
   // All following services should be name balboa-service-<type of service>
-  lazy val balboaJms = project("balboa-service-jms", BalboaJms, balboaServiceCore)
+  lazy val balboaJms = project("balboa-service-jms", None, BalboaJms, balboaServiceCore)
 
   lazy val balboaAdmin = project("balboa-admin", BalboaAdmin, balboaCore)
 

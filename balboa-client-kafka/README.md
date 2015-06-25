@@ -30,7 +30,7 @@ SBT:
  ```
  libraryDependencies ++= Seq(
    ...
-   "com.socrata" % "balboa-client-kafka" %% "0.16.+",
+   "com.socrata" %% "balboa-client-kafka" % "0.16.+",
    ...
  )
 ```
