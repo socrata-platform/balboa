@@ -14,42 +14,42 @@ object Balboa extends Build {
     balboaAdmin, balboaClientCore, balboaClientJMS, balboaKafkaCommon, balboaKafkaClient,
     balboaKafkaService, balboaClientDispatcher) // Add new project definitions here.
 
-  lazy val balboaCommon = project("balboa-common", None, BalboaCommon)
+  lazy val balboaCommon = project("balboa-common", BalboaCommon)
 
-  lazy val balboaCore = project("balboa-core", None, BalboaCore, balboaCommon)
+  lazy val balboaCore = project("balboa-core", BalboaCore, balboaCommon)
 
-  lazy val balboaHttp = project("balboa-http", None, BalboaHttp, balboaCore)
+  lazy val balboaHttp = project("balboa-http", BalboaHttp, balboaCore)
 
-  lazy val balboaServiceCore = project("balboa-service-core", None, BalboaService, balboaCore)
+  lazy val balboaServiceCore = project("balboa-service-core", BalboaService, balboaCore)
 
   // Keep the same project name for dependency reasons.
   // All following services should be name balboa-service-<type of service>
-  lazy val balboaJms = project("balboa-jms", Some("balboa-service-jms"), BalboaJms, balboaServiceCore)
+  lazy val balboaJms = project("balboa-service-jms", BalboaJms, balboaServiceCore)
 
-  lazy val balboaAdmin = project("balboa-admin", None, BalboaAdmin, balboaCore)
+  lazy val balboaAdmin = project("balboa-admin", BalboaAdmin, balboaCore)
 
-  lazy val balboaAgent = project("balboa-agent", None, BalboaAgent, balboaClientJMS, balboaCommon)
+  lazy val balboaAgent = project("balboa-agent", BalboaAgent, balboaClientJMS, balboaCommon)
     .enablePlugins(UniversalPlugin)
     .enablePlugins(JDebPackaging)
 
-  lazy val balboaClientCore = project("balboa-client-core", Some("balboa-client"), BalboaClient,
+  lazy val balboaClientCore = project("balboa-client", BalboaClient,
     balboaCommon % "test->test;compile->compile")
 
   // Keep the same project name for dependency reasons.
   // All following clients should be name balboa-client-<type of client>
-  lazy val balboaClientJMS = project("balboa-client", Some("balboa-client-jms"), BalboaClientJMS, balboaClientCore,
+  lazy val balboaClientJMS = project("balboa-client-jms", BalboaClientJMS, balboaClientCore,
     balboaClientCore % "test->test;compile->compile")
 
-  lazy val balboaKafkaCommon = project("balboa-kafka-common", Some("balboa-common-kafka"), BalboaKafkaCommon,
+  lazy val balboaKafkaCommon = project("balboa-common-kafka", BalboaKafkaCommon,
     balboaCommon % "test->test;compile->compile")
 
-  lazy val balboaKafkaClient = project("balboa-kafka-client", Some("balboa-client-kafka"), BalboaClientKafka,
+  lazy val balboaKafkaClient = project("balboa-client-kafka", BalboaClientKafka,
     balboaClientCore, balboaKafkaCommon % "test->test;compile->compile", balboaClientCore % "test->test;compile->compile")
 
-  lazy val balboaKafkaService = project("balboa-kafka-service", Some("balboa-service-kafka"),
+  lazy val balboaKafkaService = project("balboa-service-kafka",
     BalboaKafka, balboaServiceCore, balboaKafkaClient % "test->test;compile->compile")
 
-  lazy val balboaClientDispatcher = project("balboa-dispatcher-client", Some("balboa-client-dispatcher"),
+  lazy val balboaClientDispatcher = project("balboa-client-dispatcher",
     BalboaClientDispatcher,
     balboaClientJMS % "test->test;compile->compile", balboaKafkaClient % "test->test;compile->compile")
 
@@ -83,10 +83,7 @@ object Balboa extends Build {
    * @param dependencies List of project dependency references.
    * @return An object defining this project
    */
-  private def project(name: String, directoryName: Option[String], settings: {
+  private def project(name: String, settings: {
     def settings: Seq[Setting[_]] }, dependencies: ClasspathDep[ProjectReference]*) =
-    Project(name, directoryName match {
-      case Some(dir) => file(dir)
-      case None => file(name)
-    }, settings = settings.settings) dependsOn(dependencies: _*)
+    Project(name, file(name), settings = settings.settings) dependsOn(dependencies: _*)
 }

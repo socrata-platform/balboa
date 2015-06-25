@@ -5,9 +5,8 @@ FROM socrata/java
 
 ### Environment Variables
 ENV BALBOA_ROOT /srv/balboa-kafka-consumer
-ENV BALBOA_KAFKA_CONSUMER_ARTIFACT balboa-kafka-service-assembly.jar
+ENV BALBOA_KAFKA_CONSUMER_ARTIFACT balboa-service-kafka-assembly.jar
 ENV BALBOA_KAFKA_CONSUMER_CONFIG balboa-kafka.properties
-# ENV BALBOA_KAFKA_CONSUMER_LOGBACK logback.xml
 
 # Default Values
 ENV BALBOA_KAFKA_CONSUMER_MEMORY 2048m
@@ -17,5 +16,4 @@ WORKDIR $BALBOA_ROOT
 ADD ship.d /etc/ship.d
 
 COPY ${BALBOA_KAFKA_CONSUMER_CONFIG}.j2 $BALBOA_ROOT/
-# COPY ${BALBOA_KAFKA_CONSUMER_LOGBACK}.j2 $BALBOA_ROOT/
 COPY $BALBOA_KAFKA_CONSUMER_ARTIFACT $BALBOA_ROOT/
