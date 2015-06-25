@@ -21,6 +21,7 @@ object BalboaAgent {
 
   def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
     junit,
-    opencsv
+    scala_test,
+    mockito_test
   )
 }

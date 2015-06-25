@@ -58,7 +58,7 @@ trait MetricQueue {
 }
 
 /**
- * TODO: This Class should die.  Socrata specific class in
+ * TODO: This Class should die.  Socrata specific class in Open Source Project needs to go Away.
  */
 trait SocrataMetricQueue extends MetricQueue {
 
