@@ -1,6 +1,5 @@
 package com.socrata.balboa.agent;
 
-import com.blist.metrics.impl.queue.MetricJmsQueue;
 import com.socrata.balboa.agent.util.FileUtils;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.metrics.Fluff;
@@ -13,8 +12,15 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
+/**
+ * NOTE: Copied and barely altered from a separate Socrata project.
+ */
 public class MetricConsumer implements Runnable {
 
+    /*
+    * TODO: Remove all references to while true
+    * TODO: Standardize Serialization.
+     */
 
     private static final Logger log = LoggerFactory.getLogger(MetricConsumer.class);
     private static final String TIMESTAMP = "timestamp";
@@ -27,66 +33,52 @@ public class MetricConsumer implements Runnable {
             ENTITY_ID, NAME, VALUE, RECORD_TYPE);
 
     private final File directory;
-    private final long sleepTime;
-    private final String amqServer, amqQueue;
+    private final MetricQueue queue;
 
     /**
      * Single threaded Metric Consumer.
      */
-    public MetricConsumer(File directory,
-                          long sleepTime,
-                          String amqServer,
-                          String amqQueue) {
+    public MetricConsumer(File directory, MetricQueue queue) {
         if (directory == null || !directory.isDirectory())
             throw new IllegalArgumentException("Illegal Data directory " + directory);
-        if (sleepTime <= 0)
-            throw new IllegalArgumentException("Illegal Argument time " + sleepTime);
-        if (amqServer == null)
-            throw new NullPointerException("ActiveMQ Server cannot be null");
-        if (amqQueue == null)
-            throw new NullPointerException("ActiveMQ Queue cannot be null");
+        if (queue == null)
+            throw new NullPointerException("Metric Queue cannot be null");
         this.directory = directory;
-        this.sleepTime = sleepTime;
-        this.amqServer = amqServer;
-        this.amqQueue = amqQueue;
+        this.queue = queue;
     }
 
     @Override
     public void run() {
-        try {
-            while (true) {
-                // Process files within a single level of the data directory.
-                File[] otherNamespaces = this.directory.listFiles(FileUtils.isDirectory);
-                if (otherNamespaces == null) otherNamespaces = new File[0];
-                List<File> namespaces = new ArrayList<>(Arrays.asList(otherNamespaces));
-
-                namespaces.add(this.directory); // Also process any files in the root directory.
-                int recordsProcessed = 0;
-                long start = System.currentTimeMillis();
-                for (File namespace : namespaces) {
-                    recordsProcessed += processNamespace(namespace);
-                }
-                long processingTime = System.currentTimeMillis() - start;
-                log.info("Processed " + recordsProcessed + " in " + processingTime + "ms");
-
-                // TODO:
-                // What we really want is a throttler here to even out the metric injection
-                // during high loads, at the expense of metric data showing up later.
-                // but.... I don't know what that eq should look like.
-
-                // Wait until there is at least one more file to process
-                Thread.sleep(this.sleepTime);
-            }
-        } catch (InterruptedException t) {
-            // Could occur in the cases where we have an OOM
-            log.info("Thread interrupted consumer stopping.");
-        } catch (Exception e) {
-            log.error("Exception thrown during metric file processing. Hard exit for all threads.", e);
-            throw e;
+        log.info("Starting " + this.getClass().getSimpleName());
+        Set<File> namespaces = getDirectories(this.directory);
+        int recordsProcessed = 0;
+        long start = System.currentTimeMillis();
+        for (File namespace : namespaces) {
+            recordsProcessed += processNamespace(namespace);
         }
+        long processingTime = System.currentTimeMillis() - start;
+        log.info("Processed " + recordsProcessed + " in " + processingTime + "ms");
     }
 
-    int processNamespace(File dir) {
+    /**
+     * Recursively extracts all the directories nested under a parent directory.
+     *
+     * @param directory The root directory to recursively search.
+     * @return The set of directories including the argument directory.
+     */
+    private static Set<File> getDirectories(File directory) {
+        Set<File> directories = new HashSet<>();
+        if (!directory.isDirectory()) { // Return quickly if there
+            return directories;
+        }
+        directories.add(directory);
+        for (File child: directory.listFiles(FileUtils.isDirectory)) {
+            directories.addAll(getDirectories(child));
+        }
+        return directories;
+    }
+
+    private int processNamespace(File dir) {
         int recordsProcessed = 0;
         File[] fileArr = dir.listFiles(FileUtils.isFile);
         if (fileArr != null && fileArr.length > 1)
@@ -103,7 +95,6 @@ public class MetricConsumer implements Runnable {
             {
                 File metricsEventLog = new File(dir, file);
 
-                MetricQueue q = MetricJmsQueue.getInstance(this.amqServer, this.amqQueue);
                 List<Record> records;
 
                 try {
@@ -114,8 +105,8 @@ public class MetricConsumer implements Runnable {
                         long timestamp = new Date().getTime();
 
                         MetricIdPart internalID = new MetricIdPart("metrics-internal");
-                        q.create(internalID, new Fluff("metrics-consumer-files-consumed-size"), metricsEventLog.length(), timestamp, Metric.RecordType.AGGREGATE);
-                        q.create(internalID, new Fluff("metrics-consumer-files-consumed-count"), 1, timestamp, Metric.RecordType.AGGREGATE);
+                        queue.create(internalID, new Fluff("metrics-consumer-files-consumed-size"), metricsEventLog.length(), timestamp, Metric.RecordType.AGGREGATE);
+                        queue.create(internalID, new Fluff("metrics-consumer-files-consumed-count"), 1, timestamp, Metric.RecordType.AGGREGATE);
                     } catch (Exception e) {
                         // When an error occurs it is not a terrible big deal because we are going to be calculating the rolling average anyways.
                         // Its more important that we don't emit a count metric if we couldn't emit a size metric.  Hence the placement of the call.
@@ -131,7 +122,7 @@ public class MetricConsumer implements Runnable {
                 }
 
                 for (Record r : records)
-                    q.create(new MetricIdPart(r.entityId), new Fluff(r.name), r.value.longValue(), r.timestamp, r.type);
+                    queue.create(new MetricIdPart(r.entityId), new Fluff(r.name), r.value.longValue(), r.timestamp, r.type);
                 // Flush the file to JMS after every read
 
                 // TODO I don't think we need this so commenting out the below line.

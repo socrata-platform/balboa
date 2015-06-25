@@ -1,7 +1,9 @@
 package com.socrata.balboa.agent
 
 import java.io.File
+import java.util.concurrent.{ScheduledFuture, Executors, TimeUnit}
 
+import com.blist.metrics.impl.queue.MetricJmsQueue
 import com.socrata.metrics.MetricQueue
 import com.typesafe.scalalogging.slf4j.Logger
 import joptsimple.{OptionParser, OptionSet}
@@ -20,12 +22,24 @@ object BalboaAgent extends App with Config {
 
   private lazy val logger = Logger(LoggerFactory getLogger this.getClass)
 
+  private val scheduler = Executors.newScheduledThreadPool(1)
+
+  /**
+   * The initial delay of the scheduled periodic task.
+   */
+  private val INITIAL_DELAY: Long = 0
+
+  /**
+   * Is it appropiate to stop an existing Metric Consumer task.
+   */
+  private val INTERRUPT_EXISTING_CONSUMER = false
+
   override def main(args: Array[String]): Unit = {
 
     logger info "Loading Balboa Agent Configuration!"
 
     var dataDir = dataDirectory(null)
-    var st = sleepTime(MetricQueue.AGGREGATE_GRANULARITY)
+    var period = sleepTime(MetricQueue.AGGREGATE_GRANULARITY)
     var amqServer = activemqServer
     var amqQueue = activemqQueue
 
@@ -56,7 +70,7 @@ object BalboaAgent extends App with Config {
       set.valueOf(sleepOpt) match {
         case time: Long =>
           logger info s"Overwriting sleep time to $time"
-          st = time
+          period = time
       }
     }
     set.valueOf(amqServerOpt) match {
@@ -73,7 +87,14 @@ object BalboaAgent extends App with Config {
     }
 
     logger info "Starting Balboa Agent"
-    new MetricConsumer(dataDir, st, amqServer, amqQueue).run()
+    val future: ScheduledFuture[_] = scheduler.scheduleAtFixedRate(
+      new MetricConsumer(dataDir, MetricJmsQueue.getInstance(amqServer, amqQueue)),
+      INITIAL_DELAY, period, TimeUnit.MILLISECONDS)
+
+    // TODO Add Shutdown hook.
+    Runtime.getRuntime.addShutdownHook(new Thread() {
+      override def run(): Unit = future.cancel(INTERRUPT_EXISTING_CONSUMER)
+    })
   }
 
 

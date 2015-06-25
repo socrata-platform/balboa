@@ -13,8 +13,13 @@ import java.util.Map;
 public class MetricFileQueue extends AbstractJavaMetricQueue {
     private static final Logger log = LoggerFactory.getLogger(MetricFileQueue.class);
 
+    /*
+    TODO clearly evident requirement for restricted write access to data logs but adhoc over use of singleton instances.
+    TODO Singleton are impractical in this situation.
+     */
+
     /**
-     * Mapping between directories and Metric File Queues
+     * Mapping between directories and Metric File Queues.
      */
     private static Map<File, MetricFileQueue> instances = new HashMap<>();
     private static long MAX_METRICS_PER_FILE = 20000;
@@ -27,20 +32,13 @@ public class MetricFileQueue extends AbstractJavaMetricQueue {
     private BufferedOutputStream stream = null;
 
     private MetricFileQueue(File directory) {
-        this(directory, "");
-    }
-
-    private MetricFileQueue(File directory, String namespace) {
-        this.directory = subdir(directory, namespace);
-    }
-
-    private static File subdir(File directory, String namespace) {
-        if (namespace == null) {
-            namespace = "";
+        if (directory == null || !directory.isDirectory()) {
+            throw new IllegalArgumentException("Illegal directory \"" + directory + "\". Cannot create Metrics File Queue.");
         }
-        if (namespace.isEmpty()) return directory;
-        else return new File(directory, namespace);
+
+        this.directory = directory;
     }
+
 
     public File getDirectory() {
         return directory;
