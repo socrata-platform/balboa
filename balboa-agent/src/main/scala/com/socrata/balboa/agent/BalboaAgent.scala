@@ -39,6 +39,8 @@ object BalboaAgent extends App with Config {
     logger info "Loading Balboa Agent Configuration!"
 
     var dataDir = dataDirectory(null)
+    // TODO Sleep time should not defaulted to Aggregate Granularity
+    // TODO Rename sleep time to period.
     var period = sleepTime(MetricQueue.AGGREGATE_GRANULARITY)
     var amqServer = activemqServer
     var amqQueue = activemqQueue
@@ -86,12 +88,12 @@ object BalboaAgent extends App with Config {
       case _ => // NOOP
     }
 
-    logger info "Starting Balboa Agent"
+    logger info s"Starting Balboa Agent.  Consuming metrics from ${dataDir.getAbsolutePath}.  " +
+      s"AMQ Server: ${amqServer}, AMQ Queue: ${amqQueue}"
     val future: ScheduledFuture[_] = scheduler.scheduleAtFixedRate(
       new MetricConsumer(dataDir, MetricJmsQueue.getInstance(amqServer, amqQueue)),
       INITIAL_DELAY, period, TimeUnit.MILLISECONDS)
 
-    // TODO Add Shutdown hook.
     Runtime.getRuntime.addShutdownHook(new Thread() {
       override def run(): Unit = future.cancel(INTERRUPT_EXISTING_CONSUMER)
     })
