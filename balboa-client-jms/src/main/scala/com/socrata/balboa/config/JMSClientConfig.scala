@@ -10,7 +10,7 @@ trait JMSClientConfig extends CoreClientConfig {
   /**
    * @return The address and port of the ActiveMQ Server to communicate to.
    */
-  def activemqServer: String = Configuration.get().getString(Keys.JMS_ACTIVEMQ_QUEUE, "failover:tcp://120.0.0.1:61616")
+  def activemqServer: String = Configuration.get().getString(Keys.JMS_ACTIVEMQ_SERVER, "failover:tcp://127.0.0.1:61616")
 
   /**
    * @return ActiveMQ Queue to publish to.
