@@ -30,7 +30,7 @@ object Balboa extends Build {
 
   lazy val balboaAgent = project("balboa-agent", None, BalboaAgent, balboaClientJMS, balboaCommon)
     .enablePlugins(UniversalPlugin)
-    .enablePlugins(JDebPackaging)
+    .enablePlugins(DebianPackaging)
 
   lazy val balboaClientCore = project("balboa-client-core", Some("balboa-client"), BalboaClient,
     balboaCommon % "test->test;compile->compile")
