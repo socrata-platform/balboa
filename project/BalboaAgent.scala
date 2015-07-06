@@ -19,7 +19,8 @@ object BalboaAgent {
       }
       filtered :+ (fatJar -> ("bin/" + fatJar.getName))
     },
-    debianPackageDependencies in debian.DebianPlugin.autoImport.Debian := Seq("openjdk-7-jre-headless")
+    debianPackageDependencies in debian.DebianPlugin.autoImport.Debian := Seq(),
+    debianPackageRecommends in debian.DebianPlugin.autoImport.Debian := Seq("openjdk-7-jre-headless")
   )
 
   def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
