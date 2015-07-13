@@ -15,6 +15,7 @@ object BalboaService {
    */
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings(assembly = true) ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},
+    parallelExecution in Test := false,
     mergeStrategy in assembly := {
       case "config/config.properties" => MergeStrategy.last
       case x =>
@@ -23,7 +24,7 @@ object BalboaService {
     }
   )
 
-  def libraries(implicit scalaVersion: String) = Seq(
+  def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
     // Add dependencies for base Services.
   )
 
@@ -43,7 +44,7 @@ object BalboaJms {
       </xml.group>
   )
 
-  def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
+  def libraries(implicit scalaVersion: String) = BalboaService.libraries ++ Seq(
     activemq
     // Add more dependencies for JMS Service here...
   )
@@ -78,5 +79,5 @@ object BalboaKafka {
     parallelExecution in Test := false
   )
 
-  def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ BalboaKafkaCommon.libraries
+  def libraries(implicit scalaVersion: String) = BalboaService.libraries ++ BalboaKafkaCommon.libraries
 }
