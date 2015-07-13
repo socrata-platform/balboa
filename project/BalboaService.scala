@@ -15,6 +15,7 @@ object BalboaService {
    */
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings(assembly = true) ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},
+    parallelExecution in Test := false,
     mergeStrategy in assembly := {
       case "config/config.properties" => MergeStrategy.last
       case x =>
