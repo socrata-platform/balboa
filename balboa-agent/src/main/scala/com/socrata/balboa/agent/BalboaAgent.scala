@@ -33,69 +33,66 @@ object BalboaAgent extends App with Config {
    * Is it appropiate to stop an existing Metric Consumer task.
    */
   private val INTERRUPT_EXISTING_CONSUMER = false
+  logger info "Loading Balboa Agent Configuration!"
 
-  override def main(args: Array[String]): Unit = {
+  var dataDir = dataDirectory(null)
+  // TODO Sleep time should not defaulted to Aggregate Granularity
+  // TODO Rename sleep time to period.
+  var period = sleepTime(MetricQueue.AGGREGATE_GRANULARITY)
+  var amqServer = activemqServer
+  var amqQueue = activemqQueue
 
-    logger info "Loading Balboa Agent Configuration!"
+  val optParser: OptionParser = new OptionParser()
+  // Can use a single configuration file for all command line application.
+  val fileOpt = optParser.accepts(CLIParamKeys.dataDir, "Directory that contains Metrics Data.")
+    .withRequiredArg()
+    .ofType(classOf[File])
+  val sleepOpt = optParser.accepts(CLIParamKeys.sleepTime, "Scheduled amount of time (ms) that the service will sleep before restarting.")
+    .withRequiredArg()
+    .ofType(classOf[Long])
+  val amqServerOpt = optParser.accepts(CLIParamKeys.amqServer, "Active MQ Server to connect to.")
+    .withRequiredArg()
+    .ofType(classOf[String])
+  val amqQueueOpt = optParser.accepts(CLIParamKeys.amqQueue, "Active MQ Queue to publish to.")
+    .withRequiredArg()
+    .ofType(classOf[String])
 
-    var dataDir = dataDirectory(null)
-    var period = sleepTime(MetricQueue.AGGREGATE_GRANULARITY)
-    var amqServer = activemqServer
-    var amqQueue = activemqQueue
-
-    val optParser: OptionParser = new OptionParser()
-    // Can use a single configuration file for all command line application.
-    val fileOpt = optParser.accepts(CLIParamKeys.dataDir, "Directory that contains Metrics Data.")
-      .withRequiredArg()
-      .ofType(classOf[File])
-    val sleepOpt = optParser.accepts(CLIParamKeys.sleepTime, "Scheduled amount of time (ms) that the service will sleep before restarting.")
-      .withRequiredArg()
-      .ofType(classOf[Long])
-    val amqServerOpt = optParser.accepts(CLIParamKeys.amqServer, "Active MQ Server to connect to.")
-      .withRequiredArg()
-      .ofType(classOf[String])
-    val amqQueueOpt = optParser.accepts(CLIParamKeys.amqQueue, "Active MQ Queue to publish to.")
-      .withRequiredArg()
-      .ofType(classOf[String])
-
-    // Overwrite properties with any Command Line Arguments.
-    val set: OptionSet = optParser.parse(args: _*)
-    set.valueOf(fileOpt) match {
-      case d: File =>
-        logger info s"Overwriting directory to ${d.getAbsolutePath}"
-        dataDir = d
-      case _ => // NOOP
+  // Overwrite properties with any Command Line Arguments.
+  val set: OptionSet = optParser.parse(args: _*)
+  set.valueOf(fileOpt) match {
+    case d: File =>
+      logger info s"Overwriting directory to ${d.getAbsolutePath}"
+      dataDir = d
+    case _ => // NOOP
+  }
+  if (set.has(sleepOpt)) {
+    set.valueOf(sleepOpt) match {
+      case time: Long =>
+        logger info s"Overwriting sleep time to $time"
+        period = time
     }
-    if (set.has(sleepOpt)) {
-      set.valueOf(sleepOpt) match {
-        case time: Long =>
-          logger info s"Overwriting sleep time to $time"
-          period = time
-      }
-    }
-    set.valueOf(amqServerOpt) match {
-      case s: String =>
-        logger info s"Overwriting AMQ Server to $s"
-        amqServer = s
-      case _ => // NOOP
-    }
-    set.valueOf(amqQueueOpt) match {
-      case s: String =>
-        logger info s"Overwriting AMQ Queue to $s"
-        amqQueue = s
-      case _ => // NOOP
-    }
-
-    logger info "Starting Balboa Agent"
-    val future: ScheduledFuture[_] = scheduler.scheduleAtFixedRate(
-      new MetricConsumer(dataDir, MetricJmsQueue.getInstance(amqServer, amqQueue)),
-      INITIAL_DELAY, period, TimeUnit.MILLISECONDS)
-
-    // TODO Add Shutdown hook.
-    Runtime.getRuntime.addShutdownHook(new Thread() {
-      override def run(): Unit = future.cancel(INTERRUPT_EXISTING_CONSUMER)
-    })
+  }
+  set.valueOf(amqServerOpt) match {
+    case s: String =>
+      logger info s"Overwriting AMQ Server to $s"
+      amqServer = s
+    case _ => // NOOP
+  }
+  set.valueOf(amqQueueOpt) match {
+    case s: String =>
+      logger info s"Overwriting AMQ Queue to $s"
+      amqQueue = s
+    case _ => // NOOP
   }
 
+  logger info s"Starting Balboa Agent.  Consuming metrics from ${dataDir.getAbsolutePath}.  " +
+    s"AMQ Server: ${amqServer}, AMQ Queue: ${amqQueue}"
+  val future: ScheduledFuture[_] = scheduler.scheduleAtFixedRate(
+    new MetricConsumer(dataDir, MetricJmsQueue.getInstance(amqServer, amqQueue)),
+    INITIAL_DELAY, period, TimeUnit.MILLISECONDS)
+
+  Runtime.getRuntime.addShutdownHook(new Thread() {
+    override def run(): Unit = future.cancel(INTERRUPT_EXISTING_CONSUMER)
+  })
 
 }

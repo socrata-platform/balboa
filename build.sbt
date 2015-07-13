@@ -8,3 +8,5 @@ packageDescription :=
   """
     |Internal Metrics System.
   """.stripMargin
+
+debianPackageDependencies in Debian := Seq("openjdk-7-jre-headless")
