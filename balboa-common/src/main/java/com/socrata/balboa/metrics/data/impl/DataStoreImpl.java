@@ -9,18 +9,16 @@ public abstract class DataStoreImpl implements DataStore
     private static final Logger log = LoggerFactory.getLogger(DataStoreImpl.class);
 
     public void heartbeat() {
-        // noop
+        log.debug("Heartbeating datastore");
     }
 
     public void onStart() {
-        log.error("Received start message from watchdog");
+        log.debug("Received start message from watchdog");
     }
 
-    public void onStop() {
-        log.error("Recieved stop message from watchdog");
-    }
+    public void onStop() { log.debug("Recieved stop message from watchdog"); }
 
     public void ensureStarted() {
-        //noop
+        log.debug("Ensuring started datastore");
     }
 }

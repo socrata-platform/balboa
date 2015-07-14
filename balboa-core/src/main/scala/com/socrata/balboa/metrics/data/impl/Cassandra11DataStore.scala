@@ -1,5 +1,6 @@
 package com.socrata.balboa.metrics.data.impl
 
+import java.util.Date
 import java.{util => ju}
 
 import com.socrata.balboa.metrics.Metric.RecordType
@@ -7,6 +8,7 @@ import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.metrics.data.{DateRange, Period, QueryOptimizer}
 import com.socrata.balboa.metrics.{Metric, Metrics, Timeslice}
 import org.apache.commons.logging.LogFactory
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
@@ -18,7 +20,7 @@ import scala.collection.JavaConverters._
  */
 class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext()))
   extends DataStoreImpl {
-  private val log = LogFactory.getLog(classOf[Cassandra11DataStore])
+  private val log = LoggerFactory.getLogger(classOf[Cassandra11DataStore])
   private val timeSvc = new TimeService()
 
 
@@ -145,6 +147,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
    * persist applies correctly to all supported tiers.
    */
   def persist(entityId: String, timestamp: Long, metrics: Metrics) {
+    log.debug("Starting persist: " + entityId + " timestamp: " + new Date(timestamp).toGMTString + " Metrics: " + metrics.toString)
     // Sort the metrics into aggregates/absolutes
     val absolutes = scala.collection.mutable.HashMap[String, Metric]()
     val aggregates = scala.collection.mutable.HashMap[String, Metric]()

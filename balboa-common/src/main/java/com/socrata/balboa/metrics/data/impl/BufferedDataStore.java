@@ -59,10 +59,13 @@ public class BufferedDataStore extends DataStoreImpl {
     }
 
     public void heartbeat() {
+        log.debug("Hearbeating from BufferedDataStore");
         long timestamp = timeService.currentTimeMillis();
         long nearestSlice = timestamp - (timestamp % AGGREGATE_GRANULARITY);
-        if (nearestSlice <= currentSlice)
+        if (nearestSlice <= currentSlice) {
+            log.debug("Not doing anything");
             return;
+        }
         try {
             flushExpired(timestamp);
         } catch(IOException e) {
@@ -73,7 +76,9 @@ public class BufferedDataStore extends DataStoreImpl {
 
     public void flushExpired(long timestamp) throws IOException {
         synchronized (buffer) {
+            log.debug("Check if flush expired:" + new Date(timestamp).toGMTString());
             long nearestSlice = timestamp - (timestamp % AGGREGATE_GRANULARITY);
+            log.debug("Nearest Slice: " + Long.toString(nearestSlice) + " Current Slice: " + Long.toString(currentSlice));
             if (nearestSlice > currentSlice) {
                 log.info("Flushing " + buffer.size() + " entities to underlying datastore from the last " + AGGREGATE_GRANULARITY + "ms");
                 // flush metrics
@@ -84,7 +89,9 @@ public class BufferedDataStore extends DataStoreImpl {
                     underlying.persist(entity, currentSlice, buffer.get(entity));
                 }
                 buffer.clear();
+                log.debug("Cleared buffer");
                 currentSlice = nearestSlice;
+                log.debug("New current slice: " + Long.toString(currentSlice));
             }
         }
     }
@@ -92,12 +99,14 @@ public class BufferedDataStore extends DataStoreImpl {
     public void persist(String entityId, long timestamp, Metrics metrics) throws IOException {
         synchronized (buffer) {
             if (timestamp < currentSlice) {
+                log.debug("Persisting");
                 // Metrics older than our current slice do not get aggregated.
                 underlying.persist(entityId, timestamp, metrics);
                 return;
             }
             flushExpired(timestamp);
             Metrics existing = buffer.get(entityId);
+            log.debug("Buffering");
             if (existing != null) {
                 existing.merge(metrics);
             } else {
@@ -133,6 +142,7 @@ public class BufferedDataStore extends DataStoreImpl {
 
     @Override
     public void onStop() {
+        log.debug("Stopping BufferedDataStore");
         heartbeat();
     }
 }
