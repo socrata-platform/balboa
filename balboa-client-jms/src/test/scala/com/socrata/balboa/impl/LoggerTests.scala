@@ -5,9 +5,9 @@ import com.socrata.metrics.MetricQueue
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{MetricEnqueuer, MetricEntry}
 import org.scalatest.WordSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 
-class MetricLoggerSpec extends WordSpec with ShouldMatchers with MetricLoggerToQueue {
+class MetricLoggerSpec extends WordSpec with Matchers with MetricLoggerToQueue {
 
   override val delay = 1L
   override val interval =1L

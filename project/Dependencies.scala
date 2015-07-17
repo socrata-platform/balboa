@@ -1,6 +1,5 @@
 import sbt._
 
-
 /**
  * Singleton Container for the entire builds dependencies and versions.
  * <br>
@@ -26,7 +25,6 @@ object Dependencies {
     val opencsv = "2.0.1"
     val protobuf_java = "2.3.0"
     val rojoma_json = "[2.1.0, 3.0.0)"
-    val scalatest = "[1.8, 1.9.1)"
     val scala_logging = "2.1.2"
     val slf4j_log4j = "1.7.12"
     val scopt = "3.3.0"
@@ -64,10 +62,8 @@ object Dependencies {
   val opencsv = "net.sf.opencsv" % "opencsv" % versions.opencsv
   val protobuf_java = "com.google.protobuf" % "protobuf-java" % versions.protobuf_java
   val rojoma_json = "com.rojoma" %% "rojoma-json" % versions.rojoma_json
-  val scala_test = "org.scalatest" %% "scalatest" % versions.scalatest % "test"
   val scopt = "com.github.scopt" %% "scopt" % versions.scopt
   val simple_arm = "com.rojoma" %% "simple-arm" % versions.simple_arm
   val socrata_http = "com.socrata" %% "socrata-http" % versions.socrata_http
   val socrata_utils = "com.socrata" %% "socrata-utils" % versions.socrata_utils
-
 }

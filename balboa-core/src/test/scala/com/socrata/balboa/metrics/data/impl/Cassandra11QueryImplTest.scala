@@ -16,7 +16,7 @@ import org.junit.{Ignore, Test}
 class Cassandra11QueryImplTest {
   @Test
   @Ignore("Requires a local cassandra server and should be executed in isolation")
-  def testFetchSet {
+  def testFetchSet(): Unit = {
     val q:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext())
     q.persist("mykey", DateRange.create(Period.HOURLY,new Date(1000)).start, Period.HOURLY,
       Map("mymetric1" -> new Metric(RecordType.AGGREGATE, 1), "mymetric2" -> new Metric(RecordType.AGGREGATE, 555)),
@@ -27,7 +27,7 @@ class Cassandra11QueryImplTest {
 
   @Test
   @Ignore("Requires a local cassandra server and should be executed in isolation")
-  def testGetKeys {
+  def testGetKeys(): Unit = {
     val keysItr:Iterator[String] = new Cassandra11QueryImpl(Cassandra11Util.initializeContext()).getAllEntityIds(RecordType.AGGREGATE, Period.HOURLY)
     keysItr.foreach(println)
   }

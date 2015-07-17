@@ -1,6 +1,7 @@
-addSbtPlugin("com.socrata" % "socrata-cloudbees-sbt" % "1.3.4")
+resolvers := Seq(
+  "socrata maven" at "https://repository-socrata-oss.forge.cloudbees.com/release"
+)
 
-addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.7.4")
-
+addSbtPlugin("com.socrata" % "socrata-sbt-plugins" % "1.5.3")
 // Sbt Native Packager
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.0.4")

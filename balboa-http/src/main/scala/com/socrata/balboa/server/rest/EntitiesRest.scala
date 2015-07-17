@@ -32,7 +32,7 @@ object EntitiesRest extends Service[HttpServletRequest, HttpResponse] {
 
     val mapper = new ObjectMapper
     mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true)
-    mapper.getSerializationConfig.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
+    mapper.getSerializationConfig.withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
 
     OK ~> ContentType("application/json; charset=utf-8") ~> Content(mapper.writeValueAsString(limitedIt.asJava))
   }

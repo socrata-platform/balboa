@@ -15,7 +15,7 @@ public interface DataStore extends WatchDog.WatchDogListener
      * string matches. You probably don't want to use this, because it's
      * terribly slow and possibly dangerous.
      */
-    @Deprecated
+    // TODO: @Deprecated ?
     public Iterator<String> entities(String pattern) throws IOException;
 
     /**
@@ -24,7 +24,7 @@ public interface DataStore extends WatchDog.WatchDogListener
      * very expensive and you probably don't want to use it unless you know
      * what you're doing.
      */
-    @Deprecated
+    // TODO: @Deprecated ?
     public Iterator<String> entities() throws IOException;
 
     /**
