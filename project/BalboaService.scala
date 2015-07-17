@@ -33,7 +33,6 @@ object BalboaService {
  */
 object BalboaJms {
   lazy val settings: Seq[Setting[_]] = BalboaService.settings ++ Seq(
-    mainClass in assembly := Some("com.socrata.balboa.jms.BalboaJms"),
     libraryDependencies <++= scalaVersion {libraries(_)}
   )
 
@@ -48,7 +47,6 @@ object BalboaJms {
  */
 object BalboaKafka {
   lazy val settings: Seq[Setting[_]] = BalboaService.settings ++ Seq(
-    mainClass in assembly := Some("com.socrata.balboa.service.kafka.BalboaKafkaConsumerCLI"),
     libraryDependencies <++= scalaVersion {libraries(_)},
     parallelExecution in Test := false
   )
