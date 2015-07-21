@@ -52,7 +52,7 @@ class APersist(val entityKey:String, val period:Period, val agg:sc.Map[String, M
   }
 }
 
-class AFetch(val entityKey:String, val period:Period) extends Ordered[AFetch] {
+class AFetch(val entityKey:String, val period:Period) {
   override def equals(obj:Any) = {
     if (!obj.isInstanceOf[AFetch]) false
     else {
@@ -64,8 +64,6 @@ class AFetch(val entityKey:String, val period:Period) extends Ordered[AFetch] {
   override def toString():String = {
     return "FETCH: entityKey: " + entityKey + " period:" + period
   }
-
-  def compare(that:AFetch) =  if (that.period.compareTo(this.period) == 0) (that.entityKey.compare(this.entityKey)) else that.period.compareTo(this.period)
 }
 
 class AEntitySearch(val recordType:RecordType, val period:Period) extends Ordered[AEntitySearch]{
