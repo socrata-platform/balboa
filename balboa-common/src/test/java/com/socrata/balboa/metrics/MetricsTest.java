@@ -99,7 +99,7 @@ public class MetricsTest
     }
 
     @Test
-    public void testMergeAbsolute() throws Exception
+    public void testMergeAbsoluteEmpty() throws Exception
     {
         Metrics m1 = new Metrics();
         Metrics m2 = new Metrics();
@@ -112,5 +112,18 @@ public class MetricsTest
 
         m1.merge(m2);
         Assert.assertEquals(1, m1.get("hello").getValue());
+    }
+
+    @Test
+    public void testMergeAbsolute()
+    {
+        Metrics m1 = new Metrics();
+        Metrics m2 = new Metrics();
+        m1.put("hello", new Metric(Metric.RecordType.ABSOLUTE, 1));
+        m2.put("hello", new Metric(Metric.RecordType.ABSOLUTE, 2));
+
+        m1.merge(m2);
+
+        Assert.assertEquals(2, m1.get("hello").getValue());
     }
 }
