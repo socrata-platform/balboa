@@ -29,6 +29,10 @@ public class QueryOptimizerTest
         cal.set(Calendar.MILLISECOND, 999);
         end = cal.getTime();
 
+        Assert.assertEquals(3, result.size());
+        Assert.assertEquals(2, result.get(Period.HOURLY).size());
+        Assert.assertEquals(1, result.get(Period.DAILY).size());
+        Assert.assertEquals(1, result.get(Period.MONTHLY).size());
         Assert.assertEquals(new DateRange(start, end), result.get(Period.MONTHLY).iterator().next());
     }
     
@@ -45,6 +49,7 @@ public class QueryOptimizerTest
         QueryOptimizer o  = new QueryOptimizer();
         Map<Period, Set<DateRange>> result = o.optimalSlices(start, end);
         Assert.assertEquals(1, result.size());
+        Assert.assertTrue(result.containsKey(Period.HOURLY));
     }
 
     @Test

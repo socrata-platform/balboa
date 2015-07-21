@@ -22,6 +22,11 @@ public class QueryOptimizer {
         return current;
     }
 
+    /**
+     * Determine the optimal way to cover the range [start, end] using available Period types.
+     * @param type maximum granularity to consider
+     * @param results a map to fill in, indicating which sub-ranges should be covered by which Period type.
+     */
     void optimize(Date start, Date end, Period type, Map<Period, Set<DateRange>> results) {
         // Check to see if you're finishing pinching...
         if (type == null || type == Period.FOREVER || start.after(end)) {

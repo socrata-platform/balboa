@@ -315,7 +315,7 @@ public class DateRange {
     /**
      * Create a second range for a given time. So if the date is
      * "2010-05-28 16:14:08:594" then the returned range would be
-     * (2010-05-28 16:14:08:000 -> 2010-05-28 16:14:08:000).
+     * (2010-05-28 16:14:08:000 -> 2010-05-28 16:14:08:999).
      */
     static DateRange createSecondly(Date date) {
         Calendar start = new GregorianCalendar();
