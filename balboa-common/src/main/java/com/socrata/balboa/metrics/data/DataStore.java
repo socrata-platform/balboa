@@ -51,17 +51,17 @@ public interface DataStore extends WatchDog.WatchDogListener
     public Iterator<Metrics> find(String entityId, Period period, Date date) throws IOException;
 
     /**
-     * Find all the summaries of a particular tier between start and end. This
-     * is not necessarily the most optimal way to query for an arbitrary range
-     * and should only be used when you need to query a specific tier for some
-     * reason.
+     * Find all the summaries of a particular tier between start and end, ordered
+     * by date. This is not necessarily the most optimal way to query for an
+     * arbitrary range and should only be used when you need to query a specific
+     * tier for some reason.
      */
     public Iterator<Metrics> find(String entityId, Period period, Date start, Date end) throws IOException;
 
     /**
-     * Find the total summaries between two particular dates. The query
-     * optimizer should plan the query so that start and end align along a date
-     * date boundary of your most granular type.
+     * Find the total summaries between two particular dates, ordered by date.
+     * The query optimizer should plan the query so that start and end align
+     * along a date date boundary of your most granular type.
      *
      * @see com.socrata.balboa.metrics.data.Period
      */

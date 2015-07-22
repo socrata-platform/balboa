@@ -121,8 +121,8 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
    * If the period is not supported an exception will be thrown.
    */
   def find(entityId: String, period:Period, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = {
-    val dates = new DateRange(start, end).toDates(period).asScala
-    Cassandra11Util.metricsIterator(queryImpl, entityId, Map(period -> dates.toList)).asJava
+    val query = new DateRange(start, end).toDates(period).asScala.map(date => (date, period))
+    Cassandra11Util.metricsIterator(queryImpl, entityId, query).asJava
   }
 
   /**
@@ -135,7 +135,14 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
   def find(entityId: String, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = {
     val range:DateRange = new DateRange(start, end)
     val optimalSlices = new QueryOptimizer().optimalSlices(range.start, range.end).asScala
-    val query = optimalSlices.flatMap{ case (k,v) => Map(k -> v.asScala.map(_.toDates(k)).flatMap(i => i.asScala).toList)}.toMap
+    val query = {
+      for {
+        (period, ranges) <- optimalSlices.toSeq
+        range <- ranges.asScala
+        date <- range.toDates(period).asScala
+      } yield (date, period)
+    }.sorted
+
     // create the query set from the optimal slice
     Cassandra11Util.metricsIterator(queryImpl, entityId, query).asJava
   }

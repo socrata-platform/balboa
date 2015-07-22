@@ -105,13 +105,13 @@ class Cassandra11DataStoreTest {
       Assert.assertEquals(mock.metricsToReturn, itr.next())
     Assert.assertEquals(List(new AFetch("foo-2498400000", Period.HOURLY),
                              new AFetch("foo-2502000000", Period.HOURLY),
-                             new AFetch("foo-5270400000", Period.HOURLY),
-                             new AFetch("foo-5274000000", Period.HOURLY),
                              new AFetch("foo-2505600000", Period.DAILY),
                              new AFetch("foo-2592000000", Period.DAILY),
+                             new AFetch("foo-2678400000", Period.MONTHLY),
                              new AFetch("foo-5097600000", Period.DAILY),
                              new AFetch("foo-5184000000", Period.DAILY),
-                             new AFetch("foo-2678400000", Period.MONTHLY)).sorted,  mock.fetches.sorted)
+                             new AFetch("foo-5270400000", Period.HOURLY),
+                             new AFetch("foo-5274000000", Period.HOURLY)),  mock.fetches)
   }
 
   @Test
@@ -209,13 +209,13 @@ class Cassandra11DataStoreTest {
     // Should still try fetching the same data
     Assert.assertEquals(List(new AFetch("foo-2498400000", Period.HOURLY),
       new AFetch("foo-2502000000", Period.HOURLY),
-      new AFetch("foo-5270400000", Period.HOURLY),
-      new AFetch("foo-5274000000", Period.HOURLY),
       new AFetch("foo-2505600000", Period.DAILY),
       new AFetch("foo-2592000000", Period.DAILY),
+      new AFetch("foo-2678400000", Period.MONTHLY),
       new AFetch("foo-5097600000", Period.DAILY),
       new AFetch("foo-5184000000", Period.DAILY),
-      new AFetch("foo-2678400000", Period.MONTHLY)).sorted,  mock.fetches.sorted)
+      new AFetch("foo-5270400000", Period.HOURLY),
+      new AFetch("foo-5274000000", Period.HOURLY)),  mock.fetches)
   }
 
   def rollUpIteratorTest(requestPeriod:Period, supportedPeriod:Period, startMS:Long, endMS:Long) {

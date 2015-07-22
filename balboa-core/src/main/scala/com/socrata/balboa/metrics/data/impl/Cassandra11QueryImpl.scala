@@ -65,7 +65,8 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
   def fetch_cf(recordType: RecordType, entityKey: String, period: Period) = {
     fastfail.proceedOrThrow()
     try {
-      val retVal: OperationResult[com.netflix.astyanax.model.ColumnList[String]] = context.getEntity.prepareQuery(Cassandra11Util.getColumnFamily(period, recordType))
+      val retVal: OperationResult[com.netflix.astyanax.model.ColumnList[String]] = context.getEntity
+        .prepareQuery(Cassandra11Util.getColumnFamily(period, recordType))
         .setConsistencyLevel(ConsistencyLevel.CL_ONE)
         .withRetryPolicy(new ExponentialBackoff(250, 5))
         .getKey(entityKey)

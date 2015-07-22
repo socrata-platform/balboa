@@ -70,11 +70,10 @@ object Cassandra11Util {
     }.filter(_ != null)
   }
 
-  def metricsIterator(queryImpl:Cassandra11Query, entityId:String, query:sc.Map[Period, List[ju.Date]]) = {
+  def metricsIterator(queryImpl:Cassandra11Query, entityId:String, query:sc.Seq[(ju.Date, Period)]) = {
     {
       for {
-        (period, dates) <- query.iterator
-        date <- dates.iterator
+        (date, period) <- query.iterator
       } yield queryImpl.fetch(entityId, period, date)
     }.filter(_ != null)
   }
