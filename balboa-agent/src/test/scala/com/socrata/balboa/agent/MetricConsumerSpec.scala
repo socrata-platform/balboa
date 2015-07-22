@@ -8,7 +8,7 @@ import com.socrata.metrics.{MetricIdParts, MetricQueue}
 import org.mockito.Matchers
 import org.mockito.Mockito._
 import org.scalatest.WordSpec
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.ShouldMatchers
 import org.scalatest.mock.MockitoSugar
 
 /**
