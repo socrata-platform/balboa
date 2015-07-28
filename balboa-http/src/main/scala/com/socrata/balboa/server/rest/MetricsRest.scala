@@ -142,6 +142,8 @@ object MetricsRest {
     }
   }
 
+  def latest(req: HttpServletRequest): HttpResponse = ???
+
   // ok, so this isn't actually correct.  Screw correct, I just want this to work.
   def bestMediaType(req: HttpServletRequest, types: String*): Option[String] = {
     val accepts = req.getHeaders("accept").asScala.map(_.toString).toSeq

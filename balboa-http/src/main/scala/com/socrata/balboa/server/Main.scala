@@ -23,6 +23,7 @@ object Main {
     new SimpleRoute(Set(HttpMethods.GET), "entities") -> EntitiesRest,
     new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r, "range") -> MetricsRest.range,
     new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r, "series") -> MetricsRest.series,
+    new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r, "latest") -> MetricsRest.latest,
     new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r) -> MetricsRest.get
   )
 
