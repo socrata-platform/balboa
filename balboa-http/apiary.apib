@@ -1,0 +1,115 @@
+FORMAT: 1A
+
+# Balboa HTTP API
+
+# Group Metrics
+
+Queries return information on every metric stored for the given entity.
+Metric name is a particular, tracked metric within an entity.
+Metrics can be either aggregate metrics (accumulated within a period) or absolute (replaced within a period).
+
+## Range Queries [GET /metrics/{entity}/range{?start,end}]
+
+Get metric changes across a time range. Takes the start and end of the desired range.
+
++ Parameters
+    + entity (string)
+    + start (date) - YYYY-MM-DD HH:MM:SS:mmmm
+    + end (date) - YYYY-MM-DD HH:MM:SS:mmmm
+
++ Response 200 (application/json)
+
+        {
+          {metric name 1}: {
+            value: {aggregate value for range},
+            type: "{aggregate|absolute}"
+          },
+          {metric name 2} {... }
+          ...
+          {metric name n} {... }
+        }
+
+## Series Queries [GET /metrics/{entity}/series{?start,end,period}]
+
+Get a series of metric values across a time range, at a given granularity.
+Most useful for aggregate metrics.
+
++ Parameters
+    + entity (string)
+    + start (date) - YYYY-MM-DD HH:MM:SS:mmmm
+    + end (date) - YYYY-MM-DD HH:MM:SS:mmmm
+    + period (enum[string])
+        + Members
+            + `YEARLY`
+            + `MONTHLY`
+            + `DAILY`
+            + `HOURLY`
+            + `FIFTEEN_MINUTE`
+
++ Response 200 (application/json)
+
+        [
+           {
+              start: {time0:start},
+              end: {time1},
+              metrics: { }
+           },
+           {
+              start: {time1},
+              end: {time2},
+              metrics: { }
+           },
+        ...
+           {
+              start: {time n-1},
+              end: {time n:end},
+              metrics: { }
+           },
+        ]
+
+## Latest Queries [GET /metrics/{entity}/latest{?end}]
+
+Get the current metric values through a given point in time.
+For aggregate metrics, this is the sum of all values preceding the given time.
+For absolute metrics, this is the value most closely preceding the given time.
+
++ Parameters
+    + entity (string)
+    + end (date)
+
++ Response 200 (application/json)
+
+        {
+          {metric name 1}: {
+            value: {aggregate value at time},
+            type: "{aggregate|absolute}"
+          },
+          {metric name 2} {... }
+          ...
+          {metric name n} {... }
+        }
+
+# Group Version
+
+## Version [GET /version]
+
+Retrieve the running software version.
+
++ Response 200 (application/json)
+
+        {
+          "version" : "0.16.7",
+          "revision" : "v0.16.7",
+          "scala" : "2.10.1"
+        }
+
+# Group Entities
+
+## Entities [GET /entities]
+
+Get a list of all entities for which there are metrics stored.
+
++ Response 200 (application/json)
+
+        [ "1", "2" ]
+
