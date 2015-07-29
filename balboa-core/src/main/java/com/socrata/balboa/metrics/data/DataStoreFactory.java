@@ -45,6 +45,11 @@ public class DataStoreFactory
                             new Cassandra11QueryImpl(
                                     Cassandra11Util.initializeContext(conf))));
         }
+
+        if (datastore.equals("memory"))
+        {
+            return new BadIdeasDataStore(new MemoryDataStore());
+        }
         else
         {
             throw new ConfigurationException("Unknown datastore '" + datastore + "'.");

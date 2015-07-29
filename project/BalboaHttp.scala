@@ -57,6 +57,7 @@ object BalboaHttp {
     junit,
     rojoma_json,
     simple_arm,
-    socrata_http
+    socrata_http,
+    scalatra_scalatest
   )
 }

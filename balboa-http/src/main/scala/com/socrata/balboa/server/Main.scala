@@ -1,6 +1,6 @@
 package com.socrata.balboa.server
 
-import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.server.rest.{EntitiesRest, MetricsRest, VersionRest}
@@ -13,11 +13,8 @@ import org.apache.log4j.PropertyConfigurator
 
 class Main
 
-object Main extends App {
-  // set up log4j
-  PropertyConfigurator.configure(Configuration.get)
-
-  val log = LazyStringLogger[Main]
+object Main {
+  lazy val log = LazyStringLogger[Main]
 
   type BalboaService = Service[HttpServletRequest, HttpResponse]
 
@@ -44,6 +41,16 @@ object Main extends App {
         NotFound ~> ContentType("application/json") ~> Content("{\"error\": 404, \"message\": \"Not found.\"}")
     }
 
-  val server = new SocrataServerJetty(logger andThen service, port = args(0).toInt)
-  server.run()
+  object Servlet extends HttpServlet {
+    override def service(req: HttpServletRequest, resp: HttpServletResponse): Unit =
+      Main.service(req)(resp)
+  }
+
+  def main(args: Array[String]) {
+    // set up log4j
+    PropertyConfigurator.configure(Configuration.get)
+
+    val server = new SocrataServerJetty(logger andThen service, port = args(0).toInt)
+    server.run()
+  }
 }
