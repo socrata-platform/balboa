@@ -66,7 +66,8 @@ object Dependencies {
   val scalatra_scalatest = "org.scalatra" %% "scalatra-scalatest" % versions.scalatra_scalatest % "test"
   val scopt = "com.github.scopt" %% "scopt" % versions.scopt
   val simple_arm = "com.rojoma" %% "simple-arm" % versions.simple_arm
-  val socrata_http = "com.socrata" %% "socrata-http" % versions.socrata_http
+  val socrata_http = "com.socrata" %% "socrata-http" % versions.socrata_http excludeAll
+    ExclusionRule("org.eclipse.jetty.orbit", "javax.servlet", configurations = Seq("test"))
   val socrata_utils = "com.socrata" %% "socrata-utils" % versions.socrata_utils
 
 

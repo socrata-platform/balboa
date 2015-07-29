@@ -48,6 +48,7 @@ object BalboaHttp {
     dependenciesSnippet :=
       <xml.group>
         <exclude org="javax.servlet" module="servlet-api" />
+        <exclude org="org.mortbay.jetty" module="servlet-api" conf="test" />
         <conflict org="com.socrata" manager="latest-compatible" />
         <conflict org="com.rojoma" manager="latest-compatible" />
       </xml.group>
