@@ -16,6 +16,8 @@ class MetricsRestTest extends ScalatraFunSuite {
   addServlet(Main.Servlet, "/*")
 
   val entity = "1"
+  val absoluteMetric = "datasets"
+  val aggregateMetric = "datasets-created"
 
   override protected def beforeAll(): Unit = {
     super.beforeAll()
@@ -25,15 +27,32 @@ class MetricsRestTest extends ScalatraFunSuite {
     val cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"))
     cal.set(2015, Calendar.JANUARY, 10)
 
-    ds.persist(entity, cal.getTimeInMillis, new Metrics(Map {
-      "datasets-v2-published" -> new Metric(Metric.RecordType.ABSOLUTE, 3)
-    }.asJava))
+    ds.persist(entity, cal.getTimeInMillis, new Metrics(Map(
+      absoluteMetric -> new Metric(Metric.RecordType.ABSOLUTE, 3),
+      aggregateMetric -> new Metric(Metric.RecordType.AGGREGATE, 2)
+    ).asJava))
+
+    cal.set(2015, Calendar.FEBRUARY, 10)
+
+    ds.persist(entity, cal.getTimeInMillis, new Metrics(Map(
+      absoluteMetric -> new Metric(Metric.RecordType.ABSOLUTE, 1),
+      aggregateMetric -> new Metric(Metric.RecordType.AGGREGATE, 4)
+    ).asJava))
   }
 
   test("range") {
     get(s"metrics/$entity/range?start=2015-01-01&end=2015-02-01") {
       status should equal (200)
-      JsonReader.fromString(body).dyn("datasets-v2-published").value.? should equal (Right(JNumber(3)))
+      val json = JsonReader.fromString(body)
+      json.dyn(absoluteMetric).value.? should equal (Right(JNumber(3)))
+      json.dyn(aggregateMetric).value.? should equal (Right(JNumber(2)))
+    }
+
+    get(s"metrics/$entity/range?start=2015-01-01&end=2015-03-01") {
+      status should equal (200)
+      val json = JsonReader.fromString(body)
+      json.dyn(absoluteMetric).value.? should equal (Right(JNumber(1)))
+      json.dyn(aggregateMetric).value.? should equal (Right(JNumber(6)))
     }
   }
 
