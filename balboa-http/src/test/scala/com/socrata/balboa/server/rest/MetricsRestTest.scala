@@ -2,8 +2,8 @@ package com.socrata.balboa.server.rest
 
 import java.util.{Calendar, GregorianCalendar, TimeZone}
 
-import com.rojoma.json.ast.JNumber
-import com.rojoma.json.io._
+import com.rojoma.json.v3.ast.JNumber
+import com.rojoma.json.v3.io.JsonReader
 import com.socrata.balboa.metrics.data.DataStoreFactory
 import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.balboa.server.Main
@@ -33,7 +33,7 @@ class MetricsRestTest extends ScalatraFunSuite {
   test("range") {
     get(s"metrics/$entity/range?start=2015-01-01&end=2015-02-01") {
       status should equal (200)
-      JsonReader(body).read().dynamic.`datasets-v2-published`.value.static should equal (JNumber(3))
+      JsonReader.fromString(body).dyn("datasets-v2-published").value.? should equal (Right(JNumber(3)))
     }
   }
 

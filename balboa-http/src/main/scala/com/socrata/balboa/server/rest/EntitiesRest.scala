@@ -3,7 +3,7 @@ package com.socrata.balboa.server.rest
 import java.util.regex.Pattern
 import javax.servlet.http.HttpServletRequest
 
-import com.rojoma.json.ast.JString
+import com.rojoma.json.v3.ast.JString
 import com.socrata.balboa.metrics.data.DataStoreFactory
 import com.socrata.http.server.implicits._
 import com.socrata.http.server.responses._

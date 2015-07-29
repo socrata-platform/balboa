@@ -4,7 +4,7 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 import javax.servlet.http.HttpServletRequest
 
-import com.rojoma.json.ast.JString
+import com.rojoma.json.v3.ast.JString
 import com.socrata.balboa.metrics.Metrics
 import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, Period}
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics

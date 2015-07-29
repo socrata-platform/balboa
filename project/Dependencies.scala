@@ -24,7 +24,7 @@ object Dependencies {
     val newman = "1.3.5"
     val opencsv = "2.0.1"
     val protobuf_java = "2.3.0"
-    val rojoma_json = "[2.1.0, 3.0.0)"
+    val rojoma_json = "[3.3.0, 4.0.0)"
     val scalatest = "[1.8, 1.9.1)"
     val scalatra_scalatest = "2.2.0"
     val scala_logging = "2.1.2"
@@ -61,7 +61,7 @@ object Dependencies {
   val newman = "com.stackmob" %% "newman" % versions.newman
   val opencsv = "net.sf.opencsv" % "opencsv" % versions.opencsv
   val protobuf_java = "com.google.protobuf" % "protobuf-java" % versions.protobuf_java
-  val rojoma_json = "com.rojoma" %% "rojoma-json" % versions.rojoma_json
+  val rojoma_json = "com.rojoma" %% "rojoma-json-v3" % versions.rojoma_json
   val scala_test = "org.scalatest" %% "scalatest" % versions.scalatest % "test"
   val scalatra_scalatest = "org.scalatra" %% "scalatra-scalatest" % versions.scalatra_scalatest % "test"
   val scopt = "com.github.scopt" %% "scopt" % versions.scopt
