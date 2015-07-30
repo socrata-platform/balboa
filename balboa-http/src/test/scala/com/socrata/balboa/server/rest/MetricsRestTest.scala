@@ -22,6 +22,7 @@ class MetricsRestTest extends ScalatraFunSuite {
   override protected def beforeAll(): Unit = {
     super.beforeAll()
 
+    System.clearProperty("socrata.env")
     val ds = DataStoreFactory.get()
 
     val cal = new GregorianCalendar(TimeZone.getTimeZone("UTC"))
