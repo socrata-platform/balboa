@@ -1,6 +1,6 @@
 package com.socrata.integration.kafka.util
 
-import com.socrata.balboa.common.kafka.codec.StringCodec
+import com.socrata.balboa.common.codec.StringCodec
 import org.junit.Assert._
 import org.junit.Test
 

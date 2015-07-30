@@ -1,6 +1,6 @@
 package com.blist.metrics.impl.queue;
 
-import com.socrata.balboa.metrics.Metric;
+import com.socrata.balboa.common.Metric;
 import com.socrata.metrics.AbstractMetricQueue;
 
 import java.util.Date;

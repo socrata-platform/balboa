@@ -3,6 +3,7 @@
 *.ipr
 *.swp
 *.iml
+*.jar
 balboa.i*
 target
 tmp

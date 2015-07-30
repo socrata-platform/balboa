@@ -2,8 +2,8 @@ package com.socrata.balboa.impl
 
 import java.io.File
 
-import com.socrata.balboa.config.KafkaClientConfig
-import com.socrata.balboa.metrics.util.AddressAndPort
+import com.socrata.balboa.common.AddressAndPort
+import com.socrata.balboa.producer.config.BalboaKafkaProducerConfig
 import com.socrata.metrics.config.EmergencyFileParameter
 
 /**
@@ -27,7 +27,7 @@ trait KafkaProducerInformation extends EmergencyFileParameter {
  * Kafka Configuration details that exclusively rely on configuration by property files.
  */
 trait ConfiguredKafkaProducerInfo extends KafkaProducerInformation {
-  override def brokers = KafkaClientConfig.brokers.toList
-  override lazy val topic = KafkaClientConfig.topic
-  override lazy val file: File = KafkaClientConfig.emergencyBackUpFile("kafka")
+  override def brokers = BalboaKafkaProducerConfig.brokers.toList
+  override lazy val topic = BalboaKafkaProducerConfig.topic
+  override lazy val file: File = BalboaKafkaProducerConfig.emergencyBackUpFile("kafka")
 }

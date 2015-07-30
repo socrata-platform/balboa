@@ -1,6 +1,6 @@
 package com.socrata.balboa.metrics.impl;
 
-import com.socrata.balboa.metrics.Message;
+import com.socrata.balboa.common.Message;
 
 import java.io.IOException;
 import java.util.ArrayList;

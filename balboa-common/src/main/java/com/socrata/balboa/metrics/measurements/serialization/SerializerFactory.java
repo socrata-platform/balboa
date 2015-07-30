@@ -1,7 +1,7 @@
 package com.socrata.balboa.metrics.measurements.serialization;
 
-import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.metrics.config.ConfigurationException;
+import com.socrata.balboa.common.config.Configuration;
+import com.socrata.balboa.common.config.ConfigurationException;
 
 import java.io.IOException;
 

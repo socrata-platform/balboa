@@ -1,8 +1,8 @@
 package com.socrata.balboa.metrics.data;
 
-import com.socrata.balboa.metrics.Metrics;
-import com.socrata.balboa.metrics.Timeslice;
-import com.socrata.balboa.metrics.WatchDog;
+import com.socrata.balboa.common.Metrics;
+import com.socrata.balboa.common.Timeslice;
+import com.socrata.balboa.common.WatchDog;
 
 import java.io.IOException;
 import java.util.Date;

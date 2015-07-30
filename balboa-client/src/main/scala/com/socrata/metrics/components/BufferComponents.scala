@@ -1,6 +1,6 @@
 package com.socrata.metrics.components
 
-import com.socrata.balboa.metrics.Metrics
+import com.socrata.balboa.common.Metrics
 
 case class BufferItem(entityId:String, metrics:Metrics, timestamp:Long)
 

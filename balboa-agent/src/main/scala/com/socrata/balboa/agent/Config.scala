@@ -2,8 +2,8 @@ package com.socrata.balboa.agent
 
 import java.io.File
 
-import com.socrata.balboa.config.JMSClientConfig
-import com.socrata.balboa.metrics.config.Configuration
+import com.socrata.balboa.common.config.Configuration
+import com.socrata.balboa.producer.config.JMSClientConfig
 
 object Keys {
 

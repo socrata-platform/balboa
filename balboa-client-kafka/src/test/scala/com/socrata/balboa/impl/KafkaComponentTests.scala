@@ -2,11 +2,9 @@ package com.socrata.balboa.impl
 
 import java.io.File
 
-import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
-import com.socrata.balboa.common.kafka.util.StagingAndRCEnvironment
-import com.socrata.balboa.metrics.Message
-import com.socrata.balboa.metrics.util.AddressAndPort
-import com.socrata.balboa.util.MetricsTestStuff
+import com.socrata.balboa.common.codec.{BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.kafka.TestEnvironment
+import com.socrata.balboa.common.{AddressAndPort, Message, MetricsTestStuff}
 import com.socrata.integration.kafka.util.{BalboaClientTestUtils, BalboaMessageClientTestHarness}
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MessageQueueComponent}
 import org.junit.Assert._
@@ -20,9 +18,9 @@ import scala.collection.mutable.Queue
 class KafkaComponentTests extends BalboaMessageClientTestHarness
 with MetricsTestStuff.TestMessages with MetricLoggerToKafka {
 
-  override val numPartitions: Int = StagingAndRCEnvironment.NUM_PARTITIONS
-  override val replicationFactor: Int = StagingAndRCEnvironment.REPLICATION_FACTOR
-  override val serverCount: Int = StagingAndRCEnvironment.SERVER_COUNT
+  override val numPartitions: Int = TestEnvironment.NUM_PARTITIONS
+  override val replicationFactor: Int = TestEnvironment.REPLICATION_FACTOR
+  override val serverCount: Int = TestEnvironment.SERVER_COUNT
 
   override val producerCount: Int = 0 // Creating producers manually.
   override val consumerCount: Int = 1

@@ -1,5 +1,7 @@
 package com.socrata.balboa.metrics;
 
+import com.socrata.balboa.common.Metric;
+import com.socrata.balboa.common.Metrics;
 import junit.framework.Assert;
 import org.junit.Test;
 

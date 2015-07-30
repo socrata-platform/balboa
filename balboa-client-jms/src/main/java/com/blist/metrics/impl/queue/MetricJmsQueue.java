@@ -1,10 +1,10 @@
 package com.blist.metrics.impl.queue;
 
-import com.socrata.balboa.metrics.Metric;
-import com.socrata.metrics.IdParts;
+import com.socrata.balboa.common.IdParts;
+import com.socrata.balboa.common.Metric;
+import com.socrata.balboa.common.logging.JavaBalboaLogging;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
@@ -12,7 +12,9 @@ import javax.jms.JMSException;
 
 /** Prefer to use MetricJmsQueueNotSingleton if possible. */
 public class MetricJmsQueue extends AbstractJavaMetricQueue {
-    private static final Logger log = LoggerFactory.getLogger(MetricJmsQueue.class);
+
+    private static final Logger log = JavaBalboaLogging.instance(MetricJmsQueue.class);
+
     private static volatile MetricJmsQueue instance;
     private static boolean loggedFailToCreateOnce = false;
     private final ConnectionFactory factory;

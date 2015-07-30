@@ -1,9 +1,9 @@
 package com.socrata.metrics.producer
 
-import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
-import com.socrata.balboa.common.kafka.util.StagingAndRCEnvironment
-import com.socrata.balboa.metrics.Message
-import com.socrata.balboa.util.MetricsTestStuff
+import com.socrata.balboa.common.codec.{BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.kafka.TestEnvironment
+import com.socrata.balboa.common.{Message, MetricsTestStuff}
+import com.socrata.balboa.producer.kafka.GenericKafkaProducer
 import com.socrata.integration.kafka.util.{BalboaClientTestUtils, BalboaMessageClientTestHarness}
 import kafka.common.FailedToSendMessageException
 import kafka.server.KafkaServer
@@ -18,9 +18,9 @@ import org.junit.Test
 class BalboaKafkaProducerStagingAndRCTests extends BalboaMessageClientTestHarness
 with MetricsTestStuff.TestMessages {
 
-  override val numPartitions: Int = StagingAndRCEnvironment.NUM_PARTITIONS
-  override val replicationFactor: Int = StagingAndRCEnvironment.REPLICATION_FACTOR
-  override val serverCount: Int = StagingAndRCEnvironment.SERVER_COUNT
+  override val numPartitions: Int = TestEnvironment.NUM_PARTITIONS
+  override val replicationFactor: Int = TestEnvironment.REPLICATION_FACTOR
+  override val serverCount: Int = TestEnvironment.SERVER_COUNT
   override val producerCount: Int = 2
   override val consumerGroupCount: Int = 3
 

@@ -3,11 +3,11 @@ package com.socrata.balboa.impl
 import java.io.File
 import java.util.Properties
 
-import com.socrata.balboa.metrics.Message
+import com.socrata.balboa.common.Message
+import com.socrata.balboa.common.logging.BalboaLogging
+import com.socrata.balboa.producer.kafka.BalboaKafkaProducer
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MessageQueueComponent}
-import com.socrata.metrics.producer.BalboaKafkaProducer
 import kafka.common.FailedToSendMessageException
-import org.slf4j.LoggerFactory
 
 /**
  * Kafka component that manages sending metric messages to a Kafka Cluster identified
@@ -29,9 +29,7 @@ trait BalboaKafkaComponent extends MessageQueueComponent {
   /**
    * Internal Dispatching instance that sends messages via a Kafka Producer.
    */
-  class KafkaDispatcher extends MessageQueueLike {
-
-    private val Log = LoggerFactory.getLogger(classOf[KafkaDispatcher])
+  class KafkaDispatcher extends MessageQueueLike with BalboaLogging {
 
     /** Need to call [[start()]] to initialize this*/
     var producer: BalboaKafkaProducer = null
@@ -46,14 +44,14 @@ trait BalboaKafkaComponent extends MessageQueueComponent {
 
     /** See [[MessageQueueLike.start()]] */
     override def start(): Unit = {
-      Log.debug("Starting Kafka Dispatcher")
+      logger.debug("Starting Kafka Dispatcher")
       producer = BalboaKafkaProducer(topic, brokers)
     }
 
     /** See [[MessageQueueLike.stop()]] */
     override def stop(): Unit = {
       // Closing the producer doesn't really allow this
-      Log.debug("Shutting down Kafka Dispatcher")
+      logger.debug("Shutting down Kafka Dispatcher")
       producer.close()
       producer = null
     }
@@ -76,10 +74,10 @@ trait BalboaKafkaComponent extends MessageQueueComponent {
       case e: FailedToSendMessageException =>
         val errMsg = s"Unable to send message $msg.  writing to emergency file: ${emergencyFile.getAbsolutePath}"
         // Always log that an error occurred
-        Log.error(errMsg, e)
+        logger.error(errMsg, e)
         emergencyFileWriter match {
           case Some(efw) => efw.send(msg)
-          case None => Log.error(errMsg)
+          case None => logger.error(errMsg)
         }
     }
   }

@@ -1,8 +1,8 @@
 package com.socrata.balboa.metrics.impl;
 
-import com.socrata.balboa.metrics.Message;
-import com.socrata.balboa.metrics.Metric;
-import com.socrata.balboa.metrics.Metrics;
+import com.socrata.balboa.common.Message;
+import com.socrata.balboa.common.Metric;
+import com.socrata.balboa.common.Metrics;
 import junit.framework.Assert;
 import org.junit.Test;
 

@@ -3,7 +3,6 @@ package com.socrata.balboa.server.rest
 import java.util.regex.Pattern
 import javax.servlet.http.HttpServletRequest
 
-import com.rojoma.json.ast.JString
 import com.socrata.balboa.metrics.data.DataStoreFactory
 import com.socrata.http.server.implicits._
 import com.socrata.http.server.responses._
@@ -19,14 +18,14 @@ object EntitiesRest extends Service[HttpServletRequest, HttpResponse] {
   def apply(req: HttpServletRequest): HttpResponse = {
     val qs = new QueryExtractor(req)
     val predicate: (String => Boolean) =
-      qs[String]("filter").map(_.right.get).map(Pattern.compile).map { pattern => (str: String) => pattern.matcher(str).matches }.getOrElse(_ => true)
+      qs[String]("filter").map(Pattern.compile).map { pattern => (str: String) => pattern.matcher(str).matches }.getOrElse(_ => true)
 
     val it = ds.entities().asScala.filter(predicate)
     // backwards-compatibility: -1 == no limit
-    val limit = qs[Int]("limit", -1) match {
-      case Right(l) => l
-      case Left(err) =>
-        return BadRequest ~> ContentType("application/json") ~> Content("""{"error": 400, "message": "Unable to parse limit : """ + JString(err).toString.drop(1).dropRight(1) + """"}""")
+    val limit = qs[Int]("limit", () => Some(-1)) match {
+      case Some(l) => l
+      case None =>
+        return BadRequest ~> ContentType("application/json") ~> Content("""{"error": 400, "message": "Unable to parse limit"}""")
     }
     val limitedIt = if(limit != -1) it.take(limit) else it
 

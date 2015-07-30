@@ -1,12 +1,14 @@
 package com.socrata.balboa.metrics.data.impl;
 
+import com.socrata.balboa.common.logging.JavaBalboaLogging;
 import com.socrata.balboa.metrics.data.DataStore;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+// TODO Why is an abstract class called Implementation.
 
 public abstract class DataStoreImpl implements DataStore
 {
-    private static final Logger log = LoggerFactory.getLogger(DataStoreImpl.class);
+    private static final Logger log = JavaBalboaLogging.instance(DataStoreImpl.class);
 
     public void heartbeat() {
         // noop

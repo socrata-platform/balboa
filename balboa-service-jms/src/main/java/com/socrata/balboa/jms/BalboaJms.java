@@ -1,6 +1,6 @@
 package com.socrata.balboa.jms;
 
-import com.socrata.balboa.metrics.WatchDog;
+import com.socrata.balboa.common.WatchDog;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import org.apache.log4j.PropertyConfigurator;

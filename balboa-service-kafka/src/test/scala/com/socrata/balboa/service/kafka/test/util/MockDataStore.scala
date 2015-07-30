@@ -3,8 +3,8 @@ package com.socrata.balboa.service.kafka.test.util
 import java.util
 import java.util.Date
 
+import com.socrata.balboa.common.{Timeslice, Metrics}
 import com.socrata.balboa.metrics.data.{DataStore, Period}
-import com.socrata.balboa.metrics.{Metrics, Timeslice}
 
 /**
  * Mock Data Store.

@@ -1,6 +1,6 @@
 package com.socrata.balboa.admin.tools;
 
-import com.socrata.balboa.metrics.config.Configuration;
+import com.socrata.balboa.common.config.Configuration;
 import com.socrata.balboa.metrics.data.*;
 
 import java.io.IOException;
@@ -19,7 +19,7 @@ public class Lister {
             Period mostGranular = Period.mostGranular(Configuration.get().getSupportedPeriods());
 
             Date epoch = new Date(0);
-            Date cutoff = DateRange.create(mostGranular, new Date()).start;
+            Date cutoff = DateRange.create(mostGranular, new Date()).getStart();
 
             DataStore ds = DataStoreFactory.get();
             Iterator<String> entities;

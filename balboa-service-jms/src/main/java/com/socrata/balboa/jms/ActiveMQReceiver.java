@@ -1,6 +1,7 @@
 package com.socrata.balboa.jms;
 
-import com.socrata.balboa.metrics.WatchDog;
+import com.socrata.balboa.common.WatchDog;
+import com.socrata.balboa.common.logging.JavaBalboaLogging;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.impl.JsonMessage;
 import org.apache.activemq.ActiveMQConnection;
@@ -54,7 +55,7 @@ import java.util.List;
  */
 public class ActiveMQReceiver implements WatchDog.WatchDogListener
 {
-    private static Logger log = LoggerFactory.getLogger(ActiveMQReceiver.class);
+    private static Logger logger = JavaBalboaLogging.instance(ActiveMQReceiver.class);
     private List<Listener> listeners;
 
     public static class TransportLogger implements TransportListener
@@ -67,19 +68,19 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
         @Override
         public void onException(IOException e)
         {
-            log.error("There was an exception on the ActiveMQReceiver's transport.", e);
+            logger.error("There was an exception on the ActiveMQReceiver's transport.", e);
         }
 
         @Override
         public void transportInterupted()
         {
-            log.error("ActiveMQ transport interrupted.");
+            logger.error("ActiveMQ transport interrupted.");
         }
 
         @Override
         public void transportResumed()
         {
-            log.info("ActiveMQ transport resumed.");
+            logger.info("ActiveMQ transport resumed.");
         }
     }
 
@@ -117,7 +118,7 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
             }
             catch (Exception e)
             {
-                log.error("There was some problem processing a message. Marking it as needing redelivery.", e);
+                logger.error("There was some problem processing a message. Marking it as needing redelivery.", e);
 
                 try
                 {
@@ -131,14 +132,14 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
                 }
                 catch (JMSException e1)
                 {
-                    log.error("There was a problem rolling back the session. This is really bad.", e1);
+                    logger.error("There was a problem rolling back the session. This is really bad.", e1);
                 }
             }
         }
 
         public void stop() {
             synchronized (this) {
-                log.error("Stopping JMS listener");
+                logger.error("Stopping JMS listener");
                 consumer.stop();
             }
         }
@@ -146,10 +147,10 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
         public void restart() {
             synchronized (this) {
                 try {
-                    log.error("Restarting JMS listener");
+                    logger.error("Restarting JMS listener");
                     consumer.start();
                 } catch (JMSException e) {
-                    log.error("Unable to restart the consumer after data store failure. This is bad.");
+                    logger.error("Unable to restart the consumer after data store failure. This is bad.");
                 }
             }
         }
@@ -171,7 +172,7 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
             }
         }
 
-        log.info("Listeners all started.");
+        logger.info("Listeners all started.");
     }
 
     // Used to restart the receiver on DataStore failure

@@ -3,8 +3,8 @@ package com.socrata.balboa.agent
 import java.nio.file.{Path, Files}
 
 import com.blist.metrics.impl.queue.MetricFileQueue
-import com.socrata.balboa.metrics.Metric
-import com.socrata.metrics.{MetricIdParts, MetricQueue}
+import com.socrata.balboa.common.{MetricIdParts, Metric}
+import com.socrata.metrics.MetricQueue
 import org.mockito.Matchers
 import org.mockito.Mockito._
 import org.scalatest.WordSpec

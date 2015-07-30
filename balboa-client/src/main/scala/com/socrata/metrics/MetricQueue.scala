@@ -2,7 +2,7 @@ package com.socrata.metrics
 
 import java.util.Date
 
-import com.socrata.balboa.metrics.Metric
+import com.socrata.balboa.common._
 import com.socrata.metrics.MetricQueue.{AccessChannel, Action}
 
 object MetricQueue {

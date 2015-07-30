@@ -1,8 +1,7 @@
 package com.socrata.balboa.service.kafka.consumer
 
 import java.io.IOException
-
-import com.socrata.balboa.metrics.Message
+import com.socrata.balboa.common.Message
 import com.socrata.balboa.metrics.data.DataStore
 
 /**

@@ -79,5 +79,5 @@ object BalboaKafka {
     parallelExecution in Test := false
   )
 
-  def libraries(implicit scalaVersion: String) = BalboaService.libraries ++ BalboaKafkaCommon.libraries
+  def libraries(implicit scalaVersion: String) = BalboaService.libraries
 }

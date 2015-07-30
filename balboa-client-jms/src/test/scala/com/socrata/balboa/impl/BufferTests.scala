@@ -1,6 +1,6 @@
 package com.socrata.balboa.impl
 
-import com.socrata.balboa.metrics.{Metric, Metrics}
+import com.socrata.balboa.common.{Metric, Metrics}
 import com.socrata.metrics.MetricQueue
 import com.socrata.metrics.components.BufferItem
 import org.scalatest.matchers.ShouldMatchers

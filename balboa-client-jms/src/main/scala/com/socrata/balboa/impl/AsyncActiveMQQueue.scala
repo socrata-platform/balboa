@@ -3,8 +3,8 @@ package com.socrata.balboa.impl
 import java.io.Closeable
 
 import com.blist.metrics.impl.queue.MetricJmsQueueNotSingleton
-import com.socrata.balboa.metrics.Metric
-import com.socrata.metrics.{AbstractMetricQueue, IdParts}
+import com.socrata.balboa.common.{IdParts, Metric}
+import com.socrata.metrics.AbstractMetricQueue
 import org.apache.activemq.transport.DefaultTransportListener
 import org.apache.activemq.{ActiveMQConnection, ActiveMQConnectionFactory}
 import org.slf4j.LoggerFactory

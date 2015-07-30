@@ -2,7 +2,7 @@ package com.socrata.metrics.components
 
 import java.io.File
 
-import com.socrata.balboa.metrics.Message
+import com.socrata.balboa.common.Message
 
 trait MessageQueueComponent {
   type MessageQueue <: MessageQueueLike

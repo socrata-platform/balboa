@@ -1,7 +1,7 @@
 package com.socrata.balboa.metrics.data;
 
-import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.metrics.config.ConfigurationException;
+import com.socrata.balboa.common.config.Configuration;
+import com.socrata.balboa.common.config.ConfigurationException;
 import com.socrata.balboa.metrics.data.impl.TimeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

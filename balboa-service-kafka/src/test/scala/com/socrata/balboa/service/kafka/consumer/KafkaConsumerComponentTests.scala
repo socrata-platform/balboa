@@ -2,8 +2,7 @@ package com.socrata.balboa.service.kafka.consumer
 
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ExecutorService, Executors, ScheduledExecutorService, TimeUnit}
-
-import com.socrata.balboa.common.kafka.codec.StringCodec
+import com.socrata.balboa.common.codec.StringCodec
 import com.socrata.balboa.service.kafka.consumer.KafkaConsumerSpecSetup.TestKafkaConsumerSetup
 import com.socrata.balboa.service.kafka.test.util.ConsumerTestUtil
 import kafka.consumer.{ConsumerIterator, KafkaStream}

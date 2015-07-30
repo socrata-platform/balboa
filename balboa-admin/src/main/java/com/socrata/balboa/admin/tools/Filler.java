@@ -1,9 +1,9 @@
 package com.socrata.balboa.admin.tools;
 
 import au.com.bytecode.opencsv.CSVReader;
-import com.socrata.balboa.metrics.Metric;
-import com.socrata.balboa.metrics.Metrics;
-import com.socrata.balboa.metrics.config.Configuration;
+import com.socrata.balboa.common.Metric;
+import com.socrata.balboa.common.Metrics;
+import com.socrata.balboa.common.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
@@ -42,7 +42,7 @@ public class Filler
             Metrics original = new Metrics();
             original.put(name, metric);
 
-            long aligned = DateRange.create(mostGranular, when).start.getTime();
+            long aligned = DateRange.create(mostGranular, when).getStart().getTime();
 
             if (!items.containsKey(aligned))
             {

@@ -1,11 +1,10 @@
 package com.socrata.balboa.service.kafka.test.util
 
 import java.util.Calendar
-
-import com.socrata.balboa.common.kafka.codec.KafkaCodec
-import com.socrata.balboa.metrics.Metric.RecordType
+import com.socrata.balboa.common.{Metrics, Metric}
+import com.socrata.balboa.common.codec.BalboaCodec
+import Metric.RecordType
 import com.socrata.balboa.metrics.impl.JsonMessage
-import com.socrata.balboa.metrics.{Metric, Metrics}
 import kafka.message.{Message, MessageAndMetadata}
 import kafka.serializer.DefaultDecoder
 
@@ -23,7 +22,7 @@ object ConsumerTestUtil {
       0, new DefaultDecoder(), new DefaultDecoder())
   }
 
-  def message[K,M](key: K, message: M, keyCodec: KafkaCodec[K], messageCodec: KafkaCodec[M]) = {
+  def message[K,M](key: K, message: M, keyCodec: BalboaCodec[K], messageCodec: BalboaCodec[M]) = {
     val k: Array[Byte] = if (key == null) null else keyCodec.toBytes(key)
     val m: Array[Byte] = if (message == null) null else messageCodec.toBytes(message)
     new MessageAndMetadata[K, M]("test_topic", 1, new Message(m, k),

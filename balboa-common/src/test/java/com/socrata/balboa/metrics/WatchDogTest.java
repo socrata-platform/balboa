@@ -1,5 +1,6 @@
 package com.socrata.balboa.metrics;
 
+import com.socrata.balboa.common.WatchDog;
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck;
 import org.junit.Test;
 

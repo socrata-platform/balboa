@@ -1,6 +1,6 @@
 package com.socrata.balboa.metrics.data;
 
-import com.socrata.balboa.metrics.config.Configuration;
+import com.socrata.balboa.common.config.Configuration;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -66,11 +66,11 @@ public class QueryOptimizerTest
         cal.set(2010, 1, 1, 1, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
 
-        Assert.assertEquals(cal.getTime(), result.get(Period.HOURLY).iterator().next().start);
+        Assert.assertEquals(cal.getTime(), result.get(Period.HOURLY).iterator().next().getStart());
 
         cal.set(2010, 1, 1, 3, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), result.get(Period.HOURLY).iterator().next().end);
+        Assert.assertEquals(cal.getTime(), result.get(Period.HOURLY).iterator().next().getEnd());
     }
 
     @Test
@@ -116,11 +116,11 @@ public class QueryOptimizerTest
 
         cal.set(2010, 1, 1, 0, 0, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        Assert.assertEquals(cal.getTime(), result.get(Period.MONTHLY).iterator().next().start);
+        Assert.assertEquals(cal.getTime(), result.get(Period.MONTHLY).iterator().next().getStart());
 
         cal.set(2010, 5, 30, 23, 59, 59);
         cal.set(Calendar.MILLISECOND, 999);
-        Assert.assertEquals(cal.getTime(), result.get(Period.MONTHLY).iterator().next().end);
+        Assert.assertEquals(cal.getTime(), result.get(Period.MONTHLY).iterator().next().getEnd());
     }
 
     @Test
@@ -278,7 +278,7 @@ public class QueryOptimizerTest
             cal.set(2012, 0, 1);
             DateRange y2 = DateRange.create(Period.YEARLY, cal.getTime());
 
-            DateRange ys = new DateRange(y1.start, y2.end);
+            DateRange ys = new DateRange(y1.getStart(), y2.getEnd());
 
             Set<DateRange> years = result.get(Period.YEARLY);
             Assert.assertTrue(years.contains(ys));

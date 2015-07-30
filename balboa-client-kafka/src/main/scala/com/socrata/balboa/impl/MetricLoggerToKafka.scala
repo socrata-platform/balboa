@@ -3,11 +3,10 @@ package com.socrata.balboa.impl
 import java.io.File
 import java.nio.file.Paths
 
-import com.socrata.balboa.metrics.util.AddressAndPort
+import com.socrata.balboa.common.AddressAndPort
+import com.socrata.balboa.common.config.Configuration
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{BaseMetricLoggerComponent, MetricEnqueuer, MetricLoggerComponent}
-
-
 
 /**
  * Entry point for how to funnel Metric logs entries to Kafka.
@@ -51,7 +50,7 @@ trait MetricLoggerToKafka extends BaseMetricLoggerComponent {
   }
 
   /**
-   * Creates a Metric Logger To Kafka from using [[com.socrata.balboa.metrics.config.Configuration]].  This instantiator
+   * Creates a Metric Logger To Kafka from using [[Configuration]].  This instantiator
    * exclusively relies on a properties file to extract a list of brokers.
    *
    * See [[MetricLoggerComponent.MetricLogger()]]

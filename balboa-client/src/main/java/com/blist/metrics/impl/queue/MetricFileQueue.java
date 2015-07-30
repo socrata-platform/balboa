@@ -1,17 +1,18 @@
 package com.blist.metrics.impl.queue;
 
-import com.socrata.balboa.metrics.Metric;
-import com.socrata.metrics.IdParts;
+import com.socrata.balboa.common.IdParts;
+import com.socrata.balboa.common.Metric;
+import com.socrata.balboa.common.logging.JavaBalboaLogging;
 import com.socrata.metrics.MetricQueue$;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
 public class MetricFileQueue extends AbstractJavaMetricQueue {
-    private static final Logger log = LoggerFactory.getLogger(MetricFileQueue.class);
+
+    private static final Logger log = JavaBalboaLogging.instance(MetricFileQueue.class);
 
     /*
     TODO clearly evident requirement for restricted write access to data logs but adhoc over use of singleton instances.

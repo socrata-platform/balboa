@@ -2,7 +2,7 @@ package com.socrata.metrics
 
 import java.util.Date
 
-import com.socrata.balboa.metrics.Metric
+import com.socrata.balboa.common.{IdParts, Metric}
 
 abstract class AbstractMetricQueue extends SocrataMetricQueue {
 

@@ -1,6 +1,6 @@
 package com.socrata.balboa.metrics.data;
 
-import com.socrata.balboa.metrics.config.Configuration;
+import com.socrata.balboa.common.config.Configuration;
 
 import java.io.IOException;
 import java.util.*;
@@ -34,8 +34,8 @@ public class QueryOptimizer {
         results.put(type, tier);
 
         // Align the dates along the current border.
-        start = DateRange.create(type, start).start;
-        end = DateRange.create(type, end).end;
+        start = DateRange.create(type, start).getStart();
+        end = DateRange.create(type, end).getEnd();
 
         Date nextStart = start;
         Date nextEnd = end;
@@ -48,24 +48,24 @@ public class QueryOptimizer {
             if (!DateRange.liesOnBoundary(start, nextPeriod)) {
                 startSlice = new DateRange(
                         start,
-                        Collections.min(Arrays.asList(DateRange.create(nextPeriod, start).end, end))
+                        Collections.min(Arrays.asList(DateRange.create(nextPeriod, start).getEnd(), end))
                 );
 
-                nextStart = new Date(startSlice.end.getTime() + 1);
+                nextStart = new Date(startSlice.getEnd().getTime() + 1);
             }
 
             DateRange endSlice = null;
             if (!DateRange.liesOnBoundary(end, nextPeriod)) {
                 endSlice = new DateRange(
-                        Collections.max(Arrays.asList(DateRange.create(nextPeriod, end).start, start)),
+                        Collections.max(Arrays.asList(DateRange.create(nextPeriod, end).getStart(), start)),
                         end
                 );
 
-                nextEnd = new Date(endSlice.start.getTime() - 1);
+                nextEnd = new Date(endSlice.getStart().getTime() - 1);
             }
 
-            if (startSlice != null && endSlice != null && startSlice.end.getTime() == (endSlice.start.getTime() - 1)) {
-                tier.add(new DateRange(startSlice.start, endSlice.end));
+            if (startSlice != null && endSlice != null && startSlice.getEnd().getTime() == (endSlice.getStart().getTime() - 1)) {
+                tier.add(new DateRange(startSlice.getStart(), endSlice.getEnd()));
             } else {
                 if (startSlice != null) {
                     tier.add(startSlice);

@@ -1,6 +1,6 @@
 package com.socrata.balboa.impl
 
-import com.socrata.balboa.metrics.Metric
+import com.socrata.balboa.common.Metric
 import com.socrata.metrics.MetricQueue
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{MetricEnqueuer, MetricEntry}

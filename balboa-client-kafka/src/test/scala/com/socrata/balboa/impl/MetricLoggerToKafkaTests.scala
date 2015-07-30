@@ -3,11 +3,10 @@ package com.socrata.balboa.impl
 import java.io.File
 import java.nio.file.{Files, Paths}
 
-import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
-import com.socrata.balboa.common.kafka.util.StagingAndRCEnvironment
-import com.socrata.balboa.metrics.Message
-import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.util.AddressAndPort
+import com.socrata.balboa.common.Metric.RecordType
+import com.socrata.balboa.common.codec.{BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.kafka.TestEnvironment
+import com.socrata.balboa.common.{AddressAndPort, Message, Metric}
 import com.socrata.integration.kafka.util.{BalboaClientTestUtils, BalboaMessageClientTestHarness}
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MetricEnqueuer}
@@ -21,9 +20,9 @@ import scala.collection.mutable.Queue
  */
 class MetricLoggerToKafkaTests extends BalboaMessageClientTestHarness with MetricLoggerToKafka {
 
-  override val numPartitions: Int = StagingAndRCEnvironment.NUM_PARTITIONS
-  override val replicationFactor: Int = StagingAndRCEnvironment.REPLICATION_FACTOR
-  override val serverCount: Int = StagingAndRCEnvironment.SERVER_COUNT
+  override val numPartitions: Int = TestEnvironment.NUM_PARTITIONS
+  override val replicationFactor: Int = TestEnvironment.REPLICATION_FACTOR
+  override val serverCount: Int = TestEnvironment.SERVER_COUNT
 
   override val producerCount: Int = 0
   override val consumerCount: Int = 1
@@ -32,17 +31,17 @@ class MetricLoggerToKafkaTests extends BalboaMessageClientTestHarness with Metri
   private val agg = RecordType.AGGREGATE
   private val abs = RecordType.ABSOLUTE
 
-  val emergencyQueue = Queue.empty[Message]
+  var metricLogger: MetricLogger = null
 
-  var logger: MetricLogger = null
+  val emergencyQueue = Queue.empty[Message]
 
   override def setUp(): Unit = {
     super.setUp()
-    logger = MetricLogger(brokerList, topic, "file_name_that_does_not_matter")
+    metricLogger = MetricLogger(brokerList, topic, "file_name_that_does_not_matter")
   }
 
   override def tearDown(): Unit = {
-    logger.stop()
+    metricLogger.stop()
     emergencyQueue.clear()
     val file = Paths.get("file_name_that_does_not_matter").toFile
     if (file.exists()) file.delete()
@@ -52,10 +51,10 @@ class MetricLoggerToKafkaTests extends BalboaMessageClientTestHarness with Metri
   @Test def testLoggerSendsMessagesToIdealStateKafka(): Unit = {
     // TODO For some reason the consumer times out with 60 seconds but not 120.
     // These test are not deterministic enough.
-    logger.logMetric("mike", "num_penguins", 5, 0L, agg)
+    metricLogger.logMetric("mike", "num_penguins", 5, 0L, agg)
 
     // Flush the buffer to write out all the messages
-    logger.metricDequeuer.actualBuffer.flush()
+    metricLogger.metricDequeuer.actualBuffer.flush()
     Thread.sleep(2000)
     val consumedMessages: List[(String,Message)] = BalboaClientTestUtils.getKeysAndMessages[String,Message](1,
       consumers.head.createMessageStreams[String, Message](Map((topic, 1)), new StringCodec, new BalboaMessageCodec()))

@@ -3,10 +3,10 @@ package com.socrata.balboa.metrics.data.impl
 import java.io.IOException
 import java.util.Date
 
-import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.config.Configuration
+import com.socrata.balboa.common.Metric.RecordType
+import com.socrata.balboa.common.config.Configuration
+import com.socrata.balboa.common.{Metric, Metrics}
 import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, DateRange, Period}
-import com.socrata.balboa.metrics.{Metric, Metrics}
 import junit.framework.Assert
 import org.junit.{Ignore, Test}
 
@@ -18,10 +18,10 @@ class Cassandra11QueryImplTest {
   @Ignore("Requires a local cassandra server and should be executed in isolation")
   def testFetchSet {
     val q:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext())
-    q.persist("mykey", DateRange.create(Period.HOURLY,new Date(1000)).start, Period.HOURLY,
+    q.persist("mykey", DateRange.create(Period.HOURLY,new Date(1000)).getStart, Period.HOURLY,
       Map("mymetric1" -> new Metric(RecordType.AGGREGATE, 1), "mymetric2" -> new Metric(RecordType.AGGREGATE, 555)),
       Map("mymetric3" -> new Metric(RecordType.ABSOLUTE, 666), "mymetric4" -> new Metric(RecordType.ABSOLUTE, 777)))
-    val m:Metrics = q.fetch("mykey", Period.HOURLY, new DateRange(new Date(1000), new Date(2000)).start)
+    val m:Metrics = q.fetch("mykey", Period.HOURLY, new DateRange(new Date(1000), new Date(2000)).getStart)
     Assert.assertEquals(4, m.size())
   }
 
@@ -40,7 +40,7 @@ class Cassandra11QueryImplTest {
     val q:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext())
     try {
       Assert.assertTrue(BalboaFastFailCheck.getInstance().proceed())
-      q.persist("mykey", DateRange.create(Period.HOURLY,new Date(1000)).start, Period.HOURLY,
+      q.persist("mykey", DateRange.create(Period.HOURLY,new Date(1000)).getStart, Period.HOURLY,
         Map("mymetric1" -> new Metric(RecordType.AGGREGATE, 1)),
         Map("mymetric3" -> new Metric(RecordType.ABSOLUTE, 666)))
     } finally {
@@ -56,7 +56,7 @@ class Cassandra11QueryImplTest {
     val q:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext())
     try {
       Assert.assertTrue(BalboaFastFailCheck.getInstance().proceed())
-      q.fetch("mykey", Period.HOURLY, new DateRange(new Date(1000), new Date(2000)).start)
+      q.fetch("mykey", Period.HOURLY, new DateRange(new Date(1000), new Date(2000)).getStart)
     } finally {
       Assert.assertTrue(BalboaFastFailCheck.getInstance().isInFailureMode)
     }

@@ -1,7 +1,7 @@
 package com.socrata.balboa.impl
 
+import com.socrata.balboa.common.config.{Configuration, Keys}
 import com.socrata.balboa.impl.MetricLoggerToDispatcherSetup.FakeQueueComponents
-import com.socrata.balboa.metrics.config.{Configuration, Keys}
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{MessageQueueComponent, MetricEnqueuer}
 import org.scalatest.{BeforeAndAfter, WordSpec}

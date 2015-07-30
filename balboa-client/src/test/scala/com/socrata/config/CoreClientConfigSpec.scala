@@ -1,10 +1,10 @@
 import java.nio.file.Files
 
-import com.socrata.balboa.config.CoreClientConfig
-import com.socrata.balboa.metrics.config.{Configuration, Keys}
+import com.socrata.balboa.common.config.{Configuration, Keys}
+import com.socrata.balboa.producer.config.BalboaProducerConfig
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, WordSpec}
 
-class CoreClientConfigSpec extends WordSpec with BeforeAndAfterAll with BeforeAndAfter with CoreClientConfig {
+class CoreClientConfigSpec extends WordSpec with BeforeAndAfterAll with BeforeAndAfter with BalboaProducerConfig {
 
   override protected def beforeAll(): Unit = {
     // Notify the runtime environment that we are currently in testing mode.

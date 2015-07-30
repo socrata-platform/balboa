@@ -1,6 +1,6 @@
 package com.socrata.metrics.util
 
-import com.socrata.balboa.metrics.Metrics
+import com.socrata.balboa.common.Metrics
 import com.socrata.metrics.MetricQueue
 
 import scala.collection.SetLike

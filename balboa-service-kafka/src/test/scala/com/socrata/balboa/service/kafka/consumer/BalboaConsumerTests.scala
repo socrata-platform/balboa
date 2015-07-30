@@ -2,8 +2,9 @@ package com.socrata.balboa.service.kafka.consumer
 
 import java.util.concurrent.atomic.AtomicBoolean
 
-import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
-import com.socrata.balboa.metrics.Message
+import com.socrata.balboa.common.Message
+import com.socrata.balboa.common.codec.{StringCodec, BalboaMessageCodec}
+import com.socrata.balboa.common.codec.StringCodec
 import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, DataStore}
 import com.socrata.balboa.metrics.impl.JsonMessage
 import com.socrata.balboa.service.kafka.consumer.BalboaConsumerComponentSetup.TestBalboaKafkaConsumerSetup

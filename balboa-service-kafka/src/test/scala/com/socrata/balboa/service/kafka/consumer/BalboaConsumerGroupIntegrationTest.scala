@@ -1,11 +1,10 @@
 package com.socrata.balboa.service.kafka.consumer
 
 import java.util.concurrent.Future
-import com.socrata.balboa.util.MetricsTestStuff
+import com.socrata.balboa.common.{Message, MetricsTestStuff}
 import MetricsTestStuff.TestMessages
-import com.socrata.balboa.metrics.Message
+import com.socrata.balboa.producer.kafka.GenericKafkaProducer
 import com.socrata.balboa.service.kafka.test.util.StagingAndRCServiceTestHarness
-import com.socrata.balboa.util.MetricsTestStuff
 import kafka.consumer.{ConsumerConfig, ConsumerTimeoutException}
 import kafka.utils.TestUtils
 import org.junit.Assert._
@@ -48,7 +47,7 @@ class BalboaConsumerGroupIntegrationTest extends StagingAndRCServiceTestHarness 
   }
 
   /**
-   * Make sure one message makes it end to end from [[com.socrata.metrics.producer.GenericKafkaProducer]] to
+   * Make sure one message makes it end to end from [[GenericKafkaProducer]] to
    * [[BalboaConsumerGroup]]
    */
   @Test def testConsumerReceivesOneSentMessage() {

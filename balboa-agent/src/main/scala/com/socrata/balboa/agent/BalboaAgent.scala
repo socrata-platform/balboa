@@ -4,10 +4,9 @@ import java.io.File
 import java.util.concurrent.{ScheduledFuture, Executors, TimeUnit}
 
 import com.blist.metrics.impl.queue.MetricJmsQueue
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.metrics.MetricQueue
-import com.typesafe.scalalogging.slf4j.Logger
 import joptsimple.{OptionParser, OptionSet}
-import org.slf4j.LoggerFactory
 
 object CLIParamKeys {
 
@@ -18,9 +17,7 @@ object CLIParamKeys {
 
 }
 
-object BalboaAgent extends App with Config {
-
-  private lazy val logger = Logger(LoggerFactory getLogger this.getClass)
+object BalboaAgent extends App with Config with BalboaLogging {
 
   private val scheduler = Executors.newScheduledThreadPool(1)
 

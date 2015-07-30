@@ -1,9 +1,9 @@
 package com.socrata.balboa.admin.tools;
 
 import au.com.bytecode.opencsv.CSVWriter;
-import com.socrata.balboa.metrics.Metric;
-import com.socrata.balboa.metrics.Timeslice;
-import com.socrata.balboa.metrics.config.Configuration;
+import com.socrata.balboa.common.Metric;
+import com.socrata.balboa.common.Timeslice;
+import com.socrata.balboa.common.config.Configuration;
 import com.socrata.balboa.metrics.data.*;
 
 import java.io.IOException;
@@ -46,7 +46,7 @@ public class Dumper
         Period mostGranular = Period.mostGranular(Configuration.get().getSupportedPeriods());
         Period leastGranular = Period.leastGranular(Configuration.get().getSupportedPeriods());
         Date epoch = new Date(0);
-        Date cutoff = DateRange.create(leastGranular, new Date()).end;
+        Date cutoff = DateRange.create(leastGranular, new Date()).getEnd();
         DataStore ds = DataStoreFactory.get();
         Iterator<Timeslice> bigSlices = ds.slices(entityId, leastGranular, epoch, cutoff);
         while(bigSlices.hasNext()) {

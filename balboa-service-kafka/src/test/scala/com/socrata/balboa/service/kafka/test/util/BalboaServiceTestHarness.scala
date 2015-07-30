@@ -2,13 +2,12 @@ package com.socrata.balboa.service.kafka.test.util
 
 import java.util.Properties
 
-import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
-import com.socrata.balboa.common.kafka.util.StagingAndRCEnvironment
-import com.socrata.balboa.metrics.Message
-import com.socrata.balboa.metrics.util.AddressAndPort
+import com.socrata.balboa.common.codec.{BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.kafka.TestEnvironment
+import com.socrata.balboa.common.{AddressAndPort, Message}
+import com.socrata.balboa.producer.kafka.{BalboaKafkaProducer, GenericKafkaProducer}
 import com.socrata.balboa.service.kafka.consumer.{BalboaConsumerGroup, KafkaConsumerGroupComponent}
 import com.socrata.integration.kafka.util.BalboaClientTestHarness
-import com.socrata.metrics.producer.{BalboaKafkaProducer, GenericKafkaProducer}
 import kafka.consumer.ConsumerConfig
 
 /**
@@ -43,9 +42,9 @@ trait BalboaServiceTestHarness extends BalboaClientTestHarness[String,Message,St
 }
 
 trait StagingAndRCServiceTestHarness extends BalboaServiceTestHarness {
-  override val numPartitions: Int = StagingAndRCEnvironment.NUM_PARTITIONS
-  override val replicationFactor: Int = StagingAndRCEnvironment.REPLICATION_FACTOR
-  override val serverCount: Int = StagingAndRCEnvironment.SERVER_COUNT
+  override val numPartitions: Int = TestEnvironment.NUM_PARTITIONS
+  override val replicationFactor: Int = TestEnvironment.REPLICATION_FACTOR
+  override val serverCount: Int = TestEnvironment.SERVER_COUNT
 }
 
 // TODO Add Environments for different Production environments.

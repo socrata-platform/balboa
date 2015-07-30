@@ -2,7 +2,7 @@ package com.socrata.balboa.impl
 
 import java.io.{BufferedOutputStream, File, FileOutputStream}
 
-import com.socrata.balboa.metrics.Message
+import com.socrata.balboa.common.Message
 import com.socrata.metrics.components.EmergencyFileWriterComponent
 
 import scala.collection.JavaConverters._

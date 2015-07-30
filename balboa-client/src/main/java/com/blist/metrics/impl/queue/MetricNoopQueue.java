@@ -1,7 +1,7 @@
 package com.blist.metrics.impl.queue;
 
-import com.socrata.balboa.metrics.Metric;
-import com.socrata.metrics.IdParts;
+import com.socrata.balboa.common.IdParts;
+import com.socrata.balboa.common.Metric;
 
 public class MetricNoopQueue extends AbstractJavaMetricQueue
 {

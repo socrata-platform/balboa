@@ -1,8 +1,8 @@
 package com.socrata.balboa.metrics.data.impl;
 
-import com.socrata.balboa.metrics.Metric;
-import com.socrata.balboa.metrics.Metrics;
-import com.socrata.balboa.metrics.Timeslice;
+import com.socrata.balboa.common.Metric;
+import com.socrata.balboa.common.Metrics;
+import com.socrata.balboa.common.Timeslice;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.Period;
 import org.junit.Test;

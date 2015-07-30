@@ -2,10 +2,9 @@ package com.socrata.integration.kafka.util
 
 import java.util.Properties
 
-import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, KafkaCodec, StringCodec}
-import com.socrata.balboa.metrics.Message
-import com.socrata.balboa.metrics.util.AddressAndPort
-import com.socrata.metrics.producer.{BalboaKafkaProducer, GenericKafkaProducer}
+import com.socrata.balboa.common.codec.{BalboaCodec, BalboaMessageCodec, StringCodec}
+import com.socrata.balboa.common.{AddressAndPort, Message}
+import com.socrata.balboa.producer.kafka.{GenericKafkaProducer, BalboaKafkaProducer}
 import kafka.consumer._
 import kafka.integration.KafkaServerTestHarness
 import kafka.server.KafkaConfig
@@ -28,7 +27,7 @@ import scala.collection.{Map, mutable}
  * TearDown is conducted within [[BeforeAndAfterEach.afterEach()]].  Within each test case teardown process Kafka servers,
  * producers, and consumers are all stopped.
  */
-trait BalboaClientTestHarness[K,M,KE <: KafkaCodec[K],ME <: KafkaCodec[M]]
+trait BalboaClientTestHarness[K,M,KE <: BalboaCodec[K],ME <: BalboaCodec[M]]
   extends KafkaServerTestHarness {
 
   val producerCount: Int

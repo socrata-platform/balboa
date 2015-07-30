@@ -1,9 +1,9 @@
 package com.socrata.metrics.components
 
+import com.socrata.balboa.common.Metric.RecordType
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.balboa.impl.MetricDequeuerService
-import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.metrics.collection.PreBufferQueue
-import org.slf4j.LoggerFactory
 
 case class MetricEntry(entityId:String, name:String, value:Number, timestamp:Long, recordType:RecordType)
 
@@ -13,15 +13,13 @@ case class MetricEntry(entityId:String, name:String, value:Number, timestamp:Lon
  */
 trait BaseMetricLoggerComponent extends MetricLoggerComponent {
 
-  private val log = LoggerFactory.getLogger(this.getClass)
-
   val delay = 120L
   val interval = 120L
 
   /**
    * Internal Metric Logger that is based off of [[MetricLogger]].
    */
-  class MetricLogger extends MetricLoggerLike {
+  class MetricLogger extends MetricLoggerLike with BalboaLogging {
     self: MetricEnqueuer with MetricDequeuerService =>
     var acceptEnqueues = true
     val metricDequeuer = MetricDequeuer()
@@ -38,7 +36,7 @@ trait BaseMetricLoggerComponent extends MetricLoggerComponent {
     /** See [[MetricLoggerLike.stop()]] */
     override def stop(): Unit = {
       acceptEnqueues = false
-      log.info(s"Beginning ${getClass.getSimpleName} shutdown")
+      logger.info(s"Beginning ${getClass.getSimpleName} shutdown")
       metricDequeuer.stop()
     }
   }
@@ -48,7 +46,7 @@ trait BaseMetricLoggerComponent extends MetricLoggerComponent {
 /**
  * Abstract definition of Metric Logger Component
  */
-trait MetricLoggerComponent {
+trait MetricLoggerComponent extends BalboaLogging {
   type MetricLogger <: MetricLoggerLike
 
   /**

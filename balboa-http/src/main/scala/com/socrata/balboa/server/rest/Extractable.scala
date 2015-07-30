@@ -1,31 +1,48 @@
 package com.socrata.balboa.server.rest
 
-import com.socrata.balboa.metrics.data.Period
+import java.util.Date
 
+import com.socrata.balboa.metrics.data.Period
+import com.socrata.balboa.server.util.DateParser
+
+import scala.util.{Success, Try}
+
+/**
+ * Trait that defines the interface on how to extract a type out of a Raw String.
+ *
+ * @tparam T The type to convert to.
+ */
 trait Extractable[T] {
-  def extract(raw: String): Either[String, T]
+
+  /*
+  - TODO Possible to just replace with traditional Scala Implicit Conversions
+  - TODO Replace Either with Scala Try.
+   */
+
+  def extract(raw: String): Try[T]
 }
 
 object Extractable {
   def apply[T](implicit ex: Extractable[T]) = ex
 
   implicit object ExtractString extends Extractable[String] {
-    def extract(raw: String) = Right(raw)
+    override def extract(raw: String) = Success(raw)
   }
 
   implicit object ExtractInt extends Extractable[Int] {
-    def extract(raw: String) = try {
-      Right(raw.toInt)
-    } catch {
-      case e: NumberFormatException => Left(e.getMessage)
-    }
+    override def extract(raw: String) = Try(raw.toInt)
   }
 
   implicit object extractDateRangePeriod extends Extractable[Period] {
-    def extract(raw: String) = try {
-      Right(Period.valueOf(raw.toUpperCase))
-    } catch {
-      case e: IllegalArgumentException => Left("No period named " + raw)
-    }
+    override def extract(raw: String) = Try(Period.valueOf(raw.toUpperCase))
   }
+
+  implicit object ExtractBoolean extends Extractable[Boolean] {
+    override def extract(raw: String) = Try(raw.toBoolean)
+  }
+
+  implicit object ExtractDate extends Extractable[Date] {
+    override def extract(raw: String) = DateParser.parse(raw)
+  }
+
 }

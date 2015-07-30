@@ -1,10 +1,10 @@
 package com.socrata.balboa.impl;
 
 import com.blist.metrics.impl.queue.AbstractJavaMetricQueue;
-import com.socrata.balboa.metrics.Metric;
-import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.metrics.config.Keys;
-import com.socrata.metrics.IdParts;
+import com.socrata.balboa.common.IdParts;
+import com.socrata.balboa.common.Metric;
+import com.socrata.balboa.common.config.Configuration;
+import com.socrata.balboa.common.config.Keys;
 
 import java.io.IOException;
 import java.util.HashMap;

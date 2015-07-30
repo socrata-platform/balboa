@@ -2,14 +2,14 @@ package com.socrata.balboa.metrics.data.impl
 
 import java.{util => ju}
 
-import com.socrata.balboa.metrics.Metric.RecordType
+import com.socrata.balboa.common.Metric.RecordType
+import com.socrata.balboa.common.{Metric, Metrics}
 import com.socrata.balboa.metrics.data.Period
-import com.socrata.balboa.metrics.{Metric, Metrics}
 
 import scala.{collection => sc}
 
 /**
- * Queries the underlying datastore
+ * Queries the underlying datastore.
  */
 trait Cassandra11Query {
   def getAllEntityIds(recordType:RecordType, period:Period):Iterator[String]

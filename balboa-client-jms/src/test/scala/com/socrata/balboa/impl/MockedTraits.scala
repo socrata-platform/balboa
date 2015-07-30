@@ -1,6 +1,7 @@
 package com.socrata.balboa.impl
 
-import com.socrata.balboa.metrics.Message
+import com.socrata.balboa.common.Message
+import com.socrata.balboa.common.logging.BalboaLogging
 import com.socrata.metrics.components.MessageQueueComponent
 import org.slf4j.LoggerFactory
 
