@@ -7,7 +7,9 @@ object BuildSettings {
     com.socrata.sbtplugins.StylePlugin.StyleKeys.styleFailOnError in Compile := false,
     // TODO: enable coverage build failures
     scoverage.ScoverageSbtPlugin.ScoverageKeys.coverageFailOnMinimum := false,
-    scalaVersion := "2.10.1",
+    // TODO: enable findbugs build failures
+    com.socrata.sbtplugins.findbugs.JavaFindBugsPlugin.JavaFindBugsKeys.findbugsFailOnError in Compile := false,
+    com.socrata.sbtplugins.findbugs.JavaFindBugsPlugin.JavaFindBugsKeys.findbugsFailOnError in Test := false,
     fork in test := true,
     javaOptions in test += "-Dsocrata.env=test"
     )
