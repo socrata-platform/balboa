@@ -27,7 +27,7 @@ trait MetricDequeuerService {
 
       def take() {
         // if need be, we can add a cushion to prevent context switching, e.g. only take if (queue.size > 10)
-        queue.take() match {
+        Option(queue.poll(1, TimeUnit.SECONDS)) match {
           case Some(m) => buffer.synchronized { buffer.add(asBufferItem(m)) }
           case None =>
         }
