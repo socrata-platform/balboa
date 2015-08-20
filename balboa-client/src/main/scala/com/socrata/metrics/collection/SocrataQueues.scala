@@ -2,8 +2,6 @@ package com.socrata.metrics.collection
 
 import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
 
-import scala.collection.mutable.Queue
-
 trait SocrataAbstractQueue[Q] {
   def add(a:Q):Unit
   def take():Option[Q]
@@ -21,9 +19,3 @@ class SocrataLinkedBlockingQueue[Q](queue:LinkedBlockingQueue[Q]) extends Socrat
 
 }
 
-class SocrataQueue[Q](queue:Queue[Q]) extends SocrataAbstractQueue[Q] {
-  def add(a:Q) {queue.enqueue(a)}
-  def take() = Some(queue.dequeue())
-  def isEmpty = queue.isEmpty
-  def size = queue.size
-}

@@ -56,7 +56,7 @@ class MetricLoggerSpec extends WordSpec with ShouldMatchers with MetricLoggerToQ
         with HashMapBufferComponent
         with TestMessageQueueComponent
         with LinkedBlockingPreBufferQueue
-      quickLogger.enqueue(new MetricEntry("ayn", "num_kitties", 4, 1L, aggType))
+      quickLogger.logMetric("ayn", "num_kitties", 4, 1L, aggType)
       quickLogger.stop()
       Thread.sleep(300)
       quickLogger.dumpingQueue.size should be (1)
