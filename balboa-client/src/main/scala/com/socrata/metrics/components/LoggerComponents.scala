@@ -1,5 +1,7 @@
 package com.socrata.metrics.components
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import com.socrata.balboa.impl.MetricDequeuerService
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.metrics.collection.PreBufferQueue
@@ -23,23 +25,23 @@ trait BaseMetricLoggerComponent extends MetricLoggerComponent {
    */
   class MetricLogger extends MetricLoggerLike {
     self: MetricEnqueuer with MetricDequeuerService =>
-    var acceptEnqueues = true
+    var acceptEnqueues = new AtomicBoolean(true)
     val metricDequeuer = MetricDequeuer()
     val started = metricDequeuer.start(delay, interval)
 
     /** See [[MetricLoggerLike.logMetric()]] */
     override def logMetric(entityId: String, name: String, value: Number, timestamp: Long, recordType: RecordType): Unit = {
-      if (acceptEnqueues)
-        enqueue(MetricEntry(entityId, name, value, timestamp, recordType))
-      else
+      if (!acceptEnqueues.get())
         throw new IllegalStateException(s"${getClass.getSimpleName} has already been stopped")
+      enqueue(MetricEntry(entityId, name, value, timestamp, recordType))
     }
 
     /** See [[MetricLoggerLike.stop()]] */
     override def stop(): Unit = {
-      acceptEnqueues = false
-      log.info(s"Beginning ${getClass.getSimpleName} shutdown")
-      metricDequeuer.stop()
+      if (acceptEnqueues.compareAndSet(true, false)) {
+        log.info(s"Beginning ${getClass.getSimpleName} shutdown")
+        metricDequeuer.stop()
+      }
     }
   }
 
