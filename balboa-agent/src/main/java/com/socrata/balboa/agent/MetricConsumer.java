@@ -1,5 +1,7 @@
 package com.socrata.balboa.agent;
 
+import com.codahale.metrics.*;
+import com.codahale.metrics.Timer;
 import com.socrata.balboa.agent.util.FileUtils;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.metrics.Fluff;
@@ -13,7 +15,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * NOTE: Copied and barely altered from a separate Socrata project.
+ * NOTE: Copied and Pasted from another existing project.
+ * TODO: Deprecate this Concurrent Modification Exception prone class.
  */
 public class MetricConsumer implements Runnable {
 
@@ -21,6 +24,61 @@ public class MetricConsumer implements Runnable {
     * TODO: Remove all references to while true
     * TODO: Standardize Serialization.
      */
+
+    /**
+     * Metrics for Metrics Consumer
+     *
+     * Used to provide remediary
+     */
+
+    private final MetricRegistry metricRegistry = new MetricRegistry();
+
+    /**
+     * Count of Metrics emitted.
+     */
+    private final Counter metricsEmittedCount = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "metrics", "emitted-count"));
+
+    /**
+     * A meter of how many metrics are being emitted
+     */
+    private final Meter metricsEmittedMeter = metricRegistry.meter(MetricRegistry.name(MetricConsumer.class, "metrics", "emitted"));
+
+    /**
+     * Record how long a single Metric Consume job will take.
+     * Provide a rate of consume jobs per second.
+     * NOTE: consume jobs reads all the files within a metrics directory.
+     */
+    private final com.codahale.metrics.Timer runtimeTimer = metricRegistry.timer(MetricRegistry.name(MetricConsumer.class, "runtime"));
+
+    // NOTE: Substantial Errors that should not be ignored and be made fully aware.
+
+    /**
+     * Records the number of times a metrics processing error is found.
+     */
+    private final Counter metricsProcessingFailureCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "metrics-processing-failure"));
+
+    /**
+     * Records the number of times renaming a broken files failed.
+     * NOTE: When an error occurs while processing a file then the file will attempted to be archived with a broken suffix.
+     */
+    private final Counter renameBrokenFileFailureCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "rename-broken-file-failure"));
+
+    /**
+     * Records the count of the number of times the consumer failed to delete a complete metric log file.
+     */
+    private final Counter deleteEventFailureCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "delete-event-log-failure"));
+
+    /**
+     * Records the count of the number of times an incomplete field was encountered when parsing our ridiculously well
+     * thought through custom data format.
+     */
+    private final Counter incompleteFieldCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "incomplete-field"));
+
+    /**
+     * Records the count of the number of times an incorrect value was encountered in the value field of the metric
+     */
+    private final Counter errorInvalidValueCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "invalid-value"));
+
 
     private static final Logger log = LoggerFactory.getLogger(MetricConsumer.class);
     private static final String TIMESTAMP = "timestamp";
@@ -50,32 +108,22 @@ public class MetricConsumer implements Runnable {
     @Override
     public void run() {
         log.info("Starting " + this.getClass().getSimpleName());
-        Set<File> namespaces = getDirectories(this.directory);
-        int recordsProcessed = 0;
-        long start = System.currentTimeMillis();
-        for (File namespace : namespaces) {
-            recordsProcessed += processNamespace(namespace);
+        // Measure how long each process job is taking.
+        final Timer.Context context = runtimeTimer.time();
+        try {
+            Set<File> namespaces = FileUtils.getDirectories(this.directory);
+            int recordsProcessed = 0;
+            long start = System.currentTimeMillis();
+            for (File namespace : namespaces) {
+                recordsProcessed += processNamespace(namespace);
+            }
+            long processingTime = System.currentTimeMillis() - start;
+            log.info("Processed " + recordsProcessed + " in " + processingTime + "ms");
+            metricsEmittedCount.inc(recordsProcessed);
+            metricsEmittedMeter.mark(recordsProcessed);
+        } finally {
+            context.stop();
         }
-        long processingTime = System.currentTimeMillis() - start;
-        log.info("Processed " + recordsProcessed + " in " + processingTime + "ms");
-    }
-
-    /**
-     * Recursively extracts all the directories nested under a parent directory.
-     *
-     * @param directory The root directory to recursively search.
-     * @return The set of directories including the argument directory.
-     */
-    private static Set<File> getDirectories(File directory) {
-        Set<File> directories = new HashSet<>();
-        if (!directory.isDirectory()) { // Return quickly if there
-            return directories;
-        }
-        directories.add(directory);
-        for (File child: directory.listFiles(FileUtils.isDirectory)) {
-            directories.addAll(getDirectories(child));
-        }
-        return directories;
     }
 
     private int processNamespace(File dir) {
@@ -99,24 +147,13 @@ public class MetricConsumer implements Runnable {
 
                 try {
                     records = processFile(metricsEventLog);
-
-                    // Emit a metric about what the file size of the metric we consumed is.
-                    try {
-                        long timestamp = new Date().getTime();
-
-                        MetricIdPart internalID = new MetricIdPart("metrics-internal");
-                        queue.create(internalID, new Fluff("metrics-consumer-files-consumed-size"), metricsEventLog.length(), timestamp, Metric.RecordType.AGGREGATE);
-                        queue.create(internalID, new Fluff("metrics-consumer-files-consumed-count"), 1, timestamp, Metric.RecordType.AGGREGATE);
-                    } catch (Exception e) {
-                        // When an error occurs it is not a terrible big deal because we are going to be calculating the rolling average anyways.
-                        // Its more important that we don't emit a count metric if we couldn't emit a size metric.  Hence the placement of the call.
-                        log.error("Unable to emit metrics about what type of file was consumed.", e);
-                    }
                 } catch (IOException e) {
                     log.error("Error reading records from " + metricsEventLog, e);
+                    metricsProcessingFailureCounter.inc();
                     File broken = new File(metricsEventLog.getAbsolutePath() + FileUtils.BROKEN_FILE_EXTENSION);
                     if (!metricsEventLog.renameTo(broken)) {
                         log.warn("Unable to rename broken file " + metricsEventLog + " permissions issue?");
+                        renameBrokenFileFailureCounter.inc();
                     }
                     continue;
                 }
@@ -131,6 +168,7 @@ public class MetricConsumer implements Runnable {
                 if(!metricsEventLog.delete())
                 {
                     log.error("Unable to delete event log " + metricsEventLog + " - file may be read twice, which is bad.");
+                    deleteEventFailureCounter.inc();
                 }
             }
         }
@@ -180,6 +218,7 @@ public class MetricConsumer implements Runnable {
                             value = Double.valueOf(rawValue);
                     } catch (NumberFormatException e) {
                         log.error("NumberFormatException reading metric from record: " + record.toString(), e);
+                        errorInvalidValueCounter.inc();
                         continue;
                     }
                 }
@@ -191,6 +230,7 @@ public class MetricConsumer implements Runnable {
         }
         finally
         {
+            // Perculate the exception up the call stack.... ugh.
             stream.close();
         }
         return results;
@@ -228,7 +268,7 @@ public class MetricConsumer implements Runnable {
                     {
                         // ack, found an incomplete record!
                         log.warn("Found an incomplete record; complete fields were " + record);
-
+                        incompleteFieldCounter.inc();
                         throw new IOException("Unexpected 0xFF field in file. Refusing to continue to process since our file is almost certainly corrupt.");
                     }
 

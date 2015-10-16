@@ -4,6 +4,8 @@ import java.io.File
 import java.util.concurrent.{ScheduledFuture, Executors, TimeUnit}
 
 import com.blist.metrics.impl.queue.MetricJmsQueue
+import com.codahale.metrics.{CachedGauge, JmxReporter, MetricRegistry}
+import com.socrata.balboa.agent.util.FileUtils
 import com.socrata.metrics.MetricQueue
 import com.typesafe.scalalogging.slf4j.Logger
 import joptsimple.{OptionParser, OptionSet}
@@ -21,6 +23,16 @@ object CLIParamKeys {
 object BalboaAgent extends App with Config {
 
   private lazy val logger = Logger(LoggerFactory getLogger this.getClass)
+
+  /**
+   * Place to register metrics that pertain specifically to Balboa Agent.
+   */
+  val metricRegistry = new MetricRegistry
+
+  /**
+   * Create a Report for metrics to reported via JMX.
+   */
+  val jmxReporter = JmxReporter.forRegistry(metricRegistry).build()
 
   private val scheduler = Executors.newScheduledThreadPool(1)
 
@@ -85,6 +97,17 @@ object BalboaAgent extends App with Config {
     case _ => // NOOP
   }
 
+  metricRegistry.register(MetricRegistry.name(BalboaAgent.getClass, "data-dir", "size"),
+    new CachedGauge[Int](5, TimeUnit.MINUTES) { //
+      override def loadValue(): Int = FileUtils.getDirectories(dataDir).size()
+    })
+
+  // Start the JMX Reporter
+  jmxReporter.start()
+
+  /**
+   * TODO Replace Metric Consumer with something less prone to errors.
+   */
   logger info s"Starting Balboa Agent.  Consuming metrics from ${dataDir.getAbsolutePath}.  " +
     s"AMQ Server: ${amqServer}, AMQ Queue: ${amqQueue}"
   val future: ScheduledFuture[_] = scheduler.scheduleAtFixedRate(
@@ -92,7 +115,10 @@ object BalboaAgent extends App with Config {
     INITIAL_DELAY, period, TimeUnit.MILLISECONDS)
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
-    override def run(): Unit = future.cancel(INTERRUPT_EXISTING_CONSUMER)
+    override def run(): Unit = {
+      future.cancel(INTERRUPT_EXISTING_CONSUMER)
+      jmxReporter.stop()
+    }
   })
 
 }
