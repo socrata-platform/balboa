@@ -15,6 +15,7 @@ object Dependencies {
     val activemq = "5.2.0"
     val astyanax = "1.56.26"
     val commons_logging = "1.1"
+    val dropwizard_metrics = "3.1.2"
     val jackson = "1.9.12"
     val junit = "4.5"
     val jopt_simple = "4.8"
@@ -49,6 +50,8 @@ object Dependencies {
 
   val activemq = "org.apache.activemq" % "activemq-core" % versions.activemq
   val astyanax = "com.netflix.astyanax" % "astyanax" % versions.astyanax
+  val dropwizard_metrics = "io.dropwizard.metrics" % "metrics-core" % versions.dropwizard_metrics
+  val dropwizard_healthcheck = "io.dropwizard.metrics" % "metrics-healthchecks" % versions.dropwizard_metrics
   val jackson_core_asl = "org.codehaus.jackson" % "jackson-core-asl" % versions.jackson
   val jackson_mapper_asl = "org.codehaus.jackson" % "jackson-mapper-asl" % versions.jackson
   val junit = "junit" % "junit" % versions.junit % "test"
@@ -66,6 +69,5 @@ object Dependencies {
   val simple_arm = "com.rojoma" %% "simple-arm" % versions.simple_arm
   val socrata_http = "com.socrata" %% "socrata-http" % versions.socrata_http
   val socrata_utils = "com.socrata" %% "socrata-utils" % versions.socrata_utils
-
 
 }

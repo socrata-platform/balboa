@@ -3,6 +3,8 @@ package com.socrata.balboa.agent.util;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.HashSet;
+import java.util.Set;
 
 public class FileUtils {
 
@@ -23,5 +25,21 @@ public class FileUtils {
         }
     };
 
-
+    /**
+     * Recursively extracts all the directories nested under a parent directory.
+     *
+     * @param directory The root directory to recursively search.
+     * @return The set of directories including the argument directory.
+     */
+    public static Set<File> getDirectories(File directory) {
+        Set<File> directories = new HashSet<>();
+        if (!directory.isDirectory()) { // Return quickly if there
+            return directories;
+        }
+        directories.add(directory);
+        for (File child: directory.listFiles(FileUtils.isDirectory)) {
+            directories.addAll(getDirectories(child));
+        }
+        return directories;
+    }
 }

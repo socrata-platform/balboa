@@ -44,7 +44,7 @@ Others: TODO
 
 ### Build
 
-Balboa Agent can be built as a typical assembly jar
+Balboa Agent can built into an executable Assembly (Fat) Jar.
 
 ```
 sbt balboa-agent/assembly
@@ -53,8 +53,41 @@ sbt balboa-agent/assembly
 This project also incorporates [Sbt Native Packager](http://www.scala-sbt.org/sbt-native-packager/). And builds a simple debian
  package that wraps an assembly jar.  This assembly jar can be found at the debian install root /balboa-agent/bin/balboa-agent-assembly.jar.
 
+#### Building Debian Distributions
+
 ```
 sbt balboa-agent/debian:packageBin
+```
+
+This packages a debian file at balboa-agent/target/balboa-agent_VERSION_ARCHTYPE.deb.  Currently debian is build with ARCHTYPE = all implying 
+that it can run on all linux distros supporting debian.
+
+#### Building Docker Containers (In Progress)
+
+Requirements
+* docker
+
+Completed
+* End to End docker container composition with sbt-native-package, socrata/java base image, and socrata user
+
+In Progress
+* Configuring docker registry to support `sbt balboa-agent/docker:publish`
+* Ensuring SBT-Native-Pacakager and Socrata Ship.d play nice.
+
+
+Currently docker can be built and published to the local docker server via...
+```
+sbt balboa-agent/docker:publishLocal
+```
+
+Publish Docker to a remote docker repository
+```
+sbt balboa-agent/docker:publishLocal
+```
+
+Stage the docker file and related contents locally at balboa-agent/target/docker/stage
+```
+sbt balboa-agent/docker:stage
 ```
 
 ### Configuration
