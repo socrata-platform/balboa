@@ -4,7 +4,7 @@ import sbt._
 
 object BuildSettings {
   val buildSettings: Seq[Setting[_]] = Defaults.defaultSettings ++ SocrataCloudbeesSbt.socrataBuildSettings ++ Seq(
-    scalaVersion := "2.10.1",
+    scalaVersion := "2.10.5",
     fork in test := true,
     javaOptions in test += "-Dsocrata.env=test"
   )
