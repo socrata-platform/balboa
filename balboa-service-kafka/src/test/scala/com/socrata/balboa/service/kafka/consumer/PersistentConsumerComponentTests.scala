@@ -87,7 +87,7 @@ class PersistentConsumerComponentSpec extends WordSpec with BeforeAndAfterEach {
         "Message does not eventually become consumed.")
     }
 
-    "throws exception when it retries more than 3 times" taggedAs SlowTest in new ConfigurableTestPersistentKafkaConsumerSetup(2,2) {
+    "throws exception when it retries more than 2 times" taggedAs SlowTest in new ConfigurableTestPersistentKafkaConsumerSetup(2,2) {
       Mockito.when(mIterator.hasNext()).thenReturn(true, false)
       Mockito.when(mIterator.next()).thenReturn(ConsumerTestUtil.message("test_key", "test_message", scodec, scodec))
 

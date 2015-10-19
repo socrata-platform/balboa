@@ -4,7 +4,7 @@ import java.io.IOException
 
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck
 import com.typesafe.scalalogging.slf4j.Logger
-import org.slf4j.{Logger, LoggerFactory}
+import org.slf4j.LoggerFactory
 
 trait PersistentKafkaConsumerReadiness extends KafkaConsumerReadiness {
 
