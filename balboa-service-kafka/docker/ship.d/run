@@ -4,11 +4,12 @@ set -ev
 
 # Parse Jinja2 templates and replace them with configurations.
 /bin/env_parse ${BALBOA_KAFKA_CONSUMER_CONFIG}.j2
-# /bin/env_parse ${BALBOA_KAFKA_CONSUMER_LOGBACK}.j2
+/bin/env_parse ${BALBOA_LOG4J}.j2
 
 # Run It!
 exec /usr/bin/java \
     -Xmx${BALBOA_KAFKA_CONSUMER_MEMORY} \
     -Xms${BALBOA_KAFKA_CONSUMER_MEMORY} \
+    -Dlog4j.configuration="$BALBOA_LOG4J" \
     -jar $BALBOA_KAFKA_CONSUMER_ARTIFACT \
     --configFile=${BALBOA_KAFKA_CONSUMER_CONFIG}
