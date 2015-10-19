@@ -23,7 +23,7 @@ trait DataStoreConsumerExternalComponents extends KafkaConsumerStreamProvider[St
  */
 trait DataStoreConsumerComponent extends PersistentKafkaConsumerComponent[String, Message] {
 
-  class BalboaConsumer() extends PersistentKafkaConsumer {
+  trait BalboaConsumer extends PersistentKafkaConsumer {
     self: DataStoreConsumerExternalComponents with PersistentKafkaConsumerReadiness =>
 
     /**

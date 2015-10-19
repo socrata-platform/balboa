@@ -19,6 +19,7 @@ trait TestKafkaConsumerComponent extends KafkaConsumerComponent[String, String] 
     self: KafkaConsumerStreamProvider[String, String] with KafkaConsumerReadiness =>
 
     val queue: mutable.Queue[(String, String)] = mutable.Queue.empty[(String,String)]
+    val retries: Int = 3
 
     /**
      * Consumes a Kafka Key-Message pair.
@@ -27,7 +28,7 @@ trait TestKafkaConsumerComponent extends KafkaConsumerComponent[String, String] 
      * @param m Message for the newly consumed message
      * @return Some(error) or None in case of success.
      */
-    override def consume(k: String, m: String): Option[String] = {
+    override def consume(k: String, m: String, attempts:Int = 0): Option[String] = {
       queue.enqueue((k,m))
       None
     }
@@ -51,11 +52,13 @@ object KafkaConsumerSpecSetup extends MockitoSugar {
   trait TestKafkaConsumerSetup extends TestKafkaConsumerComponent with MockKafkaStream {
     var isReady = new AtomicBoolean(true)
     val wt = 600
+    val r = 3
     val kafkaConsumer = new TestKafkaConsumer() with
       KafkaConsumerStreamProvider[String, String] with KafkaConsumerReadiness {
       override val stream: KafkaStream[String, String] = mStream
       override def ready: Boolean = isReady.get()
       override val waitTime: Long = wt
+      override val retries: Int = r
     }
   }
 }

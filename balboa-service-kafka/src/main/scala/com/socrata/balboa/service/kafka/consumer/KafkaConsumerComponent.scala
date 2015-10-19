@@ -1,5 +1,7 @@
 package com.socrata.balboa.service.kafka.consumer
 
+import java.io.IOException
+
 import com.socrata.balboa.service.consumer.ConsumerComponent
 import kafka.consumer.{ConsumerIterator, KafkaStream}
 import kafka.message.MessageAndMetadata
@@ -53,6 +55,8 @@ trait KafkaConsumerComponent[K,M] extends ConsumerComponent[(K,M)] {
   trait KafkaConsumer extends ConsumerLike {
     self: KafkaConsumerStreamProvider[K,M] with KafkaConsumerReadiness =>
 
+    val retries: Int
+
     /**
      * See [[ConsumerLike.start()]]
      */
@@ -69,7 +73,9 @@ trait KafkaConsumerComponent[K,M] extends ConsumerComponent[(K,M)] {
         None
       } catch {
         // This will occur if you place a timeout for a specific
+        case io: IOException => throw io
         case e: Exception => Some(e)
+
       }
     }
 
@@ -97,15 +103,15 @@ trait KafkaConsumerComponent[K,M] extends ConsumerComponent[(K,M)] {
      * @param m Message for the newly consumed message
      * @return Some(error) or None in case of success.
      */
-    def consume(k: K, m: M): Option[String]
+    def consume(k: K, m: M, attempts:Int = 0): Option[String]
 
     /**
      * Waits on the current thread for this consumer to be ready.
      */
     protected final def waitUntilReady() = {
-      while (!ready) {
-        // TODO Check if the kill signal has been dispatched. If so, kill the current thread.
-        // Potentially loosing a message
+      // TODO Check if the kill signal has been dispatched. If so, kill the current thread.
+      // Potentially loosing a message
+      while(!ready) {
         Thread.sleep(waitTime)
       }
     }

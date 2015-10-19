@@ -34,6 +34,7 @@ object BalboaConsumerComponentSetup extends MockitoSugar {
     val wt = 500
     val balboaConsumer = new BalboaConsumer() with
       DataStoreConsumerExternalComponents with PersistentKafkaConsumerReadiness {
+      override val retries: Int = 3
       override val waitTime: Long = wt
       override val stream: KafkaStream[String, Message] = mStream
       override val dataStore: DataStore = mDS

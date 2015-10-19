@@ -26,7 +26,8 @@ case class BalboaConsumerGroup(connector: ConsumerConnector,
                                topic: String,
                                partitionsForTopic: Int,
                                dataStore: DataStore,
-                               waitTime: Long) extends BalboaConsumerGroupLike {
+                               waitTime: Long,
+                               retries: Int) extends BalboaConsumerGroupLike {
 
   private val Log = LogFactory.getLog(this.getClass)
 
@@ -34,8 +35,9 @@ case class BalboaConsumerGroup(connector: ConsumerConnector,
            topic: String,
            partitionsForTopic: Int,
            dataStore: DataStore,
-           waitTime: Long) = {
-    this(Consumer.create(consumerConfig), topic, partitionsForTopic, dataStore, waitTime)
+           waitTime: Long,
+           retries: Int) = {
+    this(Consumer.create(consumerConfig), topic, partitionsForTopic, dataStore, waitTime, retries)
   }
 
   /**
@@ -56,7 +58,9 @@ case class BalboaConsumerGroup(connector: ConsumerConnector,
     this.streams.map(s => {
       val d = this.dataStore
       val w = this.waitTime
-      new BalboaConsumer() with DataStoreConsumerExternalComponents with PersistentKafkaConsumerReadiness {
+      val r = this.retries
+      new BalboaConsumer with DataStoreConsumerExternalComponents with PersistentKafkaConsumerReadiness {
+        lazy val retries: Int = r
         lazy val dataStore: DataStore = d
         lazy val waitTime: Long = w
         lazy val stream = s
