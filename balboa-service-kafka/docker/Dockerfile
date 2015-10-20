@@ -7,7 +7,7 @@ FROM socrata/java
 ENV BALBOA_ROOT /srv/balboa-kafka-consumer
 ENV BALBOA_KAFKA_CONSUMER_ARTIFACT balboa-service-kafka-assembly.jar
 ENV BALBOA_KAFKA_CONSUMER_CONFIG balboa-kafka.properties
-ENV BALBOA_LOG4J log4j.properties
+ENV BALBOA_LOG4J $BALBOA_ROOT/log4j.properties
 
 # Default Values
 ENV BALBOA_KAFKA_CONSUMER_MEMORY 2048m
