@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory
  */
 object BalboaKafkaConsumerCLI extends KafkaConsumerCLIBase[String, Message] {
 
-  private val Log = Logger(LoggerFactory getLogger this.getClass)
+  private val Log = LoggerFactory.getLogger(this.getClass)
 
   private val TOPIC_PERSISTENT_CONSUMER_WAITTIME_KEY = "balboa.kafka.consumer.persistent.waittime"
   private val CASSANDRA_SERVERS_KEY = "cassandra.servers"
