@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
  */
 trait KafkaConsumerCLIBase[K,M] extends App {
 
-  private val Log = Logger(LoggerFactory getLogger this.getClass)
+  private val Log = LoggerFactory.getLogger(this.getClass)
 
   private val APPLICATION_NAME_KEY = "balboa.kafka.application.name"
   private val ZOOKEEPER_PROPERTY_KEY = "zookeeper.connect"

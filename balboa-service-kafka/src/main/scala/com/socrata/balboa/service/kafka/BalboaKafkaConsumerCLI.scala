@@ -18,10 +18,11 @@ import org.slf4j.LoggerFactory
  */
 object BalboaKafkaConsumerCLI extends KafkaConsumerCLIBase[String, Message] {
 
-  private val Log = Logger(LoggerFactory getLogger this.getClass)
+  private val Log = LoggerFactory.getLogger(this.getClass)
 
   private val TOPIC_PERSISTENT_CONSUMER_WAITTIME_KEY = "balboa.kafka.consumer.persistent.waittime"
   private val CASSANDRA_SERVERS_KEY = "cassandra.servers"
+  private val CASSANDRA_RETRIES_KEY = "cassandra.retries"
   private val LOCAL_CASSANDRA = "localhost:6062"
   // Default the time we wait for a data store to
   val DEFAULT_PERSISTENT_CONSUMER_WAITTIME = 1000
@@ -34,6 +35,11 @@ object BalboaKafkaConsumerCLI extends KafkaConsumerCLIBase[String, Message] {
    */
   lazy val waitTime: Int = properties.getInt(TOPIC_PERSISTENT_CONSUMER_WAITTIME_KEY)
 
+  /**
+   * How many times to attempt reconnecting to Cassandra before giving up
+   */
+  lazy val retries: Int = properties.getInt(CASSANDRA_RETRIES_KEY)
+
   /** See [[KafkaConsumerCLIBase.consumerGroup()]] */
   override def consumerGroup(): KafkaConsumerGroupComponent[String, Message] = {
     val config = new ConsumerConfig(properties.props)
@@ -41,7 +47,7 @@ object BalboaKafkaConsumerCLI extends KafkaConsumerCLIBase[String, Message] {
     val cc = Consumer.create(config)
     Log.info(s"Created consumer connector: $cc")
     Log.info(s"Creating Balboa Consumer Group...")
-    val g = new BalboaConsumerGroup(cc, topic, partitions, ds, waitTime)
+    val g = new BalboaConsumerGroup(cc, topic, partitions, ds, waitTime, retries)
     Log.info(s"Group $g created")
     g
   }

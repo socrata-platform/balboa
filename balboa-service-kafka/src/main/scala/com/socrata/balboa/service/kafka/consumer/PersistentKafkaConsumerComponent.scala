@@ -4,7 +4,6 @@ import java.io.IOException
 
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck
 import com.typesafe.scalalogging.slf4j.Logger
-import org.apache.commons.logging.LogFactory
 import org.slf4j.LoggerFactory
 
 trait PersistentKafkaConsumerReadiness extends KafkaConsumerReadiness {
@@ -45,9 +44,15 @@ trait PersistentKafkaConsumerComponent[K,M] extends KafkaConsumerComponent[K,M] 
      * See [[ConsumerLike.consume()]].
      */
     @annotation.tailrec
-    override final def consume(key: K, message: M): Option[String] = {
+    override final def consume(key: K, message: M, attempts: Int = 0): Option[String] = {
       // Note: Scala compiler will unravel this tail recursion into a while loop,
       // As an effect, Having the node or killing the service will potentially result in a message loss
+      
+      if(attempts >= retries) {
+        Log.error("Exceeded allowed number of retries")
+        throw new IOException("Exceeded allowed number of retries")
+      }
+
       try {
         persist(key, message)
         fastFailCheck.markSuccess()
@@ -57,7 +62,7 @@ trait PersistentKafkaConsumerComponent[K,M] extends KafkaConsumerComponent[K,M] 
           // Wrap the exception to provide a more descriptive message.
           fastFailCheck.markFailure(new IOException(s"Error persisting Kafka Key-Message: $key-$message.", e))
           waitUntilReady()
-          consume(key, message)
+          consume(key, message, attempts + 1)
         case e: Exception =>
           Log.error(s"Unable to persist Kafka Key-Message: $key-$message.", e)
           val errorMessage = e.getMessage

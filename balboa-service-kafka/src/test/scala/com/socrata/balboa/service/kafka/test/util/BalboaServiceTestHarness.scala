@@ -23,6 +23,7 @@ trait BalboaServiceTestHarness extends BalboaClientTestHarness[String,Message,St
   // TODO Need to add embedded Cassandra instance to test the actual consumption.
   val dataStore: MockDataStore = new MockDataStore
   val waitTime = 30L
+  val retries = 3
 
   // We will create our own consumer group.
   // There for we will not create any default consumers or groups.
@@ -30,7 +31,7 @@ trait BalboaServiceTestHarness extends BalboaClientTestHarness[String,Message,St
   override val consumerGroupCount: Int = 0
 
   def genConsumerGroup(config: ConsumerConfig): KafkaConsumerGroupComponent[String,Message] = {
-    new BalboaConsumerGroup(config, topic, numPartitions, dataStore, waitTime)
+    new BalboaConsumerGroup(config, topic, numPartitions, dataStore, waitTime, retries)
   }
 
   /**

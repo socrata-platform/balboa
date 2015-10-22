@@ -1,0 +1,6 @@
+log4j.rootLogger={{ LOG_LEVEL }},stdout
+log4j.logger.com.socrata.balboa.service.kafka={{ LOG_LEVEL }}
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=[%p] %d{MM-dd-yyyy HH:mm:ss} %c %M - %m%n
+
