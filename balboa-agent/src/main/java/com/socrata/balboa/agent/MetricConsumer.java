@@ -25,67 +25,60 @@ public class MetricConsumer implements Runnable {
     * TODO: Standardize Serialization.
      */
 
-    /**
-     * Metrics for Metrics Consumer
-     *
-     * Used to provide remediary
-     */
-
-    private final MetricRegistry metricRegistry = new MetricRegistry();
+    private static final String TIMESTAMP = "timestamp";
+    private static final String ENTITY_ID = "entityId";
+    private static final String NAME = "name";
+    private static final String VALUE = "value";
+    private static final String RECORD_TYPE = "type";
 
     /**
      * Count of Metrics emitted.
      */
-    private final Counter metricsEmittedCount = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "metrics", "emitted-count"));
+    private final Counter metricsEmittedCount;
 
     /**
      * A meter of how many metrics are being emitted
      */
-    private final Meter metricsEmittedMeter = metricRegistry.meter(MetricRegistry.name(MetricConsumer.class, "metrics", "emitted"));
+    private final Meter metricsEmittedMeter;
 
     /**
      * Record how long a single Metric Consume job will take.
      * Provide a rate of consume jobs per second.
      * NOTE: consume jobs reads all the files within a metrics directory.
      */
-    private final com.codahale.metrics.Timer runtimeTimer = metricRegistry.timer(MetricRegistry.name(MetricConsumer.class, "runtime"));
+    private final com.codahale.metrics.Timer runtimeTimer;
 
     // NOTE: Substantial Errors that should not be ignored and be made fully aware.
 
     /**
      * Records the number of times a metrics processing error is found.
      */
-    private final Counter metricsProcessingFailureCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "metrics-processing-failure"));
+    private final Counter metricsProcessingFailureCounter;
 
     /**
      * Records the number of times renaming a broken files failed.
      * NOTE: When an error occurs while processing a file then the file will attempted to be archived with a broken suffix.
      */
-    private final Counter renameBrokenFileFailureCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "rename-broken-file-failure"));
+    private final Counter renameBrokenFileFailureCounter;
 
     /**
      * Records the count of the number of times the consumer failed to delete a complete metric log file.
      */
-    private final Counter deleteEventFailureCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "delete-event-log-failure"));
+    private final Counter deleteEventFailureCounter;
 
     /**
      * Records the count of the number of times an incomplete field was encountered when parsing our ridiculously well
      * thought through custom data format.
      */
-    private final Counter incompleteFieldCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "incomplete-field"));
+    private final Counter incompleteFieldCounter;
 
     /**
      * Records the count of the number of times an incorrect value was encountered in the value field of the metric
      */
-    private final Counter errorInvalidValueCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "invalid-value"));
+    private final Counter errorInvalidValueCounter;
 
 
     private static final Logger log = LoggerFactory.getLogger(MetricConsumer.class);
-    private static final String TIMESTAMP = "timestamp";
-    private static final String ENTITY_ID = "entityId";
-    private static final String NAME = "name";
-    private static final String VALUE = "value";
-    private static final String RECORD_TYPE = "type";
 
     private static final List<String> fields = Arrays.asList(TIMESTAMP,
             ENTITY_ID, NAME, VALUE, RECORD_TYPE);
@@ -97,12 +90,29 @@ public class MetricConsumer implements Runnable {
      * Single threaded Metric Consumer.
      */
     public MetricConsumer(File directory, MetricQueue queue) {
+        this(directory, queue, null);
+    }
+
+    public MetricConsumer(File directory, MetricQueue queue, MetricRegistry registry) {
         if (directory == null || !directory.isDirectory())
             throw new IllegalArgumentException("Illegal Data directory " + directory);
         if (queue == null)
             throw new NullPointerException("Metric Queue cannot be null");
         this.directory = directory;
         this.queue = queue;
+
+        // Default to a metrics registry that is local to the metric consumer
+        if (registry == null)
+            registry = new MetricRegistry();
+
+        metricsEmittedCount = registry.counter(MetricRegistry.name(MetricConsumer.class, "metrics", "emitted-count"));
+        metricsEmittedMeter = registry.meter(MetricRegistry.name(MetricConsumer.class, "metrics", "emitted"));
+        runtimeTimer = registry.timer(MetricRegistry.name(MetricConsumer.class, "runtime"));
+        metricsProcessingFailureCounter = registry.counter(MetricRegistry.name(MetricConsumer.class, "error", "metrics-processing-failure"));
+        renameBrokenFileFailureCounter = registry.counter(MetricRegistry.name(MetricConsumer.class, "error", "rename-broken-file-failure"));
+        deleteEventFailureCounter = registry.counter(MetricRegistry.name(MetricConsumer.class, "error", "delete-event-log-failure"));
+        incompleteFieldCounter = registry.counter(MetricRegistry.name(MetricConsumer.class, "error", "incomplete-field"));
+        errorInvalidValueCounter = registry.counter(MetricRegistry.name(MetricConsumer.class, "error", "invalid-value"));
     }
 
     @Override

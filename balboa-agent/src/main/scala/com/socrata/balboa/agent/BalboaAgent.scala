@@ -3,6 +3,7 @@ package com.socrata.balboa.agent
 import java.io.File
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 
+import com.blist.metrics.impl.queue.MetricJmsQueue
 import com.codahale.metrics.{CachedGauge, JmxReporter, MetricRegistry}
 import com.socrata.balboa.agent.util.FileUtils
 import com.socrata.metrics.MetricQueue
@@ -27,11 +28,6 @@ object BalboaAgent extends App with Config {
    * Place to register metrics that pertain specifically to Balboa Agent.
    */
   val metricRegistry = new MetricRegistry
-
-  /**
-   * Create a Report for metrics to reported via JMX.
-   */
-  val jmxReporter = JmxReporter.forRegistry(metricRegistry).build()
 
   private val scheduler = Executors.newScheduledThreadPool(1)
 
@@ -101,17 +97,16 @@ object BalboaAgent extends App with Config {
       override def loadValue(): Int = FileUtils.getDirectories(dataDir).size()
     })
 
-  // Start the JMX Reporter
+  val metricConsumer = new MetricConsumer(dataDir, new MetricJmsQueue(amqServer, amqQueue), metricRegistry)
+  val jmxReporter = JmxReporter.forRegistry(metricRegistry).build()
   jmxReporter.start()
 
   /**
    * TODO Replace Metric Consumer with something less prone to errors.
    */
   logger info s"Starting Balboa Agent.  Consuming metrics from ${dataDir.getAbsolutePath}.  " +
-    s"AMQ Server: ${amqServer}, AMQ Queue: ${amqQueue}"
-  val future: ScheduledFuture[_] = scheduler.scheduleAtFixedRate(
-    new MetricConsumer(dataDir, new ConsoleMetricQueue),
-    INITIAL_DELAY, period, TimeUnit.MILLISECONDS)
+    s"AMQ Server: $amqServer, AMQ Queue: $amqQueue"
+  val future: ScheduledFuture[_] = scheduler.scheduleAtFixedRate(metricConsumer, INITIAL_DELAY, period, TimeUnit.MILLISECONDS)
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
     override def run(): Unit = {
