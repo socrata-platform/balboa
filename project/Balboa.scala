@@ -1,4 +1,3 @@
-import com.socrata.eu.diversit.sbt.plugin.WebDavPlugin.WebDav
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.debian.DebianPlugin
 import com.typesafe.sbt.packager.docker.DockerPlugin
@@ -11,7 +10,7 @@ object Balboa extends Build {
   lazy val balboa = Project(
     projectName,
     file("."),
-    settings = BuildSettings.buildSettings ++ Seq(Keys.parallelExecution := false, WebDav.mkcol := {})
+    settings = BuildSettings.buildSettings ++ Seq(Keys.parallelExecution := false)
   ) aggregate (balboaAgent, balboaAdmin, balboaCommon, balboaCore, balboaHttp, balboaServiceCore, balboaJms,
      balboaClientCore, balboaClientJMS, balboaKafkaCommon, balboaKafkaClient,
     balboaKafkaService, balboaClientDispatcher) // Add new project definitions here.

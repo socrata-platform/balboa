@@ -3,7 +3,7 @@ package com.socrata.balboa.metrics.util
 import java.net.InetAddress
 
 /**
- * @param address See: [[InetAddress]]
+ * @param address The address to connect to.
  * @param port Integer representation of port. IE. 8080, 9062
  */
 case class AddressAndPort(address: InetAddress, port: Int) {

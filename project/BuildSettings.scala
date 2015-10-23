@@ -11,7 +11,10 @@ object BuildSettings {
     com.socrata.sbtplugins.findbugs.JavaFindBugsPlugin.JavaFindBugsKeys.findbugsFailOnError in Compile := false,
     com.socrata.sbtplugins.findbugs.JavaFindBugsPlugin.JavaFindBugsKeys.findbugsFailOnError in Test := false,
     fork in test := true,
-    javaOptions in test += "-Dsocrata.env=test"
+    javaOptions in test += "-Dsocrata.env=test",
+    scalacOptions in (Compile, doc) ++= Seq( // Related Issue: http://scala-language.1934581.n4.nabble.com/Scaladoc-2-11-quot-throws-tag-quot-cannot-find-any-member-to-link-td4641850.html
+      "-no-link-warnings" // Suppresses problems with Scaladoc @throws links
+    )
     )
   val projectSettings: Seq[Setting[_]] = buildSettings
 }

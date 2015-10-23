@@ -1,14 +1,13 @@
 import Dependencies._
 import sbt.Keys._
 import sbt._
-import sbtassembly.Plugin.AssemblyKeys._
 import com.typesafe.sbt.packager.docker._
 import com.typesafe.sbt.packager.linux._
 import com.typesafe.sbt.SbtNativePackager._
 
 object BalboaAgent extends DockerKeys with LinuxKeys {
-  lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings(assembly = true) ++ Seq(
-    mainClass in assembly := Some("com.socrata.balboa.agent.BalboaAgent"),
+  lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
+    mainClass in sbtassembly.AssemblyKeys.assembly := Some("com.socrata.balboa.agent.BalboaAgent"),
     libraryDependencies <++= scalaVersion { libraries(_) },
     dockerBaseImage := "socrata/java",
     daemonUser in Docker := "socrata",
