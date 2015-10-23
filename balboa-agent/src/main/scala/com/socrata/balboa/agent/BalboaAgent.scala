@@ -1,9 +1,8 @@
 package com.socrata.balboa.agent
 
 import java.io.File
-import java.util.concurrent.{ScheduledFuture, Executors, TimeUnit}
+import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 
-import com.blist.metrics.impl.queue.MetricJmsQueue
 import com.codahale.metrics.{CachedGauge, JmxReporter, MetricRegistry}
 import com.socrata.balboa.agent.util.FileUtils
 import com.socrata.metrics.MetricQueue
@@ -111,7 +110,7 @@ object BalboaAgent extends App with Config {
   logger info s"Starting Balboa Agent.  Consuming metrics from ${dataDir.getAbsolutePath}.  " +
     s"AMQ Server: ${amqServer}, AMQ Queue: ${amqQueue}"
   val future: ScheduledFuture[_] = scheduler.scheduleAtFixedRate(
-    new MetricConsumer(dataDir, MetricJmsQueue.getInstance(amqServer, amqQueue)),
+    new MetricConsumer(dataDir, new ConsoleMetricQueue),
     INITIAL_DELAY, period, TimeUnit.MILLISECONDS)
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
