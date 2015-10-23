@@ -15,7 +15,6 @@ import scala.collection.JavaConverters._
  *
  */
 class Cassandra11DataStoreTest {
-
   val mock = new MockCassandra11QueryImpl()
   val cds: Cassandra11DataStore = new Cassandra11DataStore(mock)
   val testMetrics: Metrics = new Metrics()
@@ -32,35 +31,33 @@ class Cassandra11DataStoreTest {
       new APersist(testEntity + "-" + DateRange.create(Period.HOURLY, new Date(ts)).start.getTime, Period.HOURLY, Map(aggMetricName -> aggMetric), Map(absMetricName -> absMetric)))
 
   @Before
-  def setUp {
+  def setUp(): Unit = {
     testMetrics.put(aggMetricName, aggMetric)
     testMetrics.put(absMetricName, absMetric)
   }
 
   @Test
   @Ignore("Requires a local cassandra server and should be executed in isolation")
-  def testPersistIntegration {
+  def testPersistIntegration(): Unit = {
     val cds: Cassandra11DataStore = new Cassandra11DataStore()
     cds.persist(testEntity, System.currentTimeMillis(), testMetrics)
   }
 
-
-
   @Test
-  def testPersist {
+  def testPersist(): Unit = {
     cds.persist(testEntity, 12345, testMetrics)
     Assert.assertEquals(getPersistExpect(12345), mock.persists)
   }
 
   @Test
-  def testFindSingleDateWithinTier {
+  def testFindSingleDateWithinTier(): Unit = {
     mock.metricsToReturn = new Metrics(Map(aggMetricName -> aggMetric).asJava)
     Assert.assertEquals(mock.metricsToReturn, cds.find(testEntity, Period.HOURLY, new Date(12345L)).next())
     Assert.assertEquals(List(new AFetch(testEntity + "-" + 0, Period.HOURLY)), mock.fetches)
   }
 
   @Test
-  def testFindSingleDateWithinUnsupportedTier {
+  def testFindSingleDateWithinUnsupportedTier(): Unit = {
     mock.metricsToReturn = new Metrics(Map(aggMetricName -> aggMetric).asJava)
     mock.fetches = List()
     val fItr = cds.find(testEntity, Period.YEARLY, new Date(1351236163000L))
@@ -82,7 +79,7 @@ class Cassandra11DataStoreTest {
 }
 
   @Test
-  def testFindRangeWithinTier {
+  def testFindRangeWithinTier(): Unit = {
     mock.metricsToReturn = new Metrics(Map(aggMetricName -> aggMetric).asJava)
     val itr = cds.find(testEntity, Period.HOURLY, new Date(0), new Date(TimeUnit.MILLISECONDS.convert(3, TimeUnit.HOURS)))
     Assert.assertEquals(mock.metricsToReturn, itr.next())
@@ -96,7 +93,7 @@ class Cassandra11DataStoreTest {
   }
 
   @Test
-  def testFindOptimized {
+  def testFindOptimized(): Unit = {
     mock.metricsToReturn = new Metrics(Map(aggMetricName -> aggMetric).asJava)
     val start = new Date(TimeUnit.MILLISECONDS.convert(28, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(22, TimeUnit.HOURS)) // two hours before midnight, Jan 30 1970
     val end = new Date(TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(25, TimeUnit.HOURS)) // to two hours after midnight, Mar 3 1970
@@ -115,7 +112,7 @@ class Cassandra11DataStoreTest {
   }
 
   @Test
-  def testGetSlices {
+  def testGetSlices(): Unit = {
     mock.metricsToReturn = new Metrics(Map(aggMetricName -> aggMetric).asJava)
     val start = new Date(TimeUnit.MILLISECONDS.convert(28, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(22, TimeUnit.HOURS)) // two hours before midnight, Jan 30 1970
     val end = new Date(TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(25, TimeUnit.HOURS)) // to two hours after midnight, Mar 3 1970
@@ -143,17 +140,17 @@ class Cassandra11DataStoreTest {
   }
 
   @Test
-  def testGetUnSupportedSlices {
+  def testGetUnSupportedSlices(): Unit = {
     mock.metricsToReturn = new Metrics(Map(aggMetricName -> aggMetric).asJava)
     val start = new Date(TimeUnit.MILLISECONDS.convert(28, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(22, TimeUnit.HOURS)) // two hours before midnight, Jan 30 1970
     val end = new Date(TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(25, TimeUnit.HOURS)) // to two hours after midnight, Mar 3 1970
 
     // Should be converted to a daily query because weekly is not supported
-    var timeSliceItr = cds.slices(testEntity, Period.WEEKLY, start, end)
+    val timeSliceItr = cds.slices(testEntity, Period.WEEKLY, start, end)
 
     var count = 0
     while (timeSliceItr.hasNext) {
-      var ts = timeSliceItr.next()
+      val ts = timeSliceItr.next()
       Assert.assertTrue(DateRange.liesOnBoundary(new Date(ts.getStart), Period.WEEKLY))
       count += 1
     }
@@ -167,9 +164,8 @@ class Cassandra11DataStoreTest {
     Assert.assertEquals(fs, mock.fetches)
   }
 
-
   @Test
-  def testGetEntities {
+  def testGetEntities(): Unit = {
     val entyItr = cds.entities()
     var count = 0
     while(entyItr.hasNext) {
@@ -186,7 +182,7 @@ class Cassandra11DataStoreTest {
   }
 
   @Test
-  def testGetEntitiesPattern {
+  def testGetEntitiesPattern(): Unit = {
     val entyItr = cds.entities("t") // only entities with a 't' in them
     var count = 0
     while(entyItr.hasNext) {
@@ -197,7 +193,7 @@ class Cassandra11DataStoreTest {
     Assert.assertEquals(2, count)
   }
 
-  @Test def testRangeScanNoItems {
+  @Test def testRangeScanNoItems(): Unit = {
     mock.metricsToReturn = null
     val start = new Date(TimeUnit.MILLISECONDS.convert(28, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(22, TimeUnit.HOURS)) // two hours before midnight, Jan 30 1970
     val end = new Date(TimeUnit.MILLISECONDS.convert(60, TimeUnit.DAYS) + TimeUnit.MILLISECONDS.convert(25, TimeUnit.HOURS)) // to two hours after midnight, Mar 3 1970
@@ -221,7 +217,7 @@ class Cassandra11DataStoreTest {
   def rollUpIteratorTest(requestPeriod:Period, supportedPeriod:Period, startMS:Long, endMS:Long) {
     mock.metricsToReturn = new Metrics(Map(aggMetricName -> aggMetric).asJava)
     val startPeriod = DateRange.create(requestPeriod, new Date(startMS)) // start from the reference point
-    var endPeriod = DateRange.create(requestPeriod, new Date(endMS))
+    val endPeriod = DateRange.create(requestPeriod, new Date(endMS))
     val dr = new DateRange(startPeriod.start, endPeriod.end)
     val inRanges = dr.toDates(supportedPeriod).asScala.toList; // requesting as the supported period
     val expectedRanges = dr.toDates(requestPeriod).asScala.toList
@@ -236,8 +232,8 @@ class Cassandra11DataStoreTest {
     // We can have more requested timeslices returned than if the query were natively supported
     // because
     while(rdItr.hasNext && expectedItr.hasNext) {
-      var ts = rdItr.next()
-      var expect = expectedItr.next()
+      val ts = rdItr.next()
+      val expect = expectedItr.next()
       requestPeriod match {
         case Period.MONTHLY => {}
         case _ => {
@@ -278,5 +274,4 @@ class Cassandra11DataStoreTest {
     Assert.assertEquals(Period.MONTHLY, cds.getValidGranularity(Period.YEARLY))
     Assert.assertEquals(Period.HOURLY, cds.getValidGranularity(Period.SECONDLY))
   }
-
 }

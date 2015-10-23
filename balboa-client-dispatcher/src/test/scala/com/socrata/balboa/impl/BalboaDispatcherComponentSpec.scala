@@ -78,7 +78,7 @@ trait QueueEmergencyWriter extends EmergencyFileWriterComponent {
   override def EmergencyFileWriter(file: File): EmergencyFileWriter = new EmergencyFileWriter(file)
 }
 
-case class FakeQueueComponent extends MessageQueueComponent {
+case class FakeQueueComponent() extends MessageQueueComponent {
 
   val queue = mutable.Queue.empty[Message]
   var started = false

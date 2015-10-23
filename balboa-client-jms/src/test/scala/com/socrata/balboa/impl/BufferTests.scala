@@ -3,12 +3,12 @@ package com.socrata.balboa.impl
 import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.metrics.MetricQueue
 import com.socrata.metrics.components.BufferItem
-import org.scalatest.matchers.ShouldMatchers
+import org.scalatest.Matchers
 import org.scalatest.{BeforeAndAfterEach, WordSpec}
 
 import scala.collection.JavaConverters._
 
-class BufferSpec extends WordSpec with ShouldMatchers with HashMapBufferComponent
+class BufferSpec extends WordSpec with Matchers with HashMapBufferComponent
 with TestMessageQueueComponent with BeforeAndAfterEach {
 
   override protected def afterEach(): Unit = {

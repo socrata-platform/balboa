@@ -171,7 +171,7 @@ object MetricsRest {
   {
     val mapper = new ObjectMapper()
     mapper.configure(SerializationConfig.Feature.INDENT_OUTPUT, true)
-    mapper.getSerializationConfig.setSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
+    mapper.getSerializationConfig.withSerializationInclusion(JsonSerialize.Inclusion.NON_NULL)
     mapper.configure(SerializationConfig.Feature.WRITE_ENUMS_USING_TO_STRING, true)
 
     mapper.writeValueAsString(obj)

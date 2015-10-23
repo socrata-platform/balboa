@@ -117,7 +117,9 @@ trait BalboaClientTestHarness[K,M,KE <: KafkaCodec[K],ME <: KafkaCodec[M]]
     producers.map(_.close())
     consumers.map(_.shutdown())
     super.tearDown()
-    if (zookeeper != null) zookeeper.shutdown()
+    if (zookeeper != null) {
+      zookeeper.shutdown()
+    }
   }
 
   /**

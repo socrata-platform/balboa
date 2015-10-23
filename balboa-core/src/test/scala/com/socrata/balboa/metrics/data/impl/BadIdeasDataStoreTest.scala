@@ -13,14 +13,14 @@ class BadIdeasDataStoreTest {
   val badIdeas = new BadIdeasDataStore(new MockDataStore)
 
   @Test(expected = classOf[IllegalArgumentException])
-  def testCantPersistUnderscoredColumns {
+  def testCantPersistUnderscoredColumns(): Unit = {
     val metrics = new Metrics()
     metrics.put("__taco__", new Metric(RecordType.AGGREGATE, 4))
     badIdeas.persist("pizza", 0, metrics)
   }
 
   @Test(expected = classOf[IllegalArgumentException])
-  def testCantPersistUnderscoredEntities {
+  def testCantPersistUnderscoredEntities(): Unit = {
       badIdeas.persist("__pizza__", 0, new Metrics())
   }
 

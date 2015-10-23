@@ -109,7 +109,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
     try {
       val retVal = m.execute()
       fastfail.markSuccess()
-      retVal
+      retVal.getResult
     } catch {
       case e: Exception =>
         val wrapped = new IOException("Error writing metrics " + entityKey + " from " + period, e)

@@ -17,7 +17,7 @@ trait MetricLoggerToDispatcher extends BaseMetricLoggerComponent {
   /**
    * NOTE: This method is being replaced with [[MetricLogger()]].
    */
-  @deprecated
+  @deprecated("Use MetricLogger", "v0.15.1 (2015-04-15)")
   override def MetricLogger(serverName: String, queueName: String, backupFileName: String): MetricLogger = MetricLogger()
 
   /**
