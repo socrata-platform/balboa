@@ -2,7 +2,6 @@ import Dependencies._
 import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyKeys._
-import sbtassembly.MergeStrategy
 
 /**
  * Base Service build settings.  Created this to try and reduce dependency collisions.
@@ -13,14 +12,7 @@ object BalboaService {
    */
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},
-    parallelExecution in Test := false,
-    // TODO: disambiguate config.properties files across sub-projects
-    assemblyMergeStrategy in assembly := {
-      case "config/config.properties" => MergeStrategy.last
-      case x =>
-        val oldStrategy = (assemblyMergeStrategy in assembly).value
-        oldStrategy(x)
-    }
+    parallelExecution in Test := false
   )
 
   def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
