@@ -48,6 +48,7 @@ public class Dumper
         Date epoch = new Date(0);
         Date cutoff = DateRange.create(leastGranular, new Date()).end;
         DataStore ds = DataStoreFactory.get();
+        System.out.println("Obtaining Metrics for " + entityId);
         Iterator<Timeslice> bigSlices = ds.slices(entityId, leastGranular, epoch, cutoff);
         while(bigSlices.hasNext()) {
             Timeslice current = bigSlices.next();

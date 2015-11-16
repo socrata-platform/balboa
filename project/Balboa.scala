@@ -28,7 +28,11 @@ object Balboa extends Build {
   // All following services should be name balboa-service-<type of service>
   lazy val balboaJms = project("balboa-service-jms", BalboaJms, balboaServiceCore)
 
-  lazy val balboaAdmin = project("balboa-admin", BalboaAdmin, balboaCore)
+  // Balboa Admin meant to be run as a Command Line Application.
+  lazy val balboaAdmin = project("balboa-admin", BalboaAdmin, balboaCore).
+    enablePlugins(JavaAppPackaging).
+    enablePlugins(UniversalPlugin).
+    enablePlugins(DebianPlugin)
 
   lazy val balboaAgent = project("balboa-agent", BalboaAgent, balboaClientJMS, balboaCommon)
     .enablePlugins(JavaAppPackaging)

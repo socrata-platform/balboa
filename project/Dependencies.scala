@@ -31,6 +31,7 @@ object Dependencies {
     val simple_arm = "[1.1.10, 2.0.0)"
     val socrata_http = "1.3.3"
     val socrata_utils = "[0.6.0, 1.0.0)"
+    val typesafe_config = "1.3.+"
   }
 
   //////////////////////////////////////////////////////////////////
@@ -66,4 +67,5 @@ object Dependencies {
   val simple_arm = "com.rojoma" %% "simple-arm" % versions.simple_arm
   val socrata_http = "com.socrata" %% "socrata-http" % versions.socrata_http
   val socrata_utils = "com.socrata" %% "socrata-utils" % versions.socrata_utils
+  val typesafe_config = "com.typesafe" % "config" % versions.typesafe_config
 }

@@ -46,8 +46,7 @@ public class BalboaAdmin
         throw new IOException("Unable to find a char that doesn't occur.  You're screwed.");
     }
 
-    public static void main(String[] args) throws IOException
-    {
+    public static void main(String[] args) throws IOException {
         if (args.length == 0)
         {
             usage();
@@ -113,12 +112,8 @@ public class BalboaAdmin
             Lister lister = new Lister();
             lister.list(Arrays.asList(args).subList(1, args.length));
         } else {
-            System.err.println("Unknown command '" + command + "'.");
-            usage();
-            System.exit(1);
+            // When in doubt try BalboaAdminV2.
+            BalboaAdminV2.main(args);
         }
-        System.out.flush();
-        System.err.flush();
-        System.exit(0);
     }
 }
