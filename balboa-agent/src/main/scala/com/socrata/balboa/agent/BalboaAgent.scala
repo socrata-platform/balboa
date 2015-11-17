@@ -110,7 +110,7 @@ object BalboaAgent extends App with Config {
    */
   logger info s"Starting Balboa Agent.  Consuming metrics from ${dataDir.getAbsolutePath}.  " +
     s"AMQ Server: ${amqServer}, AMQ Queue: ${amqQueue}"
-  val future: ScheduledFuture[_] = scheduler.scheduleAtFixedRate(
+  val future: ScheduledFuture[_] = scheduler.scheduleWithFixedDelay(
     new MetricConsumer(dataDir, MetricJmsQueue.getInstance(amqServer, amqQueue)),
     INITIAL_DELAY, period, TimeUnit.MILLISECONDS)
 

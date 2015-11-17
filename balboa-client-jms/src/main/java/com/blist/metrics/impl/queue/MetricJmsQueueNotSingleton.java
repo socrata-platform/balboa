@@ -152,9 +152,6 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
             msg.setTimestamp(timestamp);
             byte[] bytes = msg.serialize();
             producer.send(session.createTextMessage(new String(bytes)));
-            long currentTime = new Date().getTime();
-            create("metrics-internal", "message-size-v1", bytes.length, currentTime, Metric.RecordType.AGGREGATE);
-            create("metrics-internal", "message-count-v1", 1, currentTime, Metric.RecordType.AGGREGATE);
         } catch (Exception e) {
             log.error("Unable to emit metrics", e);
             throw new RuntimeException("Unable to queue a message because there was a JMS error.", e);
@@ -167,8 +164,6 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
         metric.setType(type);
         metric.setValue(value);
         metrics.put(name, metric);
-
-
         updateWriteBuffer(entityId, timestamp, metrics);
     }
 
