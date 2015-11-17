@@ -47,7 +47,7 @@ object Dependencies {
   val balboa_logging = Seq(scala_logging, slf4j_log4j, log4j)
 
   val activemq = "org.apache.activemq" % "activemq-core" % versions.activemq
-  val astyanax = "com.netflix.astyanax" % "astyanax" % versions.astyanax
+  val astyanax = "com.netflix.astyanax" % "astyanax" % versions.astyanax exclude("org.mortbay.jetty", "servlet-api" )
   val dropwizard_metrics = "io.dropwizard.metrics" % "metrics-core" % versions.dropwizard_metrics
   val dropwizard_healthcheck = "io.dropwizard.metrics" % "metrics-healthchecks" % versions.dropwizard_metrics
   val jackson_core_asl = "org.codehaus.jackson" % "jackson-core-asl" % versions.jackson
