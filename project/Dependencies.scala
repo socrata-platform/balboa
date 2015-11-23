@@ -64,6 +64,6 @@ object Dependencies {
   val rojoma_json = "com.rojoma" %% "rojoma-json" % versions.rojoma_json
   val scopt = "com.github.scopt" %% "scopt" % versions.scopt
   val simple_arm = "com.rojoma" %% "simple-arm" % versions.simple_arm
-  val socrata_http = "com.socrata" %% "socrata-http" % versions.socrata_http
+  val socrata_http = "com.socrata" %% "socrata-http" % versions.socrata_http exclude("org.eclipse.jetty.orbit", "javax.servlet")
   val socrata_utils = "com.socrata" %% "socrata-utils" % versions.socrata_utils
 }
