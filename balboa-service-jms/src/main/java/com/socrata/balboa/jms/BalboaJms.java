@@ -53,8 +53,6 @@ public class BalboaJms {
         String[] servers = parseServers(args);
         String channel = parseChannel(args);
 
-        configureLogging();
-
         log.info("Receivers starting, awaiting messages.");
         DataStore ds = DataStoreFactory.get();
         ActiveMQReceiver receiver = new ActiveMQReceiver(servers, channel, threads, ds);
