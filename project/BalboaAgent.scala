@@ -18,8 +18,8 @@ object BalboaAgent extends DockerKeys with LinuxKeys {
   )
 
   def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
-    dropwizard_healthcheck,
     dropwizard_metrics,
+    dropwizard_servlets,
     junit,
     mockito_test
   )
