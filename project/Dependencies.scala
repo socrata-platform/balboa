@@ -14,7 +14,7 @@ object Dependencies {
     val activemq = "5.2.0"
     val astyanax = "1.56.26"
     val commons_logging = "1.1"
-    val dropwizard_metrics = "3.1.2"
+    val dropwizard = "3.1.2"
     val jackson = "1.9.12"
     val junit = "4.5"
     val jopt_simple = "4.8"
@@ -46,10 +46,14 @@ object Dependencies {
 
   val balboa_logging = Seq(scala_logging, slf4j_log4j, log4j)
 
-  val activemq = "org.apache.activemq" % "activemq-core" % versions.activemq
-  val astyanax = "com.netflix.astyanax" % "astyanax" % versions.astyanax exclude("org.mortbay.jetty", "servlet-api" )
-  val dropwizard_metrics = "io.dropwizard.metrics" % "metrics-core" % versions.dropwizard_metrics
-  val dropwizard_healthcheck = "io.dropwizard.metrics" % "metrics-healthchecks" % versions.dropwizard_metrics
+  val activemq = "org.apache.activemq" % "activemq-core" % versions.activemq excludeAll ExclusionRule(organization = "commons-logging")
+  val astyanax = "com.netflix.astyanax" % "astyanax" % versions.astyanax excludeAll(
+    ExclusionRule(organization = "org.mortbay.jetty"),
+    ExclusionRule(organization = "javax.servlet")
+    )
+  val dropwizard_metrics = "io.dropwizard.metrics" % "metrics-core" % versions.dropwizard
+  val dropwizard_healthcheck = "io.dropwizard.metrics" % "metrics-healthchecks" % versions.dropwizard
+  val dropwizard_servlets = "io.dropwizard.metrics" % "metrics-servlets" % versions.dropwizard
   val jackson_core_asl = "org.codehaus.jackson" % "jackson-core-asl" % versions.jackson
   val jackson_mapper_asl = "org.codehaus.jackson" % "jackson-mapper-asl" % versions.jackson
   val junit = "junit" % "junit" % versions.junit % "test"
