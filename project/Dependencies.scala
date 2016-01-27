@@ -51,6 +51,7 @@ object Dependencies {
     ExclusionRule(organization = "org.mortbay.jetty"),
     ExclusionRule(organization = "javax.servlet")
     )
+  val commons_logging = "commons-logging" % "commons-logging" % versions.commons_logging
   val dropwizard_metrics = "io.dropwizard.metrics" % "metrics-core" % versions.dropwizard
   val dropwizard_healthcheck = "io.dropwizard.metrics" % "metrics-healthchecks" % versions.dropwizard
   val dropwizard_servlets = "io.dropwizard.metrics" % "metrics-servlets" % versions.dropwizard

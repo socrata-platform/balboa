@@ -30,3 +30,13 @@ balboa.kafka.consumer.waittime = 1000
 # ever change these existing. If you do, some tiers of summarization will contain
 # inconsistent data with the rest.
 balboa.summaries = fifteen_minute,hourly,daily,monthly,yearly
+
+cassandra.sotimeout = 120000
+cassandra.maxpoolsize = 10
+
+failfast.initialbackoff = 10000
+failfast.maxbackoff = 120000
+
+# Default duration to buffer incoming metrics in memory
+# balboa.datastore should be set to buffered-cassandra
+buffer.granularity = 120000
