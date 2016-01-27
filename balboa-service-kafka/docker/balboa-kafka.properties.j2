@@ -24,3 +24,9 @@ balboa.kafka.topic.partitions = {{ THREADS }}
 
 # The amount of time (ms) that a thread is allotted to wait before continuing to consume messages
 balboa.kafka.consumer.waittime = 1000
+
+# Balboa Cassandra
+# The levels at which to summarize. After you start summarizing, you should not
+# ever change these existing. If you do, some tiers of summarization will contain
+# inconsistent data with the rest.
+balboa.summaries = fifteen_minute,hourly,daily,monthly,yearly
