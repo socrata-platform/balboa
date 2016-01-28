@@ -1,0 +1,24 @@
+# A composite stack to test Balboa Agent against a live activemq server
+# Currently, Balboa agents only dependency is Activemq
+#
+# TODO:
+# * Include Kafka
+# * Include Datastore
+#
+
+activemq:
+  extends:
+    file: ../docker/common.yml
+    service: activemq
+
+cassandra:
+  extends:
+    file: ../docker/common.yml
+    service: cassandra
+
+cassandra-bootstrap:
+  extends: cassandra
+  links:
+    - cassandra
+  entrypoint: cqlsh
+  command: "cassandra -f /etc/balboa_schema.cql"

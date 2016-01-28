@@ -1,0 +1,6 @@
+#!/bin/bash
+
+[ -n "${LOG4J_LEVEL}" ] && JAVA_OPTS="${JAVA_OPTS} -Dlog4j.logLevel=${BALBOA_AGENT_LOG4J_LEVEL}"
+[ -n "${JMX_PORT}" ] && JAVA_OPTS="${JAVA_OPTS} -Dlog4j.logLevel=${BALBOA_AGENT_LOG4J_LEVEL}"
+
+exec /bin/bash /opt/docker/bin/balboa-agent $JAVA_OPTS

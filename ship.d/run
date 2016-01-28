@@ -1,2 +1,0 @@
-#!/bin/bash
-exec /bin/bash /opt/docker/bin/balboa-agent

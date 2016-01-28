@@ -17,6 +17,10 @@ trait JMSClientConfig extends CoreClientConfig {
    */
   def activemqQueue: String = Configuration.get().getString(Keys.JMS_ACTIVEMQ_QUEUE)
 
+  def activemqUser: Option[String] = Option(Configuration.get().getString(Keys.JMS_ACTIVEMQ_USER, null))
+
+  def activemqPassword: Option[String] = Option(Configuration.get().getString(Keys.JMS_ACTIVEMQ_PASSWORD, null))
+
 }
 
 class JavaJMSClientConfig extends JMSClientConfig

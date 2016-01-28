@@ -1,0 +1,21 @@
+activemq: # Not actually the version we run in production
+  image: webcenter/activemq
+  ports:
+    - "61616:61616"
+    - "8161:8161"
+  environment:
+    ACTIVEMQ_MIN_MEMORY: 512
+    ACTIVEMQ_MAX_MEMORY: 2048
+
+cassandra: # Not actually the version we run in production
+  build: cassandra
+  ports:
+    - "9160:9160" # Thrift
+    - "9042:9042" # Native
+    - "7199:7199" # JMX
+
+
+
+kafka:
+  image: spotify/kafka
+
