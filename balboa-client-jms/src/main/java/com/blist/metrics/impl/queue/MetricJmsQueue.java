@@ -32,9 +32,31 @@ public class MetricJmsQueue extends AbstractJavaMetricQueue {
         }
     }
 
+    // Ugh really did not want to contribute to this design pattern.  This has caused us so much pain in the past.
+    // Globally visible instance that many things can touch == future sustainability problem.
+    private static synchronized void createInstance(String username, String password, String server, String queueName) {
+        if (instance == null) {
+            try {
+                ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(username, password, server);
+                factory.setUseAsyncSend(true);
+                instance = new MetricJmsQueue(factory, queueName);
+            } catch (JMSException e) {
+                if(loggedFailToCreateOnce) e = null;
+                else loggedFailToCreateOnce = true;
+                log.error("Unable to create a new Metric logger for JMS. Falling back to a NOOP logger.", e);
+            }
+        }
+    }
+
     /** Note that the parameters are only used on the first invocation. */
     public static MetricJmsQueue getInstance(String server, String queueName) {
         if (instance == null) createInstance(server, queueName);
+        return instance;
+    }
+
+    /** Note that the parameters are only used on the first invocation. */
+    public static MetricJmsQueue getInstance(String username, String password, String server, String queueName) {
+        if (instance == null) createInstance(username, password, server, queueName);
         return instance;
     }
 

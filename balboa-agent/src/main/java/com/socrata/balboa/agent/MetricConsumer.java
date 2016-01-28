@@ -25,61 +25,6 @@ public class MetricConsumer implements Runnable {
     * TODO: Standardize Serialization.
      */
 
-    /**
-     * Metrics for Metrics Consumer
-     *
-     * Used to provide remediary
-     */
-
-    private final MetricRegistry metricRegistry = new MetricRegistry();
-
-    /**
-     * Count of Metrics emitted.
-     */
-    private final Counter metricsEmittedCount = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "metrics", "emitted-count"));
-
-    /**
-     * A meter of how many metrics are being emitted
-     */
-    private final Meter metricsEmittedMeter = metricRegistry.meter(MetricRegistry.name(MetricConsumer.class, "metrics", "emitted"));
-
-    /**
-     * Record how long a single Metric Consume job will take.
-     * Provide a rate of consume jobs per second.
-     * NOTE: consume jobs reads all the files within a metrics directory.
-     */
-    private final com.codahale.metrics.Timer runtimeTimer = metricRegistry.timer(MetricRegistry.name(MetricConsumer.class, "runtime"));
-
-    // NOTE: Substantial Errors that should not be ignored and be made fully aware.
-
-    /**
-     * Records the number of times a metrics processing error is found.
-     */
-    private final Counter metricsProcessingFailureCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "metrics-processing-failure"));
-
-    /**
-     * Records the number of times renaming a broken files failed.
-     * NOTE: When an error occurs while processing a file then the file will attempted to be archived with a broken suffix.
-     */
-    private final Counter renameBrokenFileFailureCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "rename-broken-file-failure"));
-
-    /**
-     * Records the count of the number of times the consumer failed to delete a complete metric log file.
-     */
-    private final Counter deleteEventFailureCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "delete-event-log-failure"));
-
-    /**
-     * Records the count of the number of times an incomplete field was encountered when parsing our ridiculously well
-     * thought through custom data format.
-     */
-    private final Counter incompleteFieldCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "incomplete-field"));
-
-    /**
-     * Records the count of the number of times an incorrect value was encountered in the value field of the metric
-     */
-    private final Counter errorInvalidValueCounter = metricRegistry.counter(MetricRegistry.name(MetricConsumer.class, "error", "invalid-value"));
-
-
     private static final Logger log = LoggerFactory.getLogger(MetricConsumer.class);
     private static final String TIMESTAMP = "timestamp";
     private static final String ENTITY_ID = "entityId";
@@ -109,7 +54,7 @@ public class MetricConsumer implements Runnable {
     public void run() {
         log.info("Starting " + this.getClass().getSimpleName());
         // Measure how long each process job is taking.
-        final Timer.Context context = runtimeTimer.time();
+        final Timer.Context context = BalboaAgentMetrics.runtimeTimer().time();
         try {
             Set<File> namespaces = FileUtils.getDirectories(this.directory);
             int recordsProcessed = 0;
@@ -119,8 +64,8 @@ public class MetricConsumer implements Runnable {
             }
             long processingTime = System.currentTimeMillis() - start;
             log.info("Processed " + recordsProcessed + " in " + processingTime + "ms");
-            metricsEmittedCount.inc(recordsProcessed);
-            metricsEmittedMeter.mark(recordsProcessed);
+            BalboaAgentMetrics.metricsEmittedCount().inc(recordsProcessed);
+            BalboaAgentMetrics.metricsEmittedMeter().mark(recordsProcessed);
         } finally {
             context.stop();
         }
@@ -138,9 +83,7 @@ public class MetricConsumer implements Runnable {
             Arrays.sort(filenameArr);
             // Doing this subList thing removes the file which is currently
             // being written to.
-            for (String file : Arrays.asList(filenameArr).subList(0,
-                    filenameArr.length - 1))
-            {
+            for (String file : Arrays.asList(filenameArr).subList(0, filenameArr.length - 1)) {
                 File metricsEventLog = new File(dir, file);
 
                 List<Record> records;
@@ -149,11 +92,11 @@ public class MetricConsumer implements Runnable {
                     records = processFile(metricsEventLog);
                 } catch (IOException e) {
                     log.error("Error reading records from " + metricsEventLog, e);
-                    metricsProcessingFailureCounter.inc();
+                    BalboaAgentMetrics.metricsProcessingFailureCounter().inc();
                     File broken = new File(metricsEventLog.getAbsolutePath() + FileUtils.BROKEN_FILE_EXTENSION);
                     if (!metricsEventLog.renameTo(broken)) {
                         log.warn("Unable to rename broken file " + metricsEventLog + " permissions issue?");
-                        renameBrokenFileFailureCounter.inc();
+                        BalboaAgentMetrics.renameBrokenFileFailureCounter().inc();
                     }
                     continue;
                 }
@@ -168,7 +111,7 @@ public class MetricConsumer implements Runnable {
                 if(!metricsEventLog.delete())
                 {
                     log.error("Unable to delete event log " + metricsEventLog + " - file may be read twice, which is bad.");
-                    deleteEventFailureCounter.inc();
+                    BalboaAgentMetrics.deleteEventFailureCounter().inc();
                 }
             }
         }
@@ -195,17 +138,18 @@ public class MetricConsumer implements Runnable {
 
     private static final Pattern integerPattern = Pattern.compile("-?[0-9]+");
 
-    private List<Record> processFile(File f) throws IOException
-    {
+    private List<Record> processFile(File f) throws IOException {
+        String filePath = f.getAbsolutePath();
+        log.info("Processing file {}", filePath);
         List<Record> results = new ArrayList<Record>();
         InputStream stream = new BufferedInputStream(new FileInputStream(f));
-        try
-        {
-            while (true)
-            {
+        try {
+            while (true) {
                 Map<String, String> record = grovel(stream);
-                if (record == null)
+                if (record == null) {
+                    log.error("Unable to process records from {}", filePath);
                     break;
+                }
 
                 String rawValue = record.get(VALUE);
                 Number value = null;
@@ -218,7 +162,7 @@ public class MetricConsumer implements Runnable {
                             value = Double.valueOf(rawValue);
                     } catch (NumberFormatException e) {
                         log.error("NumberFormatException reading metric from record: " + record.toString(), e);
-                        errorInvalidValueCounter.inc();
+                        BalboaAgentMetrics.errorInvalidValueCounter().inc();
                         continue;
                     }
                 }
@@ -227,9 +171,8 @@ public class MetricConsumer implements Runnable {
                         value, Long.parseLong(record.get(TIMESTAMP)),
                         Metric.RecordType.valueOf(record.get(RECORD_TYPE).toUpperCase())));
             }
-        }
-        finally
-        {
+        } finally {
+            log.info("Completed (possibly with errors) file {}", filePath);
             // Perculate the exception up the call stack.... ugh.
             stream.close();
         }
@@ -268,7 +211,7 @@ public class MetricConsumer implements Runnable {
                     {
                         // ack, found an incomplete record!
                         log.warn("Found an incomplete record; complete fields were " + record);
-                        incompleteFieldCounter.inc();
+                        BalboaAgentMetrics.incompleteFieldCounter().inc();
                         throw new IOException("Unexpected 0xFF field in file. Refusing to continue to process since our file is almost certainly corrupt.");
                     }
 

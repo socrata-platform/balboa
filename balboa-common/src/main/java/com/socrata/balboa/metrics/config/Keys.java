@@ -34,6 +34,17 @@ public class Keys {
     public static final String JMS_ACTIVEMQ_QUEUE = join(ROOT_JMS_ACTIVEMQ_NAMESPACE, "queue");
 
     /**
+     * Key for the queue name in activemq
+     */
+    public static final String JMS_ACTIVEMQ_USER = join(ROOT_JMS_ACTIVEMQ_NAMESPACE, "user");
+
+    /**
+     * Key for the queue name in activemq
+     */
+    public static final String JMS_ACTIVEMQ_PASSWORD = join(ROOT_JMS_ACTIVEMQ_NAMESPACE, "password");
+
+
+    /**
      * Key to Kafka Brokers address:port for pulling metadata.
      */
     public static final String KAFKA_METADATA_BROKERLIST = join(ROOT_KAFKA_NAMESPACE, "brokers");

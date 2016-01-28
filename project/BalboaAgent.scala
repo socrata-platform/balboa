@@ -11,7 +11,7 @@ object BalboaAgent extends DockerKeys with LinuxKeys {
     libraryDependencies <++= scalaVersion { libraries(_) },
     dockerBaseImage := "socrata/java",
     daemonUser in Docker := "socrata",
-    mappings in Docker += file("ship.d/run") -> "/etc/ship.d/run",
+    mappings in Docker += file("balboa-agent/ship.d/run") -> "/etc/ship.d/run",
     dockerEntrypoint := Seq("/etc/ship.d/run"),
     dockerCommands := dockerCommands.value ++ Seq(ExecCmd("ADD", "etc", "/etc"))
     // TODO Update Ship.d configuration to use a run script.

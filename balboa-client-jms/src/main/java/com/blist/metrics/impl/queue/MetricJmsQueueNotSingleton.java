@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +23,7 @@ import java.util.concurrent.TimeUnit;
  * messages that the metrics service consumes.
  */
 public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
-    private static final Logger log = LoggerFactory.getLogger(MetricJmsQueue.class);
+    private static final Logger log = LoggerFactory.getLogger(MetricJmsQueueNotSingleton.class);
     private final Buffer writeBuffer = new Buffer();
     private final Session session;
     private final Destination queue;
@@ -55,10 +56,13 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
 
             Item notBuffered = new Item(entityId, data, nearestSlice);
 
+            log.debug("Attempting to add {} to the write buffer", notBuffered);
             if (buffer.containsKey(bufferKey)) {
+                log.debug("Buffer already contains \"{}\".  Merging with existing value set of metrics.", notBuffered);
                 Item buffered = buffer.get(bufferKey);
                 buffered.data.merge(notBuffered.data);
             } else {
+                log.debug("Adding new entry: \"{}\" to the write buffer", notBuffered);
                 buffer.put(bufferKey, notBuffered);
             }
         }
@@ -146,6 +150,8 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
 
     private void queue(String entityId, long timestamp, Metrics metrics) {
         try {
+            log.debug("Sending metrics to queue for entity id: {} with associated time {} and metrics (Size: {}) {}",
+                    entityId, new Timestamp(timestamp).toString(), metrics.size(), metrics);
             JsonMessage msg = new JsonMessage();
             msg.setEntityId(entityId);
             msg.setMetrics(metrics);
@@ -153,12 +159,15 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
             byte[] bytes = msg.serialize();
             producer.send(session.createTextMessage(new String(bytes)));
         } catch (Exception e) {
-            log.error("Unable to emit metrics", e);
+            log.error("Error sending metrics to Queue for {} with associated time {} because of {}", entityId,
+                    new Timestamp(timestamp).toString(), e.getMessage());
             throw new RuntimeException("Unable to queue a message because there was a JMS error.", e);
         }
     }
 
     private void create(String entityId, String name, Number value, long timestamp, Metric.RecordType type) {
+        log.debug("Creating metric {}:{} for {} with associated time {} by sending it to the write buffer",
+                name, value, entityId, new Timestamp(timestamp).toString());
         Metrics metrics = new Metrics();
         Metric metric = new Metric();
         metric.setType(type);
