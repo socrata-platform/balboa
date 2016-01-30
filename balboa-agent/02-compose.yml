@@ -1,0 +1,7 @@
+
+ticker-tape:
+  image: registry.docker.aws-us-west-2-infrastructure.socrata.net:5000/internal/ticker-tape:latest
+  environment:
+    TICKER_TAPE_DATA_DIRECTORY: /data/metrics
+  volumes:
+    - /tmp/balboa/data:/data/metrics
