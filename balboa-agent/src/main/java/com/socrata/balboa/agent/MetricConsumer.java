@@ -1,7 +1,7 @@
 package com.socrata.balboa.agent;
 
-import com.codahale.metrics.*;
 import com.codahale.metrics.Timer;
+import com.socrata.balboa.agent.metrics.BalboaAgentMetrics;
 import com.socrata.balboa.agent.util.FileUtils;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.metrics.Fluff;
@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
  * NOTE: Copied and Pasted from another existing project.
  * TODO: Deprecate this Concurrent Modification Exception prone class.
  */
-public class MetricConsumer implements Runnable {
+public class MetricConsumer implements Runnable, AutoCloseable {
 
     /*
     * TODO: Remove all references to while true
@@ -71,6 +71,24 @@ public class MetricConsumer implements Runnable {
         }
     }
 
+    /**
+     * Closing the Metric Consumer is effectively a delegation method that allows the Metric Consumers
+     * internal resources to close and clean up (If necessary).
+     *
+     * @throws IOException
+     */
+    @Override
+    public void close() throws IOException {
+        try {
+            // Close and allow any clean up functionality to occur. IE. Flushing out a buffer.
+            queue.close();
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            log.warn("Unexpected error shutting down Metric Consumer", e);
+        }
+    }
+
     private int processNamespace(File dir) {
         int recordsProcessed = 0;
         File[] fileArr = dir.listFiles(FileUtils.isFile);
@@ -103,10 +121,7 @@ public class MetricConsumer implements Runnable {
 
                 for (Record r : records)
                     queue.create(new MetricIdPart(r.entityId), new Fluff(r.name), r.value.longValue(), r.timestamp, r.type);
-                // Flush the file to JMS after every read
 
-                // TODO I don't think we need this so commenting out the below line.
-//                q.flushWriteBuffer();
                 recordsProcessed += records.size();
                 if(!metricsEventLog.delete())
                 {
@@ -147,7 +162,6 @@ public class MetricConsumer implements Runnable {
             while (true) {
                 Map<String, String> record = grovel(stream);
                 if (record == null) {
-                    log.error("Unable to process records from {}", filePath);
                     break;
                 }
 
@@ -227,5 +241,13 @@ public class MetricConsumer implements Runnable {
 
             return record;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "MetricConsumer{" +
+                "directory=" + directory +
+                ", queue=" + queue +
+                '}';
     }
 }

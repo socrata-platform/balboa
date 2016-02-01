@@ -64,7 +64,15 @@ public class MetricJmsQueue extends AbstractJavaMetricQueue {
         this.factory = factory; // badness happens if it's GC'd
         Connection connection = factory.createConnection();
         realInstance = new MetricJmsQueueNotSingleton(connection, queueName);
-        realInstance.start();
+    }
+
+    @Override
+    public void close() throws Exception {
+        // TODO When a singleton object has two underlying implementations... that is a bad smell.
+        if (instance != null)
+            instance.close();
+        if (realInstance != null)
+            realInstance.close();
     }
 
     @Override

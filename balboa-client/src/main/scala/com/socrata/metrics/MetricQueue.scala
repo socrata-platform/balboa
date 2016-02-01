@@ -41,7 +41,7 @@ object MetricQueue {
 /**
  * Base interface that all metrics producers must implement.
  */
-trait MetricQueue {
+trait MetricQueue extends AutoCloseable {
 
   /**
    * Interface for receiving a Metric

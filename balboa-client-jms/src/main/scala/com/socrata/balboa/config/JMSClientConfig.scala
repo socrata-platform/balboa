@@ -21,6 +21,8 @@ trait JMSClientConfig extends CoreClientConfig {
 
   def activemqPassword: Option[String] = Option(Configuration.get().getString(Keys.JMS_ACTIVEMQ_PASSWORD, null))
 
+  def bufferSize: Int = Configuration.get().getInt(Keys.JMS_ACTIVEMQ_MAX_BUFFER_SIZE, 1)
+
 }
 
-class JavaJMSClientConfig extends JMSClientConfig
+object JavaJMSClientConfig extends JMSClientConfig

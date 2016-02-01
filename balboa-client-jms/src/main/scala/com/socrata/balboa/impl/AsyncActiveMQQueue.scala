@@ -49,7 +49,6 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
             activeMQConn
           })
           underlying = connection.map(new MetricJmsQueueNotSingleton(_, queueName))
-          underlying.map(_.start())
         case Failure(e) =>
           // Using failover transport, this should never happen; rather, createConnection() will hang until it finds a connection
           log.error("ActiveMQ initial connection failed. Metrics will not function until a restart!", e)

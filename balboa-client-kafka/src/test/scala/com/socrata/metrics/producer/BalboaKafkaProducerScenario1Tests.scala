@@ -15,7 +15,7 @@ import org.junit.Test
  * Behaviour testing Kafka Producer in a simulated environment.  This simulated environment is meant to resemble the
  * actual deployed staging and RC environments.
  */
-class BalboaKafkaProducerStagingAndRCTests extends BalboaMessageClientTestHarness
+class BalboaKafkaProducerScenario1Tests extends BalboaMessageClientTestHarness
 with MetricsTestStuff.TestMessages {
 
   override val numPartitions: Int = StagingAndRCEnvironment.NUM_PARTITIONS

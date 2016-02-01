@@ -1,4 +1,4 @@
-package com.socrata.balboa.agent
+package com.socrata.balboa.agent.metrics
 
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -14,6 +14,11 @@ import scala.util.{Failure, Success, Try}
   * Created by michaelhotan on 1/28/16.
   */
 object BalboaAgentMetrics {
+
+  /**
+    * NOTE: This also serves as an example of how to use Dropwizard and surface metrics via a Dropwizard provided
+    * reporter.  IE. See [[com.socrata.balboa.agent.BalboaAgent.jmxReporter]] to see how to surface metrics via JMX.
+    */
 
   private val name = "balboa-agent"
 
@@ -74,7 +79,7 @@ object BalboaAgentMetrics {
     *
     * @param metricName The name of the metric to register.
     * @param directory The directory to check.
-    * @return Success[Metric] if the metric was created.  Failure[Metric] if it wasnt
+    * @return Success[Metric] if the metric was created.  Failure[Metric] if it wasn't able to use the defined directory.
     */
   def directorySize(metricName: String, directory: File): Try[Metric] = directory match {
     case f: File if directory.exists() && directory.isDirectory =>
