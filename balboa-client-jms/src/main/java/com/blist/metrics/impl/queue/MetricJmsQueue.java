@@ -68,7 +68,6 @@ public class MetricJmsQueue extends AbstractJavaMetricQueue {
 
     @Override
     public void close() throws Exception {
-        // TODO When a singleton object has two underlying implementations... that is a bad smell.
         if (instance != null)
             instance.close();
         if (realInstance != null)

@@ -5,15 +5,12 @@ import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.impl.JsonMessage;
 import com.socrata.metrics.IdParts;
-import com.socrata.metrics.MetricQueue$;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jms.*;
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -37,9 +34,9 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
     }
 
     private void flushWriteBuffer() {
-        Collection<MetricsBag> items = writeBuffer.popAll(); // Remove and empty
+        Collection<MetricsBucket> items = writeBuffer.popAll(); // Remove and empty
         log.info("Flushing the write buffer of all {} metric bags.", items.size());
-        for (MetricsBag bag : items) {
+        for (MetricsBucket bag : items) {
             queue(bag.getId(), bag.getTimeBucket(), bag.getData());
         }
     }

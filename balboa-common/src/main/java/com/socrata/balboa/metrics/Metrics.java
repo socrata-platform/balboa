@@ -75,6 +75,12 @@ public class Metrics extends HashMap<String, Metric> {
         return results;
     }
 
+    /**
+     * Merges another collection of metrics with this.  Metrics of the same name that are found in both this and
+     * the other Metrics object are then combined via the {@link Metric#combine(Metric)} method.
+     *
+     * @param other Other Metrics to combine with this.
+     */
     public void merge(Metrics other) {
         // Get the union of the two key sets.
         Set<String> unionKeys = new HashSet<String>(keySet());

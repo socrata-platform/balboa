@@ -41,7 +41,7 @@ class MetricsBufferSpec extends WordSpec with BeforeAndAfterEach {
     "be immutable" in new EmptyMetrics {
       // This shows that
       val c1 = metricsBuffer.popAll();
-      c1.add(new MetricsBag("some_entity_id", metrics, System.currentTimeMillis()))
+      c1.add(new MetricsBucket("some_entity_id", metrics, System.currentTimeMillis()))
       assert(metricsBuffer.size() == 0, "Metrics Buffer is exposing internal representation.")
     }
 

@@ -9,11 +9,11 @@ import java.util.*;
 
 /**
  * An in-memory metrics buffer that is optimized to condense the metric message footprint.  This is
- * current done by condensing the memory footprint of the metrics themselves.  Depending on the
+ * currently done by condensing the memory footprint of the metrics themselves.  Depending on the
  * {@link com.socrata.balboa.metrics.Metric.RecordType}, the buffer manipulates the data to conserve space
  * in memory.
  *
- * Note: Be very cautious using the Class.  Try to avoid it if you can.  Mutating metrics data in memory in the
+ * Note: Be very cautious while using the Class.  Mutating metrics data in memory in the
  * event of a killed process can result in lost, unrecoverable data.
  *
  * @see Metrics
@@ -26,22 +26,18 @@ public class MetricsBuffer {
     private static final Logger log = LoggerFactory.getLogger(MetricsBuffer.class);
 
     /**
-     * Class initially copied from Metric Consumer in Coreserver to MetricJmsQueueNotSingleton to here.
+     * This classes is intended to present clients with a simpler interface then exposing the internal buffer
+     * directly.  By limiting functionality of the buffer to add and popAll we reduce the chance of unnecessary
+     * side effects while allowing us to explore different options for the underlying implementation.
      *
-     * This class was created in an effort to prevent the overloading of a Queueing system.  For legacy
-     * reasons we continue to support it.   This class a couple of known risks that we look to mitigate in
-     * the future.
-     * * Class mutates metrics data in memory.
-     * * Additional buffering layer that in memory and can result to non recoverable metric loss.
-     *
-     * Individually the risks seem small but combined together can be very problematic.
+     * TODO: Stronger Unit Tests
+     * TODO: From a functional perspective the internal buffer should probably be a Set.
      */
 
     /**
      * The internal buffer conserves the memory footprint.
-     * TODO: from a functional perspective the internal buffer should probably be a Set but one thing at a time.
      */
-    private final Map<String, MetricsBag> internalBuffer = new HashMap<>();
+    private final Map<String, MetricsBucket> internalBuffer = new HashMap<>();
 
     /**
      * Adds a collection of metrics to this.
@@ -53,12 +49,12 @@ public class MetricsBuffer {
     synchronized void add(String entityId, Metrics data, long timestamp) {
         long nearestSlice = timestamp - (timestamp %  MetricQueue$.MODULE$.AGGREGATE_GRANULARITY());
         String bufferKey = entityId + ":" + nearestSlice;
-        MetricsBag notBuffered = new MetricsBag(entityId, data, nearestSlice);
+        MetricsBucket notBuffered = new MetricsBucket(entityId, data, nearestSlice);
 
         log.debug("Attempting to add {} to the write internal buffer", notBuffered);
         if (internalBuffer.containsKey(bufferKey)) {
             log.debug("Buffer already contains \"{}\".  Merging with existing value set of metrics.", notBuffered);
-            MetricsBag buffered = internalBuffer.get(bufferKey);
+            MetricsBucket buffered = internalBuffer.get(bufferKey);
             buffered.getData().merge(notBuffered.getData());
         } else {
             log.debug("Adding new entry: \"{}\" to the write internalBuffer", notBuffered);
@@ -71,10 +67,10 @@ public class MetricsBuffer {
      *
      * @return All the current internal metrics.
      */
-    synchronized Collection<MetricsBag> popAll() {
+    synchronized Collection<MetricsBucket> popAll() {
         log.debug("Removing all metrics from existing buffer");
         // TODO Array list could be a set.
-        Collection<MetricsBag> currentValues = new ArrayList<>(internalBuffer.values());
+        Collection<MetricsBucket> currentValues = new ArrayList<>(internalBuffer.values());
         internalBuffer.clear();
         return currentValues;
     }
