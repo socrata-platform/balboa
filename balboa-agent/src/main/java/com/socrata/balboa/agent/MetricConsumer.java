@@ -193,14 +193,29 @@ public class MetricConsumer implements Runnable, AutoCloseable {
         return results;
     }
 
-    // returns null on EOF
-
     /**
-     * Grovel accepts a stream of bytes and deserialize them into a collection of Metrics.
+     * Grovel accepts a stream of bytes and deserialize them into a single Metric.
      *
-     * @param stream A stream of bytes.
-     * @return A mapping of
-     * @throws IOException
+     * <b>
+     *  This class works under the assumptions that bytes are serialized under the following format
+     *  <ul>
+     *      <li>0xff - single byte - Beginning mark of a single metrics entry</li>
+     *      <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of a timestamp of type long.</li>
+     *      <li>0xfe - single byte - end of timestamp sequence</li>
+     *      <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of the entity id</li>
+     *      <li>0xfe - single byte - end of entity id byte sequence</li>
+     *      <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of the metric name</li>
+     *      <li>0xfe - single byte - end of metric name byte sequence</li>
+     *      <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of the metric value.  The metric value is of type Number</li>
+     *      <li>0xfe - single byte - end of metric value byte sequence</li>
+     *      <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of the metric type.  See {@link com.socrata.balboa.metrics.Metric.RecordType}</li>
+     *      <li>0xfe - single byte - end of metric type byte sequence</li>
+     *  </ul>
+     * </b>
+     *
+     * @param stream A stream of bytes that represent a Single Metric.
+     * @return A Map representing a single Metric entry. null if end of file has been reached.
+     * @throws IOException If an incomplete metrics record was identified.
      */
     private Map<String, String> grovel(InputStream stream) throws IOException
     {
@@ -221,8 +236,9 @@ public class MetricConsumer implements Runnable, AutoCloseable {
             Map<String, String> record = new HashMap<String, String>();
             for (String field : fields)
             {
+                // The following while true loop attempts to read a single record for a metric.
+                // A record would be entityId, name, value, timestamp, or type.
                 baos.reset();
-
                 while (true)
                 {
                     int b = stream.read();
