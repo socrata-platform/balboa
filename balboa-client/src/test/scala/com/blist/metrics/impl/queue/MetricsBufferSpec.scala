@@ -39,13 +39,12 @@ class MetricsBufferSpec extends WordSpec with BeforeAndAfterEach {
       assert(metricsBuffer.popAll().size() == 0, "Initial Metrics Buffer strangely contains metrics data.")
     }
     "be immutable" in new EmptyMetrics {
-      // This shows that
       val c1 = metricsBuffer.popAll();
       c1.add(new MetricsBucket("some_entity_id", metrics, System.currentTimeMillis()))
       assert(metricsBuffer.size() == 0, "Metrics Buffer is exposing internal representation.")
     }
 
-    // TODO Write much more test
+    // TODO Write enough tests until every revealing subdomain is tested.
   }
 
 }

@@ -194,6 +194,14 @@ public class MetricConsumer implements Runnable, AutoCloseable {
     }
 
     // returns null on EOF
+
+    /**
+     * Grovel accepts a stream of bytes and deserialize them into a collection of Metrics.
+     *
+     * @param stream A stream of bytes.
+     * @return A mapping of
+     * @throws IOException
+     */
     private Map<String, String> grovel(InputStream stream) throws IOException
     {
         // First we have to find the start-of-record (a 0xff byte).
@@ -221,8 +229,7 @@ public class MetricConsumer implements Runnable, AutoCloseable {
                     if (b == -1)
                         return null; // last record truncated
 
-                    if (b == 0xff)
-                    {
+                    if (b == 0xff) {
                         // ack, found an incomplete record!
                         log.warn("Found an incomplete record; complete fields were " + record);
                         BalboaAgentMetrics.incompleteFieldCounter().inc();

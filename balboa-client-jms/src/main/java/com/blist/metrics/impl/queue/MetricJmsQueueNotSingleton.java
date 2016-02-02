@@ -34,10 +34,10 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
     }
 
     private void flushWriteBuffer() {
-        Collection<MetricsBucket> items = writeBuffer.popAll(); // Remove and empty
-        log.info("Flushing the write buffer of all {} metric bags.", items.size());
-        for (MetricsBucket bag : items) {
-            queue(bag.getId(), bag.getTimeBucket(), bag.getData());
+        Collection<MetricsBucket> buckets = writeBuffer.popAll(); // Remove and empty
+        log.info("Flushing the write buffer of all {} metric buckets.", buckets.size());
+        for (MetricsBucket bucket : buckets) {
+            queue(bucket.getId(), bucket.getTimeBucket(), bucket.getData());
         }
     }
 
