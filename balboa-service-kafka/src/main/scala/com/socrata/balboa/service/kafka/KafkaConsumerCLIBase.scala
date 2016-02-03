@@ -27,7 +27,6 @@ trait KafkaConsumerCLIBase[K,M] extends App {
   //////////////////////////////////////////////////////////////////////////////////////////
   /////// Running the Application
 
-  super.main(args)
   Log.info("Creating Consumer Group")
   val g = consumerGroup()
   Log.info("Completed Creating Consumer Group")
