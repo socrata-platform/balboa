@@ -27,9 +27,7 @@ object BalboaAgent extends App with Config with StrictLogging {
     case (Some(user), Some(password)) => s"AMQ User: $user"
     case _ => ""
   }
-  /**
-   * TODO Replace Metric Consumer with something less prone to errors.
-   */
+
   logger info s"Starting Balboa Agent.  Consuming metrics from ${dataDir.getAbsolutePath}.  " +
     s"AMQ Server: $activemqServer, AMQ Queue: $activemqQueue $additionalInfo".trim
 
@@ -42,21 +40,23 @@ object BalboaAgent extends App with Config with StrictLogging {
 
   // TODO (Pre req: Java 8) Use Java Duration class.
   val future: ScheduledFuture[_] = scheduler.scheduleWithFixedDelay(new Runnable {
+
     override def run(): Unit = {
-      // Wrapping the Metric Consumer inside an anonymous inner function makes the metric consumer more ephemeral
-      // Structuring the block like this allows us to close the metric consumer for each subsequent ensuring
-      // resources are flushed after each run.
       val mc = new MetricConsumer(dataDir, new MetricJmsQueueNotSingleton(amqConnection, activemqQueue))
-      logger.debug(s"Attempting to run Metric Consumer $mc")
-      mc.run()
-      mc.close() // Ensure the Metrics Consumer cleans up after itself.
+      try {
+        logger.debug(s"Attempting to run Metric Consumer $mc")
+        mc.run() // Recursively reads all metric data files and writes them to a queue.
+      } finally {
+        logger.debug(s"Attempting to close Metric Consumer $mc")
+        mc.close() // Release all associated resources.
+      }
     }
   }, initialDelay(), interval(), TimeUnit.MILLISECONDS)
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
 
     override def run(): Unit = {
-      logger info "Attempting to shut down Balboa Agent.  Attempt to cancel and future subsequent runs."
+      logger info "Attempting to shut down Balboa Agent.  Attempt to cancel current and future runs."
       future.cancel(INTERRUPT_EXISTING_CONSUMER)
       jmxReporter.stop()
     }

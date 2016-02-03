@@ -10,6 +10,13 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * A Metric Queue that writes metrics to data files on disk in a specified directory.
+ *
+ * Provides a Singleton and Non-Singleton implementation.  The Singleton implementation is exposed through the
+ * {@link MetricFileQueue#getInstance(File)} function.  The Non Singleton implementation is exposed through the
+ * constructor.
+ */
 public class MetricFileQueue extends AbstractJavaMetricQueue {
     private static final Logger log = LoggerFactory.getLogger(MetricFileQueue.class);
 
@@ -24,24 +31,38 @@ public class MetricFileQueue extends AbstractJavaMetricQueue {
     private static Map<File, MetricFileQueue> instances = new HashMap<>();
     private static long MAX_METRICS_PER_FILE = 20000;
 
-    private File directory;
+    private final File directory;
     private long reopenTime;
     private long metricCount = 0;
 
     private FileOutputStream fileStream = null;
     private BufferedOutputStream stream = null;
 
-    private MetricFileQueue(File directory) {
-        if (directory == null || !directory.isDirectory()) {
+    /**
+     * Creates a MetricFileQueue instance for a specific directory.
+     *
+     * @param directory The directory in which to write metrics data.
+     */
+    public MetricFileQueue(File directory) {
+        if (!isDirectory(directory)) {
             throw new IllegalArgumentException("Illegal directory \"" + directory + "\". Cannot create Metrics File Queue.");
         }
-
         this.directory = directory;
     }
 
-
-    public File getDirectory() {
-        return directory;
+    /**
+     * Provides the interface to the singleton instance for a specific directory.
+     *
+     * @param directory The directory in which to write metrics data.
+     * @return The MetricFileQueue for a given directory.
+     */
+    public static synchronized MetricFileQueue getInstance(File directory) {
+        MetricFileQueue q = instances.get(directory);
+        if (q == null) {
+            q = new MetricFileQueue(directory);
+            instances.put(directory, q);
+        }
+        return q;
     }
 
     private void open() throws IOException {
@@ -57,6 +78,7 @@ public class MetricFileQueue extends AbstractJavaMetricQueue {
         metricCount = 0;
     }
 
+    @Override
     public synchronized void close() throws IOException {
         if (stream != null) {
             stream.close();
@@ -67,7 +89,7 @@ public class MetricFileQueue extends AbstractJavaMetricQueue {
 
     public synchronized void create(String entityId, String name, Number value, long timestamp, Metric.RecordType type) {
         // File format:
-        // 0xff asciiTimestamp 0xfe entityId 0xfe name 0xfe asciiNumber 0xfe
+        // 0xff asciiTimestamp 0xfe entityId 0xfe name 0xfe asciiNumber 0xfe asciType 0xfe
 
         try {
             if (stream == null) {
@@ -110,21 +132,19 @@ public class MetricFileQueue extends AbstractJavaMetricQueue {
         }
     }
 
+    public void create(IdParts entity, IdParts name, long value, long timestamp, Metric.RecordType type) {
+        create(entity.toString(), name.toString(), value, timestamp, type);
+    }
+
+    public File getDirectory() {
+        return directory;
+    }
+
     private static byte[] utf8(String s) throws UnsupportedEncodingException {
         return s.getBytes("utf-8");
     }
 
-    public static synchronized MetricFileQueue getInstance(File directory) {
-        MetricFileQueue q = instances.get(directory);
-        if (q == null) {
-            directory.mkdir();
-            q = new MetricFileQueue(directory);
-            instances.put(directory, q);
-        }
-        return q;
-    }
-
-    public void create(IdParts entity, IdParts name, long value, long timestamp, Metric.RecordType type) {
-        create(entity.toString(), name.toString(), value, timestamp, type);
+    private static boolean isDirectory(File directory) {
+        return directory != null && directory.isDirectory();
     }
 }

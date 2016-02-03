@@ -23,9 +23,7 @@ object BalboaAgentMetrics {
   private val name = "balboa-agent"
 
   /**
-    * Metrics for Metrics Consumer
-    *
-    * Used to provide remediary
+    * Single Metrics registry for Balboa Agent.
     */
   val registry: MetricRegistry = new MetricRegistry
 
@@ -44,7 +42,17 @@ object BalboaAgentMetrics {
     * Provide a rate of consume jobs per second.
     * NOTE: consume jobs reads all the files within a metrics directory.
     */
-  val runtimeTimer: Timer = registry.timer(MetricRegistry.name(name, "runtime"))
+  val totalRuntime: Timer = registry.timer(MetricRegistry.name(name, "total", "runtime"))
+
+  /**
+    * Histogram distribution of per metrics directory runtimes (ms)
+    */
+  val singleDirectoryRuntimeHistogram: Histogram = registry.histogram(MetricRegistry.name(name, "directory", "runtime"))
+
+  /**
+    * Histogram distribution of per metrics directory number of metric records processed.
+    */
+  val singleDirectoryNumProcessedHistogram: Histogram = registry.histogram(MetricRegistry.name(name, "directory", "numprocessed"))
 
   // NOTE: Substantial Errors that should not be ignored and be made fully aware.
   /**

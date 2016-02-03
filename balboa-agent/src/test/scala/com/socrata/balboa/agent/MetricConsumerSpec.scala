@@ -4,7 +4,8 @@ import java.nio.file.{Path, Files}
 
 import com.blist.metrics.impl.queue.MetricFileQueue
 import com.socrata.balboa.metrics.Metric
-import com.socrata.metrics.{MetricIdParts, MetricQueue}
+import com.socrata.metrics.{MetricIdParts, Fluff, MetricQueue}
+import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.mockito.Matchers
 import org.mockito.Mockito._
 import org.scalatest.WordSpec
@@ -12,57 +13,87 @@ import org.scalatest.ShouldMatchers
 import org.scalatest.mock.MockitoSugar
 
 /**
- * Unit Tests for [[MetricConsumer]]
- */
-class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar {
+  * Unit Tests for [[MetricConsumer]]
+  */
+class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar with StrictLogging {
+
+  trait TestMetrics {
+    private val time = System.currentTimeMillis()
+    val testMetrics = (1 to 100) map (i =>
+      new MetricsRecord(s"entity_id_$i", s"metric_$i", i, time + i, Metric.RecordType.AGGREGATE)
+      )
+  }
 
   trait MockQueue {
     val mockQueue = mock[MetricQueue]
   }
 
-  trait NoMetricsAvailable extends MockQueue {
+  trait OneRootDirectory extends MockQueue {
     val rootDataPath: Path = Files.createTempDirectory("metrics-")
     val metricConsumer = new MetricConsumer(rootDataPath.toFile, mockQueue)
+    val fileQueues = (1 to 5) map (_ => new MetricFileQueue(rootDataPath.toFile))
   }
 
-  trait MetricWriters extends NoMetricsAvailable {
-    val oneLevelTmpDataDir = Files.createTempDirectory(rootDataPath,"one-level-")
-    val twoLevelTmpDataDir = Files.createTempDirectory(oneLevelTmpDataDir,"two-level-")
 
-    val writers = Map(
-      "root" -> List(MetricFileQueue.getInstance(rootDataPath.toFile()), MetricFileQueue.getInstance(rootDataPath.toFile())),
-      "one" -> List(MetricFileQueue.getInstance(oneLevelTmpDataDir.toFile), MetricFileQueue.getInstance(oneLevelTmpDataDir.toFile)),
-      "two" -> List(MetricFileQueue.getInstance(oneLevelTmpDataDir.toFile), MetricFileQueue.getInstance(oneLevelTmpDataDir.toFile))
+  private def writeToQueue(queue: MetricQueue, records: MetricsRecord*) = {
+    records.foreach(r => queue.create(
+      MetricIdParts(r.getEntityId), Fluff(r.getName), r.getValue.longValue(), r.getTimestamp, r.getType)
     )
   }
 
-  trait OneMetricAvailable extends MetricWriters {
-    writers("root")(0).create("AnyID","AnyMetric",1,1,Metric.RecordType.AGGREGATE)
-    writers("root")(1).create("AnyID","AnyMetric",1,1,Metric.RecordType.AGGREGATE)
+  "A Metric Consumer" when {
+
+    "there is a single metrics root directory" when {
+
+      "no metrics data exists" should {
+
+        "emit no metrics" in new OneRootDirectory {
+          verify(mockQueue, never()).create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](), Matchers.anyLong(),
+            Matchers.anyLong(), Matchers.any[Metric.RecordType]())
+        }
+
+      }
+
+      "1 metrics data file exists" should {
+
+        "not read" in new OneRootDirectory {
+          metricConsumer.run()
+          metricConsumer.close()
+          verify(mockQueue, never()).create(Matchers.any[MetricIdParts](),
+            Matchers.any[MetricIdParts](),
+            Matchers.anyLong(),
+            Matchers.anyLong(),
+            Matchers.any[Metric.RecordType]())
+        }
+
+      }
+
+      // Metric Consumer does not actually read any metrics if a single file exists.
+      "more then 1 metrics data files exists" should {
+
+        "" in new OneRootDirectory with TestMetrics {
+          logger.info(s"Writing ${testMetrics.head} using ${fileQueues.size} file queues")
+          fileQueues.foreach(q => writeToQueue(q, testMetrics.head))
+          metricConsumer.run()
+          metricConsumer.close()
+          verify(mockQueue, times(fileQueues.size - 1)).create(
+            Fluff(testMetrics.head.getEntityId),
+            Fluff(testMetrics.head.getName),
+            testMetrics.head.getValue.longValue(),
+            testMetrics.head.getTimestamp,
+            testMetrics.head.getType
+          )
+        }
+
+      }
+
+    }
+
+
+
+    //    "emits multiple metrics when multiple metrics were written to disk " in new MetricWriters {
+    //
+    //    }
   }
 
-  "A Metric Consumer" should {
-
-    "emit no metrics when no metrics were written to disk " in new NoMetricsAvailable {
-      metricConsumer.run()
-      verify(mockQueue, never()).create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](), Matchers.anyLong(),
-        Matchers.anyLong(), Matchers.any[Metric.RecordType]())
-    }
-
-//    TODO Complete Tests.
-//    It is very difficult to test balboa agent with metric consumer.  Mainly because Metric Consumer uses a very
-//    time based approach to handle which files to "grovel" or read.  This needs to to handled in later releases when we
-//    have a more sustainable test driven model.
-
-    "emit 1 metrics when 1 metrics was written to disk " in new OneMetricAvailable {
-//      metricConsumer.run()
-//      verify(mockQueue, times(1)).create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](), Matchers.anyLong(),
-//        Matchers.anyLong(), Matchers.any[Metric.RecordType]())
-    }
-
-    "emits multiple metrics when multiple metrics were written to disk " in new MetricWriters {
-
-    }
-  }
-  
 }

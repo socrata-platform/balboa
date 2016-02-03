@@ -12,6 +12,9 @@ import javax.jms.JMSException;
 
 /** Prefer to use MetricJmsQueueNotSingleton if possible. */
 public class MetricJmsQueue extends AbstractJavaMetricQueue {
+
+    // TODO Merge the Singleton + NonSingleton
+
     private static final Logger log = LoggerFactory.getLogger(MetricJmsQueue.class);
     private static volatile MetricJmsQueue instance;
     private static boolean loggedFailToCreateOnce = false;

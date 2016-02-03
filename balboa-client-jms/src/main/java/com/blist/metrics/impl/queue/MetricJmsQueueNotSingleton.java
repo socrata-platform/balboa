@@ -24,13 +24,36 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
     private final Session session;
     private final Destination queue;
     private final MessageProducer producer;
+    private final int bufferCapacity;
 
     // TODO Handle the case where we need graceful shutdown.
 
-    public MetricJmsQueueNotSingleton(Connection connection, String queueName) throws JMSException {
+    /**
+     * Creates a JMS Queue.
+     *
+     * @param connection The Activemq connection.
+     * @param queueName The name of the queue to send metrics to.
+     * @param bufferCapacity The maximum size of the buffer to maintain.
+     * @throws JMSException When there
+     */
+    public MetricJmsQueueNotSingleton(Connection connection, String queueName, int bufferCapacity) throws JMSException {
+        if (bufferCapacity < 0) {
+            throw new IllegalArgumentException("Buffer capacity cannot be negative. Actual: " + bufferCapacity);
+        }
+
         this.session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
         this.queue = session.createQueue(queueName);
         this.producer = session.createProducer(queue);
+        this.bufferCapacity = bufferCapacity;
+    }
+
+    /**
+     * See {@link MetricJmsQueueNotSingleton#MetricJmsQueueNotSingleton(Connection, String, int)}
+     *
+     * Uses the default buffer capacity of 1.
+     */
+    public MetricJmsQueueNotSingleton(Connection connection, String queueName) throws JMSException {
+        this(connection, queueName, 1);
     }
 
     private void flushWriteBuffer() {
