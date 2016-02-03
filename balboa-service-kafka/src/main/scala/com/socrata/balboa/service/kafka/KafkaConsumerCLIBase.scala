@@ -5,14 +5,13 @@ import java.util.Properties
 
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.service.kafka.consumer.KafkaConsumerGroupComponent
-import com.typesafe.scalalogging.slf4j.Logger
 import joptsimple.{OptionParser, OptionSet}
 import kafka.utils.VerifiableProperties
 import org.slf4j.LoggerFactory
 
 /**
- * Base Trait for running a consumer group through a command line application.
- */
+  * Base Trait for running a consumer group through a command line application.
+  */
 trait KafkaConsumerCLIBase[K,M] extends App {
 
   private val Log = LoggerFactory.getLogger(this.getClass)
@@ -28,33 +27,30 @@ trait KafkaConsumerCLIBase[K,M] extends App {
   //////////////////////////////////////////////////////////////////////////////////////////
   /////// Running the Application
 
-  override def main(args: Array[String]): Unit = {
-    super.main(args)
-    Log.info("Creating Consumer Group")
-    val g = consumerGroup()
-    Log.info("Completed Creating Consumer Group")
+  Log.info("Creating Consumer Group")
+  val g = consumerGroup()
+  Log.info("Completed Creating Consumer Group")
 
-    // Add the shutdown hook.
-    Log.info("Adding Shutdown hook")
-    scala.sys.addShutdownHook(try {
-      g.stop()
-    } catch {
-      case e: Exception => Log.warn("Unable to stop consumer group. ", e)
-      case t: Throwable => Log.warn(s"Unknown error while stopping consumer group.", t)
-    })
+  // Add the shutdown hook.
+  Log.info("Adding Shutdown hook")
+  scala.sys.addShutdownHook(try {
+    g.stop()
+  } catch {
+    case e: Exception => Log.warn("Unable to stop consumer group. ", e)
+    case t: Throwable => Log.warn(s"Unknown error while stopping consumer group.", t)
+  })
 
-    Log.info(s"Starting $g...")
-    g.start()
-  }
+  Log.info(s"Starting $g...")
+  g.start()
 
   //////////////////////////////////////////////////////////////////////////////////////////
   /////// Abstract Members
 
   /**
-   * Create a consumer group to Run.
-   *
-   * @return The Consumer Group Component that consumes messages.
-   */
+    * Create a consumer group to Run.
+    *
+    * @return The Consumer Group Component that consumes messages.
+    */
   protected def consumerGroup(): KafkaConsumerGroupComponent[K,M]
 
   //////////////////////////////////////////////////////////////////////////////////////////
@@ -66,19 +62,19 @@ trait KafkaConsumerCLIBase[K,M] extends App {
   lazy val partitions: Int = properties.getInt(TOPIC_PARTITIONS_PROPERTY_KEY)
 
   /**
-   * The properties for this consumer group application.
-   */
+    * The properties for this consumer group application.
+    */
   lazy val properties: VerifiableProperties = new VerifiableProperties(getProperties(args))
 
   /**
-   * Parses command line arguments for properties.
-   * <br>
-   *   Override this method if you introduced a new command line argument and need to validate or extract it.  See
-   *   [[BalboaKafkaConsumerCLI]] as an example.
-   *
-   * @param args Command line arguments
-   * @return Properties for this consumer.
-   */
+    * Parses command line arguments for properties.
+    * <br>
+    *   Override this method if you introduced a new command line argument and need to validate or extract it.  See
+    *   [[BalboaKafkaConsumerCLI]] as an example.
+    *
+    * @param args Command line arguments
+    * @return Properties for this consumer.
+    */
   protected def getProperties(args: Array[String]): Properties = {
     val set: OptionSet = optionParser().parse(args : _*)
     val props = new Properties()
@@ -116,11 +112,11 @@ trait KafkaConsumerCLIBase[K,M] extends App {
   }
 
   /**
-   * Override this method if you want to introduce a new command line argument.  See [[BalboaKafkaConsumerCLI]] as an
-   * example.
-   *
-   * @return The [[OptionParser]] that handles parsing command line input.
-   */
+    * Override this method if you want to introduce a new command line argument.  See [[BalboaKafkaConsumerCLI]] as an
+    * example.
+    *
+    * @return The [[OptionParser]] that handles parsing command line input.
+    */
   protected def optionParser(): OptionParser = {
     val optParser: OptionParser = new OptionParser()
     // Can use a single configuration file for all command line application.
@@ -153,11 +149,11 @@ trait KafkaConsumerCLIBase[K,M] extends App {
   /////// Private Helper methods.
 
   /**
-   * Return the properties created from an existing properties file.
-   *
-   * @param file Configuration file
-   * @return The Properties generated from a file.
-   */
+    * Return the properties created from an existing properties file.
+    *
+    * @param file Configuration file
+    * @return The Properties generated from a file.
+    */
   private def propertiesFromFile(file: File): Properties = file match {
     case _: File if !file.exists() => throw new FileNotFoundException(s"File $file not found")
     case _ =>

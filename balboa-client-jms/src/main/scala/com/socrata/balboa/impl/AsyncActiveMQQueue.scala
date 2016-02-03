@@ -10,7 +10,7 @@ import org.apache.activemq.{ActiveMQConnection, ActiveMQConnectionFactory}
 import org.slf4j.LoggerFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.future
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 /**
@@ -41,7 +41,7 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
   def start() {
     if (!started) {
       started = true
-      future { activeMQFactory.createConnection() } onComplete {
+      Future { activeMQFactory.createConnection() } onComplete {
         case Success(conn) =>
           connection = Some({
             val activeMQConn = conn.asInstanceOf[ActiveMQConnection]
