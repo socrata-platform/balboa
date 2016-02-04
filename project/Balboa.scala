@@ -16,11 +16,11 @@ object Balboa extends Build {
     balboaKafkaService, balboaClientDispatcher) // Add new project definitions here.
 
   lazy val balboaCommon = project("balboa-common", BalboaCommon)
-    .enablePlugins(com.socrata.sbtplugins.BuildInfoPlugin)
 
   lazy val balboaCore = project("balboa-core", BalboaCore, balboaCommon)
 
   lazy val balboaHttp = project("balboa-http", BalboaHttp, balboaCore)
+    .enablePlugins(com.socrata.sbtplugins.BuildInfoPlugin)
 
   lazy val balboaServiceCore = project("balboa-service-core", BalboaService, balboaCore)
 
