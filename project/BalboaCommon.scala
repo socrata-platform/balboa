@@ -4,7 +4,8 @@ import sbt._
 
 object BalboaCommon {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
-    libraryDependencies <++= scalaVersion {libraries(_)}
+    libraryDependencies <++= scalaVersion {libraries(_)},
+    sbtbuildinfo.BuildInfoKeys.buildInfoPackage := "com.socrata.balboa"
   )
 
   def libraries(implicit scalaVersion: String) = Seq(
