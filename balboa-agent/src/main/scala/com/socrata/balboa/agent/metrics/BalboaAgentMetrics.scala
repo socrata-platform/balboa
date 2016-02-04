@@ -87,7 +87,7 @@ object BalboaAgentMetrics {
     *
     * @param metricName The name of the metric to register.
     * @param directory The directory to check.
-    * @return Success[Metric] if the metric was created.  Failure[Metric] if it wasn't able to use the defined directory.
+    * @return Success[Metric] if the metric was created.  Failure[IllegalArgumentException] if it wasn't able to use the defined directory.
     */
   def directorySize(metricName: String, directory: File): Try[Metric] = directory match {
     case f: File if directory.exists() && directory.isDirectory =>

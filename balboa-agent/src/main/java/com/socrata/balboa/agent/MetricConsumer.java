@@ -14,8 +14,15 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 /**
- * NOTE: Copied and Pasted from another existing project.
- * TODO: Deprecate this Concurrent Modification Exception prone class.
+ * The MetricConsumer consumes metrics from data files from within a specific directory.  Any metrics extracted will
+ * pill be pushed to a specified {@link MetricQueue}.
+ *
+ * <br>
+ *
+ * Given a root directory, the MetricConsumer will recursively extract all the directories under the root directory.
+ * For each directory, files are processed in reverse alphabetical order excluding the last file in the order.  It is
+ * common and suggested that metric producers use timestamps in their file names and not place any additional files
+ * within the same directory they write metrics to.
  */
 public class MetricConsumer implements Runnable, AutoCloseable {
 
@@ -60,7 +67,8 @@ public class MetricConsumer implements Runnable, AutoCloseable {
                 this.getClass().getSimpleName(), this.directory.getAbsolutePath());
 
         // Treat each individual directory with the root directory as its own isolated run.
-        // The failure of processing one directory should not interfere with processing another.
+        // We are trying to prevent the failure to process one directory from blocking or preventing the processing
+        // of others.
 
         final Timer.Context runTimer = BalboaAgentMetrics.totalRuntime().time();
         Set<File> directories = FileUtils.getDirectories(directory);
@@ -89,7 +97,6 @@ public class MetricConsumer implements Runnable, AutoCloseable {
     @Override
     public void close() throws Exception {
         try {
-            // Close and allow any clean up functionality to occur. IE. Flushing out a buffer.
             queue.close();
         } catch (Exception e) {
             log.error("Error shutting down Metric Consumer", e);
@@ -271,7 +278,7 @@ public class MetricConsumer implements Runnable, AutoCloseable {
                     BalboaAgentMetrics.incompleteFieldCounter().inc();
                     throw new IOException("Unexpected 0xFF field in file. Refusing to continue " +
                             "to process since our file is almost certainly corrupt.");
-                default: // Expect that all other bytes are apart of the field.
+                default: // Expect that all other bytes are apart of the field value.
                     baos.write(b);
             }
         }
