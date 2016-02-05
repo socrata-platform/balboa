@@ -3,7 +3,7 @@ package com.blist.metrics.impl.queue
 import com.blist.metrics.impl.queue.MetricsBufferSpecSetup.EmptyMetrics
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.{Metric, Metrics}
-import org.scalatest.{BeforeAndAfterEach, WordSpec}
+import org.scalatest.WordSpec
 
 object MetricsBufferSpecSetup {
 
@@ -23,15 +23,7 @@ object MetricsBufferSpecSetup {
   *
   * Created by michaelhotan on 2/1/16.
   */
-class MetricsBufferSpec extends WordSpec with BeforeAndAfterEach {
-
-  override protected def beforeEach(): Unit = {
-    super.beforeEach()
-  }
-
-  override protected def afterEach(): Unit = {
-    super.afterEach()
-  }
+class MetricsBufferSpec extends WordSpec {
 
   "A MetricsBuffer" should {
 
@@ -44,7 +36,7 @@ class MetricsBufferSpec extends WordSpec with BeforeAndAfterEach {
       assert(metricsBuffer.size() == 0, "Metrics Buffer is exposing internal representation.")
     }
 
-    // TODO Write enough tests until every revealing subdomain is tested.
+    // TODO Write revealing subdomain tests.
   }
 
 }
