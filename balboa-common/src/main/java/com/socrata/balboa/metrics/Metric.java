@@ -75,6 +75,12 @@ public class Metric {
         this.type = type;
     }
 
+    /**
+     * Given another Metric of the same type, combine and mutate this Metric with the respective {@link Combinator}.
+     *
+     * @param other The Metric to combine with.
+     * @throws IllegalArgumentException in the case that the other Metric is not of the same {@link RecordType}
+     */
     public void combine(Metric other) {
         if (other == null) {
             return;

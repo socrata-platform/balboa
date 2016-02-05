@@ -1,4 +1,4 @@
-package com.socrata.balboa.agent
+package com.socrata.balboa.agent.metrics
 
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -15,12 +15,15 @@ import scala.util.{Failure, Success, Try}
   */
 object BalboaAgentMetrics {
 
+  /**
+    * NOTE: This also serves as an example of how to use Dropwizard and surface metrics via a Dropwizard provided
+    * reporter.  IE. See [[com.socrata.balboa.agent.BalboaAgent.jmxReporter]] to see how to surface metrics via JMX.
+    */
+
   private val name = "balboa-agent"
 
   /**
-    * Metrics for Metrics Consumer
-    *
-    * Used to provide remediary
+    * Single Metrics registry for Balboa Agent.
     */
   val registry: MetricRegistry = new MetricRegistry
 
@@ -39,7 +42,17 @@ object BalboaAgentMetrics {
     * Provide a rate of consume jobs per second.
     * NOTE: consume jobs reads all the files within a metrics directory.
     */
-  val runtimeTimer: Timer = registry.timer(MetricRegistry.name(name, "runtime"))
+  val totalRuntime: Timer = registry.timer(MetricRegistry.name(name, "total", "runtime"))
+
+  /**
+    * Histogram distribution of per metrics directory runtimes (ms)
+    */
+  val singleDirectoryRuntimeHistogram: Histogram = registry.histogram(MetricRegistry.name(name, "directory", "runtime"))
+
+  /**
+    * Histogram distribution of per metrics directory number of metric records processed.
+    */
+  val singleDirectoryNumProcessedHistogram: Histogram = registry.histogram(MetricRegistry.name(name, "directory", "numprocessed"))
 
   // NOTE: Substantial Errors that should not be ignored and be made fully aware.
   /**
@@ -74,7 +87,7 @@ object BalboaAgentMetrics {
     *
     * @param metricName The name of the metric to register.
     * @param directory The directory to check.
-    * @return Success[Metric] if the metric was created.  Failure[Metric] if it wasnt
+    * @return Success[Metric] if the metric was created.  Failure[IllegalArgumentException] if it wasn't able to use the defined directory.
     */
   def directorySize(metricName: String, directory: File): Try[Metric] = directory match {
     case f: File if directory.exists() && directory.isDirectory =>

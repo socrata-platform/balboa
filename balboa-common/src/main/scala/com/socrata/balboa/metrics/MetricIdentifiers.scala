@@ -69,6 +69,11 @@ case class AppToken(token:String) extends MetricIdPart(token)
 case class Ip(ip:String) extends MetricIdPart(ip)
 case class Host(host:String) extends MetricIdPart(host)
 case class Path(path:String) extends MetricIdPart(path)
+
+/**
+  * Only generic Metric Id part.
+  * @param fluff literal String to be used for this Id.
+  */
 case class Fluff(fluff:String) extends MetricIdPart(fluff)
 case class Unknown() extends MetricIdPart("unknown")
 

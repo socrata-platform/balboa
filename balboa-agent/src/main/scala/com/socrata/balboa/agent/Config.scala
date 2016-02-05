@@ -11,6 +11,8 @@ object Keys {
 
   lazy val SLEEP_MS = "balboa.agent.sleeptime"
 
+  lazy val INITIAL_DELAY = "balboa.agent.initialdelay"
+
 }
 
 /**
@@ -23,7 +25,9 @@ trait Config extends JMSClientConfig {
 
   def dataDirectory(defaultFile: File = null) = Configuration.get().getFile(Keys.DATA_DIRECTORY, defaultFile)
 
-  def sleepTime(defaultTime: Long = 1000): Long = Configuration.get().getLong(Keys.SLEEP_MS, defaultTime)
+  def interval(defaultTime: Long = 1000): Long = Configuration.get().getLong(Keys.SLEEP_MS, defaultTime)
+
+  def initialDelay(defaultDelay: Long = 0): Long = Configuration.get().getLong(Keys.INITIAL_DELAY, defaultDelay)
 
 }
 

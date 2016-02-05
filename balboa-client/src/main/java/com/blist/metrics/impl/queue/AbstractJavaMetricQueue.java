@@ -6,7 +6,7 @@ import com.socrata.metrics.AbstractMetricQueue;
 import java.util.Date;
 
 /**
- * Scala binding for AbstractMetricQueue.  @see com.socrata.metrics.AbstractMetricQueue
+ * Scala binding for AbstractMetricQueue.  See {@link com.socrata.metrics.AbstractMetricQueue}
  */
 public abstract class AbstractJavaMetricQueue extends AbstractMetricQueue {
 

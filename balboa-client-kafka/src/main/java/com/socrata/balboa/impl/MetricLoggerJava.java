@@ -63,4 +63,9 @@ public class MetricLoggerJava extends AbstractJavaMetricQueue {
     public void create(IdParts entity, IdParts name, long value, long timestamp, Metric.RecordType recordType) {
         this.logger.logMetric(entity.toString(), name.toString(), value, timestamp, recordType);
     }
+
+    @Override
+    public void close() throws Exception {
+        // TODO There is no cleanup activity to complete
+    }
 }

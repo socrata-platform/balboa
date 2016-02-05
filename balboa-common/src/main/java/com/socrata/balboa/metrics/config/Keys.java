@@ -43,6 +43,10 @@ public class Keys {
      */
     public static final String JMS_ACTIVEMQ_PASSWORD = join(ROOT_JMS_ACTIVEMQ_NAMESPACE, "password");
 
+    /**
+     * The buffer size threshold to keep until flushing to the queue.
+     */
+    public static final String JMS_ACTIVEMQ_MAX_BUFFER_SIZE = join(ROOT_JMS_ACTIVEMQ_NAMESPACE, "buffer.size");
 
     /**
      * Key to Kafka Brokers address:port for pulling metadata.
