@@ -66,6 +66,6 @@ public class MetricLoggerJava extends AbstractJavaMetricQueue {
 
     @Override
     public void close() throws Exception {
-        // TODO Don't know how or what it means to shut this down.
+        // TODO There is no cleanup activity to complete
     }
 }
