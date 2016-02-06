@@ -2,8 +2,8 @@ package com.socrata.balboa.agent;
 
 import com.codahale.metrics.Timer;
 import com.socrata.balboa.agent.metrics.BalboaAgentMetrics;
-import com.socrata.balboa.agent.util.FileUtils;
 import com.socrata.balboa.metrics.Metric;
+import com.socrata.balboa.util.FileUtils;
 import com.socrata.metrics.Fluff;
 import com.socrata.metrics.MetricQueue;
 import org.slf4j.Logger;
@@ -43,18 +43,32 @@ public class MetricConsumer implements Runnable, AutoCloseable {
 
     private final File directory;
     private final MetricQueue queue;
+    private final MetricFileProvider fileProvider;
 
     /**
      * Creates Metric consumer that will attempt to find all the metric data within a directory
      * and push them to a queue.
      */
     public MetricConsumer(File directory, MetricQueue queue) {
+        this(directory, queue, new AlphabeticMetricFileProvider(directory.toPath()));
+    }
+
+    /**
+     * Creates a MetricConsumer that processes files from `directory` and emits them to `queue`.  The `fileProvider`
+     * is a control mechanism that allows clients to make determinations on which {@link File}s can be processed.
+     *
+     * @param directory Directory in which to process metrics.
+     * @param queue Queue to emit metrics to.
+     * @param fileProvider The {@link FileFilter} used to determine which files are allowed to be processed.
+     */
+    public MetricConsumer(File directory, MetricQueue queue, MetricFileProvider fileProvider) {
         if (directory == null || !directory.isDirectory())
             throw new IllegalArgumentException("Illegal Data directory " + directory);
         if (queue == null)
             throw new NullPointerException("Metric Queue cannot be null");
         this.directory = directory;
         this.queue = queue;
+        this.fileProvider = fileProvider;
     }
 
     /**
@@ -66,21 +80,47 @@ public class MetricConsumer implements Runnable, AutoCloseable {
         log.info("Attempting to run {} at the root directory: {}",
                 this.getClass().getSimpleName(), this.directory.getAbsolutePath());
 
-        // Treat each individual directory with the root directory as its own isolated run.
-        // We are trying to prevent the failure to process one directory from blocking or preventing the processing
-        // of others.
-
         final Timer.Context runTimer = BalboaAgentMetrics.totalRuntime().time();
-        Set<File> directories = FileUtils.getDirectories(directory);
         long start = System.currentTimeMillis();
         int recordsProcessed = 0;
-        for (File dir: directories) {
+
+
+        // Treat each individual Metric data file as its own isolated run.
+        // We are trying to prevent the failure to process one file from blocking or preventing the processing
+        // of others.
+        for (File metricsEventLog: fileProvider.provideForJava()) {
+            List<MetricsRecord> records;
+
             try {
-                recordsProcessed += processDirectory(dir);
+                records = processFile(metricsEventLog);
             } catch (IOException e) {
-                log.error("Exception caught processing " + dir.getAbsolutePath(), e);
+                log.error("Error reading records from {}", metricsEventLog, e);
+                BalboaAgentMetrics.metricsProcessingFailureCounter().inc();
+                File broken = new File(metricsEventLog.getAbsolutePath() + FileUtils.BROKEN_FILE_EXTENSION());
+                if (!metricsEventLog.renameTo(broken)) {
+                    log.warn("Unable to rename broken file {} permissions issue?", metricsEventLog);
+                    BalboaAgentMetrics.renameBrokenFileFailureCounter().inc();
+                }
+                continue;
+            }
+
+            for (MetricsRecord r : records) {
+                queue.create(
+                        new Fluff(r.getEntityId()),
+                        new Fluff(r.getName()),
+                        r.getValue().longValue(),
+                        r.getTimestamp(),
+                        r.getType()
+                );
+            }
+
+            recordsProcessed += records.size();
+            if(!metricsEventLog.delete()) {
+                log.error("Unable to delete event log {} - file may be read twice, which is bad.", metricsEventLog);
+                BalboaAgentMetrics.deleteEventFailureCounter().inc();
             }
         }
+
         long processingTime = System.currentTimeMillis() - start;
         log.info("Run completed, processed {} in {} ms", recordsProcessed, processingTime);
         BalboaAgentMetrics.metricsEmittedCount().inc(recordsProcessed);
@@ -102,69 +142,6 @@ public class MetricConsumer implements Runnable, AutoCloseable {
             log.error("Error shutting down Metric Consumer", e);
             throw e;
         }
-    }
-
-    /**
-     * Given a directory, process all the metric files at the root of this directory.
-     *
-     * @param dir The root directory of all metric files.
-     * @return t The number of {@link MetricsRecord}s processed.
-     * @throws IOException if there are any issues processing the directory.
-     */
-    private int processDirectory(File dir) throws IOException {
-        assert dir.isFile(): String.format("%s must be a directory", dir.getAbsolutePath());
-
-        long start = System.currentTimeMillis();
-        int recordsProcessed = 0;
-        File[] fileArr = dir.listFiles(FileUtils.isFile);
-        if (fileArr != null && fileArr.length > 1)
-        {
-            String[] filenameArr = new String[fileArr.length];
-            for(int i = 0; i < fileArr.length; ++i) {
-                filenameArr[i] = fileArr[i].getName();
-            }
-            Arrays.sort(filenameArr);
-            // Doing this subList thing removes the file which is currently
-            // being written to.
-            for (String file : Arrays.asList(filenameArr).subList(0, filenameArr.length - 1)) {
-                File metricsEventLog = new File(dir, file);
-
-                List<MetricsRecord> records;
-
-                try {
-                    records = processFile(metricsEventLog);
-                } catch (IOException e) {
-                    log.error("Error reading records from {}", metricsEventLog, e);
-                    BalboaAgentMetrics.metricsProcessingFailureCounter().inc();
-                    File broken = new File(metricsEventLog.getAbsolutePath() + FileUtils.BROKEN_FILE_EXTENSION);
-                    if (!metricsEventLog.renameTo(broken)) {
-                        log.warn("Unable to rename broken file {} permissions issue?", metricsEventLog);
-                        BalboaAgentMetrics.renameBrokenFileFailureCounter().inc();
-                    }
-                    continue;
-                }
-
-                for (MetricsRecord r : records) {
-                    queue.create(
-                            new Fluff(r.getEntityId()),
-                            new Fluff(r.getName()),
-                            r.getValue().longValue(),
-                            r.getTimestamp(),
-                            r.getType()
-                    );
-                }
-
-                recordsProcessed += records.size();
-                if(!metricsEventLog.delete()) {
-                    log.error("Unable to delete event log {} - file may be read twice, which is bad.", metricsEventLog);
-                    BalboaAgentMetrics.deleteEventFailureCounter().inc();
-                }
-            }
-        }
-        long processingTime = System.currentTimeMillis() - start;
-        BalboaAgentMetrics.singleDirectoryRuntimeHistogram().update(processingTime);
-        BalboaAgentMetrics.singleDirectoryNumProcessedHistogram().update(recordsProcessed);
-        return recordsProcessed;
     }
 
     private static final Pattern integerPattern = Pattern.compile("-?[0-9]+");

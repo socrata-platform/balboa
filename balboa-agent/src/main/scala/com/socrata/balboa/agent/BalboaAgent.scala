@@ -5,6 +5,7 @@ import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import com.blist.metrics.impl.queue.MetricJmsQueueNotSingleton
 import com.codahale.metrics.JmxReporter
 import com.socrata.balboa.agent.metrics.BalboaAgentMetrics
+import com.socrata.balboa.util.FileUtils
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.apache.activemq.ActiveMQConnection
 
@@ -19,7 +20,10 @@ object BalboaAgent extends App with Config with StrictLogging {
   private val scheduler = Executors.newScheduledThreadPool(1)
   private val INTERRUPT_EXISTING_CONSUMER = false
   private val dataDir = dataDirectory()
-  private val dirSizeMetric = BalboaAgentMetrics.directorySize("data-dir", dataDir)
+  BalboaAgentMetrics.numFiles("data", dataDir, Some(FileUtils.isBalboaDataFile))
+  BalboaAgentMetrics.numFiles("broken", dataDir, Some(FileUtils.isBalboaBrokenFile))
+  BalboaAgentMetrics.numFiles("lock", dataDir, Some(FileUtils.isBalboaLockFile))
+  BalboaAgentMetrics.numFiles("immutable", dataDir, Some(FileUtils.isBalboaImmutableFile))
   private val jmxReporter = JmxReporter.forRegistry(BalboaAgentMetrics.registry).build()
   jmxReporter.start()
 
