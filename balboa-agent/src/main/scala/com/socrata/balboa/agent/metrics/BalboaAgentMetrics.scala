@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import com.codahale.metrics._
 import com.socrata.balboa.util.FileUtils
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
 import scala.util.{Failure, Success, Try}
 
@@ -13,7 +14,7 @@ import scala.util.{Failure, Success, Try}
   *
   * Created by michaelhotan on 1/28/16.
   */
-object BalboaAgentMetrics {
+object BalboaAgentMetrics extends LazyLogging {
 
   /**
     * NOTE: This also serves as an example of how to use Dropwizard and surface metrics via a Dropwizard provided
@@ -94,12 +95,19 @@ object BalboaAgentMetrics {
     case f: File if directory.exists() && directory.isDirectory =>
       Success(registry.register(MetricRegistry.name(name, metricName, "num", "files"),
         new CachedGauge[Int](5, TimeUnit.MINUTES) { //
-        override def loadValue(): Int = FileUtils.getDirectories(directory).map(dir =>
+        override def loadValue(): Int = {
+          Try(FileUtils.getDirectories(directory).map(dir =>
             filter match {
               case Some(f1) => dir.listFiles(f1).length
               case None => dir.listFiles().length
             }
-          ).sum
+          ).sum) match {
+            case Success(count) => count
+            case Failure(e) =>
+              logger.error(s"Unable to count files for $metricName due to $e")
+              -1
+          }
+        }
         })
       )
     case f: File if !directory.exists() => Failure(new IllegalArgumentException(

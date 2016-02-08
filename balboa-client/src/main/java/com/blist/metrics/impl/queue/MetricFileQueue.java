@@ -85,17 +85,23 @@ public class MetricFileQueue extends AbstractJavaMetricQueue {
 
         String logName = basename + ".data";
         file = new File(directory, logName);
-        stream = new BufferedOutputStream(new FileOutputStream(new File(directory, logName), true));
+        stream = new BufferedOutputStream(new FileOutputStream(file, true));
         reopenTime = now + this.reopenInterval;
         metricCount = 0;
     }
 
-    private void renameFile(File file) {
+    /**
+     * Marks the metric data file as immutable.  T
+     *
+     * @param file The file to mark as immutable
+     * @return Path to the file after it has been marked.  null if unsuccessful.
+     */
+    private Path markFileAsImmutable(File file) {
         Path p = Paths.get(file.getAbsolutePath());
         p = p.getParent().resolve(p.getFileName() + FileUtils.IMMUTABLE_FILE_EXTENSION());
-        if (!file.renameTo(p.toFile())) {
-            log.warn("Unable to rename completed balboa data file {} to {}", file.getAbsolutePath(), p);
-        }
+        if (file.renameTo(p.toFile()))
+            return p;
+        return null;
     }
 
     @Override
@@ -103,7 +109,13 @@ public class MetricFileQueue extends AbstractJavaMetricQueue {
         if (stream != null) {
             stream.close();
             stream = null;
-            renameFile(file);
+            log.debug("Attempting to mark data file as immutable. Path: {}", file.getAbsolutePath());
+            Path p;
+            if ((p = markFileAsImmutable(file)) != null) {
+                log.debug("Successfully marked data file as immutable. Path: {}", p);
+            } else {
+                log.warn("Unable to mark {} as immutable", file.getAbsolutePath());
+            }
         }
     }
 
