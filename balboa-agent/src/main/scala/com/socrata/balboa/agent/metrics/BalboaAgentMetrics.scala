@@ -1,10 +1,11 @@
 package com.socrata.balboa.agent.metrics
 
-import java.io.File
+import java.io.{FileFilter, File}
 import java.util.concurrent.TimeUnit
 
 import com.codahale.metrics._
-import com.socrata.balboa.agent.util.FileUtils
+import com.socrata.balboa.util.FileUtils
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
 import scala.util.{Failure, Success, Try}
 
@@ -13,7 +14,7 @@ import scala.util.{Failure, Success, Try}
   *
   * Created by michaelhotan on 1/28/16.
   */
-object BalboaAgentMetrics {
+object BalboaAgentMetrics extends LazyLogging {
 
   /**
     * NOTE: This also serves as an example of how to use Dropwizard and surface metrics via a Dropwizard provided
@@ -83,17 +84,30 @@ object BalboaAgentMetrics {
   val errorInvalidValueCounter: Counter = registry.counter(MetricRegistry.name(name, "error", "invalid-value"))
 
   /**
-    * Creates a metric checking the size of a single directory.
+    * Creates a metric that counts a directory for files within that directory
     *
-    * @param metricName The name of the metric to register.
-    * @param directory The directory to check.
-    * @return Success[Metric] if the metric was created.  Failure[IllegalArgumentException] if it wasn't able to use the defined directory.
+    * @param metricName The name of the metric to create.
+    * @param directory The directory to count metrics in.
+    * @param filter Filter to use to count files.  If none returns all files
+    * @return Success(Metric) if successfully create the metric, False otherwise
     */
-  def directorySize(metricName: String, directory: File): Try[Metric] = directory match {
+  def numFiles(metricName: String, directory: File, filter: Option[FileFilter]): Try[Metric] = directory match {
     case f: File if directory.exists() && directory.isDirectory =>
-      Success(registry.register(MetricRegistry.name(name, metricName, "size"),
+      Success(registry.register(MetricRegistry.name(name, metricName, "num", "files"),
         new CachedGauge[Int](5, TimeUnit.MINUTES) { //
-        override def loadValue(): Int = FileUtils.getDirectories(directory).size()
+        override def loadValue(): Int = {
+          Try(FileUtils.getDirectories(directory).map(dir =>
+            filter match {
+              case Some(f1) => dir.listFiles(f1).length
+              case None => dir.listFiles().length
+            }
+          ).sum) match {
+            case Success(count) => count
+            case Failure(e) =>
+              logger.error(s"Unable to count files for $metricName due to $e")
+              -1
+          }
+        }
         })
       )
     case f: File if !directory.exists() => Failure(new IllegalArgumentException(

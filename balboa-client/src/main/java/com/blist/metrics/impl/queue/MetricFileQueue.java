@@ -1,12 +1,15 @@
 package com.blist.metrics.impl.queue;
 
 import com.socrata.balboa.metrics.Metric;
+import com.socrata.balboa.util.FileUtils;
 import com.socrata.metrics.IdParts;
 import com.socrata.metrics.MetricQueue$;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,10 +35,11 @@ public class MetricFileQueue extends AbstractJavaMetricQueue {
     private static long MAX_METRICS_PER_FILE = 20000;
 
     private final File directory;
+    private final long reopenInterval;
     private long reopenTime;
     private long metricCount = 0;
 
-    private FileOutputStream fileStream = null;
+    private File file;
     private BufferedOutputStream stream = null;
 
     /**
@@ -44,10 +48,18 @@ public class MetricFileQueue extends AbstractJavaMetricQueue {
      * @param directory The directory in which to write metrics data.
      */
     public MetricFileQueue(File directory) {
+        this(directory, MetricQueue$.MODULE$.AGGREGATE_GRANULARITY());
+    }
+
+    public MetricFileQueue(File directory, long reopenInterval) {
         if (!isDirectory(directory)) {
             throw new IllegalArgumentException("Illegal directory \"" + directory + "\". Cannot create Metrics File Queue.");
         }
         this.directory = directory;
+        if (reopenInterval < 0) {
+            reopenInterval = MetricQueue$.MODULE$.AGGREGATE_GRANULARITY();
+        }
+        this.reopenInterval = reopenInterval;
     }
 
     /**
@@ -72,18 +84,38 @@ public class MetricFileQueue extends AbstractJavaMetricQueue {
         this.directory.mkdirs();
 
         String logName = basename + ".data";
-        fileStream = new FileOutputStream(new File(directory, logName), true);
-        stream = new BufferedOutputStream(fileStream);
-        reopenTime = now + MetricQueue$.MODULE$.AGGREGATE_GRANULARITY();
+        file = new File(directory, logName);
+        stream = new BufferedOutputStream(new FileOutputStream(file, true));
+        reopenTime = now + this.reopenInterval;
         metricCount = 0;
+    }
+
+    /**
+     * Marks the metric data file as immutable.  T
+     *
+     * @param file The file to mark as immutable
+     * @return Path to the file after it has been marked.  null if unsuccessful.
+     */
+    private Path markFileAsImmutable(File file) {
+        Path p = Paths.get(file.getAbsolutePath());
+        p = p.getParent().resolve(p.getFileName() + FileUtils.IMMUTABLE_FILE_EXTENSION());
+        if (file.renameTo(p.toFile()))
+            return p;
+        return null;
     }
 
     @Override
     public synchronized void close() throws IOException {
         if (stream != null) {
             stream.close();
-            fileStream = null;
             stream = null;
+            log.debug("Attempting to mark data file as immutable. Path: {}", file.getAbsolutePath());
+            Path p;
+            if ((p = markFileAsImmutable(file)) != null) {
+                log.debug("Successfully marked data file as immutable. Path: {}", p);
+            } else {
+                log.warn("Unable to mark {} as immutable", file.getAbsolutePath());
+            }
         }
     }
 
