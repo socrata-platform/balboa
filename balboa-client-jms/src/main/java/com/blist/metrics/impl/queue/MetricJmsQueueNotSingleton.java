@@ -34,7 +34,7 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
      * @param connection The Activemq connection.
      * @param queueName The name of the queue to send metrics to.
      * @param bufferCapacity The maximum size of the buffer to maintain.
-     * @throws JMSException When there
+     * @throws JMSException When there is a problem sending to the JMS Server.
      */
     public MetricJmsQueueNotSingleton(Connection connection, String queueName, int bufferCapacity) throws JMSException {
         if (bufferCapacity < 0) {
@@ -50,10 +50,10 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
     /**
      * See {@link MetricJmsQueueNotSingleton#MetricJmsQueueNotSingleton(Connection, String, int)}
      *
-     * Uses the default buffer capacity of 1.
+     * Uses the buffer capacity defined by {@link JavaJMSClientConfig#bufferSize()}
      */
     public MetricJmsQueueNotSingleton(Connection connection, String queueName) throws JMSException {
-        this(connection, queueName, 1);
+        this(connection, queueName, JavaJMSClientConfig.bufferSize());
     }
 
     private void flushWriteBuffer() {
@@ -93,7 +93,7 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
         // Flush the buffer if it becomes to large.
         // A simpler model given the Java default concurrency model.
         writeBuffer.add(entityId, metrics, timestamp);
-        if (writeBuffer.size() >= JavaJMSClientConfig.bufferSize()) {
+        if (writeBuffer.size() >= this.bufferCapacity) {
             flushWriteBuffer();
         }
     }
