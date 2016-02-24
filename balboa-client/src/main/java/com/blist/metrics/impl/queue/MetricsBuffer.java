@@ -26,12 +26,12 @@ public class MetricsBuffer {
     private static final Logger log = LoggerFactory.getLogger(MetricsBuffer.class);
 
     /**
-     * This classes is intended to present clients with a simpler interface then exposing the internal buffer
+     * This class is intended to present clients with a simpler interface then exposing the internal buffer
      * directly.  By limiting functionality of the buffer to add and popAll we reduce the chance of unnecessary
      * side effects while allowing us to explore different options for the underlying implementation.
      *
      * TODO: Stronger Unit Tests
-     * TODO: From a functional perspective the internal buffer should probably be a Set.
+     * TODO: From a abstractions perspective the internal buffer should probably be a Set.
      */
 
     /**
