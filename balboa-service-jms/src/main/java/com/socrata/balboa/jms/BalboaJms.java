@@ -25,16 +25,21 @@ public class BalboaJms {
         return Integer.parseInt(args[0]);
     }
 
-    static List<String> parseServers(String[] args)
+    static List<String> parseServers(String[] args, Properties p)
     {
+        String soTimeout = "soTimeout="+p.getProperty("activemq.sotimeout", "15000");
+        String writeTimeout = "soWriteTimeout="+p.getProperty("activemq.sowritetimeout", "15000");
         List<String> servers = new ArrayList<>();
         for(int i=1; i< args.length-1; i++){
             String[] srvs = args[i].split(",+(?![^\\(]*\\))");
             for(String s:srvs) {
                 if(s.indexOf("?")<0) {
-                    s += "?soTimeout=15000&soWriteTimeout=15000";
+                    s += "?"+soTimeout;
                 } else if (s.indexOf("soTimeout=")<0) {
-                    s += "&soTimeout=15000&soWriteTimeout=15000";
+                    s += "&"+soTimeout;
+                }
+                if(s.indexOf("soWriteTimeout=")<0) {
+                    s+="&"+writeTimeout;
                 }
                 servers.add(s);
             }
@@ -47,10 +52,8 @@ public class BalboaJms {
         return args[args.length-1];
     }
 
-    static void configureLogging() throws IOException
+    static void configureLogging(Properties p) throws IOException
     {
-        Properties p = new Properties();
-        p.load(BalboaJms.class.getClassLoader().getResourceAsStream("config/config.properties"));
         PropertyConfigurator.configure(p);
     }
 
@@ -62,11 +65,14 @@ public class BalboaJms {
             System.exit(1);
         }
 
+        Properties p = new Properties();
+        p.load(BalboaJms.class.getClassLoader().getResourceAsStream("config/config.properties"));
+
         Integer threads = parseThreads(args);
-        List<String> servers = parseServers(args);
+        List<String> servers = parseServers(args,p);
         String channel = parseChannel(args);
 
-        configureLogging();
+        configureLogging(p);
         log.info("Receivers starting, awaiting messages.");
         DataStore ds = DataStoreFactory.get();
         ActiveMQReceiver receiver = new ActiveMQReceiver(servers, channel, threads, ds);
