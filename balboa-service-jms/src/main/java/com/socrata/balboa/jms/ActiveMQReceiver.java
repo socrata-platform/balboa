@@ -157,9 +157,9 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
 
     volatile boolean stopped = false;
 
-    public ActiveMQReceiver(String[] servers, String channel, Integer threads, DataStore ds) throws NamingException, JMSException
+    public ActiveMQReceiver(List<String> servers, String channel, Integer threads, DataStore ds) throws NamingException, JMSException
     {
-        listeners = new ArrayList<Listener>(servers.length);
+        listeners = new ArrayList<Listener>(servers.size());
         for (String server : servers)
         {
             for (int i=0; i < threads; i++)

@@ -11,7 +11,7 @@ object Dependencies {
    * External Library versions.
    */
   private object versions {
-    val activemq = "5.2.0"
+    val activemq = "5.7.0"
     val astyanax = "1.56.26"
     val commons_logging = "1.1"
     val dropwizard = "3.1.2"

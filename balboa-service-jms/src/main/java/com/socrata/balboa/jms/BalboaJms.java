@@ -8,7 +8,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 public class BalboaJms {
@@ -24,9 +25,16 @@ public class BalboaJms {
         return Integer.parseInt(args[0]);
     }
 
-    static String[] parseServers(String[] args)
+    static List<String> parseServers(String[] args)
     {
-        return Arrays.copyOfRange(args, 1, args.length - 1);
+        List<String> servers = new ArrayList<>();
+        for(int i=1; i< args.length-1; i++){
+            String[] srvs = args[i].split(",+(?![^\\(]*\\))");
+            for(String s:srvs) {
+                servers.add(s);
+            }
+        }
+        return servers;
     }
 
     static String parseChannel(String[] args)
@@ -50,11 +58,10 @@ public class BalboaJms {
         }
 
         Integer threads = parseThreads(args);
-        String[] servers = parseServers(args);
+        List<String> servers = parseServers(args);
         String channel = parseChannel(args);
 
         configureLogging();
-
         log.info("Receivers starting, awaiting messages.");
         DataStore ds = DataStoreFactory.get();
         ActiveMQReceiver receiver = new ActiveMQReceiver(servers, channel, threads, ds);
