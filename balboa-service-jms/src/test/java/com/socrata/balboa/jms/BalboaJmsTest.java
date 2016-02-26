@@ -27,10 +27,27 @@ public class BalboaJmsTest {
         args = new String[4];
         args[0] = "5";
         args[1] = "failover:(uri1,uri2)?transportOptions&nestedURIOptions";
-        args[2] = "failover:(uri1,uri2)?transportOptions&nestedURIOptions";
+        args[2] = "failover:(uri3,uri4)?transportOptions&nestedURIOptions";
         args[3] = "metrics2012";
         servers = BalboaJms.parseServers(args);
         assertEquals(2, servers.size());
+        assertEquals("failover:(uri1,uri2)?transportOptions&nestedURIOptions&soTimeout=15000&soWriteTimeout=15000", servers.get(0));
+        assertEquals("failover:(uri3,uri4)?transportOptions&nestedURIOptions&soTimeout=15000&soWriteTimeout=15000", servers.get(1));
+
+
+        args[1] = "failover:(uri1,uri2)";
+        args[2] = "failover:(uri3,uri4)";
+        servers = BalboaJms.parseServers(args);
+        assertEquals(2, servers.size());
+        assertEquals("failover:(uri1,uri2)?soTimeout=15000&soWriteTimeout=15000", servers.get(0));
+        assertEquals("failover:(uri3,uri4)?soTimeout=15000&soWriteTimeout=15000", servers.get(1));
+
+        args[1] = "failover:(uri1,uri2)";
+        args[2] = "failover:(uri3,uri4)?soTimeout=15000&soWriteTimeout=15000";
+        servers = BalboaJms.parseServers(args);
+        assertEquals(2, servers.size());
+        assertEquals("failover:(uri1,uri2)?soTimeout=15000&soWriteTimeout=15000", servers.get(0));
+        assertEquals("failover:(uri3,uri4)?soTimeout=15000&soWriteTimeout=15000", servers.get(1));
 
     }
 }

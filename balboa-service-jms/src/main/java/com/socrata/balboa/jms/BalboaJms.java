@@ -31,6 +31,11 @@ public class BalboaJms {
         for(int i=1; i< args.length-1; i++){
             String[] srvs = args[i].split(",+(?![^\\(]*\\))");
             for(String s:srvs) {
+                if(s.indexOf("?")<0) {
+                    s += "?soTimeout=15000&soWriteTimeout=15000";
+                } else if (s.indexOf("soTimeout=")<0) {
+                    s += "&soTimeout=15000&soWriteTimeout=15000";
+                }
                 servers.add(s);
             }
         }

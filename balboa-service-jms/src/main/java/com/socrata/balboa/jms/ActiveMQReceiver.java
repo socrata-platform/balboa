@@ -162,6 +162,7 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
         listeners = new ArrayList<Listener>(servers.size());
         for (String server : servers)
         {
+            log.info("Starting server {}",server);
             for (int i=0; i < threads; i++)
             {
                 ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(server);
