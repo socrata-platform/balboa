@@ -46,7 +46,10 @@ object Dependencies {
 
   val balboa_logging = Seq(scala_logging, slf4j_log4j, log4j)
 
-  val activemq = "org.apache.activemq" % "activemq-core" % versions.activemq excludeAll ExclusionRule(organization = "commons-logging")
+  val activemq = "org.apache.activemq" % "activemq-core" % versions.activemq excludeAll(
+    ExclusionRule(organization = "commons-logging"),
+    ExclusionRule(organization = "org.springframework")
+    )
   val astyanax = "com.netflix.astyanax" % "astyanax" % versions.astyanax excludeAll(
     ExclusionRule(organization = "org.mortbay.jetty"),
     ExclusionRule(organization = "javax.servlet")
