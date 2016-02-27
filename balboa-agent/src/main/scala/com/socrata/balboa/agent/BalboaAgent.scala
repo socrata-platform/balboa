@@ -15,7 +15,7 @@ import org.apache.activemq.ActiveMQConnection
   * This process sets up a scheduler to run at a fixed interval, consuming metrics for a directory, and
   * emitting them to an Activemq Server.
   */
-object BalboaAgent extends App with Config with StrictLogging {
+object BalboaAgent extends App with BalboaAgentConfig with StrictLogging {
 
   private val scheduler = Executors.newScheduledThreadPool(1)
   private val INTERRUPT_EXISTING_CONSUMER = false

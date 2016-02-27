@@ -18,7 +18,7 @@ object BalboaAgentMetrics extends LazyLogging {
 
   /**
     * NOTE: This also serves as an example of how to use Dropwizard and surface metrics via a Dropwizard provided
-    * reporter.  IE. See [[com.socrata.balboa.agent.BalboaAgent.jmxReporter]] to see how to surface metrics via JMX.
+    * reporter.  IE. See [[com.socrata.balboa.agent.BalboaAgentConfig.jmxReporter]] to see how to surface metrics via JMX.
     */
 
   private val name = "balboa-agent"

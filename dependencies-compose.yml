@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+  activemq-1:
+    image: webcenter/activemq
+    ports:
+      - "61616:61616"
+
+  activemq-2:
+      image: webcenter/activemq
+      ports:
+        - "61615:61616"
