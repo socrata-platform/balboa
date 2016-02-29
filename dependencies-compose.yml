@@ -1,6 +1,14 @@
 version: '2'
 
 services:
+
+  ticker-tape:
+    image: registry.docker.aws-us-west-2-infrastructure.socrata.net:5000/internal/ticker-tape
+    environment:
+      TICKER_TAPE_DATA_DIRECTORY: /data/metrics 
+    volumes:
+      - /tmp/balboa/data:/data/metrics
+
   activemq-1:
     image: webcenter/activemq
     ports:
