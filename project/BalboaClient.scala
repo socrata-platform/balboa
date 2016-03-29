@@ -5,7 +5,8 @@ import sbt._
 object BalboaClient {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},
-    parallelExecution in Test := false
+    parallelExecution in Test := false,
+    crossScalaVersions := Seq("2.10.6", "2.11.7")
   )
 
   def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
