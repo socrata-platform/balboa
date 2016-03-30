@@ -103,35 +103,38 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
         }
 
         @Override
-        public void onMessage(Message payload)
-        {
-            try
-            {
+        public void onMessage(Message payload) {
+            long start = System.currentTimeMillis();
+            String messageText = null;
+            try {
                 TextMessage text = (TextMessage)payload;
+                messageText = text.getText();
 
-                JsonMessage message = new JsonMessage(text.getText());
+                JsonMessage message = new JsonMessage(messageText);
 
                 ds.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
 
                 session.commit();
-            }
-            catch (Exception e)
-            {
-                log.error("There was some problem processing a message. Marking it as needing redelivery.", e);
+                log.info("Consumed message of size " + (messageText == null ? "null" : messageText.length())
+                                 + " for entity: " + message.getEntityId()
+                                 + " - took " + (System.currentTimeMillis() - start) + "ms");
+            } catch (Exception e) {
+                log.error("There was some problem processing a message. Marking it as needing redelivery. Took " + (System.currentTimeMillis() - start) + "ms", e);
 
-                try
-                {
-                    // If there was some problem receiving the message or commiting
+                try {
+                    // If there was some problem receiving the message or committing
                     // it or, really, any problem in the processing that's not
                     // expected, we should rollback the results (which marks the
                     // message as not-delivered). The JMS provider will try to
                     // redeliver as it sees fit and hopefully things will be working
                     // for the next node that gets it.
                     session.rollback();
-                }
-                catch (JMSException e1)
-                {
-                    log.error("There was a problem rolling back the session. This is really bad.", e1);
+                } catch (JMSException e1) {
+                    String messageFragment = messageText;
+                    if (messageText != null && messageText.length() > 1024) {
+                        messageFragment = messageText.substring(0, 1024);
+                    }
+                    log.error("There was a problem rolling back the session. The message was lost. [1st 1kb = {}]", messageFragment, e1);
                 }
             }
         }
@@ -159,7 +162,7 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
 
     public ActiveMQReceiver(List<String> servers, String channel, Integer threads, DataStore ds) throws NamingException, JMSException
     {
-        listeners = new ArrayList<Listener>(servers.size());
+        listeners = new ArrayList<>(servers.size());
         for (String server : servers)
         {
             log.info("Starting server {}",server);
@@ -192,10 +195,6 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
             for (Listener listener : listeners)
                 listener.stop();
         }
-    }
-
-    public boolean isStopped() {
-        return stopped;
     }
 
     @Override

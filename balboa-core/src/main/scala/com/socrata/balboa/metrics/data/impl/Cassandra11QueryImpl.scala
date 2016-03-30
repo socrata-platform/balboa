@@ -90,7 +90,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
     val m:MutationBatch = context.getEntity.prepareMutationBatch
       .setConsistencyLevel(ConsistencyLevel.CL_ONE)
       .withRetryPolicy(new ExponentialBackoff(250, 5))
-    if (!aggregates.isEmpty) {
+    if (aggregates.nonEmpty) {
       var cols = m.withRow(Cassandra11Util.getColumnFamily(period, RecordType.AGGREGATE), entityKey)
       for { (k,v) <- aggregates } {
         if (k != ""){ cols = cols.incrementCounterColumn(k, v.getValue.longValue) }
@@ -98,7 +98,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
       }
     }
 
-    if (!absolutes.isEmpty) {
+    if (absolutes.nonEmpty) {
       var cols = m.withRow(Cassandra11Util.getColumnFamily(period, RecordType.ABSOLUTE), entityKey)
       for { (k,v) <- absolutes } {
         if (k != ""){ cols = cols.putColumn(k, v.getValue.longValue) }
