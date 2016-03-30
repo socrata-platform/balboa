@@ -3,5 +3,5 @@ resolvers := Seq(
 )
 
 addSbtPlugin("com.socrata" % "socrata-sbt-plugins" % "1.6.0")
-// Sbt Native Packager
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.0.4")
+
+addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.0.6")
