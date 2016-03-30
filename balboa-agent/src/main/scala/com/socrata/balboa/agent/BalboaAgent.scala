@@ -35,12 +35,12 @@ object BalboaAgent extends App with Config with StrictLogging {
   logger info s"Starting Balboa Agent.  Consuming metrics from ${dataDir.getAbsolutePath}.  " +
     s"AMQ Server: $activemqServer, AMQ Queue: $activemqQueue $additionalInfo".trim
 
-  logger.debug("Attempting to create Activemq Connection")
+  logger.info("Attempting to create Activemq Connection")
   val amqConnection = (activemqUser, activemqPassword) match {
     case (Some(user), Some(password)) => ActiveMQConnection.makeConnection(user, password, activemqServer)
     case _ => ActiveMQConnection.makeConnection(activemqServer)
   }
-  logger.debug(s"Created Activemq Connection $amqConnection")
+  logger.info(s"Created Activemq Connection $amqConnection")
 
   // TODO (Pre req: Java 8) Use Java Duration class.
   val future: ScheduledFuture[_] = scheduler.scheduleWithFixedDelay(new Runnable {
