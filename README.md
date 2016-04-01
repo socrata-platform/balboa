@@ -1,6 +1,7 @@
 # Balboa
 
-**Balboa** is Socrata's internal tenant metrics system. This project is composed of different types of subprojects.
+**Balboa** is Socrata's internal tenant metrics system. This project is
+composed of different types of subprojects.
 
 [![Build Status](https://travis-ci.org/socrata-platform/balboa.svg?branch=master)](https://travis-ci.org/socrata-platform/balboa)
 
