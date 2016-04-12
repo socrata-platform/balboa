@@ -11,11 +11,6 @@ import java.util.List;
 import java.util.Properties;
 
 public abstract class Configuration extends Properties {
-
-    /**
-     * TODO: Can't figure out why we are mutex locking Configuration Queries.
-     */
-
     public static Configuration instance;
     private List<Period> supportedPeriods;
 
@@ -45,7 +40,7 @@ public abstract class Configuration extends Properties {
     /**
      * Don't use this, it's only for mocking.
      */
-     public synchronized void setSupportedTypes(List<Period> supportedPeriods) {
+    public synchronized void setSupportedTypes(List<Period> supportedPeriods) {
         this.supportedPeriods = supportedPeriods;
     }
 
@@ -53,7 +48,7 @@ public abstract class Configuration extends Properties {
         if (supportedPeriods == null) {
             String[] types = getProperty("balboa.summaries").split(",");
 
-            supportedPeriods = new ArrayList<Period>(types.length);
+            supportedPeriods = new ArrayList<>(types.length);
             for (String t : types) {
                 supportedPeriods.add(Period.valueOf(t.toUpperCase()));
             }
@@ -173,7 +168,6 @@ public abstract class Configuration extends Properties {
     /**
      * Ensure a specific key is the properties.
      * @param key Key.
-     * @return this if self.
      */
     private void require(String key) {
         if (!containsKey(key))
