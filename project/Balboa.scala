@@ -1,7 +1,3 @@
-import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
-import com.typesafe.sbt.packager.debian.DebianPlugin
-import com.typesafe.sbt.packager.docker.DockerPlugin
-import com.typesafe.sbt.packager.universal.UniversalPlugin
 import sbt._
 
 object Balboa extends Build {
@@ -11,52 +7,64 @@ object Balboa extends Build {
     projectName,
     file("."),
     settings = BuildSettings.buildSettings ++ Seq(Keys.parallelExecution := false)
-  ) aggregate (balboaAgent, balboaAdmin, balboaCommon, balboaCore, balboaHttp, balboaServiceCore, balboaJms,
-     balboaClientCore, balboaClientJMS, balboaKafkaCommon, balboaKafkaClient,
-    balboaKafkaService, balboaClientDispatcher) // Add new project definitions here.
+  ) aggregate (
+//    balboaAgent,
+////    balboaAdmin,
+////    balboaCommon,
+//    balboaCore,
+//    balboaHttp,
+//    balboaServiceCore,
+//    balboaJms,
+//    balboaClientCore,
+//    balboaClientJMS,
+//    balboaKafkaCommon,
+//    balboaKafkaClient,
+//    balboaKafkaService,
+//    balboaClientDispatcher
+    ) // Add new project definitions here.
 
-  lazy val balboaCommon = project("balboa-common", BalboaCommon)
-    .enablePlugins(com.socrata.sbtplugins.BuildInfoPlugin)
-
-  lazy val balboaCore = project("balboa-core", BalboaCore, balboaCommon)
-
-  lazy val balboaHttp = project("balboa-http", BalboaHttp, balboaCore)
-
-  lazy val balboaServiceCore = project("balboa-service-core", BalboaService, balboaCore)
-
-  // Keep the same project name for dependency reasons.
-  // All following services should be name balboa-service-<type of service>
-  lazy val balboaJms = project("balboa-service-jms", BalboaJms, balboaServiceCore)
-
-  lazy val balboaAdmin = project("balboa-admin", BalboaAdmin, balboaCore)
-
-  lazy val balboaAgent = project("balboa-agent", BalboaAgent, balboaClientJMS, balboaCommon)
-    .enablePlugins(JavaAppPackaging)
-    .enablePlugins(UniversalPlugin)
-    .enablePlugins(DebianPlugin)
-    .enablePlugins(DockerPlugin)
-
-
-  lazy val balboaClientCore = project("balboa-client", BalboaClient,
-    balboaCommon % "test->test;compile->compile")
-
-  // Keep the same project name for dependency reasons.
-  // All following clients should be name balboa-client-<type of client>
-  lazy val balboaClientJMS = project("balboa-client-jms", BalboaClientJMS, balboaClientCore,
-    balboaClientCore % "test->test;compile->compile")
-
-  lazy val balboaKafkaCommon = project("balboa-common-kafka", BalboaKafkaCommon,
-    balboaCommon % "test->test;compile->compile")
-
-  lazy val balboaKafkaClient = project("balboa-client-kafka", BalboaClientKafka,
-    balboaClientCore, balboaKafkaCommon % "test->test;compile->compile", balboaClientCore % "test->test;compile->compile")
-
-  lazy val balboaKafkaService = project("balboa-service-kafka",
-    BalboaKafka, balboaServiceCore, balboaKafkaClient % "test->test;compile->compile")
-
-  lazy val balboaClientDispatcher = project("balboa-client-dispatcher",
-    BalboaClientDispatcher,
-    balboaClientJMS % "test->test;compile->compile", balboaKafkaClient % "test->test;compile->compile")
+//  lazy val balboaCommon = project("balboa-common", BalboaCommon)
+//    .enablePlugins(com.socrata.sbtplugins.BuildInfoPlugin)
+//
+//  lazy val balboaCore = project("balboa-core", BalboaCore, balboaCommon)
+//
+//  lazy val balboaHttp = project("balboa-http", BalboaHttp, balboaCore)
+//
+//  lazy val balboaServiceCore = project("balboa-service-core", BalboaService, balboaCore)
+//
+//  // Keep the same project name for dependency reasons.
+//  // All following services should be name balboa-service-<type of service>
+//  lazy val balboaJms = project("balboa-service-jms", BalboaJms, balboaServiceCore)
+//
+//  lazy val balboaAdmin = project("balboa-admin", BalboaAdmin, balboaCore)
+//
+//  lazy val balboaAgent = project("balboa-agent", BalboaAgent, balboaClientJMS, balboaCommon)
+//    .enablePlugins(JavaAppPackaging)
+//    .enablePlugins(UniversalPlugin)
+//    .enablePlugins(DebianPlugin)
+//    .enablePlugins(DockerPlugin)
+//
+//
+//  lazy val balboaClientCore = project("balboa-client", BalboaClient,
+//    balboaCommon % "test->test;compile->compile")
+//
+//  // Keep the same project name for dependency reasons.
+//  // All following clients should be name balboa-client-<type of client>
+//  lazy val balboaClientJMS = project("balboa-client-jms", BalboaClientJMS, balboaClientCore,
+//    balboaClientCore % "test->test;compile->compile")
+//
+//  lazy val balboaKafkaCommon = project("balboa-common-kafka", BalboaKafkaCommon,
+//    balboaCommon % "test->test;compile->compile")
+//
+//  lazy val balboaKafkaClient = project("balboa-client-kafka", BalboaClientKafka,
+//    balboaClientCore, balboaKafkaCommon % "test->test;compile->compile", balboaClientCore % "test->test;compile->compile")
+//
+//  lazy val balboaKafkaService = project("balboa-service-kafka",
+//    BalboaKafka, balboaServiceCore, balboaKafkaClient % "test->test;compile->compile")
+//
+//  lazy val balboaClientDispatcher = project("balboa-client-dispatcher",
+//    BalboaClientDispatcher,
+//    balboaClientJMS % "test->test;compile->compile", balboaKafkaClient % "test->test;compile->compile")
 
   // NOTE: Add your new project or submodule here.
 

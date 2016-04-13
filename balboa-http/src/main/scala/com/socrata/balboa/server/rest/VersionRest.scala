@@ -2,7 +2,7 @@ package com.socrata.balboa.server.rest
 
 import javax.servlet.http.HttpServletRequest
 
-import com.socrata.balboa.BuildInfo
+import com.socrata.balboa.http.BuildInfo
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck
 import com.socrata.http.server._
 import com.socrata.http.server.implicits._
