@@ -1,12 +1,14 @@
 import Dependencies._
 import sbt.Keys._
 import sbt._
+import scoverage.ScoverageSbtPlugin
 
 object BalboaClient {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},
     parallelExecution in Test := false,
-    crossScalaVersions := Seq("2.10.6", "2.11.7")
+    crossScalaVersions := Seq("2.10.6", "2.11.7"),
+    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 2
   )
 
   def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
@@ -17,7 +19,8 @@ object BalboaClient {
 
 object BalboaClientJMS {
   lazy val settings: Seq[Setting[_]] = BalboaClient.settings ++ Seq(
-    libraryDependencies <++= scalaVersion {libraries(_)}
+    libraryDependencies <++= scalaVersion {libraries(_)},
+    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
   )
 
   def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ Seq(
@@ -29,7 +32,8 @@ object BalboaClientKafka {
   lazy val settings: Seq[Setting[_]] = BalboaClient.settings ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},
     parallelExecution in Test := false,
-    testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v")
+    testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v"),
+    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 74
   )
 
   def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ BalboaKafkaCommon.libraries
@@ -37,7 +41,8 @@ object BalboaClientKafka {
 
 object BalboaClientDispatcher {
   lazy val settings: Seq[Setting[_]] = BalboaClient.settings ++ Seq(
-    libraryDependencies <++= scalaVersion {libraries(_)}
+    libraryDependencies <++= scalaVersion {libraries(_)},
+    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 70
   )
 
   def libraries(implicit scalaVersion: String) = BalboaClient.libraries

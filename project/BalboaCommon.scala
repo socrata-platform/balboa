@@ -1,12 +1,14 @@
 import Dependencies._
 import sbt.Keys._
 import sbt._
+import scoverage.ScoverageSbtPlugin
 
 object BalboaCommon {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},
     sbtbuildinfo.BuildInfoKeys.buildInfoPackage := "com.socrata.balboa",
-    crossScalaVersions := Seq("2.10.6", "2.11.7")
+    crossScalaVersions := Seq("2.10.6", "2.11.7"),
+    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
   )
 
   def libraries(implicit scalaVersion: String) = Seq(
@@ -23,7 +25,8 @@ object BalboaKafkaCommon {
 
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},
-    parallelExecution in Test := false
+    parallelExecution in Test := false,
+    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 55
   )
   def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
     kafka,
