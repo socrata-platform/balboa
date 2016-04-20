@@ -1,8 +1,29 @@
 # Balboa
 
-**Balboa** is Socrata's internal tenant metrics system. This project is composed of different types of subprojects.
+**Balboa** is Socrata's internal tenant metrics system. This project is
+composed of different types of subprojects. Together they handle getting
+metrics from internal Socrata services, into the metrics database, and then
+answer questions about the stored metrics.
 
-[![Build Status](https://travis-ci.org/socrata-platform/balboa.svg?branch=master)](https://travis-ci.org/socrata-platform/balboa)
+Roughly speaking the metrics intake pipeline is:
+
+    [Socrata Service]
+     |
+    proprietary file on disk
+     |
+    balboa-agent (one per service host)
+     |
+    JMS/Kafka
+     |
+    balboa-service-(jms/kafka)
+     |
+    Cassandra
+
+Roughly speaking, the metrics serving pipeline is:
+
+    balboa-http
+     |
+    Cassandra
 
 ### Core
 
@@ -10,22 +31,28 @@ TODO: Complete README refactor
 
 ### Common
 
-TODO: Complete README refactor
+Shared libraries, like configuration and message format data structures.
 
 ### HTTP
 
-TODO: Complete README refactor
+balboa-http is an http service that accepts queries for aggregated metrics
+values. It is read portion of the balboa metrics system.
 
 ### Clients
 
-Client libraries provide a mechanism to publish metrics to an existing messaging bus.
+Client libraries provide a mechanism to publish metrics to an existing
+messaging bus.
 
 * [Balboa JMS Client] TODO: Complete README refactor
 * [Balboa Kafka Client](balboa/balboa-client-kafka/README.md)
 
 ### Services
 
-TODO: Complete README refactor
+These services are part of the metrics intake system. balboa-service-jms
+listens on a JMS queue for metrics written by balboa-agent and saves those
+metrics to the database. balboa-service-kafka does something analogous on the
+Kafka message bus.
+
 * [Balboa JMS Service] TODO: Complete README refactor
 * [Balboa Kafka Service](balboa/balboa-service-kafka/README.md)
 
@@ -54,7 +81,9 @@ GET /metrics/{entity}/range?
 }
 ```
 
-Where metric name is a particular, tracked metric within an entity. Metrics can be either aggregate metrics ( accumulated within a period ) or absolute (replaced within a period).
+Where metric name is a particular, tracked metric within an entity. Metrics can
+be either aggregate metrics (accumulated within a period) or absolute (replaced
+within a period).
 
 
 #### Series Queries
@@ -89,7 +118,16 @@ GET /metrics/{entity}/series?
 ```
 
 ### Client
-**Balboa-client** is a library which handles insertion of metrics into a JMS queue for consumption by balboa-jms.  To include it in a project:
+**Balboa-client** is the library which allows individual services to start the
+process of sending metrics to the metrics store. There are two supported
+options for sending metrics:
+
+1. Use MetricFileQueue to write the metrics to a well known directory on disk
+   where a locally running balboa-agent finds the files and puts the metrics
+   onto the JMS queue.
+2. Use MetricJmsQueue which writes the metrics directly to the JMS queue.
+
+To include it in a project:
 
 1. Add the Socrata release repository to the project's `build.sbt`:
 ```
@@ -133,7 +171,9 @@ Balboa has default configuration files for each runnable project, under `[projec
 
 4. Start balboa-http with `java -jar [JAR] [PORT]`. In a typical developer setup, this might look something like `java -jar balboa-http/target/scala-2.10/balboa-http-assembly-[VERSION].jar 2012`.
 
-At this point, balboa-client should be capable of depositing metrics into balboa server, which can then be queried through the REST API.
+At this point, balboa-client should be capable of depositing metrics into
+balboa server, which can then be queried through the REST API provided by
+balboa-http.
 
 ### Setup (balboa-kafka)
 
