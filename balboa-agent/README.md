@@ -120,6 +120,14 @@ Standard SBT Tests.
 sbt balboa-agent/test
 ```
 
+### Integration Tests
+
+sbt balboa-agent/run "-Dbalboa.config=balboa-agent/src/it/resources/config/integrationtest-config.properties"
+sbt balboa-agent/it:test
+
+* Now, the integration tests should be able to write to the file system and
+  read from the queue.
+
 ## History
 
 Balboa-agent formerly the Metric Consumer started off as a one off project to

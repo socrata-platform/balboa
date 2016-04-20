@@ -1,0 +1,89 @@
+#! /bin/bash
+
+BALBOA_AGENT_PID=0
+
+function cleanUp() {
+    if [[ $BALBOA_AGENT_PID -gt 0 ]]; then
+        echo "Stopping the balboa-agent."
+        # The balboa-agent is running with sbt, so balboa-agent itself is
+        # actually running as a child of sbt. Once you kill the child, the
+        # parent process will naturally exit.
+        kill $(ps -eo ppid,pid | grep "^$BALBOA_AGENT_PID" | cut -d' ' -f2)
+    fi
+
+    # Remove the ActiveMQ queue created by these tests.
+    echo "Removing the integration test queue from ActiveMQ."
+    sbt 'balboa-agent/it:run-main com.socrata.balboa.agent.RemoveQueue'
+    exit
+}
+# Perform clean up activities under all circumstances (except kill -9) by
+# trapping the 'EXIT' pseudo-signal. Installing this signal handler means the
+# cleanUp function will be called whenever this script exits, even if
+# interrupted from the keyboard, 'kill'ed from the command line or exits
+# naturally at the end.
+trap cleanUp EXIT
+
+
+function getActiveMQServer() {
+    case $ENVIRONMENT in
+        "pull-request"|"staging")
+            echo "failover:(tcp://10.110.36.146:61616,tcp://10.110.32.233:61616)"
+            ;;
+        *)
+            echo "failover:(tcp://127.0.0.1:61616)"
+            ;;
+    esac
+}
+
+ORIGINAL_PROPERTIES_FILE=balboa-agent/src/main/resources/config/config.properties
+TEST_PROPERTIES_FILE="target/integrationtest-config-$$.properties"
+
+export ACTIVEMQ_SERVER=$(getActiveMQServer)
+# A new queue and metric directory are used for each integration test run to
+# avoid colliding with other integration test runs that are running at the same
+# time and sharing servers.
+export ACTIVEMQ_QUEUE="balboa-agent-integration-test-metrics-$$"
+export METRIC_DIRECTORY=/tmp/balboa-agent/integration-test-metrics-$$
+mkdir -p $METRIC_DIRECTORY
+echo "Writing temporary properties file to '$TEST_PROPERTIES_FILE'."
+sed "
+    /^ *balboa.agent.data.dir[ =]/s|=.*|= $METRIC_DIRECTORY|;
+    /^ *balboa.agent.sleeptime[ =]/s|=.*|= 10|;
+    /^ *balboa.jms.activemq.server[ =]/s|=.*|= $ACTIVEMQ_SERVER|;
+    /^ *balboa.jms.activemq.queue[ =]/s|=.*|= $ACTIVEMQ_QUEUE|
+" $ORIGINAL_PROPERTIES_FILE > $TEST_PROPERTIES_FILE
+
+SERVICE_LOG=target/balboa-agent-$$.log
+echo "Writing service log to '$SERVICE_LOG'"
+
+# The dataset-of-datasets integration tests build a dockerized service for
+# doing the testing, but making the dockerized service consumes a significant
+# portion of the time for executing the integration tests. These tests run the
+# service using sbt in the background to try to execute integration tests
+# faster.
+sbt balboa-agent/run "-Dbalboa.config=$TEST_PROPERTIES_FILE" >& $SERVICE_LOG &
+BALBOA_AGENT_PID=$!
+
+echo -n "Waiting for balboa-agent to start."
+i=0
+while ! grep "Connected to ActiveMQ broker" $SERVICE_LOG >& /dev/null ; do
+    sleep 1
+    i=$((i + 1))
+    echo -n "."
+
+    if [[ $i -eq 20 ]]; then
+        echo
+        echo "ERROR: It appears that the balboa-agent never started."
+        exit 1
+    fi
+done
+echo
+echo "balboa-agent service is started."
+
+# The integration tests will use these environment variables for configuration:
+#     METRIC_DIRECTORY
+#     ACTIVEMQ_SERVER
+#     ACTIVEMQ_QUEUE
+echo "Running integration tests."
+sbt balboa-agent/it:test
+

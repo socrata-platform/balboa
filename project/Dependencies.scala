@@ -49,11 +49,11 @@ object Dependencies {
   val activemq = "org.apache.activemq" % "activemq-core" % versions.activemq excludeAll(
     ExclusionRule(organization = "commons-logging"),
     ExclusionRule(organization = "org.springframework")
-    )
+  )
   val astyanax = "com.netflix.astyanax" % "astyanax" % versions.astyanax excludeAll(
     ExclusionRule(organization = "org.mortbay.jetty"),
     ExclusionRule(organization = "javax.servlet")
-    )
+  )
   val commons_logging = "commons-logging" % "commons-logging" % versions.commons_logging
   val dropwizard_metrics = "io.dropwizard.metrics" % "metrics-core" % versions.dropwizard
   val dropwizard_healthcheck = "io.dropwizard.metrics" % "metrics-healthchecks" % versions.dropwizard
@@ -74,4 +74,7 @@ object Dependencies {
   val simple_arm = "com.rojoma" %% "simple-arm" % versions.simple_arm
   val socrata_http = "com.socrata" %% "socrata-http" % versions.socrata_http
   val socrata_utils = "com.socrata" %% "socrata-utils" % versions.socrata_utils
+  val scalatest = "org.scalatest" %% "scalatest" % "2.2.4" % "test,it"
+  val typesafe_config = "com.typesafe" % "config" % "1.2.1" % "it"
+  val json4s = "org.json4s" %% "json4s-jackson" % "3.3.0" % "it"
 }
