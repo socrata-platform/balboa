@@ -46,7 +46,7 @@ class WriteMetricIntegrationTest extends FlatSpec with BeforeAndAfterAll with Ma
     var message: Message = null
     do {
       message = consumer.receive(5.millisecond.toMillis)
-      if (message != null) message.acknowledge();
+      if (message != null) message.acknowledge()
     } while (message != null)
 
 
