@@ -19,9 +19,11 @@ function cleanUp() {
         echo "$output"
     fi
 
-    echo
-    echo "$EXIT_MESSAGE"
-    echo
+    if [[ ! -z $EXIT_MESSAGE ]]; then
+        echo
+        echo "$EXIT_MESSAGE"
+        echo
+    fi
 }
 # Perform clean up activities under all circumstances (except kill -9) by
 # trapping the 'EXIT' pseudo-signal. Installing this signal handler means the
@@ -62,6 +64,14 @@ sed "
 
 SERVICE_LOG=target/balboa-agent-$$.log
 echo "Writing service log to '$SERVICE_LOG'"
+
+# By adding a pre-compile step, the length of the compile does not add to the
+# timeout around waiting for the service to start up. Using a separate step
+# also allows for more explicit error reporting.
+if ! sbt balboa-agent/compile ; then
+    EXIT_MESSAGE="ERROR: balboa-agent/compile failed."
+    exit 1
+fi
 
 # The dataset-of-datasets integration tests build a dockerized service for
 # doing the testing, but making the dockerized service consumes a significant
