@@ -7,6 +7,8 @@ set -ev
 /bin/env_parse ${BALBOA_LOG4J}.j2
 
 exec sudo -u socrata java \
+  -Xmx${JAVA_XMX} \
+  -Xms${JAVA_XMX} \
   -Dcom.sun.management.jmxremote.port=$JMX_PORT \
   -Dcom.sun.management.jmxremote.ssl=false \
   -Dcom.sun.management.jmxremote.authenticate=false \
