@@ -69,7 +69,7 @@ case class AlphabeticMetricFileProvider(override val path: Path) extends Directo
   override def provide: Set[File] = {
     val allFiles = FileUtils.getDirectories(path.toFile).flatMap(dir => dir.listFiles(FileUtils.isBalboaDataFile).toSet)
     // Immutable files are always as ready to process.
-    val immutableFiles = allFiles.filter(FileUtils.isBalboaImmutableFile.accept(_))
+    val immutableFiles = allFiles.filter(FileUtils.isBalboaImmutableFile.accept)
     // Group all the files by its parent directory
     // Sort in descending order and remove the first element
     // Join the result of all the directories in a final set of files.

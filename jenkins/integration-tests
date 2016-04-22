@@ -83,7 +83,7 @@ BALBOA_AGENT_PID=$!
 
 echo -n "Waiting for balboa-agent to start."
 i=0
-while ! grep "Created Activemq Connection" $SERVICE_LOG >& /dev/null ; do
+while ! grep "Connected to ActiveMQ broker" $SERVICE_LOG >& /dev/null ; do
     sleep 1
     i=$((i + 1))
     echo -n "."

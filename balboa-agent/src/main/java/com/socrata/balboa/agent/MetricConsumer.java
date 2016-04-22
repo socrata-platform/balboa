@@ -77,8 +77,7 @@ public class MetricConsumer implements Runnable, AutoCloseable {
      */
     @Override
     public void run() {
-        log.info("Attempting to run {} at the root directory: {}",
-                this.getClass().getSimpleName(), this.directory.getAbsolutePath());
+        log.info("Looking for metrics files recursively in '{}'", this.directory.getAbsolutePath());
 
         final Timer.Context runTimer = BalboaAgentMetrics.totalRuntime().time();
         long start = System.currentTimeMillis();
@@ -89,8 +88,9 @@ public class MetricConsumer implements Runnable, AutoCloseable {
         // We are trying to prevent the failure to process one file from blocking or preventing the processing
         // of others.
         for (File metricsEventLog: fileProvider.provideForJava()) {
-            List<MetricsRecord> records;
+            log.info("Processing '{}'.", metricsEventLog.getAbsolutePath());
 
+            List<MetricsRecord> records;
             try {
                 records = processFile(metricsEventLog);
             } catch (IOException e) {
