@@ -35,7 +35,8 @@ object Balboa extends Build {
     .enablePlugins(UniversalPlugin)
     .enablePlugins(DebianPlugin)
     .enablePlugins(DockerPlugin)
-
+    .configs(IntegrationTest)
+    .settings(Defaults.itSettings: _*)
 
   lazy val balboaClientCore = project("balboa-client", BalboaClient,
     balboaCommon % "test->test;compile->compile")
