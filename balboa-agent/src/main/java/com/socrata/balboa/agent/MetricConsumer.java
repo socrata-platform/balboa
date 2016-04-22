@@ -88,7 +88,7 @@ public class MetricConsumer implements Runnable, AutoCloseable {
         // We are trying to prevent the failure to process one file from blocking or preventing the processing
         // of others.
         for (File metricsEventLog: fileProvider.provideForJava()) {
-            log.info("Processing '{}.", metricsEventLog.getAbsolutePath());
+            log.info("Processing '{}'.", metricsEventLog.getAbsolutePath());
 
             List<MetricsRecord> records;
             try {
