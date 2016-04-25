@@ -20,7 +20,7 @@ public class Dumper
 
     int output(String entityId, Iterator<Timeslice> iter, CSVWriter writer)
     {
-        Set<String> metricNames = new HashSet<String>();
+        Set<String> metricNames = new HashSet<>();
         while (iter.hasNext())
         {
             Timeslice slice = iter.next();
@@ -70,12 +70,12 @@ public class Dumper
         Iterator<String> entities;
         if (filters.size() > 0)
         {
-            List<Iterator<String>> iters = new ArrayList<Iterator<String>>(filters.size());
+            List<Iterator<String>> iters = new ArrayList<>(filters.size());
             for (String filter : filters)
             {
                 iters.add(ds.entities(filter));
             }
-            entities = new CompoundIterator<String>(iters.toArray(new Iterator[] {}));
+            entities = new CompoundIterator<>(iters);
         }
         else
         {

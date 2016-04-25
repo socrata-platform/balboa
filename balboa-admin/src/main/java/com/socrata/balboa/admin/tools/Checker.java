@@ -30,7 +30,7 @@ public class Checker
         Metrics moreGranularResults = Metrics.summarize(ds.find(entityId, period, range.start, range.end));
         Metrics lessGranularResults = Metrics.summarize(ds.find(entityId, lessGranular(period), start));
 
-        Map<String, List<Number>> results = new HashMap<String, List<Number>>();
+        Map<String, List<Number>> results = new HashMap<>();
         Set<Map.Entry<String, Metric>> diff =  moreGranularResults.difference(lessGranularResults);
 
         for (Map.Entry<String, Metric> entry : diff)
@@ -63,19 +63,19 @@ public class Checker
 
         if (filters.size() > 0)
         {
-            List<Iterator<String>> iters = new ArrayList<Iterator<String>>(filters.size());
+            List<Iterator<String>> iters = new ArrayList<>(filters.size());
             for (String filter : filters)
             {
                 iters.add(ds.entities(filter));
             }
-            entities = new CompoundIterator<String>(iters.toArray(new Iterator[] {}));
+            entities = new CompoundIterator<>(iters);
         }
         else
         {
             entities = ds.entities();
         }
 
-        List<Period> periods = new ArrayList<Period>(Configuration.get().getSupportedPeriods());
+        List<Period> periods = new ArrayList<>(Configuration.get().getSupportedPeriods());
         Period leastGranular = Period.leastGranular(periods);
 
         // Remove the last (least granular) item from the list so that we don't
