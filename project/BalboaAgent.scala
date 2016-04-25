@@ -16,7 +16,8 @@ object BalboaAgent extends DockerKeys with LinuxKeys {
     dockerEntrypoint := Seq("/etc/ship.d/run"),
     dockerCommands := dockerCommands.value ++ Seq(ExecCmd("ADD", "etc", "/etc")),
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 61,
-    ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages := "<empty>;.*\\.balboa\\.agent\\.BalboaAgent"
+    ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages := "<empty>;.*\\.balboa\\.agent\\.BalboaAgent",
+    com.socrata.sbtplugins.StylePlugin.StyleKeys.styleFailOnError in Compile := true
     // TODO Update Ship.d configuration to use a run script.
   )
 
