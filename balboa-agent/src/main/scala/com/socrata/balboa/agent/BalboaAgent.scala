@@ -2,6 +2,7 @@ package com.socrata.balboa.agent
 
 import java.io.IOException
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
+import javax.jms.{JMSException, ExceptionListener}
 
 import com.blist.metrics.impl.queue.MetricJmsQueueNotSingleton
 import com.codahale.metrics.JmxReporter
@@ -71,6 +72,11 @@ object BalboaAgent extends App with Config with StrictLogging {
       sys.exit(1)
   }
   logger info s"Initialized ActiveMQ connection ${amqConnection.getConnectionInfo}"
+
+  amqConnection.setExceptionListener(new ExceptionListener() {
+    override def onException(exception: JMSException): Unit =
+      logger error ("ActiveMQ connection encountered an error.", exception)
+  })
 
   logger info "Connecting to ActiveMQ broker. (This is the actual TCP connection.)"
   try {
