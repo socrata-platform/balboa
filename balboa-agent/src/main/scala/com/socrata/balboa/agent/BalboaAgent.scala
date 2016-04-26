@@ -109,6 +109,8 @@ object BalboaAgent extends App with Config with StrictLogging {
       try {
         logger debug s"Attempting to run Metric Consumer $mc"
         mc.run() // Recursively reads all metric data files and writes them to a queue.
+      } catch {
+        case e: Exception => logger.error("Metric consumer failed", e)
       } finally {
         logger debug s"Attempting to close Metric Consumer $mc"
         mc.close() // Release all associated resources.
