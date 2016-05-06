@@ -1,5 +1,6 @@
 # Balboa
 
+
 **Balboa** is Socrata's internal tenant metrics system. This project is
 composed of different types of subprojects. Together they handle getting
 metrics from internal Socrata services, into the metrics database, and then
@@ -220,3 +221,4 @@ As of 0.13.0, balboa is versioned with [Semantic Versioning](http://www.semver.o
 
 ## License
 Balboa is licensed under the [Apache 2.0](https://github.com/socrata/balboa/blob/master/LICENSE.md) license.
+

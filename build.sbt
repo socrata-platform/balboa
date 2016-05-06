@@ -3,7 +3,7 @@ scalaVersion := "2.10.6"
 
 crossScalaVersions := Seq("2.10.6", "2.11.7")
 
-maintainer := "Socrata Mission Control Team, mission-control-l@socrata.com"
+maintainer := "Socrata Mission Control Team <mission-control-l@socrata.com>"
 
 packageSummary := "Balboa"
 
