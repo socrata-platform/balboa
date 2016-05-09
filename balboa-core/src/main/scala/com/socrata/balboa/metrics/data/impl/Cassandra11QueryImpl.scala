@@ -83,7 +83,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
 
   def persist(entityId: String, bucket:ju.Date, period: Period, aggregates: sc.Map[String, Metric], absolutes: sc.Map[String, Metric]) {
     val entityKey = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
-    log.info("Using entity/row key " + entityKey + " at period " + period)
+    log.debug("Using entity/row key " + entityKey + " at period " + period)
     fastfail.proceedOrThrow()
 
 
