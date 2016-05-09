@@ -1,7 +1,39 @@
-// TODO Delete... I don't think this is actually be used.
-scalaVersion := "2.10.6"
+//
+// Cross compiling situation
+//
+// As things stand, the balboa-clients need to be cross compiled because they
+// are published as libraries and consumed by both Scala 2.10 and Scala 2.11
+// projects.
+//
+// balboa-http can not be cross compiled because of it's dependency on the
+// socrata-http library. socrata-http is compiled for Scala 2.10 in the version
+// we use, and has a backward incompatible API in the newer versions.
+//
+// Now, odd quirk of sbt, it takes it's crossScalaVersions setting from the
+// project context in which it is invoked, not the project context which is
+// being built. So:
+//
+//     sbt +balboa-client-dispatcher/compile
+//
+// takes the crossScalaVersions value from the balboa project (because it is
+// the root project), not from a setting in balboa-client-dispatcher.
+//
+//     sbt "project balboa-client-dispatcher" "+compile"
+//
+// takes the crossScalaVersions value from the balboa-client-dispatcher
+// project.
+//
+// Because of this sbt oddity, if you are testing cross compiling for any
+// projects, you have to take special action.
+//
+// And because we have a weird shared build script that attempts to accommodate
+// all invocation paths, so needed to remain backwards compatible, the Jenkins
+// build jobs work yet a different way, and are invoked:
+//
+//     sbt "set crossScalaVersion = List("2.10.6", "2.11.7")" "+balboa-client-dispatcher/compile"
+//
 
-crossScalaVersions := Seq("2.10.6", "2.11.7")
+scalaVersion := "2.10.6"
 
 maintainer := "Socrata Mission Control Team, mission-control-l@socrata.com"
 

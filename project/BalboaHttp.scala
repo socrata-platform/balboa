@@ -9,6 +9,8 @@ object BalboaHttp {
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
   )
 
+  // balboa-http can not be cross compiled because of the dependency on
+  // socrata-http.
   def libraries(implicit scalaVersion: String) = Seq(
     junit,
     rojoma_json,

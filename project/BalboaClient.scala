@@ -3,6 +3,8 @@ import sbt.Keys._
 import sbt._
 import scoverage.ScoverageSbtPlugin
 
+// The balboa clients must be cross compiled because there are downstream
+// consumers that use Scala 2.11.
 object BalboaClient {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},

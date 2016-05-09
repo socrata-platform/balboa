@@ -69,7 +69,6 @@ GET /metrics/{entity}/range?
 200: Returns a JSON in the form of:
 
 ```
-
 {
   {metric name 1}: {
     value: {aggregate value for range},
@@ -141,7 +140,7 @@ resolvers := Seq(
 ```
 libraryDependencies ++= Seq(
   ...
-  "com.socrata" % "balboa-client_2.10" % "0.14.0",
+  "com.socrata" %% "balboa-client" % "0.17.6",
   ...
 )
 ```
@@ -217,6 +216,11 @@ INFO - Persisted entity: foo with 1 absolute and 0 aggregated metrics - took 14m
 ## Releases
 
 As of 0.13.0, balboa is versioned with [Semantic Versioning](http://www.semver.org), and uses the [sbt-release](https://github.com/sbt/sbt-release) plugin. To release balboa, run `sbt release` from the project root.
+
+## Development
+
+There is some unique configuration around cross compiling. See comments in the
+build.sbt for more details.
 
 ## License
 Balboa is licensed under the [Apache 2.0](https://github.com/socrata/balboa/blob/master/LICENSE.md) license.
