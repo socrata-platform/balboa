@@ -6,7 +6,6 @@ import sbt._
 
 object Balboa extends Build {
 
-  // WebDav.mkcol := {} Stops this library from trying to publish with WebDav.
   lazy val balboa = Project(
     projectName,
     file("."),
