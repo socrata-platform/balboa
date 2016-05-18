@@ -33,20 +33,18 @@ public class ProtocolBuffersMessages extends ArrayList<Message>
 
     public MessageProtos.PBMessages proto() throws IOException
     {
-        List<MessageProtos.PBMessage> children = new ArrayList<MessageProtos.PBMessage>(size());
+        List<MessageProtos.PBMessage> children = new ArrayList<>(size());
 
         for (Message message : this)
         {
             children.add(new ProtocolBuffersMessage(message).proto());
         }
 
-        MessageProtos.PBMessages messages = MessageProtos.
+        return MessageProtos.
                 PBMessages.
                 newBuilder().
                 addAllMessages(children).
                 build();
-        
-        return messages;
     }
 
     public byte[] serialize() throws IOException
