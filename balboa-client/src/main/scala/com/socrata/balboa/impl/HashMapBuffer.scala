@@ -8,7 +8,7 @@ import com.socrata.metrics.MetricQueue
 import com.socrata.metrics.components.{BufferComponent, BufferItem, MessageQueueComponent}
 import org.slf4j.LoggerFactory
 
-import collection.mutable
+import scala.collection.mutable
 import scala.collection.JavaConverters._
 
 // Not Thread Safe; access must be synchronized by caller (MetricDequeuer)
