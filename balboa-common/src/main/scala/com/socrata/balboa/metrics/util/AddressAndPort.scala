@@ -7,7 +7,7 @@ import java.net.InetAddress
  * @param port Integer representation of port. IE. 8080, 9062
  */
 case class AddressAndPort(address: InetAddress, port: Int) {
-  
+
   override def toString: String = address.getHostAddress + ":" + port
 
 }

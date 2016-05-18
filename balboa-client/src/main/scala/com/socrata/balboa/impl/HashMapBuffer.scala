@@ -8,8 +8,8 @@ import com.socrata.metrics.MetricQueue
 import com.socrata.metrics.components.{BufferComponent, BufferItem, MessageQueueComponent}
 import org.slf4j.LoggerFactory
 
+import collection.mutable
 import scala.collection.JavaConverters._
-import scala.collection.mutable.HashMap
 
 // Not Thread Safe; access must be synchronized by caller (MetricDequeuer)
 trait HashMapBufferComponent extends BufferComponent {
@@ -18,7 +18,7 @@ trait HashMapBufferComponent extends BufferComponent {
   private val log = LoggerFactory.getLogger(this.getClass)
 
   class Buffer extends BufferLike {
-    val bufferMap = HashMap.empty[String, BufferItem]
+    val bufferMap = mutable.HashMap.empty[String, BufferItem]
     val messageQueue = self.MessageQueue()
 
     def add(item:BufferItem) {
@@ -32,7 +32,7 @@ trait HashMapBufferComponent extends BufferComponent {
       bufferMap += (bufferKey -> consolidatedBufferItem)
     }
 
-    def consolidate(metrics1:Metrics, metrics2:Metrics) = {
+    def consolidate(metrics1:Metrics, metrics2:Metrics): Metrics = {
       val unionKeys = metrics1.keySet().asScala union metrics2.keySet().asScala
       val metricsComb = new Metrics()
 
@@ -59,7 +59,7 @@ trait HashMapBufferComponent extends BufferComponent {
       metricsComb
     }
 
-    def flush() = {
+    def flush(): Int = {
       val size = bufferMap.size
       for (item <- bufferMap.values){
         val msg = asMessage(item)
@@ -77,7 +77,7 @@ trait HashMapBufferComponent extends BufferComponent {
       msg
     }
 
-    def timeBoundary(timestamp:Long) = timestamp - (timestamp % MetricQueue.AGGREGATE_GRANULARITY)
+    def timeBoundary(timestamp:Long): Long = timestamp - (timestamp % MetricQueue.AGGREGATE_GRANULARITY)
 
     def start() {
       messageQueue.start()
@@ -91,9 +91,9 @@ trait HashMapBufferComponent extends BufferComponent {
       messageQueue.stop()
     }
 
-    def size() = bufferMap.size
+    def size(): Int = bufferMap.size
 
   }
 
-  def Buffer() = new Buffer()
+  def Buffer(): Buffer = new Buffer()
 }

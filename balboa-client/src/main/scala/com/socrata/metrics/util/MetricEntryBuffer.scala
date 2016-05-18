@@ -15,10 +15,10 @@ class MetricEntryBuffer(underlying: Set[MetricEntry]) extends Set[MetricEntry] w
 
   // Composition pattern but makes it so this class is mutable. TODO Find a better pattern for this.
   var buffer = underlying
-  
+
   /** Reference: [[Set.empty]] */
   override def empty: MetricEntryBuffer = new MetricEntryBuffer(Set.empty)
-  
+
   /**
    * Checks to see if there is an equal Metric Entry before insertion.  If there is an equal entry it merges the the
    * existing entry with the new element.  If there doesn't exist a duplicate version then the behaviour mimics that of

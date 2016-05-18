@@ -7,28 +7,28 @@ import java.util.UUID
  * A way of statically typing some of the entity/metric name keys
  */
 sealed class IdParts(val _parts:Seq[MetricIdPart] = Seq()) {
-  override def toString():String = _parts.mkString("")
-  def getParts = _parts
-  def replacePart(in:MetricIdPart, out:MetricIdPart) = {
+  override def toString: String = _parts.mkString("")
+  def getParts: Seq[MetricIdPart] = _parts
+  def replacePart(in:MetricIdPart, out:MetricIdPart): MetricIdParts = {
     MetricIdParts( getParts.map { p:MetricIdPart => if (p == in) out else p }:_* )  // magic vargs
   }
-  def replaceFirstUnresolved(part:MetricIdPart) = {
-    MetricIdParts( getParts.map { p:MetricIdPart => if (p.isUnresolved()) part else p }:_* )
+  def replaceFirstUnresolved(part:MetricIdPart): MetricIdParts = {
+    MetricIdParts( getParts.map { p:MetricIdPart => if (p.isUnresolved) part else p }:_* )
   }
-  def hasPart(part:MetricIdPart) = {
+  def hasPart(part:MetricIdPart): Boolean = {
     getParts != null && getParts.exists {
       e:MetricIdPart => e == part
     }
   }
-  def isUnresolved() = {
+  def isUnresolved: Boolean = {
     getParts != null && getParts.exists {
       e:MetricIdPart => e.toString().startsWith("%") && e.toString().endsWith("%")
     }
   }
 }
-sealed class MetricIdPart(val part:String) extends IdParts() {
-  override def toString():String = if (part == null) "%unknown%" else part
-  override def getParts = Seq(this)
+sealed class MetricIdPart(val part: String) extends IdParts() {
+  override def toString: String = if (part == null) "%unknown%" else part
+  override def getParts: Seq[MetricIdPart] = Seq(this)
 }
 case class MetricIdParts(p:MetricIdPart *) extends IdParts(p)
 case class ViewUid(viewUid:String) extends MetricIdPart(viewUid)
@@ -38,10 +38,10 @@ case class DomainId(domainId:Int) extends MetricIdPart(String.valueOf(domainId))
 case class ReferrerUri(referrer: String)
   extends MetricIdPart(if (referrer.length > ReferrerUri.MAX_URL_SIZE) referrer.substring(0, ReferrerUri.MAX_URL_SIZE)
   else referrer) {
-  def isBlank(query:String) = {
+  def isBlank(query:String): Boolean = {
     query == null || query.trim.isEmpty
   }
-  def getPath() = {
+  def getPath: String = {
     if (referrer.startsWith("%"))
       "%rpath:" + UUID.randomUUID().toString + "%"
     else {
@@ -55,7 +55,7 @@ case class ReferrerUri(referrer: String)
 
   }
 
-  def getHost() = {
+  def getHost: String = {
     if (referrer.startsWith("%"))
       "%rhost:" + UUID.randomUUID().toString + "%"
     else {

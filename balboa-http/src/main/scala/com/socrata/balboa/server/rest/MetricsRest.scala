@@ -32,16 +32,16 @@ object MetricsRest {
     req.getPathInfo.split('/').filterNot(_.isEmpty)(1)
   }
 
-  def unacceptable =
+  def unacceptable: HttpResponse =
     NotAcceptable ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 406, "message": "Not acceptable."}""")
 
-  def required(parameter: String) =
+  def required(parameter: String): HttpResponse =
     BadRequest ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 400, "message": "Parameter """ + parameter + """ required."}""")
 
-  def malformedDate(parameter: String) =
+  def malformedDate(parameter: String): HttpResponse =
     BadRequest ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 400, "message": "Unable to parse date """ + JString(parameter).toString.drop(1).dropRight(1) + """"}""")
 
-  def br(parameter: String, msg: String) =
+  def br(parameter: String, msg: String): HttpResponse =
     BadRequest ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 400, "message": "Unable to parse """ + parameter + """ : """ + JString(msg).toString.drop(1).dropRight(1) + """"}""")
 
   def get(req: HttpServletRequest): HttpResponse = {
@@ -110,7 +110,7 @@ object MetricsRest {
     }
   }
 
-  def response(typ: String, body: Array[Byte]) =
+  def response(typ: String, body: Array[Byte]): HttpResponse =
     ContentType(typ) ~> Header("Content-length", body.length.toString) ~> Stream(_.write(body))
 
   def series(req: HttpServletRequest): HttpResponse = {

@@ -7,7 +7,7 @@ import com.socrata.balboa.server.rest.{EntitiesRest, MetricsRest, VersionRest}
 import com.socrata.http.routing.{HttpMethods, SimpleRoute, SimpleRouter}
 import com.socrata.http.server.implicits._
 import com.socrata.http.server.responses._
-import com.socrata.http.server.{HttpResponse, Service, SimpleFilter, SocrataServerJetty}
+import com.socrata.http.server.{Filter, HttpResponse, Service, SimpleFilter, SocrataServerJetty}
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.apache.log4j.PropertyConfigurator
 
@@ -28,8 +28,8 @@ object Main extends App with StrictLogging {
     new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r) -> MetricsRest.get
   )
 
-  def requestLoggingFilter = new SimpleFilter[HttpServletRequest, HttpResponse] {
-    def apply(req: HttpServletRequest, serv: BalboaService) = {
+  def requestLoggingFilter: Filter[HttpServletRequest, HttpResponse, HttpServletRequest, HttpResponse] = new SimpleFilter[HttpServletRequest, HttpResponse] {
+    def apply(req: HttpServletRequest, serv: BalboaService): HttpResponse = {
       logger.info("Server in-bound request: " + req.getMethod + " " + req.getRequestURI + Option(req.getQueryString).map("?" + _).getOrElse(""))
       serv(req)
     }

@@ -14,7 +14,7 @@ trait ServerInformation {
 }
 
 trait ConfiguredServerInformation extends ServerInformation with JMSClientConfig {
-  override def activeServer = activemqServer
+  override def activeServer: String = activemqServer
   override lazy val activeQueue = activemqQueue
   override lazy val backupFile = emergencyBackUpFile("jms")
 }
