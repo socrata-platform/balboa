@@ -154,3 +154,4 @@ create column family yearly_aggregate
   and compaction_strategy = 'org.apache.cassandra.db.compaction.SizeTieredCompactionStrategy'
   and caching = 'KEYS_ONLY'
   and compression_options = {'sstable_compression' : 'org.apache.cassandra.io.compress.SnappyCompressor'};
+
