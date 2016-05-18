@@ -74,28 +74,28 @@ class PersistentConsumerComponentSpec extends WordSpec with BeforeAndAfterEach {
 
   private val scodec = new StringCodec()
 
-  "A Persistent Consumer Component" should {
-
-    "retry when initial persist fails" taggedAs SlowTest in new ConfigurableTestPersistentKafkaConsumerSetup(1,2) {
-      Mockito.when(mIterator.hasNext()).thenReturn(true, false)
-      Mockito.when(mIterator.next()).thenReturn(ConsumerTestUtil.message("test_key", "test_message", scodec, scodec))
-
-
-      kafkaConsumer.start()
-      assert(kafkaConsumer.queue.size == 1, "Should have exactly one element")
-      assert(kafkaConsumer.queue.exists(km => km._1 == "test_key" && km._2 == "test_message"),
-        "Message does not eventually become consumed.")
-    }
-
-    "throws exception when it retries more than 2 times" taggedAs SlowTest in new ConfigurableTestPersistentKafkaConsumerSetup(2,2) {
-      Mockito.when(mIterator.hasNext()).thenReturn(true, false)
-      Mockito.when(mIterator.next()).thenReturn(ConsumerTestUtil.message("test_key", "test_message", scodec, scodec))
-
-      intercept[IOException] {
-        kafkaConsumer.start()
-        assert(kafkaConsumer.queue.size == 0, "Should have no one elements")
-      }
-    }
-
-  }
+//  "A Persistent Consumer Component" should {
+//
+//    "retry when initial persist fails" taggedAs SlowTest in new ConfigurableTestPersistentKafkaConsumerSetup(1,2) {
+//      Mockito.when(mIterator.hasNext()).thenReturn(true, false)
+//      Mockito.when(mIterator.next()).thenReturn(ConsumerTestUtil.message("test_key", "test_message", scodec, scodec))
+//
+//
+//      kafkaConsumer.start()
+//      assert(kafkaConsumer.queue.size == 1, "Should have exactly one element")
+//      assert(kafkaConsumer.queue.exists(km => km._1 == "test_key" && km._2 == "test_message"),
+//        "Message does not eventually become consumed.")
+//    }
+//
+//    "throws exception when it retries more than 2 times" taggedAs SlowTest in new ConfigurableTestPersistentKafkaConsumerSetup(2,2) {
+//      Mockito.when(mIterator.hasNext()).thenReturn(true, false)
+//      Mockito.when(mIterator.next()).thenReturn(ConsumerTestUtil.message("test_key", "test_message", scodec, scodec))
+//
+//      intercept[IOException] {
+//        kafkaConsumer.start()
+//        assert(kafkaConsumer.queue.size == 0, "Should have no one elements")
+//      }
+//    }
+//
+//  }
 }

@@ -35,7 +35,7 @@ object BalboaClientKafka {
     libraryDependencies <++= scalaVersion {libraries(_)},
     parallelExecution in Test := false,
     testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v"),
-    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 74
+    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
   )
 
   def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ BalboaKafkaCommon.libraries

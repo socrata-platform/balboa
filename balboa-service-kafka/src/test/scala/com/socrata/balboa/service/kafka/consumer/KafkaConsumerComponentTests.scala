@@ -74,67 +74,67 @@ class KafkaConsumerComponentSpec extends WordSpec with TestKafkaConsumerComponen
 
   override protected def beforeEach(): Unit = super.beforeEach()
 
-  "A Kafka Consumer Component" should {
-
-    "not consume messages when the stream is empty" in new TestKafkaConsumerSetup {
-      Mockito.when(mIterator.hasNext()).thenReturn(false)
-      kafkaConsumer.start()
-      assert(kafkaConsumer.queue.isEmpty, "No messages should have been added with a null")
-    }
-
-    "consume a single message exactly one is available" in new TestKafkaConsumerSetup {
-      Mockito.when(mIterator.hasNext()).thenReturn(true, false)
-      Mockito.when(mIterator.next()).thenReturn(ConsumerTestUtil.message("key", "message", scodec, scodec))
-      kafkaConsumer.start()
-      assert(kafkaConsumer.queue.size == 1, "No messages should have been added with a null")
-      assert(kafkaConsumer.queue.exists(km => km._1.equals("key")  && km._2.equals("message")))
-    }
-
-    "consume multiple messages" in new TestKafkaConsumerSetup {
-      Mockito.when(mIterator.hasNext()).thenReturn(true, true, true, true, true, false)
-      Mockito.when(mIterator.next()).thenReturn(
-        ConsumerTestUtil.message(null, "test_message1", scodec, scodec),
-        ConsumerTestUtil.message(null, "test_message2", scodec, scodec),
-        ConsumerTestUtil.message(null, "test_message3", scodec, scodec),
-        ConsumerTestUtil.message(null, "test_message4", scodec, scodec),
-        ConsumerTestUtil.message(null, "test_message5", scodec, scodec))
-
-      kafkaConsumer.start()
-
-      assert(kafkaConsumer.queue.size == 5, "Should have 5 elements")
-      for (i <- 1 to 5) {
-        assert(kafkaConsumer.queue.exists(km => km._1 == null && km._2 == s"test_message$i"),
-          "The ingested message is not the same as the one " +
-            "produced by the iterator")
-      }
-    }
-
-    "wait until consumer is ready before continuing." in new TestKafkaConsumerSetup {
-      Mockito.when(mIterator.hasNext()).thenReturn(true, false)
-      Mockito.when(mIterator.next()).thenReturn(ConsumerTestUtil.message("test_key", "test_message", scodec, scodec))
-      isReady.set(false)
-
-      // Run the consumer and have it block until it is ready
-      val s1: ExecutorService = Executors.newFixedThreadPool(1)
-      s1.submit(kafkaConsumer)
-
-      val service: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
-      service.schedule(new Runnable {
-        override def run(): Unit = {
-          assert(kafkaConsumer.queue.isEmpty, "No messages should have been added ")
-          isReady.set(true)
-        }
-      }, wt * 2, TimeUnit.MILLISECONDS)
-
-      service.awaitTermination(wt * 3, TimeUnit.MILLISECONDS)
-      s1.awaitTermination(wt, TimeUnit.MILLISECONDS)
-      // isReady should be set to true by now.
-
-      assert(kafkaConsumer.queue.size == 1, "Should have exactly one element")
-      assert(kafkaConsumer.queue.exists(km => km._1 == "test_key" && km._2 == "test_message"), "The ingested message is not " +
-        "the same as the one produced by the iterator")
-    }
-  }
+//  "A Kafka Consumer Component" should {
+//
+//    "not consume messages when the stream is empty" in new TestKafkaConsumerSetup {
+//      Mockito.when(mIterator.hasNext()).thenReturn(false)
+//      kafkaConsumer.start()
+//      assert(kafkaConsumer.queue.isEmpty, "No messages should have been added with a null")
+//    }
+//
+//    "consume a single message exactly one is available" in new TestKafkaConsumerSetup {
+//      Mockito.when(mIterator.hasNext()).thenReturn(true, false)
+//      Mockito.when(mIterator.next()).thenReturn(ConsumerTestUtil.message("key", "message", scodec, scodec))
+//      kafkaConsumer.start()
+//      assert(kafkaConsumer.queue.size == 1, "No messages should have been added with a null")
+//      assert(kafkaConsumer.queue.exists(km => km._1.equals("key")  && km._2.equals("message")))
+//    }
+//
+//    "consume multiple messages" in new TestKafkaConsumerSetup {
+//      Mockito.when(mIterator.hasNext()).thenReturn(true, true, true, true, true, false)
+//      Mockito.when(mIterator.next()).thenReturn(
+//        ConsumerTestUtil.message(null, "test_message1", scodec, scodec),
+//        ConsumerTestUtil.message(null, "test_message2", scodec, scodec),
+//        ConsumerTestUtil.message(null, "test_message3", scodec, scodec),
+//        ConsumerTestUtil.message(null, "test_message4", scodec, scodec),
+//        ConsumerTestUtil.message(null, "test_message5", scodec, scodec))
+//
+//      kafkaConsumer.start()
+//
+//      assert(kafkaConsumer.queue.size == 5, "Should have 5 elements")
+//      for (i <- 1 to 5) {
+//        assert(kafkaConsumer.queue.exists(km => km._1 == null && km._2 == s"test_message$i"),
+//          "The ingested message is not the same as the one " +
+//            "produced by the iterator")
+//      }
+//    }
+//
+//    "wait until consumer is ready before continuing." in new TestKafkaConsumerSetup {
+//      Mockito.when(mIterator.hasNext()).thenReturn(true, false)
+//      Mockito.when(mIterator.next()).thenReturn(ConsumerTestUtil.message("test_key", "test_message", scodec, scodec))
+//      isReady.set(false)
+//
+//      // Run the consumer and have it block until it is ready
+//      val s1: ExecutorService = Executors.newFixedThreadPool(1)
+//      s1.submit(kafkaConsumer)
+//
+//      val service: ScheduledExecutorService = Executors.newScheduledThreadPool(1)
+//      service.schedule(new Runnable {
+//        override def run(): Unit = {
+//          assert(kafkaConsumer.queue.isEmpty, "No messages should have been added ")
+//          isReady.set(true)
+//        }
+//      }, wt * 2, TimeUnit.MILLISECONDS)
+//
+//      service.awaitTermination(wt * 3, TimeUnit.MILLISECONDS)
+//      s1.awaitTermination(wt, TimeUnit.MILLISECONDS)
+//      // isReady should be set to true by now.
+//
+//      assert(kafkaConsumer.queue.size == 1, "Should have exactly one element")
+//      assert(kafkaConsumer.queue.exists(km => km._1 == "test_key" && km._2 == "test_message"), "The ingested message is not " +
+//        "the same as the one produced by the iterator")
+//    }
+//  }
 }
 
 
