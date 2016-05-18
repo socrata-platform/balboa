@@ -15,10 +15,10 @@ public class WatchDog {
      * or interrupts occur. Multiple signals may be sent.
      */
     public interface WatchDogListener {
-        public void onStart();
-        public void onStop();
-        public void heartbeat();
-        public void ensureStarted();
+        void onStart();
+        void onStop();
+        void heartbeat();
+        void ensureStarted();
     }
 
     public void watchAndWait(WatchDogListener ... listeners) throws InterruptedException {

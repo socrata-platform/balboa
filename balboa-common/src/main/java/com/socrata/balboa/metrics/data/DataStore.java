@@ -16,7 +16,7 @@ public interface DataStore extends WatchDog.WatchDogListener
      * terribly slow and possibly dangerous.
      */
     // TODO: @Deprecated ?
-    public Iterator<String> entities(String pattern) throws IOException;
+    Iterator<String> entities(String pattern) throws IOException;
 
     /**
      * Retrieve an iterator that encompasses all entity ids for which there are
@@ -25,7 +25,7 @@ public interface DataStore extends WatchDog.WatchDogListener
      * what you're doing.
      */
     // TODO: @Deprecated ?
-    public Iterator<String> entities() throws IOException;
+    Iterator<String> entities() throws IOException;
 
     /**
      * Return a list of metrics for a period of timeslices over an arbitrary
@@ -34,7 +34,7 @@ public interface DataStore extends WatchDog.WatchDogListener
      * e.g. Give me all of the metrics for some entity broken down by hours in
      * the range 2010-01-01 -> 2010-01-31.
      */
-    public Iterator<Timeslice> slices(String entityId, Period period, Date start, Date end) throws IOException;
+    Iterator<Timeslice> slices(String entityId, Period period, Date start, Date end) throws IOException;
 
     /**
      * Given a date and given a summary range period, create the appropriate range
@@ -48,7 +48,7 @@ public interface DataStore extends WatchDog.WatchDogListener
      *
      * @see DateRange
      */
-    public Iterator<Metrics> find(String entityId, Period period, Date date) throws IOException;
+    Iterator<Metrics> find(String entityId, Period period, Date date) throws IOException;
 
     /**
      * Find all the summaries of a particular tier between start and end, ordered
@@ -56,7 +56,7 @@ public interface DataStore extends WatchDog.WatchDogListener
      * arbitrary range and should only be used when you need to query a specific
      * tier for some reason.
      */
-    public Iterator<Metrics> find(String entityId, Period period, Date start, Date end) throws IOException;
+    Iterator<Metrics> find(String entityId, Period period, Date start, Date end) throws IOException;
 
     /**
      * Find the total summaries between two particular dates, ordered by date.
@@ -65,11 +65,11 @@ public interface DataStore extends WatchDog.WatchDogListener
      *
      * @see com.socrata.balboa.metrics.data.Period
      */
-    public Iterator<Metrics> find(String entityId, Date start, Date end) throws IOException;
+    Iterator<Metrics> find(String entityId, Date start, Date end) throws IOException;
 
     /**
      * Save a set of metrics. The datastore is responsible for making sure the
      * persist applies correctly to all supported tiers.
      */
-    public void persist(String entityId, long timestamp, Metrics metrics) throws IOException;
+    void persist(String entityId, long timestamp, Metrics metrics) throws IOException;
 }
