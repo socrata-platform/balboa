@@ -35,7 +35,7 @@ public class QueryOptimizer {
 
         Period nextPeriod = lessGranular(type);
 
-        Set<DateRange> tier = new HashSet<DateRange>();
+        Set<DateRange> tier = new HashSet<>();
         results.put(type, tier);
 
         // Align the dates along the current border.
@@ -93,7 +93,7 @@ public class QueryOptimizer {
             throw new QueryException("Unable to load configuration for some reason.", e);
         }
 
-        Map<Period, Set<DateRange>> optimized = new HashMap<Period, Set<DateRange>>();
+        Map<Period, Set<DateRange>> optimized = new HashMap<>();
         optimize(start, end, Period.mostGranular(types), optimized);
 
         return optimized;

@@ -68,8 +68,7 @@ public class ProtocolBuffersMessage extends Message
 
     Iterable<? extends MessageProtos.PBMetric> protoMetrics()
     {
-        List<MessageProtos.PBMetric> serializableMetrics =
-                new ArrayList<MessageProtos.PBMetric>(getMetrics().size());
+        List<MessageProtos.PBMetric> serializableMetrics = new ArrayList<>(getMetrics().size());
         ProtocolBuffersSerializer numbersSer = new ProtocolBuffersSerializer();
 
         for (Map.Entry<String, Metric> metric : getMetrics().entrySet())

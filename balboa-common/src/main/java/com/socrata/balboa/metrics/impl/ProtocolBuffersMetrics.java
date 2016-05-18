@@ -40,7 +40,7 @@ public class ProtocolBuffersMetrics extends Metrics
 
     public MessageProtos.PBMetrics proto() throws IOException
     {
-        List<MessageProtos.PBMetric> metrics = new ArrayList<MessageProtos.PBMetric>(size());
+        List<MessageProtos.PBMetric> metrics = new ArrayList<>(size());
 
         ProtocolBuffersSerializer ser = new ProtocolBuffersSerializer();
         for (Map.Entry<String, Metric> entry : entrySet())
