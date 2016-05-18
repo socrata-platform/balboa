@@ -14,14 +14,15 @@ import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.Timeslice
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.metrics.data.{DateRange, Period}
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
 import scala.{collection => sc}
 
 /**
  * Holds Connection Pool and Common ColumnFamily definitions
  */
-object Cassandra11Util {
-  val periods = Configuration.get().getSupportedPeriods()
+object Cassandra11Util extends StrictLogging {
+  val periods = Configuration.get().getSupportedPeriods
   val leastGranular:Period = Period.leastGranular(periods)
   val mostGranular:Period = Period.mostGranular(periods)
 
@@ -94,6 +95,12 @@ object Cassandra11Util {
     val keyspace = conf.getProperty("cassandra.keyspace")
     val sotimeout = conf.getProperty("cassandra.sotimeout").toInt
     val connections = conf.getProperty("cassandra.maxpoolsize").toInt
+
+    logger.info("Connecting to Cassandra servers '{}'", seeds)
+    logger.info("Using maximum size of '{}' for Cassandra connection pool.", connections.toString)
+    logger.info("Setting Cassandra socket timeout to '{}'", sotimeout.toString)
+    logger.info("Using keyspace '{}'", keyspace)
+
     val cxt:AstyanaxContext[Keyspace] = new Builder()
       .forKeyspace(keyspace)
       .withAstyanaxConfiguration(new AstyanaxConfigurationImpl()

@@ -29,10 +29,10 @@ public class Metrics extends HashMap<String, Metric> {
     }
 
     public Set<Map.Entry<String, Metric>> difference(Metrics other) {
-        Set<Map.Entry<String, Metric>> union = new HashSet<Map.Entry<String, Metric>>(entrySet());
+        Set<Map.Entry<String, Metric>> union = new HashSet<>(entrySet());
         union.addAll(other.entrySet());
 
-        Set<Map.Entry<String, Metric>> intersection = new HashSet<Map.Entry<String, Metric>>(entrySet());
+        Set<Map.Entry<String, Metric>> intersection = new HashSet<>(entrySet());
         intersection.retainAll(other.entrySet());
 
         union.removeAll(intersection);
@@ -83,7 +83,7 @@ public class Metrics extends HashMap<String, Metric> {
      */
     public void merge(Metrics other) {
         // Get the union of the two key sets.
-        Set<String> unionKeys = new HashSet<String>(keySet());
+        Set<String> unionKeys = new HashSet<>(keySet());
         unionKeys.addAll(other.keySet());
 
         // Combine the two maps.
@@ -100,7 +100,7 @@ public class Metrics extends HashMap<String, Metric> {
     public static Metrics summarize(Iterator<Metrics>... everything) throws IOException {
         Metrics metrics = new Metrics();
 
-        Iterator<Metrics> iter = new CompoundIterator<Metrics>(everything);
+        Iterator<Metrics> iter = new CompoundIterator<>(everything);
 
         while (iter.hasNext()) {
             metrics.merge(iter.next());
