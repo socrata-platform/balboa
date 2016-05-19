@@ -1,0 +1,108 @@
+#! /bin/bash
+
+BALBOA_HTTP_PID=0
+
+function cleanUp() {
+    if [[ $BALBOA_HTTP_PID -gt 0 ]]; then
+        echo "Stopping balboa-http."
+        # The balboa-http is running with sbt, so balboa-http itself is
+        # actually running as a child of sbt. Once you kill the child, the
+        # parent process will naturally exit.
+        kill $(ps -eo ppid,pid | grep "^$BALBOA_HTTP_PID" | cut -d' ' -f2)
+    fi
+
+    if [[ ! -z $EXIT_MESSAGE ]]; then
+        echo
+        echo "$EXIT_MESSAGE"
+        echo
+    fi
+}
+# Perform clean up activities under all circumstances (except kill -9) by
+# trapping the 'EXIT' pseudo-signal. Installing this signal handler means the
+# cleanUp function will be called whenever this script exits, even if
+# interrupted from the keyboard, 'kill'ed from the command line or exits
+# naturally at the end.
+trap cleanUp EXIT
+
+
+function getCassandraSeedNodes() {
+    case $ENVIRONMENT in
+        *)
+            echo "localhost:9160"
+            ;;
+    esac
+}
+
+function getAvailableServicePort() {
+    # Randomly select a port and then check if it is available. If not, try again.
+    i=0
+    PORT=$(($RANDOM + 10000))
+    # The grep expressions have to be a little more flexible to account for the
+    # output difference between Mac and Linux, as it should always be possible
+    # to run this script on your local dev box and on the Jenkins build server.
+    while netstat -nl | grep "^tcp[ 4]" | grep "[\.:]$PORT " >& /dev/null ; do
+        PORT=$(($RANDOM + 10000))
+        i=$((i + 1))
+        if [[ $i -eq 100 ]]; then
+            echo
+            EXIT_MESSAGE="ERROR: It appears that there are no available ports for balboa-http to bind to."
+            exit 1
+        fi
+    done
+    echo $PORT
+}
+
+echo
+echo "************************************************************"
+echo " Starting balboa-http integration tests."
+echo
+
+ORIGINAL_PROPERTIES_FILE=balboa-http/src/main/resources/config/config.properties
+TEST_PROPERTIES_FILE="target/balboa-http-integrationtest-config-$$.properties"
+
+export CASSANDRAS=$(getCassandraSeedNodes)
+echo "Writing temporary properties file to '$TEST_PROPERTIES_FILE'."
+sed "
+    /^ *cassandra.servers[ =]/s|=.*|= $CASSANDRAS|
+" $ORIGINAL_PROPERTIES_FILE > $TEST_PROPERTIES_FILE
+
+SERVICE_LOG=target/balboa-http-$$.log
+echo "Writing service log to '$SERVICE_LOG'"
+
+# By adding a pre-compile step, the length of the compile does not add to the
+# timeout around waiting for the service to start up. Using a separate step
+# also allows for more explicit error reporting.
+if ! sbt balboa-http/compile ; then
+    EXIT_MESSAGE="ERROR: balboa-http/compile failed."
+    exit 1
+fi
+
+SERVICE_PORT=$(getAvailableServicePort)
+# The dataset-of-datasets integration tests build a dockerized service for
+# doing the testing, but making the dockerized service consumes a significant
+# portion of the time for executing the integration tests. These tests run the
+# service using sbt in the background to try to execute integration tests
+# faster.
+sbt "balboa-http/run $SERVICE_PORT" "-Dbalboa.config=$TEST_PROPERTIES_FILE" >& $SERVICE_LOG &
+BALBOA_HTTP_PID=$!
+
+echo -n "Waiting for balboa-http to start on port $SERVICE_PORT."
+i=0
+while ! grep "Starting server" $SERVICE_LOG >& /dev/null ; do
+    sleep 1
+    i=$((i + 1))
+    echo -n "."
+
+    if [[ $i -eq 20 ]]; then
+        echo
+        EXIT_MESSAGE="ERROR: It appears that the balboa-http never started."
+        exit 1
+    fi
+done
+echo
+echo "balboa-http service is started."
+
+echo "Running integration tests."
+export SERVICE_PORT  # So it is available for integration test configuration.
+sbt balboa-http/it:test
+
