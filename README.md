@@ -36,7 +36,7 @@ Shared libraries, like configuration and message format data structures.
 ### HTTP
 
 balboa-http is an http service that accepts queries for aggregated metrics
-values. It is read portion of the balboa metrics system.
+values. It is the read portion of the balboa metrics system.
 
 ### Clients
 

@@ -20,6 +20,8 @@ object Balboa extends Build {
   lazy val balboaCore = project("balboa-core", BalboaCore, balboaCommon)
 
   lazy val balboaHttp = project("balboa-http", BalboaHttp, balboaCore)
+    .configs(IntegrationTest)
+    .settings(Defaults.itSettings: _*)
 
   lazy val balboaServiceCore = project("balboa-service-core", BalboaService, balboaCore)
 

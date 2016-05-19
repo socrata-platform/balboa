@@ -15,6 +15,10 @@ object BalboaHttp {
     junit,
     rojoma_json,
     simple_arm,
-    socrata_http
+    socrata_http,
+    newman % "it",
+    typesafe_config,
+    scalatest,
+    json4s
   )
 }

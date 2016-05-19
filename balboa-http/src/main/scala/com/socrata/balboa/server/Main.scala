@@ -36,7 +36,7 @@ object Main extends App with StrictLogging {
   }
 
   def service(req: HttpServletRequest): HttpResponse =
-    router(req.getMethod, req.getRequestURI.split('/').tail) match {
+    router(req.getMethod, req.getRequestURI.split('/').drop(1)) match {
       case Some(s) =>
         s(req)
       case None    =>
