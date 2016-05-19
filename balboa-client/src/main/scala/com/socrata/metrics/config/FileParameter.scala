@@ -7,12 +7,10 @@ import java.io.File
  * for having a file requirement as parameter to a component.
  */
 trait FileParameter {
-
   /**
    * @return The File Parameter.
    */
   def file: File
-
 }
 
 /**
@@ -21,12 +19,10 @@ trait FileParameter {
  * was created for a more definitive abstraction.
  */
 trait EmergencyFileParameter extends FileParameter {
-
   /**
    * Create a naming convention that easily identifies this as a parameter.
    *
    * @return The emergency file.
    */
   def emergencyFile: File = file
-
 }

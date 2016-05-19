@@ -11,7 +11,7 @@ import com.netflix.astyanax.serializers.StringSerializer
 import com.netflix.astyanax.thrift.ThriftFamilyFactory
 import com.netflix.astyanax.{AstyanaxContext, Keyspace}
 import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.Timeslice
+import com.socrata.balboa.metrics.{Metrics, Timeslice}
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.metrics.data.{DateRange, Period}
 import com.typesafe.scalalogging.slf4j.StrictLogging
@@ -35,8 +35,8 @@ object Cassandra11Util extends StrictLogging {
    */
   def rollupSliceIterator(period: Period, raw: Iterator[Timeslice]): Iterator[Timeslice] = {
 
-    //can't do tail rec mod cons
-    //@tailrec
+    // can't do tail rec mod cons
+    // @tailrec
     def loop(input: Stream[Timeslice], acc: Timeslice, range: DateRange): Stream[Timeslice] = {
       if(input.isEmpty) {
         Stream(acc)
@@ -71,7 +71,9 @@ object Cassandra11Util extends StrictLogging {
     }.filter(_ != null)
   }
 
-  def metricsIterator(queryImpl:Cassandra11Query, entityId:String, query:sc.Seq[(ju.Date, Period)]) = {
+  def metricsIterator(queryImpl: Cassandra11Query,
+                      entityId: String,
+                      query: sc.Seq[(ju.Date, Period)]): Iterator[Metrics] = {
     {
       for {
         (date, period) <- query.iterator
@@ -83,7 +85,7 @@ object Cassandra11Util extends StrictLogging {
     new ColumnFamily[String, String](period.toString + "_" + recordType.toString, StringSerializer.get(), StringSerializer.get())
   }
 
-  def createEntityKey(entityId:String, timestamp:Long) = entityId + "-" + timestamp
+  def createEntityKey(entityId:String, timestamp:Long): String = entityId + "-" + timestamp
 
   def initializeContext():AstyanaxContext[Keyspace] = {
     initializeContext(Configuration.get())

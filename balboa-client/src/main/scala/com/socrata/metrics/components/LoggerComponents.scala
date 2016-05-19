@@ -96,5 +96,5 @@ trait MetricLoggerComponent {
 
 trait MetricEnqueuer {
   self: PreBufferQueue =>
-  def enqueue(metric:MetricEntry) = self.queue.add(metric)
+  def enqueue(metric:MetricEntry): Boolean = self.queue.add(metric)
 }

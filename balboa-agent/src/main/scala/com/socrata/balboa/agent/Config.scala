@@ -23,7 +23,7 @@ trait Config extends JMSClientConfig {
 
   // Data Directory configuration and
 
-  def dataDirectory(defaultFile: File = null) = Configuration.get().getFile(Keys.DATA_DIRECTORY, defaultFile)
+  def dataDirectory(defaultFile: File = null): File = Configuration.get().getFile(Keys.DATA_DIRECTORY, defaultFile)
 
   def interval(defaultTime: Long = 1000): Long = Configuration.get().getLong(Keys.SLEEP_MS, defaultTime)
 

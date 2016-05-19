@@ -74,7 +74,7 @@ class GenericKafkaProducer[K,M,KE <: Encoder[K]: Manifest,ME <: Encoder[M]: Mani
    * <br>
    *  See: [[Producer.close]]
    */
-  override def close() = producer.close()
+  override def close(): Unit = producer.close()
 
   /**
    * While this returns the base configuration for producers, the returned property

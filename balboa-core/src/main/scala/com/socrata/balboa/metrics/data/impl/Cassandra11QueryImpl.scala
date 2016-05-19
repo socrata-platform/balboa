@@ -62,7 +62,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
     }
   }
 
-  def fetch_cf(recordType: RecordType, entityKey: String, period: Period) = {
+  def fetch_cf(recordType: RecordType, entityKey: String, period: Period): OperationResult[ColumnList[String]] = {
     fastfail.proceedOrThrow()
     try {
       val retVal: OperationResult[com.netflix.astyanax.model.ColumnList[String]] = context.getEntity
@@ -81,7 +81,11 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
     }
   }
 
-  def persist(entityId: String, bucket:ju.Date, period: Period, aggregates: sc.Map[String, Metric], absolutes: sc.Map[String, Metric]) {
+  def persist(entityId: String,
+              bucket: ju.Date,
+              period: Period,
+              aggregates: sc.Map[String, Metric],
+              absolutes: sc.Map[String, Metric]): Unit = {
     val entityKey = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
     log.debug("Using entity/row key " + entityKey + " at period " + period)
     fastfail.proceedOrThrow()

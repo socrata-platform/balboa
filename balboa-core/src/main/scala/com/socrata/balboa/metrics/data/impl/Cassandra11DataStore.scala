@@ -50,7 +50,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     entities("")
   }
 
-  def getValidGranularity(period:Period) = {
+  def getValidGranularity(period: Period): Period = {
     val supported = Configuration.get().getSupportedPeriods
     var requestPeriod = period
     while (requestPeriod != null && !supported.contains(requestPeriod)) {

@@ -38,7 +38,7 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
    * Initializes necessary connections with external services. Must be called before create(_). Should not be called again
    * without first calling close().
    */
-  def start() {
+  def start(): Unit = {
     if (!started) {
       started = true
       Future { activeMQFactory.createConnection() } onComplete {
@@ -61,7 +61,7 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
   /**
    * Release current resources associated with this AsyncActiveMQQueue.
    */
-  def close() {
+  def close(): Unit = {
     val connected = BalboaTransportListener.isConnected
     connection.map(_.removeTransportListener(BalboaTransportListener))
     BalboaTransportListener.close()
@@ -96,7 +96,7 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
    * @param timestamp Time when this metric was created
    * @param metricType Type of metric to add
    */
-  override def create(entity: IdParts, name: IdParts, value: Long, timestamp: Long, metricType: Metric.RecordType) {
+  override def create(entity: IdParts, name: IdParts, value: Long, timestamp: Long, metricType: Metric.RecordType): Unit = {
     underlying match {
       case Some(queue) if BalboaTransportListener.isConnected =>
         queue.create(entity, name, value, timestamp, metricType)
@@ -111,12 +111,12 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
   private object BalboaTransportListener extends DefaultTransportListener with Closeable {
     private var jmsConnected = false
 
-    override def transportInterupted() = {
+    override def transportInterupted(): Unit = {
       jmsConnected = false
       log.error("Connection to ActiveMQ lost. Metrics will start dropping")
     }
 
-    override def transportResumed() = {
+    override def transportResumed(): Unit = {
       jmsConnected = true
       log.info("Connection to ActiveMQ established.")
     }
