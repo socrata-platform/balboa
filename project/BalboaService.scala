@@ -53,7 +53,7 @@ object BalboaKafka {
     mainClass in assembly := Some("com.socrata.balboa.service.kafka.BalboaKafkaConsumerCLI"),
     libraryDependencies <++= scalaVersion {libraries(_)},
     parallelExecution in Test := false,
-    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 42
+    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
   )
 
   def libraries(implicit scalaVersion: String) = BalboaService.libraries ++ BalboaKafkaCommon.libraries
