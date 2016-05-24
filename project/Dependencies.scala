@@ -11,7 +11,6 @@ object Dependencies {
    * External Library versions.
    */
   private object versions {
-    val activemq = "5.7.0"
     val astyanax = "1.56.26"
     val commons_logging = "1.1"
     val dropwizard = "3.1.2"
@@ -46,10 +45,13 @@ object Dependencies {
 
   val balboa_logging = Seq(scala_logging, slf4j_log4j, log4j)
 
-  val activemq = "org.apache.activemq" % "activemq-core" % versions.activemq excludeAll(
-    ExclusionRule(organization = "commons-logging"),
-    ExclusionRule(organization = "org.springframework")
-  )
+  val activemq = "org.apache.activemq" % "activemq-client" % "5.13.3"
+  // This library is used at runtime for making connections to certain versions
+  // of ActiveMQ. Removing this dependency will not cause compile problems, but
+  // will show up as runtime problems and only be logged correctly when the AMQ
+  // library is at log level DEBUG.
+  val activemqOpenwire = "org.apache.activemq" % "activemq-openwire-legacy" % "5.13.3"
+
   val astyanax = "com.netflix.astyanax" % "astyanax" % versions.astyanax excludeAll(
     ExclusionRule(organization = "org.mortbay.jetty"),
     ExclusionRule(organization = "javax.servlet")
