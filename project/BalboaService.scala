@@ -40,7 +40,8 @@ object BalboaJms {
   )
 
   def libraries(implicit scalaVersion: String) = BalboaService.libraries ++ Seq(
-    activemq
+    activemq,
+    activemqOpenwire
     // Add more dependencies for JMS Service here...
   )
 }
