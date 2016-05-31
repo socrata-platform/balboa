@@ -49,7 +49,9 @@ trait DirectoryBasedMetricFileProvider extends MetricFileProvider {
   *
   * @param path See [[DirectoryBasedMetricFileProvider.path]]
   */
-case class AlphabeticMetricFileProvider(override val path: Path) extends DirectoryBasedMetricFileProvider with LazyLogging {
+case class AlphabeticMetricFileProvider(override val path: Path)
+    extends DirectoryBasedMetricFileProvider
+    with LazyLogging {
 
   /**
     * <br>
