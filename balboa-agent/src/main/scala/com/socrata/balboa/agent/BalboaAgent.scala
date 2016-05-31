@@ -2,7 +2,7 @@ package com.socrata.balboa.agent
 
 import java.io.IOException
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
-import javax.jms.{JMSException, ExceptionListener}
+import javax.jms.{ExceptionListener, JMSException}
 
 import com.blist.metrics.impl.queue.MetricJmsQueueNotSingleton
 import com.codahale.metrics.JmxReporter
@@ -11,6 +11,8 @@ import com.socrata.balboa.util.FileUtils
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.apache.activemq.transport.TransportListener
 import org.apache.activemq.{ActiveMQConnection, ActiveMQConnectionFactory}
+
+import util.control.NonFatal
 
 /**
   * Balboa Agent class serves as the entry point for running the existing
@@ -35,7 +37,7 @@ object BalboaAgent extends App with Config with StrictLogging {
   logger info "Initializing ActiveMQ connection factory. (This is setting the username, password and destination.)"
   val amqConnectionFactory = (activemqUser, activemqPassword) match {
     case (Some(user), Some(password)) => new ActiveMQConnectionFactory(user, password, activemqServer)
-    case _ => new ActiveMQConnectionFactory(activemqServer)
+    case _                            => new ActiveMQConnectionFactory(activemqServer)
   }
 
   // The ActiveMQ libraries can be obscure when they are misbehaving. The hope
@@ -47,7 +49,7 @@ object BalboaAgent extends App with Config with StrictLogging {
     override def onCommand(command: scala.Any): Unit = {}
 
     override def onException(error: IOException): Unit =
-      logger error ("Problem with ActiveMQ connection.", error)
+      logger error("Problem with ActiveMQ connection.", error)
 
     // This method appears to be invoked when the library is first initializing
     // as well. So this log message will appear after the call to `.start` down
@@ -75,7 +77,7 @@ object BalboaAgent extends App with Config with StrictLogging {
 
   amqConnection.setExceptionListener(new ExceptionListener() {
     override def onException(exception: JMSException): Unit =
-      logger error ("ActiveMQ connection encountered an error.", exception)
+      logger error("ActiveMQ connection encountered an error.", exception)
   })
 
   logger info "Connecting to ActiveMQ broker. (This is the actual TCP connection.)"
@@ -105,15 +107,30 @@ object BalboaAgent extends App with Config with StrictLogging {
 
   val future: ScheduledFuture[_] = scheduler.scheduleWithFixedDelay(new Runnable {
     override def run(): Unit = {
-      val mc = new MetricConsumer(dataDir, new MetricJmsQueueNotSingleton(amqConnection, activemqQueue))
       try {
-        logger debug s"Attempting to run Metric Consumer $mc"
-        mc.run() // Recursively reads all metric data files and writes them to a queue.
+        val mc = new MetricConsumer(dataDir, new MetricJmsQueueNotSingleton(amqConnection, activemqQueue))
+        try {
+          logger debug s"Attempting to run Metric Consumer $mc"
+          mc.run() // Recursively reads all metric data files and writes them to a queue.
+        } catch {
+          case e: Exception => logger.error("Metric consumer failed", e)
+        } finally {
+          logger debug s"Attempting to close Metric Consumer $mc"
+          mc.close() // Release all associated resources.
+        }
       } catch {
-        case e: Exception => logger.error("Metric consumer failed", e)
-      } finally {
-        logger debug s"Attempting to close Metric Consumer $mc"
-        mc.close() // Release all associated resources.
+        case NonFatal(e) =>
+          logger.error("Could not create a new MetricConsumer for '{}'.", dataDir, e)
+        case e: Throwable =>
+          logger.error("Unrecoverable exception occurred while creating a new MetricConsumer for '{}'. Exiting.",
+            dataDir, e)
+          // If an exception escapes from this method, all future scheduled
+          // executions of this Runnable will be stopped, leaving balboa-agent
+          // in a broken, but running state as the agent itself will not exit,
+          // but neither will it process any metric files. Adding the sys.exit
+          // for an unrecoverable exception will make it clear to any
+          // monitoring software that there is a problem here.
+          sys.exit(1)
       }
     }
   }, initialDelay(), interval(), TimeUnit.MILLISECONDS)
