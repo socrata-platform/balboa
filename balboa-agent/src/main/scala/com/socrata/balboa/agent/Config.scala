@@ -7,11 +7,11 @@ import com.socrata.balboa.metrics.config.Configuration
 
 object Keys {
 
-  lazy val DATA_DIRECTORY = "balboa.agent.data.dir"
+  lazy val DataDirectory = "balboa.agent.data.dir"
 
-  lazy val SLEEP_MS = "balboa.agent.sleeptime"
+  lazy val SleepMs = "balboa.agent.sleeptime"
 
-  lazy val INITIAL_DELAY = "balboa.agent.initialdelay"
+  lazy val InitialDelay = "balboa.agent.initialdelay"
 
 }
 
@@ -21,13 +21,13 @@ object Keys {
  */
 trait Config extends JMSClientConfig {
 
-  // Data Directory configuration and
+  def dataDirectory(defaultFile: File = null): File // scalastyle:ignore
+    = Configuration.get().getFile(Keys.DataDirectory, defaultFile)
 
-  def dataDirectory(defaultFile: File = null): File = Configuration.get().getFile(Keys.DATA_DIRECTORY, defaultFile)
+  def interval(defaultTime: Long = 1000): Long // scalastyle:ignore
+    = Configuration.get().getLong(Keys.SleepMs, defaultTime)
 
-  def interval(defaultTime: Long = 1000): Long = Configuration.get().getLong(Keys.SLEEP_MS, defaultTime)
-
-  def initialDelay(defaultDelay: Long = 0): Long = Configuration.get().getLong(Keys.INITIAL_DELAY, defaultDelay)
+  def initialDelay(defaultDelay: Long = 0): Long = Configuration.get().getLong(Keys.InitialDelay, defaultDelay)
 
 }
 
