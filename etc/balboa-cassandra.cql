@@ -1,6 +1,14 @@
+--
+-- A schema definition of the keyspace and it's contents used by balboa for
+-- recording metric data.
+--
+-- The first query needs the correct data center to be filled in before this
+-- file is executed.
+--
+
 create keyspace Metrics2012
   with placement_strategy = 'NetworkTopologyStrategy'
-  and strategy_options = {datacenter1 : 1}
+  and strategy_options = {<- FILL IN WITH DATACENTER -> : 3}
   and durable_writes = true;
 
 use Metrics2012;
