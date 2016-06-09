@@ -1,4 +1,4 @@
-FROM socrata/java
+FROM socrata/java8
 
 # Forward the ZooKeeper and Cassandra Port.
 ENV BALBOA_PORT 2012

@@ -19,7 +19,16 @@ object BuildSettings {
         Some("snapshots" at nexus + "libs-snapshot-local")
       else
         Some("releases"  at nexus + "libs-release-local")
+    },
+    // For the time being, leave this as targeting Java 7 bytecode so that
+    // consumers of balboa libraries do not have to update their JVM to get the
+    // newest balboa libraries.
+    javacOptions ++= Seq("-source", "1.7", "-target", "1.7", "-Xlint"),
+    initialize := {
+      val _ = initialize.value
+      if (sys.props("java.specification.version") != "1.8")
+        sys.error("Java 8 is required for this project.")
     }
-    )
+  )
   val projectSettings: Seq[Setting[_]] = buildSettings
 }
