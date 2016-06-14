@@ -4,6 +4,9 @@
 cassandra.servers = {{ CASSANDRAS }}
 cassandra.keyspace = Metrics2012
 cassandra.retries = {{ CASSANDRA_RETRIES }}
+{% if CASSANDRA_DATACENTER is defined -%}
+cassandra.datacenter = {{ CASSANDRA_DATACENTER }}
+{%- endif %}
 balboa.datastore = buffered-cassandra
 
 # Kafka Properties

@@ -95,6 +95,7 @@ object Cassandra11Util extends StrictLogging {
 
     val seeds = conf.getProperty("cassandra.servers")
     val keyspace = conf.getProperty("cassandra.keyspace")
+    val datacenter = Option(conf.getProperty("cassandra.datacenter"))
     val sotimeout = conf.getProperty("cassandra.sotimeout").toInt
     val connections = conf.getProperty("cassandra.maxpoolsize").toInt
 
@@ -103,16 +104,25 @@ object Cassandra11Util extends StrictLogging {
     logger.info("Setting Cassandra socket timeout to '{}'", sotimeout.toString)
     logger.info("Using keyspace '{}'", keyspace)
 
+    val connectionPoolConfiguration = new ConnectionPoolConfigurationImpl("BalboaPool")
+      .setConnectTimeout(sotimeout)
+      .setTimeoutWindow(sotimeout)
+      .setMaxConnsPerHost(connections)
+      .setSeeds(seeds)
+
+    // Set local DC as side-effect if specified in configuration.
+    // If the local datacenter is specified it will limit the driver
+    // to only make connections to the Cassandra nodes in the datacenter
+    // and prevent this service from unintentionally reaching across a
+    // VPN to connect to a Cassandra node.
+    datacenter.foreach(connectionPoolConfiguration.setLocalDatacenter)
+
     val cxt:AstyanaxContext[Keyspace] = new Builder()
       .forKeyspace(keyspace)
       .withAstyanaxConfiguration(new AstyanaxConfigurationImpl()
         .setDiscoveryType (NodeDiscoveryType.RING_DESCRIBE)
       )
-      .withConnectionPoolConfiguration(new ConnectionPoolConfigurationImpl("BalboaPool")
-        .setConnectTimeout(sotimeout)
-        .setTimeoutWindow(sotimeout)
-        .setMaxConnsPerHost(connections)
-        .setSeeds(seeds))
+      .withConnectionPoolConfiguration(connectionPoolConfiguration)
       .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
       .buildKeyspace(ThriftFamilyFactory.getInstance())
     cxt.start()

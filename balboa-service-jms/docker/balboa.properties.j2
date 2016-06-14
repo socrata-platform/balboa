@@ -1,3 +1,6 @@
 cassandra.servers = {{ CASSANDRAS }}
 cassandra.keyspace = {{ CASSANDRA_KEYSPACE }}
+{% if CASSANDRA_DATACENTER is defined -%}
+cassandra.datacenter = {{ CASSANDRA_DATACENTER }}
+{%- endif %}
 balboa.datastore = cassandra
