@@ -18,10 +18,10 @@ import scala.language.postfixOps
 
 class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterEach {
   implicit val httpClient = new ApacheHttpClient
-  val ds = DataStoreFactory.get()
-  val testMetName = "testMetricsPersisted"
-  val testEntPrefix = "testMetricsEntity"
-  var testEntName = ""
+  val dataStore = DataStoreFactory.get()
+  val testMetricName = "testMetricsPersisted"
+  val testEntityPrefix = "testMetricsEntity"
+  var testEntityName = ""
 
   class AssertionJSON(j: => String) {
     def shouldBeJSON(expected: String) = {
@@ -36,30 +36,30 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   }
   implicit def convertJSONAssertion(j: => String): AssertionJSON = new AssertionJSON(j)
 
-  def awaitResponse(url: URL): HttpResponse = {
+  def getHttpResponse(url: URL): HttpResponse = {
     Await.result(GET(url).apply, Config.RequestTimeout)
   }
 
   // Ensures each test interacts with a unique entity
   override def beforeEach() = {
-    testEntName = testEntPrefix + "-" + java.util.UUID.randomUUID().toString
+    testEntityName = testEntityPrefix + "-" + java.util.UUID.randomUUID().toString
   }
 
   "Retrieve /metrics range with no range" should "be fail" in {
     val url = new URL(Config.Server, "/metrics/fake.name/range")
-    val response = awaitResponse(url)
+    val response = getHttpResponse(url)
     response.code.code should be (BadRequest.code)
   }
 
   "Retrieve /metrics without specifying" should "be not found" in {
     val url = new URL(Config.Server, "/metrics")
-    val response = awaitResponse(url)
+    val response = getHttpResponse(url)
     response.code.code should be (NotFound.code)
   }
 
   "Retrieve /metrics range with a range" should "succeed" in {
     val url = new URL(Config.Server, "/metrics/fake.name/range?start=2010-01-01+00%3A00%3A00%3A000&end=2017-01-01+00%3A00%3A00%3A000")
-    val response = awaitResponse(url)
+    val response = getHttpResponse(url)
     response.code.code should be (Ok.code)
     response.bodyString shouldBeJSON """{}"""
   }
@@ -67,8 +67,8 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   // Returns the JSON string representation of the metric added
   def persistSingleMetric(): String = {
     val metrics = new Metrics()
-    metrics.put(testMetName, new Metric(RecordType.ABSOLUTE, 1))
-    ds.persist(testEntName, 0, metrics)
+    metrics.put(testMetricName, new Metric(RecordType.ABSOLUTE, 1))
+    dataStore.persist(testEntityName, 0, metrics)
 
     """{ "testMetricsPersisted": { "value": 1, "type": "absolute" } }"""
   }
@@ -77,9 +77,9 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   def persistManyMetrics(metRange: Range): String = {
     val metrics = new Metrics()
     for (i <- metRange) {
-      metrics.put(testMetName + i, new Metric(RecordType.ABSOLUTE, 1))
+      metrics.put(testMetricName + i, new Metric(RecordType.ABSOLUTE, 1))
     }
-    ds.persist(testEntName, 0, metrics)
+    dataStore.persist(testEntityName, 0, metrics)
 
     "{" +
       metRange.map(i =>
@@ -92,8 +92,8 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
 
   "Retrieve /metrics range after persisting" should "show persisted metrics" in {
     val expected = persistSingleMetric()
-    val url = new URL(Config.Server, "metrics/" + testEntName + "/range?start=1969-01-01&end=1970-02-02")
-    val response = awaitResponse(url)
+    val url = new URL(Config.Server, s"metrics/$testEntityName/range?start=1969-01-01&end=1970-02-02")
+    val response = getHttpResponse(url)
     response.code.code should be (Ok.code)
     response.bodyString shouldBeJSON expected
   }
@@ -101,8 +101,8 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   "Retrieve /metrics range after persisting multiple metrics" should "show multiple persisted metrics" in {
     val metRange = 1 to 10
     val expected = persistManyMetrics(metRange)
-    val url = new URL(Config.Server, "metrics/" + testEntName + "/range?start=1969-01-01&end=1970-02-02")
-    val response = awaitResponse(url)
+    val url = new URL(Config.Server, s"metrics/$testEntityName/range?start=1969-01-01&end=1970-02-02")
+    val response = getHttpResponse(url)
     response.code.code should be (Ok.code)
 
 
@@ -112,8 +112,8 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   "Retrieve /metrics series after persisting" should "show persisted metrics" in {
     val expectedMetric = persistSingleMetric()
 
-    val url = new URL(Config.Server, "metrics/" + testEntName + "/series?period=MONTHLY&start=1969-12-01&end=1970-02-02")
-    val response = awaitResponse(url)
+    val url = new URL(Config.Server, s"metrics/$testEntityName/series?period=MONTHLY&start=1969-12-01&end=1970-02-02")
+    val response = getHttpResponse(url)
     response.code.code should be (Ok.code)
 
     val expectSeries1 = """ { "start" : -2678400000, "end" : -1, "metrics" : { } } """
@@ -127,8 +127,8 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
     val metRange = 1 to 10
     val expectedMetrics = persistManyMetrics(metRange)
 
-    val url = new URL(Config.Server, "metrics/" + testEntName + "/series?period=MONTHLY&start=1969-12-01&end=1970-02-02")
-    val response = awaitResponse(url)
+    val url = new URL(Config.Server, s"metrics/$testEntityName/series?period=MONTHLY&start=1969-12-01&end=1970-02-02")
+    val response = getHttpResponse(url)
     response.code.code should be (Ok.code)
 
     val expectSeries1 = """ { "start" : -2678400000, "end" : -1, "metrics" : { } } """
