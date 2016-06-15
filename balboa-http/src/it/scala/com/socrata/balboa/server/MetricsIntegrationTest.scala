@@ -22,6 +22,8 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   val testMetricName = "testMetricsPersisted"
   val testEntityPrefix = "testMetricsEntity"
   var testEntityName = ""
+  val testStart = "1969-12-01"
+  val testEnd = "1970-02-02"
 
   class AssertionJSON(j: => String) {
     def shouldBeJSON(expected: String) = {
@@ -56,7 +58,7 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   }
 
   "Retrieve /metrics range with a range" should "succeed" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName/range?start=2010-01-01+00%3A00%3A00%3A000&end=2017-01-01+00%3A00%3A00%3A000")
+    val response = getHttpResponse(s"/metrics/$testEntityName/range?start=$testStart&end=$testEnd")
     response.code.code should be (Ok.code)
     response.bodyString shouldBeJSON """{}"""
   }
@@ -86,48 +88,48 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   }
 
   "Retrieve /metrics/* with valid period and date" should "succeed" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName?period=YEARLY&date=1960-01-01")
+    val response = getHttpResponse(s"/metrics/$testEntityName?period=YEARLY&date=$testStart")
     response.code.code should be (Ok.code)
     response.bodyString shouldBeJSON """{}"""
   }
 
   "Retrieve /metrics/*/series with no period" should "fail with error msg" in {
-    val response = awaitResponse(s"/metrics/$testEntName/series")
+    val response = getHttpResponse(s"/metrics/$testEntityName/series")
     response.code.code should be (BadRequest.code)
     response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter period required." } """
   }
 
   "Retrieve /metrics/*/series with no start" should "fail with error msg" in {
-    val response = awaitResponse(s"/metrics/$testEntName/series?period=YEARLY")
+    val response = getHttpResponse(s"/metrics/$testEntityName/series?period=YEARLY")
     response.code.code should be (BadRequest.code)
     response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter start required." } """
   }
 
   "Retrieve /metrics/*/series with no end" should "fail with error msg" in {
-    val response = awaitResponse(s"/metrics/$testEntName/series?period=YEARLY&start=1969-01-01")
+    val response = getHttpResponse(s"/metrics/$testEntityName/series?period=YEARLY&start=$testStart")
     response.code.code should be (BadRequest.code)
     response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter end required." } """
   }
 
   "Retrieve /metrics/*/series with period, start, and end" should "succeed" in {
-    val response = awaitResponse(s"/metrics/$testEntName/series?period=YEARLY&start=1969-01-01&end=1970-02-02")
+    val response = getHttpResponse(s"/metrics/$testEntityName/series?period=YEARLY&start=$testStart&end=$testEnd")
     response.code.code should be (Ok.code)
   }
 
   "Retrieve /metrics/*/range with no start" should "fail with error msg" in {
-    val response = awaitResponse(s"/metrics/$testEntName/range")
+    val response = getHttpResponse(s"/metrics/$testEntityName/range")
     response.code.code should be (BadRequest.code)
     response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter start required." } """
   }
 
   "Retrieve /metrics/*/range with no end" should "fail with error msg" in {
-    val response = awaitResponse(s"/metrics/$testEntName/range?start=1969-01-01")
+    val response = getHttpResponse(s"/metrics/$testEntityName/range?start=$testStart")
     response.code.code should be (BadRequest.code)
     response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter end required." } """
   }
 
   "Retrieve /metrics/*/range with start and end" should "succeed" in {
-    val response = awaitResponse(s"/metrics/$testEntName/range?start=1969-01-01&end=1970-02-02")
+    val response = getHttpResponse(s"/metrics/$testEntityName/range?start=$testStart&end=$testEnd")
     response.code.code should be (Ok.code)
   }
 
@@ -158,7 +160,7 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
 
   "Retrieve /metrics range after persisting" should "show persisted metrics" in {
     val expected = persistSingleMetric()
-    val response = getHttpResponse(s"metrics/$testEntityName/range?start=1969-01-01&end=1970-02-02")
+    val response = getHttpResponse(s"metrics/$testEntityName/range?start=$testStart&end=$testEnd")
     response.code.code should be (Ok.code)
     response.bodyString shouldBeJSON expected
   }
@@ -166,16 +168,15 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   "Retrieve /metrics range after persisting multiple metrics" should "show multiple persisted metrics" in {
     val metRange = 1 to 10
     val expected = persistManyMetrics(metRange)
-    val response = getHttpResponse(s"metrics/$testEntityName/range?start=1969-01-01&end=1970-02-02")
+    val response = getHttpResponse(s"metrics/$testEntityName/range?start=$testStart&end=$testEnd")
     response.code.code should be (Ok.code)
-
     response.bodyString shouldBeJSON expected
   }
 
   "Retrieve /metrics series after persisting" should "show persisted metrics" in {
     val expectedMetric = persistSingleMetric()
 
-    val response = getHttpResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=1969-12-01&end=1970-02-02")
+    val response = getHttpResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=$testStart&end=$testEnd")
     response.code.code should be (Ok.code)
 
     val expectSeries1 = """ { "start" : -2678400000, "end" : -1, "metrics" : { } } """
@@ -189,7 +190,7 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
     val metRange = 1 to 10
     val expectedMetrics = persistManyMetrics(metRange)
 
-    val response = getHttpResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=1969-12-01&end=1970-02-02")
+    val response = getHttpResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=$testStart&end=$testEnd")
     response.code.code should be (Ok.code)
 
     val expectSeries1 = """ { "start" : -2678400000, "end" : -1, "metrics" : { } } """
