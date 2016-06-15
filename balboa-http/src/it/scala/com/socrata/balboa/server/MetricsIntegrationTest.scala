@@ -4,15 +4,15 @@ import java.net.URL
 
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.{Metric, Metrics}
-import com.socrata.balboa.metrics.data.{DataStoreFactory}
+import com.socrata.balboa.metrics.data.DataStoreFactory
 import com.stackmob.newman.ApacheHttpClient
 import com.stackmob.newman.dsl.GET
-import com.stackmob.newman.response.HttpResponse
+import com.stackmob.newman.response.{HttpResponse, HttpResponseCode}
 import com.stackmob.newman.response.HttpResponseCode.{BadRequest, NotFound, Ok}
 import org.json4s.jackson.JsonMethods.{parse, pretty, render}
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
-import scala.language.implicitConversions
 
+import scala.language.implicitConversions
 import scala.concurrent.Await
 import scala.language.postfixOps
 
@@ -24,6 +24,7 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   var testEntityName = ""
   val testStart = "1969-12-01"
   val testEnd = "1970-02-02"
+  val protobuf = "application/x-protobuf"
 
   class AssertionJSON(j: => String) {
     def shouldBeJSON(expected: String) = {
@@ -38,8 +39,22 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   }
   implicit def convertJSONAssertion(j: => String): AssertionJSON = new AssertionJSON(j)
 
-  def getHttpResponse(url: String): HttpResponse = {
+  case class JSONAndProtoResponse(json: HttpResponse, proto: HttpResponse) {
+    def shouldHaveCode(code: HttpResponseCode) = {
+      json.code.code should be (code.code)
+      proto.code.code should be (code.code)
+    }
+  }
+
+  def getJSONResponse(url: String): HttpResponse = {
     Await.result(GET(new URL(Config.Server, url)).apply, Config.RequestTimeout)
+  }
+
+  def getJSONProtoResponse(url: String): JSONAndProtoResponse = {
+    JSONAndProtoResponse (
+      getJSONResponse(url),
+      Await.result(GET(new URL(Config.Server, url)).setHeaders(("Accept", protobuf)).apply, Config.RequestTimeout)
+    )
   }
 
   // Ensures each test interacts with a unique entity
@@ -48,89 +63,88 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   }
 
   "Retrieve /metrics range with no range" should "be fail" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName/range")
-    response.code.code should be (BadRequest.code)
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName/range")
+    response shouldHaveCode BadRequest
   }
 
   "Retrieve /metrics without specifying" should "be not found" in {
-    val response = getHttpResponse("/metrics")
-    response.code.code should be (NotFound.code)
+    val response = getJSONProtoResponse("/metrics")
+    response shouldHaveCode NotFound
   }
 
   "Retrieve /metrics range with a range" should "succeed" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName/range?start=$testStart&end=$testEnd")
-    response.code.code should be (Ok.code)
-    response.bodyString shouldBeJSON """{}"""
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName/range?start=$testStart&end=$testEnd")
+    response shouldHaveCode Ok
+    response.json.bodyString shouldBeJSON """{}"""
   }
 
   "Retrieve /metrics/* with no period" should "fail with error msg" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName")
-    response.code.code should be (BadRequest.code)
-    response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter period required." } """
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName")
+    response shouldHaveCode BadRequest
+    response.json.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter period required." } """
   }
 
   "Retrieve /metrics/* with bad period" should "fail with error msg" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName?period=crud")
-    response.code.code should be (BadRequest.code)
-    response.bodyString shouldBeJSON """ { "error": 400, "message": "Unable to parse period : No period named crud" } """
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName?period=crud")
+    response shouldHaveCode BadRequest
+    response.json.bodyString shouldBeJSON """ { "error": 400, "message": "Unable to parse period : No period named crud" } """
   }
 
   "Retrieve /metrics/* with no date" should "fail with error msg" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName?period=YEARLY")
-    response.code.code should be (BadRequest.code)
-    response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter date required." } """
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName?period=YEARLY")
+    response shouldHaveCode BadRequest
+    response.json.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter date required." } """
   }
 
   "Retrieve /metrics/* with bad date" should "fail with error msg" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName?period=YEARLY&date=crud")
-    response.code.code should be (BadRequest.code)
-    response.bodyString shouldBeJSON """ { "error": 400, "message": "Unable to parse date crud" } """
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName?period=YEARLY&date=crud")
+    response shouldHaveCode BadRequest
+    response.json.bodyString shouldBeJSON """ { "error": 400, "message": "Unable to parse date crud" } """
   }
 
   "Retrieve /metrics/* with valid period and date" should "succeed" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName?period=YEARLY&date=$testStart")
-    response.code.code should be (Ok.code)
-    response.bodyString shouldBeJSON """{}"""
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName?period=YEARLY&date=$testStart")
+    response shouldHaveCode Ok
+    response.json.bodyString shouldBeJSON """{}"""
   }
 
   "Retrieve /metrics/*/series with no period" should "fail with error msg" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName/series")
-    response.code.code should be (BadRequest.code)
-    response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter period required." } """
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName/range")
+    response shouldHaveCode BadRequest
   }
 
   "Retrieve /metrics/*/series with no start" should "fail with error msg" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName/series?period=YEARLY")
+    val response = getJSONResponse(s"/metrics/$testEntityName/series?period=YEARLY")
     response.code.code should be (BadRequest.code)
     response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter start required." } """
   }
 
   "Retrieve /metrics/*/series with no end" should "fail with error msg" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName/series?period=YEARLY&start=$testStart")
+    val response = getJSONResponse(s"/metrics/$testEntityName/series?period=YEARLY&start=$testStart")
     response.code.code should be (BadRequest.code)
     response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter end required." } """
   }
 
   "Retrieve /metrics/*/series with period, start, and end" should "succeed" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName/series?period=YEARLY&start=$testStart&end=$testEnd")
+    val response = getJSONResponse(s"/metrics/$testEntityName/series?period=YEARLY&start=$testStart&end=$testEnd")
     response.code.code should be (Ok.code)
   }
 
   "Retrieve /metrics/*/range with no start" should "fail with error msg" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName/range")
-    response.code.code should be (BadRequest.code)
-    response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter start required." } """
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName/range")
+    response shouldHaveCode BadRequest
+    response.json.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter start required." } """
   }
 
   "Retrieve /metrics/*/range with no end" should "fail with error msg" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName/range?start=$testStart")
-    response.code.code should be (BadRequest.code)
-    response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter end required." } """
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName/range?start=$testStart")
+    response shouldHaveCode BadRequest
+    response.json.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter end required." } """
   }
 
   "Retrieve /metrics/*/range with start and end" should "succeed" in {
-    val response = getHttpResponse(s"/metrics/$testEntityName/range?start=$testStart&end=$testEnd")
-    response.code.code should be (Ok.code)
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName/range?start=$testStart&end=$testEnd")
+    response shouldHaveCode Ok
   }
 
   // Returns the JSON string representation of the metric added
@@ -160,23 +174,23 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
 
   "Retrieve /metrics range after persisting" should "show persisted metrics" in {
     val expected = persistSingleMetric()
-    val response = getHttpResponse(s"metrics/$testEntityName/range?start=$testStart&end=$testEnd")
-    response.code.code should be (Ok.code)
-    response.bodyString shouldBeJSON expected
+    val response = getJSONProtoResponse(s"metrics/$testEntityName/range?start=$testStart&end=$testEnd")
+    response shouldHaveCode Ok
+    response.json.bodyString shouldBeJSON expected
   }
 
   "Retrieve /metrics range after persisting multiple metrics" should "show multiple persisted metrics" in {
     val metRange = 1 to 10
     val expected = persistManyMetrics(metRange)
-    val response = getHttpResponse(s"metrics/$testEntityName/range?start=$testStart&end=$testEnd")
-    response.code.code should be (Ok.code)
-    response.bodyString shouldBeJSON expected
+    val response = getJSONProtoResponse(s"metrics/$testEntityName/range?start=$testStart&end=$testEnd")
+    response shouldHaveCode Ok
+    response.json.bodyString shouldBeJSON expected
   }
 
   "Retrieve /metrics series after persisting" should "show persisted metrics" in {
     val expectedMetric = persistSingleMetric()
 
-    val response = getHttpResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=$testStart&end=$testEnd")
+    val response = getJSONResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=$testStart&end=$testEnd")
     response.code.code should be (Ok.code)
 
     val expectSeries1 = """ { "start" : -2678400000, "end" : -1, "metrics" : { } } """
@@ -190,7 +204,7 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
     val metRange = 1 to 10
     val expectedMetrics = persistManyMetrics(metRange)
 
-    val response = getHttpResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=$testStart&end=$testEnd")
+    val response = getJSONResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=$testStart&end=$testEnd")
     response.code.code should be (Ok.code)
 
     val expectSeries1 = """ { "start" : -2678400000, "end" : -1, "metrics" : { } } """
