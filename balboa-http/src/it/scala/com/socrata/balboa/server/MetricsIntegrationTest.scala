@@ -46,7 +46,7 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   }
 
   "Retrieve /metrics range with no range" should "be fail" in {
-    val response = getHttpResponse("/metrics/fake.name/range")
+    val response = getHttpResponse(s"/metrics/$testEntityName/range")
     response.code.code should be (BadRequest.code)
   }
 
@@ -56,7 +56,37 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   }
 
   "Retrieve /metrics range with a range" should "succeed" in {
-    val response = getHttpResponse("/metrics/fake.name/range?start=2010-01-01+00%3A00%3A00%3A000&end=2017-01-01+00%3A00%3A00%3A000")
+    val response = getHttpResponse(s"/metrics/$testEntityName/range?start=2010-01-01+00%3A00%3A00%3A000&end=2017-01-01+00%3A00%3A00%3A000")
+    response.code.code should be (Ok.code)
+    response.bodyString shouldBeJSON """{}"""
+  }
+
+  "Retrieve /metrics/* with no period" should "fail with error msg" in {
+    val response = getHttpResponse(s"/metrics/$testEntityName")
+    response.code.code should be (BadRequest.code)
+    response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter period required." } """
+  }
+
+  "Retrieve /metrics/* with bad period" should "fail with error msg" in {
+    val response = getHttpResponse(s"/metrics/$testEntityName?period=crud")
+    response.code.code should be (BadRequest.code)
+    response.bodyString shouldBeJSON """ { "error": 400, "message": "Unable to parse period : No period named crud" } """
+  }
+
+  "Retrieve /metrics/* with no date" should "fail with error msg" in {
+    val response = getHttpResponse(s"/metrics/$testEntityName?period=YEARLY")
+    response.code.code should be (BadRequest.code)
+    response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter date required." } """
+  }
+
+  "Retrieve /metrics/* with bad date" should "fail with error msg" in {
+    val response = getHttpResponse(s"/metrics/$testEntityName?period=YEARLY&date=crud")
+    response.code.code should be (BadRequest.code)
+    response.bodyString shouldBeJSON """ { "error": 400, "message": "Unable to parse date crud" } """
+  }
+
+  "Retrieve /metrics/* with valid period and date" should "succeed" in {
+    val response = getHttpResponse(s"/metrics/$testEntityName?period=YEARLY&date=1960-01-01")
     response.code.code should be (Ok.code)
     response.bodyString shouldBeJSON """{}"""
   }
@@ -86,10 +116,9 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
       "}"
   }
 
-
   "Retrieve /metrics range after persisting" should "show persisted metrics" in {
     val expected = persistSingleMetric()
-    val response = getHttpResponse("metrics/" + testEntityName + "/range?start=1969-01-01&end=1970-02-02")
+    val response = getHttpResponse(s"metrics/$testEntityName/range?start=1969-01-01&end=1970-02-02")
     response.code.code should be (Ok.code)
     response.bodyString shouldBeJSON expected
   }
@@ -99,7 +128,6 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
     val expected = persistManyMetrics(metRange)
     val response = getHttpResponse(s"metrics/$testEntityName/range?start=1969-01-01&end=1970-02-02")
     response.code.code should be (Ok.code)
-
 
     response.bodyString shouldBeJSON expected
   }
