@@ -91,6 +91,29 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
     response.bodyString shouldBeJSON """{}"""
   }
 
+  "Retrieve /metrics/*/series with no period" should "fail with error msg" in {
+    val response = awaitResponse(s"/metrics/$testEntName/series")
+    response.code.code should be (BadRequest.code)
+    response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter period required." } """
+  }
+
+  "Retrieve /metrics/*/series with no start" should "fail with error msg" in {
+    val response = awaitResponse(s"/metrics/$testEntName/series?period=YEARLY")
+    response.code.code should be (BadRequest.code)
+    response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter start required." } """
+  }
+
+  "Retrieve /metrics/*/series with no end" should "fail with error msg" in {
+    val response = awaitResponse(s"/metrics/$testEntName/series?period=YEARLY&start=1969-01-01")
+    response.code.code should be (BadRequest.code)
+    response.bodyString shouldBeJSON """ { "error": 400, "message": "Parameter end required." } """
+  }
+
+  "Retrieve /metrics/*/series with period, start, and end" should "succeed" in {
+    val response = awaitResponse(s"/metrics/$testEntName/series?period=YEARLY&start=1969-01-01&end=1970-02-02")
+    response.code.code should be (Ok.code)
+  }
+
   // Returns the JSON string representation of the metric added
   def persistSingleMetric(): String = {
     val metrics = new Metrics()
