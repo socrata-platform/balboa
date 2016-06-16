@@ -100,6 +100,7 @@ object Cassandra11Util extends StrictLogging {
     val connections = conf.getProperty("cassandra.maxpoolsize").toInt
 
     logger.info("Connecting to Cassandra servers '{}'", seeds)
+    datacenter.foreach(logger.info("Configuring Cassandra client for datacenter-local in {}", _))
     logger.info("Using maximum size of '{}' for Cassandra connection pool.", connections.toString)
     logger.info("Setting Cassandra socket timeout to '{}'", sotimeout.toString)
     logger.info("Using keyspace '{}'", keyspace)
