@@ -1,5 +1,7 @@
 package com.socrata.balboa.server
 
+import javax.servlet.http.HttpServletRequest
+
 import com.socrata.balboa.BuildInfo
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck
 import com.socrata.balboa.server.rest.{EntitiesRest, MetricsRest}
@@ -12,13 +14,17 @@ import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.servlet.ScalatraListener
 import org.scalatra.json.JacksonJsonSupport
 
+import scala.collection.JavaConverters._
 
 class MainServlet extends ScalatraServlet with StrictLogging with JacksonJsonSupport {
 
   protected implicit val jsonFormats: Formats = DefaultFormats
-  case class Error(error: Int, message: String)
 
   val versionString = BuildInfo.toJson
+
+  def getAccepts(req: HttpServletRequest): Seq[String] = {
+    req.getHeaders("accept").asScala.toSeq
+  }
 
   get("/*") {
     contentType = "application/json"
@@ -33,16 +39,34 @@ class MainServlet extends ScalatraServlet with StrictLogging with JacksonJsonSup
     }
   }
   get("/entities*") {
-    EntitiesRest(request)(response)
+    val response = EntitiesRest(params)
+    contentType = response.contentType
+    response.result
   }
-  get("/metrics/*") {
-    MetricsRest.get(request)(response)
+  get("/metrics/:entityId") {
+    val entityId = params("entityId")
+    val response = MetricsRest.get(entityId, params, getAccepts(request))
+    contentType = response.contentType
+    response.result
   }
-  get("/metrics/*/range") {
-    MetricsRest.range(request)(response)
+  // Catch the extra paths to match behavior of old API
+  get("/metrics/:entityId/*") {
+    val entityId = params("entityId")
+    val response = MetricsRest.get(entityId, params, getAccepts(request))
+    contentType = response.contentType
+    response.result
   }
-  get("/metrics/*/series") {
-    MetricsRest.series(request)(response)
+  get("/metrics/:entityId/range*") {
+    val entityId = params("entityId")
+    val response = MetricsRest.range(entityId, params, getAccepts(request))
+    contentType = response.contentType
+    response.result
+  }
+  get("/metrics/:entityId/series*") {
+    val entityId = params("entityId")
+    val response = MetricsRest.series(entityId, params, getAccepts(request))
+    contentType = response.contentType
+    response.result
   }
 }
 

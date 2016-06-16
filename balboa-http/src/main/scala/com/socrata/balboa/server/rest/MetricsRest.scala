@@ -2,20 +2,15 @@ package com.socrata.balboa.server.rest
 
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
-import javax.servlet.http.HttpServletRequest
 
-import com.rojoma.json.ast.JString
 import com.socrata.balboa.metrics.Metrics
 import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, Period}
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics
-import com.socrata.balboa.server.ServiceUtils
-import com.socrata.http.server.HttpResponse
-import com.socrata.http.server.implicits._
-import com.socrata.http.server.responses._
+import com.socrata.balboa.server.{ResponseWithType, ServiceUtils}
+import com.socrata.balboa.server.ResponseWithType._
 import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
-
-import scala.collection.JavaConverters._
+import org.scalatra.{Ok, Params}
 
 class MetricsRest
 
@@ -24,39 +19,20 @@ object MetricsRest {
   val rangeMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "range queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
   val periodMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "period queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
 
-  val json = "application/json; charset=utf-8"
-  val protobuf = "application/x-protobuf"
   val ds = DataStoreFactory.get()
 
-  def extractEntityId(req: HttpServletRequest): String = {
-    req.getPathInfo.split('/').filterNot(_.isEmpty)(1)
-  }
-
-  def unacceptable: HttpResponse =
-    NotAcceptable ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 406, "message": "Not acceptable."}""")
-
-  def required(parameter: String): HttpResponse =
-    BadRequest ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 400, "message": "Parameter """ + parameter + """ required."}""")
-
-  def malformedDate(parameter: String): HttpResponse =
-    BadRequest ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 400, "message": "Unable to parse date """ + JString(parameter).toString.drop(1).dropRight(1) + """"}""")
-
-  def br(parameter: String, msg: String): HttpResponse =
-    BadRequest ~> ContentType("application/json; charset=utf-8") ~> Content("""{"error": 400, "message": "Unable to parse """ + parameter + """ : """ + JString(msg).toString.drop(1).dropRight(1) + """"}""")
-
-  def get(req: HttpServletRequest): HttpResponse = {
-    val entityId = extractEntityId(req)
-    val qs = new QueryExtractor(req)
-    val period = qs[Period]("period") match {
+  def get(entityId: String, params: Params, accepts: Seq[String]): ResponseWithType = {
+    val period = params.get("period").map(Extractable[Period].extract) match {
       case Some(Right(value)) => value
       case Some(Left(err)) => return br("period", err)
       case None => return required("period")
     }
-    val date = qs[String]("date").getOrElse { return required("date") }.right.get
-    val combine = qs[String]("combine").map(_.right.get)
-    val field = qs[String]("field").map(_.right.get)
 
-    val mediaType = bestMediaType(req, json, protobuf).getOrElse { return unacceptable }
+    val date = params.getOrElse("date", { return required("date") })
+    val combine = params.get("combine")
+    val field = params.get("field")
+
+    val mediaType = bestMediaType(accepts, json, protobuf).getOrElse { return unacceptable }
 
     val begin = System.currentTimeMillis()
 
@@ -78,24 +54,21 @@ object MetricsRest {
     }
   }
 
-  def range(req: HttpServletRequest): HttpResponse = {
-    val entityId = extractEntityId(req)
-    val qs = new QueryExtractor(req)
-    val start = qs[String]("start").getOrElse { return required("start") }.right.get
-    val end = qs[String]("end").getOrElse { return required("end") }.right.get
-    val combine = qs[String]("combine").map(_.right.get)
-    val field = qs[String]("field").map(_.right.get)
+  def range(entityId: String, params: Params, accepts: Seq[String]): ResponseWithType = {
+    val start = params.getOrElse(("start"), { return required("start") })
+    val end = params.getOrElse(("end"), { return required("end") })
+    val combine = params.get("combine")
+    val field = params.get("field")
 
     val startDate = ServiceUtils.parseDate(start).getOrElse { return malformedDate(start) }
     val endDate = ServiceUtils.parseDate(end).getOrElse { return malformedDate(end) }
 
-    val mediaType = bestMediaType(req, json, protobuf).getOrElse { return unacceptable }
+    val mediaType = bestMediaType(accepts, json, protobuf).getOrElse { return unacceptable }
 
     val begin = System.currentTimeMillis()
 
     try
     {
-
       val iter = ds.find(entityId, startDate, endDate)
       var metrics = Metrics.summarize(iter)
 
@@ -110,31 +83,26 @@ object MetricsRest {
     }
   }
 
-  def response(typ: String, body: Array[Byte]): HttpResponse =
-    ContentType(typ) ~> Header("Content-length", body.length.toString) ~> Stream(_.write(body))
-
-  def series(req: HttpServletRequest): HttpResponse = {
-    val entityId = extractEntityId(req)
-    val qs = new QueryExtractor(req)
-    val period = qs[Period]("period") match {
+  def series(entityId: String, params: Params, accepts: Seq[String]): ResponseWithType = {
+    val period = params.get("period").map(Extractable[Period].extract) match {
       case Some(Right(value)) => value
       case Some(Left(err)) => return br("period", err)
       case None => return required("period")
     }
-    val start = qs[String]("start").getOrElse { return required("start") }.right.get
-    val end = qs[String]("end").getOrElse { return required("end") }.right.get
+    val start = params.getOrElse("start", { return required("start") })
+    val end = params.getOrElse("end", { return required("end") })
 
     val startDate = ServiceUtils.parseDate(start).getOrElse { return malformedDate(start) }
     val endDate = ServiceUtils.parseDate(end).getOrElse { return malformedDate(end) }
 
-    bestMediaType(req, json).getOrElse { return unacceptable }
+    bestMediaType(accepts, json).getOrElse { return unacceptable }
 
     val begin = System.currentTimeMillis()
 
     try
     {
       val body = renderJson(ds.slices(entityId, period, startDate, endDate)).getBytes(UTF_8)
-      OK ~> response(json, body)
+      ResponseWithType(json, Ok(body))
     }
     finally
     {
@@ -143,8 +111,7 @@ object MetricsRest {
   }
 
   // ok, so this isn't actually correct.  Screw correct, I just want this to work.
-  def bestMediaType(req: HttpServletRequest, types: String*): Option[String] = {
-    val accepts = req.getHeaders("accept").asScala.map(_.toString).toSeq
+  def bestMediaType(accepts: Seq[String], types: String*): Option[String] = {
     if(accepts.isEmpty) return Some(types(0))
     for {
       accept <- accepts
@@ -156,7 +123,7 @@ object MetricsRest {
     None
   }
 
-  private def render(format: String, metrics: Metrics): HttpResponse = {
+  private def render(format: String, metrics: Metrics): ResponseWithType = {
     val bytes = if(format == protobuf) {
       val mapper = new ProtocolBuffersMetrics
       mapper.merge(metrics)
@@ -164,7 +131,7 @@ object MetricsRest {
     } else {
       renderJson(metrics).getBytes(UTF_8)
     }
-    OK ~> response(format, bytes)
+    ResponseWithType(format, Ok(bytes))
   }
 
   private def renderJson(obj: Any) =
