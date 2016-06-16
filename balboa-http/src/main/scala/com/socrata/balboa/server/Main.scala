@@ -1,48 +1,41 @@
 package com.socrata.balboa.server
 
-import javax.servlet.http.HttpServletRequest
-
-import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.server.rest.{EntitiesRest, MetricsRest, VersionRest}
-import com.socrata.http.routing.{HttpMethods, SimpleRoute, SimpleRouter}
 import com.socrata.http.server.implicits._
 import com.socrata.http.server.responses._
-import com.socrata.http.server.{Filter, HttpResponse, Service, SimpleFilter, SocrataServerJetty}
 import com.typesafe.scalalogging.slf4j.StrictLogging
-import org.apache.log4j.PropertyConfigurator
+import org.eclipse.jetty.server.Server
+import org.scalatra.ScalatraServlet
+import org.slf4j.LoggerFactory
+import org.eclipse.jetty.webapp.WebAppContext
+import org.scalatra.servlet.ScalatraListener
 
-class Main
-
-object Main extends App with StrictLogging {
-  val DefaultPort = 9012
-
-  PropertyConfigurator.configure(Configuration.get)
-
-  type BalboaService = Service[HttpServletRequest, HttpResponse]
-
-  val router = new SimpleRouter[BalboaService](
-    new SimpleRoute(Set(HttpMethods.GET), "version") -> VersionRest,
-    new SimpleRoute(Set(HttpMethods.GET), "entities") -> EntitiesRest,
-    new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r, "range") -> MetricsRest.range,
-    new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r, "series") -> MetricsRest.series,
-    new SimpleRoute(Set(HttpMethods.GET), "metrics", ".*".r) -> MetricsRest.get
-  )
-
-  def requestLoggingFilter: Filter[HttpServletRequest, HttpResponse, HttpServletRequest, HttpResponse] = new SimpleFilter[HttpServletRequest, HttpResponse] {
-    def apply(req: HttpServletRequest, serv: BalboaService): HttpResponse = {
-      logger.info("Server in-bound request: " + req.getMethod + " " + req.getRequestURI + Option(req.getQueryString).map("?" + _).getOrElse(""))
-      serv(req)
-    }
+class MainServlet extends ScalatraServlet with StrictLogging {
+  get("/*") {
+    (NotFound ~> ContentType("application/json") ~> Content("{\"error\": 404, \"message\": \"Not found.\"}"))(response)
   }
+  get("/version*") {
+    VersionRest(request)(response)
+  }
+  get("/entities*") {
+    EntitiesRest(request)(response)
+  }
+  get("/metrics/*") {
+    MetricsRest.get(request)(response)
+  }
+  get("/metrics/*/range") {
+    MetricsRest.range(request)(response)
+  }
+  get("/metrics/*/series") {
+    MetricsRest.series(request)(response)
+  }
+}
 
-  def service(req: HttpServletRequest): HttpResponse =
-    router(req.getMethod, req.getRequestURI.split('/').drop(1)) match {
-      case Some(s) =>
-        s(req)
-      case None    =>
-        NotFound ~> ContentType("application/json") ~> Content("{\"error\": 404, \"message\": \"Not found.\"}")
-    }
 
+object Main extends App {
+  val logger = LoggerFactory.getLogger(getClass)
+
+  val DefaultPort = 9012
   val port = if (args.length > 0) {
     try {
       args(0).toInt
@@ -55,7 +48,17 @@ object Main extends App with StrictLogging {
     DefaultPort
   }
 
+  val server = new Server(port)
+  val context = new WebAppContext()
+
+  context.setContextPath("/")
+  context.setResourceBase("src/main/webapp")
+  context.addEventListener(new ScalatraListener())
+  context.addServlet(classOf[MainServlet], "/")
+
+  server.setHandler(context)
+
   logger.info("Starting balboa-http service on port '{}'.", port.toString)
-  val server = new SocrataServerJetty(requestLoggingFilter andThen service, port = port)
-  server.run()
+  server.start()
+  server.join()
 }
