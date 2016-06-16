@@ -26,6 +26,7 @@ class MainServlet extends ScalatraServlet with StrictLogging with JacksonJsonSup
     contentType = "application/json"
     NotFound(Error(404, "Not found."))
   }
+
   get("/version*") {
     contentType = "application/json"
     if (BalboaFastFailCheck.getInstance.isInFailureMode) {
@@ -34,17 +35,20 @@ class MainServlet extends ScalatraServlet with StrictLogging with JacksonJsonSup
       Ok(versionString)
     }
   }
+
   get("/entities*") {
     val response = EntitiesRest(params)
     contentType = response.contentType
     response.result
   }
+
   get("/metrics/:entityId") {
     val entityId = params("entityId")
     val response = MetricsRest.get(entityId, params, getAccepts(request))
     contentType = response.contentType
     response.result
   }
+
   // Catch the extra paths to match behavior of old API
   get("/metrics/:entityId/*") {
     val entityId = params("entityId")
@@ -52,12 +56,14 @@ class MainServlet extends ScalatraServlet with StrictLogging with JacksonJsonSup
     contentType = response.contentType
     response.result
   }
+
   get("/metrics/:entityId/range*") {
     val entityId = params("entityId")
     val response = MetricsRest.range(entityId, params, getAccepts(request))
     contentType = response.contentType
     response.result
   }
+
   get("/metrics/:entityId/series*") {
     val entityId = params("entityId")
     val response = MetricsRest.series(entityId, params, getAccepts(request))
