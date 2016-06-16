@@ -23,7 +23,6 @@ object BalboaHttp {
     simple_arm,
     scalatra,
     scalatra_json,
-    socrata_http,
     newman % "it",
     typesafe_config,
     scalatest,

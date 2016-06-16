@@ -29,7 +29,6 @@ object Dependencies {
     val slf4j_log4j = "1.7.12"
     val scopt = "3.3.0"
     val simple_arm = "[1.1.10, 2.0.0)"
-    val socrata_http = "1.3.3"
     val socrata_utils = "[0.6.0, 1.0.0)"
     val scalatra = "2.4.0"
   }
@@ -78,7 +77,6 @@ object Dependencies {
   val rojoma_json = "com.rojoma" %% "rojoma-json" % versions.rojoma_json
   val scopt = "com.github.scopt" %% "scopt" % versions.scopt
   val simple_arm = "com.rojoma" %% "simple-arm" % versions.simple_arm
-  val socrata_http = "com.socrata" %% "socrata-http" % versions.socrata_http
   val socrata_utils = "com.socrata" %% "socrata-utils" % versions.socrata_utils
   val scalatest = "org.scalatest" %% "scalatest" % "2.2.4" % "test,it"
   val scalatra = "org.scalatra" %% "scalatra" % versions.scalatra
