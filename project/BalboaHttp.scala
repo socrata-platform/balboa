@@ -18,9 +18,11 @@ object BalboaHttp {
   def libraries(implicit scalaVersion: String) = Seq(
     jetty_webapp,
     junit,
+    json4s,
     rojoma_json,
     simple_arm,
     scalatra,
+    scalatra_json,
     socrata_http,
     newman % "it",
     typesafe_config,

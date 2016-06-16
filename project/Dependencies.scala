@@ -67,6 +67,7 @@ object Dependencies {
   val jetty_webapp = "org.eclipse.jetty" % "jetty-webapp" % versions.jetty_webapp % "compile;container"
   val junit = "junit" % "junit" % versions.junit % "test"
   val jopt_simple = "net.sf.jopt-simple" % "jopt-simple" % versions.jopt_simple
+  val json4s = "org.json4s" %% "json4s-jackson" % "3.3.0"
   val kafka = "org.apache.kafka" %% "kafka" % versions.kafka
   val kafka_test = kafka % "test" classifier "test"
   val mockito_test = "org.mockito" % "mockito-core" % versions.mockito % "test"
@@ -81,6 +82,6 @@ object Dependencies {
   val socrata_utils = "com.socrata" %% "socrata-utils" % versions.socrata_utils
   val scalatest = "org.scalatest" %% "scalatest" % "2.2.4" % "test,it"
   val scalatra = "org.scalatra" %% "scalatra" % versions.scalatra
+  val scalatra_json = "org.scalatra" %% "scalatra-json" % versions.scalatra
   val typesafe_config = "com.typesafe" % "config" % "1.2.1" % "it"
-  val json4s = "org.json4s" %% "json4s-jackson" % "3.3.0" % "it"
 }

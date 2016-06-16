@@ -1,29 +1,38 @@
 package com.socrata.balboa.server
 
-import com.socrata.balboa.server.rest.{EntitiesRest, MetricsRest, VersionRest}
-import com.socrata.http.server.implicits._
-import com.socrata.http.server.responses._
+import com.socrata.balboa.BuildInfo
+import com.socrata.balboa.metrics.data.BalboaFastFailCheck
+import com.socrata.balboa.server.rest.{EntitiesRest, MetricsRest}
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.eclipse.jetty.server.Server
-import org.scalatra.ScalatraServlet
+import org.scalatra.{InternalServerError, NotFound, Ok, ScalatraServlet}
 import org.slf4j.LoggerFactory
 import org.eclipse.jetty.webapp.WebAppContext
+import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.servlet.ScalatraListener
+import org.scalatra.json.JacksonJsonSupport
 
-class MainServlet extends ScalatraServlet with StrictLogging {
+
+class MainServlet extends ScalatraServlet with StrictLogging with JacksonJsonSupport {
+
+  protected implicit val jsonFormats: Formats = DefaultFormats
+  case class Error(error: Int, message: String)
+
+  val versionString = BuildInfo.toJson
+
   get("/*") {
-    (NotFound ~> ContentType("application/json") ~> Content("{\"error\": 404, \"message\": \"Not found.\"}"))(response)
+    contentType = "application/json"
+    NotFound(Error(404, "Not found."))
   }
-  get("/version") {
-    VersionRest(request)(response)
+  get("/version*") {
+    contentType = "application/json"
+    if (BalboaFastFailCheck.getInstance.isInFailureMode) {
+      InternalServerError
+    } else {
+      Ok(versionString)
+    }
   }
-  get("/version/*") {
-    VersionRest(request)(response)
-  }
-  get("/entities") {
-    EntitiesRest(request)(response)
-  }
-  get("/entities/*") {
+  get("/entities*") {
     EntitiesRest(request)(response)
   }
   get("/metrics/*") {
