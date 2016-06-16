@@ -14,10 +14,16 @@ class MainServlet extends ScalatraServlet with StrictLogging {
   get("/*") {
     (NotFound ~> ContentType("application/json") ~> Content("{\"error\": 404, \"message\": \"Not found.\"}"))(response)
   }
-  get("/version*") {
+  get("/version") {
     VersionRest(request)(response)
   }
-  get("/entities*") {
+  get("/version/*") {
+    VersionRest(request)(response)
+  }
+  get("/entities") {
+    EntitiesRest(request)(response)
+  }
+  get("/entities/*") {
     EntitiesRest(request)(response)
   }
   get("/metrics/*") {
