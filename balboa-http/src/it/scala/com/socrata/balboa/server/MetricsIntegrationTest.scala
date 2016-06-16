@@ -67,7 +67,12 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
     testMetricName = testMetricPrefix + "-" + uuid
   }
 
-  // Note: the following three endpoints probably should not exist. All socrata-http url patterns match urls with extra segments
+  // Note: the following three endpoints probably should not exist. All
+  // socrata-http url patterns match urls with extra segments. This is
+  // preserved for the purposes of compatibility while transitioning to
+  // Scalatra. Once that transition is complete, an analysis of logs should
+  // determine if this is in use anywhere and it can be removed. Proper
+  // response for this endpoint should be a 404.
   "Retrieve /metrics/*/range/*" should "show the same results as /metrics/*/range" in {
     persistManyMetrics(1 to 10)
     val rangeResponse = getJSONResponse(s"metrics/$testEntityName/range?start=$testStart&end=$testEnd")
