@@ -12,7 +12,10 @@ import org.scalatra.json.JacksonJsonSupport
 
 import scala.collection.JavaConverters._
 
-class MainServlet extends ScalatraServlet with StrictLogging with JacksonJsonSupport {
+class MainServlet extends ScalatraServlet
+    with StrictLogging
+    with JacksonJsonSupport
+    with UnexpectedErrorFilter {
 
   protected implicit val jsonFormats: Formats = DefaultFormats
 
