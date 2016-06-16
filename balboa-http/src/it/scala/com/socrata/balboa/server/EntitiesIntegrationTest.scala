@@ -19,7 +19,12 @@ class EntitiesIntegrationTest extends FlatSpec with Matchers {
     response.code.code should be (Ok.code)
   }
 
-  // Note: this endpoint probably should not exist. All socrata-http url patterns match urls with extra segments
+  // Note: this endpoint probably should not exist. All socrata-http url
+  // patterns match urls with extra segments. This is preserved for the
+  // purposes of compatibility while transitioning to Scalatra. Once that
+  // transition is complete, an analysis of logs should determine if this is in
+  // use anywhere and it can be removed. Proper response for this endpoint
+  // should be a 404.
   "Retrieve /entities/abc" should "be found" in {
     val url = new URL(Config.Server, "/entities/abc")
     val response = Await.result(GET(url).apply, Config.RequestTimeout)
