@@ -1,3 +1,4 @@
+import com.earldouglas.xwp.JettyPlugin
 import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.debian.DebianPlugin
 import com.typesafe.sbt.packager.docker.DockerPlugin
@@ -20,6 +21,7 @@ object Balboa extends Build {
   lazy val balboaCore = project("balboa-core", BalboaCore, balboaCommon)
 
   lazy val balboaHttp = project("balboa-http", BalboaHttp, balboaCore)
+    .enablePlugins(JettyPlugin)
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
 

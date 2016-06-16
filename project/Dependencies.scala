@@ -15,6 +15,7 @@ object Dependencies {
     val commons_logging = "1.1"
     val dropwizard = "3.1.2"
     val jackson = "1.9.12"
+    val jetty_webapp = "9.2.14.v20151106"
     val junit = "4.5"
     val jopt_simple = "4.8"
     val kafka = "0.8.2.0"
@@ -28,8 +29,8 @@ object Dependencies {
     val slf4j_log4j = "1.7.12"
     val scopt = "3.3.0"
     val simple_arm = "[1.1.10, 2.0.0)"
-    val socrata_http = "1.3.3"
     val socrata_utils = "[0.6.0, 1.0.0)"
+    val scalatra = "2.4.0"
   }
 
   //////////////////////////////////////////////////////////////////
@@ -62,8 +63,10 @@ object Dependencies {
   val dropwizard_servlets = "io.dropwizard.metrics" % "metrics-servlets" % versions.dropwizard
   val jackson_core_asl = "org.codehaus.jackson" % "jackson-core-asl" % versions.jackson
   val jackson_mapper_asl = "org.codehaus.jackson" % "jackson-mapper-asl" % versions.jackson
+  val jetty_webapp = "org.eclipse.jetty" % "jetty-webapp" % versions.jetty_webapp % "compile;container"
   val junit = "junit" % "junit" % versions.junit % "test"
   val jopt_simple = "net.sf.jopt-simple" % "jopt-simple" % versions.jopt_simple
+  val json4s = "org.json4s" %% "json4s-jackson" % "3.3.0"
   val kafka = "org.apache.kafka" %% "kafka" % versions.kafka
   val kafka_test = kafka % "test" classifier "test"
   val mockito_test = "org.mockito" % "mockito-core" % versions.mockito % "test"
@@ -74,9 +77,9 @@ object Dependencies {
   val rojoma_json = "com.rojoma" %% "rojoma-json" % versions.rojoma_json
   val scopt = "com.github.scopt" %% "scopt" % versions.scopt
   val simple_arm = "com.rojoma" %% "simple-arm" % versions.simple_arm
-  val socrata_http = "com.socrata" %% "socrata-http" % versions.socrata_http
   val socrata_utils = "com.socrata" %% "socrata-utils" % versions.socrata_utils
   val scalatest = "org.scalatest" %% "scalatest" % "2.2.4" % "test,it"
+  val scalatra = "org.scalatra" %% "scalatra" % versions.scalatra
+  val scalatra_json = "org.scalatra" %% "scalatra-json" % versions.scalatra
   val typesafe_config = "com.typesafe" % "config" % "1.2.1" % "it"
-  val json4s = "org.json4s" %% "json4s-jackson" % "3.3.0" % "it"
 }
