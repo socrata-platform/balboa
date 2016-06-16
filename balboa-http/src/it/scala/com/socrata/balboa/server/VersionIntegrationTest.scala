@@ -19,6 +19,7 @@ class VersionIntegrationTest extends FlatSpec with Matchers {
     response.code.code should be (Ok.code)
   }
 
+  // Note: this endpoint probably should not exist. All socrata-http url patterns match urls with extra segments
   "Retrieve /version/abc" should "be found" in {
     val url = new URL(Config.Server, "/version/abc")
     val response = Await.result(GET(url).apply, Config.RequestTimeout)

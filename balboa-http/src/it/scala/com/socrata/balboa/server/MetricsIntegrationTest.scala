@@ -19,10 +19,13 @@ import scala.language.postfixOps
 class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterEach {
   implicit val httpClient = new ApacheHttpClient
   val dataStore = DataStoreFactory.get()
-  val testMetricName = "testMetricsPersisted"
+  val testMetricPrefix = "testMetric"
   val testEntityPrefix = "testMetricsEntity"
   var testEntityName = ""
+  var testMetricName = ""
   val testStart = "1969-12-01"
+  val testPersistedDate = "1970-01-01"
+  val testPersistedDateEpoch = ServiceUtils.parseDate(testPersistedDate).get.getTime
   val testEnd = "1970-02-02"
   val protobuf = "application/x-protobuf"
 
@@ -59,7 +62,29 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
 
   // Ensures each test interacts with a unique entity
   override def beforeEach() = {
-    testEntityName = testEntityPrefix + "-" + java.util.UUID.randomUUID().toString
+    val uuid = java.util.UUID.randomUUID().toString
+    testEntityName = testEntityPrefix + "-" + uuid
+    testMetricName = testMetricPrefix + "-" + uuid
+  }
+
+  // Note: the following three endpoints probably should not exist. All socrata-http url patterns match urls with extra segments
+  "Retrieve /metrics/*/range/*" should "show the same results as /metrics/*/range" in {
+    persistManyMetrics(1 to 10)
+    val rangeResponse = getJSONResponse(s"metrics/$testEntityName/range?start=$testStart&end=$testEnd")
+    val rangeWithExtraResponse = getJSONResponse(s"metrics/$testEntityName/range/whatever?start=$testStart&end=$testEnd")
+    rangeWithExtraResponse.bodyString shouldBeJSON rangeResponse.bodyString
+  }
+  "Retrieve /metrics/*/series/*" should "show the same results as /metrics/*/series" in {
+    persistManyMetrics(1 to 10)
+    val seriesResponse = getJSONResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=$testStart&end=$testEnd")
+    val seriesWithExtraResponse = getJSONResponse(s"metrics/$testEntityName/series/whatever?period=MONTHLY&start=$testStart&end=$testEnd")
+    seriesWithExtraResponse.bodyString shouldBeJSON seriesResponse.bodyString
+  }
+  "Retrieve /metrics/*/whatever (not /range or /series)" should "show the same results as /metrics/*" in {
+    persistSingleMetric()
+    val metricResponse = getJSONResponse(s"/metrics/$testEntityName?period=YEARLY&date=$testStart")
+    val metricWithExtraResponse = getJSONResponse(s"/metrics/$testEntityName/whatever?period=YEARLY&date=$testStart")
+    metricWithExtraResponse.bodyString shouldBeJSON metricResponse.bodyString
   }
 
   "Retrieve /metrics range with no range" should "be fail" in {
@@ -151,25 +176,32 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   def persistSingleMetric(): String = {
     val metrics = new Metrics()
     metrics.put(testMetricName, new Metric(RecordType.ABSOLUTE, 1))
-    dataStore.persist(testEntityName, 0, metrics)
+    dataStore.persist(testEntityName, testPersistedDateEpoch, metrics)
 
-    """{ "testMetricsPersisted": { "value": 1, "type": "absolute" } }"""
+    """{ "%s": { "value": 1, "type": "absolute" } }""".format(testMetricName)
   }
 
   // Returns the JSON string representation of the metrics added
   def persistManyMetrics(metRange: Range): String = {
     val metrics = new Metrics()
     for (i <- metRange) {
-      metrics.put(testMetricName + i, new Metric(RecordType.ABSOLUTE, 1))
+      metrics.put(testMetricName + "-" + i, new Metric(RecordType.ABSOLUTE, 1))
     }
-    dataStore.persist(testEntityName, 0, metrics)
+    dataStore.persist(testEntityName, testPersistedDateEpoch, metrics)
 
     "{" +
       metRange.map(i =>
-        """ "testMetricsPersisted%d": { "value": 1, "type": "absolute" } """
-          .format(i))
-          .mkString(", ") +
+        """ "%s-%d": { "value": 1, "type": "absolute" } """
+          .format(testMetricName, i)
+      ).mkString(", ") +
       "}"
+  }
+
+  "Retrieve /metrics/* after persisting" should "show persisted metric" in {
+    val expected = persistSingleMetric()
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName?period=YEARLY&date=$testPersistedDate")
+    response shouldHaveCode Ok
+    response.json.bodyString shouldBeJSON expected
   }
 
   "Retrieve /metrics range after persisting" should "show persisted metrics" in {
