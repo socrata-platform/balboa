@@ -5,6 +5,8 @@ import java.io.File
 import com.socrata.balboa.config.JMSClientConfig
 import com.socrata.balboa.metrics.config.Configuration
 
+import scala.concurrent.duration._
+
 object Keys {
 
   lazy val DataDirectory = "balboa.agent.data.dir"
@@ -14,6 +16,10 @@ object Keys {
   lazy val InitialDelay = "balboa.agent.initialdelay"
 
   lazy val HttpOrMq = "balboa.agent.http.or.mq"
+
+  lazy val BalboaHttpUrl = "balboa.agent.balboa.http.url"
+
+  lazy val BalboaHttpTimeoutMs = "balboa.agent.balboa.http.timeout"
 
 }
 
@@ -36,6 +42,12 @@ trait Config extends JMSClientConfig {
       case "MQ" => HttpOrMq.MQ
       case _ => defaultMethod
     }
+
+  def balboaHttpUrl(defaultUrl: String): String =
+    Configuration.get().getString(Keys.HttpOrMq, defaultUrl.toString)
+
+  def balboaHttpTimeout(defaultTimeout: Duration): Duration =
+    Configuration.get().getLong(Keys.BalboaHttpTimeoutMs, defaultTimeout.toMillis).millis
 }
 
 /**

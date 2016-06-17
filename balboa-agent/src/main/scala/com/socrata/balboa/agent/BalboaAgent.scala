@@ -15,6 +15,8 @@ import org.apache.activemq.{ActiveMQConnection, ActiveMQConnectionFactory}
 
 import util.control.NonFatal
 
+import scala.concurrent.duration._
+
 /**
   * Balboa Agent class serves as the entry point for running the existing
   * application.
@@ -39,7 +41,9 @@ object BalboaAgent extends App with Config with StrictLogging {
 
   val metricQueue = reportStrategy match {
     case HttpOrMq.MQ => amqMetricQueue()
-    case HttpOrMq.HTTP => throw new RuntimeException("Metric reporting by HTTP not yet supported")
+    case HttpOrMq.HTTP =>
+      //throw new RuntimeException("Metric reporting by HTTP not yet supported")
+      new HttpMetricQueue(this.balboaHttpUrl(""), this.balboaHttpTimeout(1.seconds))
   }
 
   val future: ScheduledFuture[_] = scheduler.scheduleWithFixedDelay(new Runnable {
