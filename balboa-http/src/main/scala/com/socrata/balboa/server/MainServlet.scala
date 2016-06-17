@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletRequest
 import com.socrata.balboa.BuildInfo
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck
 import com.socrata.balboa.server.rest.{EntitiesRest, MetricsRest}
+import com.socrata.balboa.server.ResponseWithType.json
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{InternalServerError, NotFound, Ok, ScalatraServlet}
@@ -17,7 +18,7 @@ class MainServlet extends ScalatraServlet
     with JacksonJsonSupport
     with UnexpectedErrorFilter {
 
-  protected implicit val jsonFormats: Formats = DefaultFormats
+  override protected implicit val jsonFormats: Formats = DefaultFormats
 
   val versionString = BuildInfo.toJson
 
@@ -26,12 +27,12 @@ class MainServlet extends ScalatraServlet
   }
 
   get("/*") {
-    contentType = "application/json"
+    contentType = json
     NotFound(Error(404, "Not found."))
   }
 
   get("/version*") {
-    contentType = "application/json"
+    contentType = json
     if (BalboaFastFailCheck.getInstance.isInFailureMode) {
       InternalServerError
     } else {
@@ -45,16 +46,9 @@ class MainServlet extends ScalatraServlet
     response.result
   }
 
-  get("/metrics/:entityId") {
-    val entityId = params("entityId")
-    val response = MetricsRest.get(entityId, params, getAccepts(request))
-    contentType = response.contentType
-    response.result
-  }
-
-  // Catch the extra paths to match behavior of old API
-  get("/metrics/:entityId/*") {
-    val entityId = params("entityId")
+  // Match paths like /metrics/:entityId and /metrics/:entityId/whatever
+  get("""^\/metrics\/([^\/]*).*""".r) {
+    val entityId = params("captures")
     val response = MetricsRest.get(entityId, params, getAccepts(request))
     contentType = response.contentType
     response.result
