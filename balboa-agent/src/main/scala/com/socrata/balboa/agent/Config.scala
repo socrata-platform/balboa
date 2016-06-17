@@ -13,6 +13,8 @@ object Keys {
 
   lazy val InitialDelay = "balboa.agent.initialdelay"
 
+  lazy val HttpOrMq = "balboa.agent.http.or.mq"
+
 }
 
 /**
@@ -20,7 +22,6 @@ object Keys {
  * shared between all clients.
  */
 trait Config extends JMSClientConfig {
-
   def dataDirectory(defaultFile: File = null): File // scalastyle:ignore
     = Configuration.get().getFile(Keys.DataDirectory, defaultFile)
 
@@ -29,6 +30,12 @@ trait Config extends JMSClientConfig {
 
   def initialDelay(defaultDelay: Long = 0): Long = Configuration.get().getLong(Keys.InitialDelay, defaultDelay)
 
+  def httpOrMQ(defaultMethod: HttpOrMq = HttpOrMq.HTTP): HttpOrMq =
+    Configuration.get().getString(Keys.HttpOrMq, defaultMethod.toString) match {
+      case "HTTP" => HttpOrMq.HTTP
+      case "MQ" => HttpOrMq.MQ
+      case _ => defaultMethod
+    }
 }
 
 /**
