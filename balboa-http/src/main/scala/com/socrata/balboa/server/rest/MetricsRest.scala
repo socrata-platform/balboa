@@ -66,7 +66,7 @@ object MetricsRest {
       metrics.put(name, new Metric(recordType, metric.value))
     }
     dataStore.persist(entityId, entity.timestamp, metrics)
-    ResponseWithType(json, Ok())
+    ResponseWithType(json, Ok("{}"))
   }
 
   def range(entityId: String, params: Params, accepts: Seq[String]): ResponseWithType = {
