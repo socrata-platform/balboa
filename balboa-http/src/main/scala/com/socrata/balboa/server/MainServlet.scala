@@ -54,6 +54,14 @@ class MainServlet extends ScalatraServlet
     response.result
   }
 
+  post("/metrics/:entityId") {
+    val entityId = params("entityId")
+    val entityOpt = parsedBody.extractOpt[EntityJSON]
+    val response = MetricsRest.post(entityId, entityOpt)
+    contentType = response.contentType
+    response.result
+  }
+
   get("/metrics/:entityId/range*") {
     val entityId = params("entityId")
     val response = MetricsRest.range(entityId, params, getAccepts(request))

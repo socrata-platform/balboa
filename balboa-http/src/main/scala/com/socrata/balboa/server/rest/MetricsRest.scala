@@ -3,10 +3,11 @@ package com.socrata.balboa.server.rest
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 
-import com.socrata.balboa.metrics.Metrics
+import com.socrata.balboa.metrics.Metric.RecordType
+import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, Period}
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics
-import com.socrata.balboa.server.{ResponseWithType, ServiceUtils}
+import com.socrata.balboa.server.{EntityJSON, ResponseWithType, ServiceUtils}
 import com.socrata.balboa.server.ResponseWithType._
 import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
@@ -18,8 +19,7 @@ object MetricsRest {
   val seriesMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "series queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
   val rangeMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "range queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
   val periodMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "period queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
-
-  val ds = DataStoreFactory.get()
+  val dataStore = DataStoreFactory.get()
 
   def get(entityId: String, params: Params, accepts: Seq[String]): ResponseWithType = {
     val period = params.get("period").map(Extractable[Period].extract) match {
@@ -40,7 +40,7 @@ object MetricsRest {
 
     try
     {
-      val iter = ds.find(entityId, period, range.start, range.end)
+      val iter = dataStore.find(entityId, period, range.start, range.end)
       var metrics = Metrics.summarize(iter)
 
       combine.foreach { c => metrics = metrics.combine(c) }
@@ -52,6 +52,21 @@ object MetricsRest {
     {
       periodMeter.update(System.currentTimeMillis() - begin, TimeUnit.MILLISECONDS)
     }
+  }
+
+  def post(entityId: String, entityOpt: Option[EntityJSON]): ResponseWithType = {
+    val entity = entityOpt.getOrElse({ return required("entity") })
+    val metrics = new Metrics()
+    for ((name, metric) <- entity.metrics) {
+      val recordType = metric.`type` match {
+        case "ABSOLUTE" => RecordType.ABSOLUTE
+        case "AGGREGATE" => RecordType.AGGREGATE
+        case _ => return br("metric type", "must be ABSOLUTE or AGGREGATE")
+      }
+      metrics.put(name, new Metric(recordType, metric.value))
+    }
+    dataStore.persist(entityId, entity.timestamp, metrics)
+    ResponseWithType(json, Ok())
   }
 
   def range(entityId: String, params: Params, accepts: Seq[String]): ResponseWithType = {
@@ -69,7 +84,7 @@ object MetricsRest {
 
     try
     {
-      val iter = ds.find(entityId, startDate, endDate)
+      val iter = dataStore.find(entityId, startDate, endDate)
       var metrics = Metrics.summarize(iter)
 
       combine.foreach { c => metrics = metrics.combine(c) }
@@ -101,7 +116,7 @@ object MetricsRest {
 
     try
     {
-      val body = renderJson(ds.slices(entityId, period, startDate, endDate)).getBytes(UTF_8)
+      val body = renderJson(dataStore.slices(entityId, period, startDate, endDate)).getBytes(UTF_8)
       ResponseWithType(json, Ok(body))
     }
     finally
