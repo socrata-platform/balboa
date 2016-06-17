@@ -12,7 +12,6 @@ import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, Period}
 import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.typesafe.scalalogging.slf4j.StrictLogging
 
-import scala.collection.JavaConverters._
 import scala.{collection => sc}
 
 /**

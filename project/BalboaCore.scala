@@ -11,7 +11,10 @@ object BalboaCore {
   )
 
   def libraries(implicit scalaVersion: String) = Seq(
+    cassandra_driver_core,
+    cassandra_driver_mapping,
+    cassandra_driver_extras,
+    log4j,
     junit,
-    astyanax
   )
 }
