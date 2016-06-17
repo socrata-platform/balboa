@@ -4,10 +4,10 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 
 import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.{Metric, Metrics}
+import com.socrata.balboa.metrics.{EntityJSON, Metric, Metrics}
 import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, Period}
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics
-import com.socrata.balboa.server.{EntityJSON, ResponseWithType, ServiceUtils}
+import com.socrata.balboa.server.{ResponseWithType, ServiceUtils}
 import com.socrata.balboa.server.ResponseWithType._
 import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}

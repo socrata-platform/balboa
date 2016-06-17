@@ -2,6 +2,7 @@ package com.socrata.balboa.server
 
 import java.net.URL
 
+import com.socrata.balboa.metrics.{EntityJSON, MetricJSON}
 import com.socrata.balboa.metrics.data.DataStoreFactory
 import com.stackmob.newman.ApacheHttpClient
 import com.stackmob.newman.dsl.{GET, POST}

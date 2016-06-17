@@ -92,6 +92,7 @@ object BalboaAgent extends App with Config with StrictLogging {
     }
   })
 
+
   def amqMetricQueue(): MetricQueue = {
     logger info "Initializing ActiveMQ connection factory. (This is setting the username, password and destination.)"
     val amqConnectionFactory = (activemqUser, activemqPassword) match {
