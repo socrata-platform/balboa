@@ -50,12 +50,23 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
   def getAllEntityIds(recordType: RecordType, period: Period): Iterator[String] = {
     fastfail.proceedOrThrow()
     try {
+
+      val qb = QueryBuilder.select() // select id?
+        .from(context.keyspace, Cassandra11Util.getColumnFamily(period, recordType))
+        .limit(100)
+        .setConsistencyLevel(ConsistencyLevel.ONE)
+
+      val retVal = context.newSession.execute(qb).all()
+
+      /*
       val retVal: Iterator[String] = context.getEntity.prepareQuery(Cassandra11Util.getColumnFamily(period, recordType))
         .setConsistencyLevel(ConsistencyLevel.CL_ONE)
         .withRetryPolicy(new ExponentialBackoff(250, 5)) // initial, max tries
         .getAllRows
         .setRowLimit(100) // max 100 rows per query to cassandra
         .execute().getResult.iterator.asScala.map(removeTimestamp)
+      */
+
       fastfail.markSuccess()
       retVal
     } catch {
@@ -69,7 +80,7 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
   def fetch_cf(recordType: RecordType, entityKey: String, period: Period): ju.List[Row] = {
     fastfail.proceedOrThrow()
     try {
-      val qb = QueryBuilder.select()
+      val qb = QueryBuilder.select().all()
         .from(context.keyspace, Cassandra11Util.getColumnFamily(period, recordType))
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
@@ -119,12 +130,11 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
       val qb = QueryBuilder.update(context.keyspace, Cassandra11Util.getColumnFamily(period, RecordType.AGGREGATE))
       for { (k,v) <- aggregates } {
         if (k != "") {
-          qb.`with`(QueryBuilder.incr(k, v.value.longValue))
+          batchStatement.add(qb.`with`(QueryBuilder.incr(k, v.value.longValue)))
         } else {
           logger warn "dropping metric with empty string as column"
         }
       }
-      batchStatement.add(qb)
     }
 
     /*
@@ -141,12 +151,11 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
       val qb = QueryBuilder.update(context.keyspace, Cassandra11Util.getColumnFamily(period, RecordType.ABSOLUTE))
       for { (k,v) <- absolutes } {
         if (k != "") {
-          qb.`with`(QueryBuilder.set(k, v.getValue.longValue))
+          batchStatement.add(qb.`with`(QueryBuilder.set(k, v.getValue.longValue)))
         } else {
           logger warn "dropping metric with empty string as column"
         }
       }
-      batchStatement.add(qb)
     }
 
     /*
