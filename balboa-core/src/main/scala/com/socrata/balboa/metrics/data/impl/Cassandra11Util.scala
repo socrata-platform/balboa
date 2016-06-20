@@ -1,5 +1,6 @@
 package com.socrata.balboa.metrics.data.impl
 
+import java.net.InetSocketAddress
 import java.{util => ju}
 
 import com.datastax.driver.core.policies.DCAwareRoundRobinPolicy
@@ -129,10 +130,19 @@ object Cassandra11Util extends StrictLogging {
     val poolingOptions = new PoolingOptions()
       .setIdleTimeoutSeconds(sotimeout)
       .setPoolTimeoutMillis(sotimeout)
-      .setMaxConnectionsPerHost(HostDistance.IGNORED, connections)
+      .setMaxConnectionsPerHost(HostDistance.LOCAL, connections)
+      .setMaxConnectionsPerHost(HostDistance.REMOTE, connections)
+
+    val seedInetAddrs = seeds.split(",").map(addrStr => {
+      val addrAndPort = addrStr.split(":")
+      if (addrAndPort.length != 2) {
+        throw new IllegalArgumentException("Address and port must be separated by a ':' in: " + addrStr)
+      }
+      new InetSocketAddress(addrAndPort(0), addrAndPort(1).toInt)
+    })
 
     val cluster = Cluster.builder()
-      .addContactPoints(seeds)
+      .addContactPointsWithPorts(seedInetAddrs:_*)
       .withPoolingOptions(poolingOptions)
       .withLoadBalancingPolicy(dcPolicy.build())
       .build()
