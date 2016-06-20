@@ -4,13 +4,8 @@ import java.io.IOException
 import java.nio.charset.Charset
 import java.{util => ju}
 
-import com.datastax.driver.core.policies.RetryPolicy
 import com.datastax.driver.core.querybuilder.QueryBuilder
 import com.datastax.driver.core.{BatchStatement, ConsistencyLevel, DefaultPreparedStatement, Row}
-import com.netflix.astyanax.connectionpool.OperationResult
-import com.netflix.astyanax.model.{ColumnList, ConsistencyLevel, Row}
-import com.netflix.astyanax.retry.ExponentialBackoff
-import com.netflix.astyanax.{AstyanaxContext, Keyspace, MutationBatch}
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.data.impl.Cassandra11Util.DatastaxContext
 import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, Period}
@@ -18,6 +13,7 @@ import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.typesafe.scalalogging.slf4j.StrictLogging
 
 import scala.{collection => sc}
+import scala.collection.JavaConversions.asScalaIterator
 
 /**
  * Query Implementation
@@ -30,6 +26,12 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
   def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {
     val entityKey: String = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
     val ret: Metrics = new Metrics()
+
+    for (recordType <- List(RecordType.ABSOLUTE, RecordType.AGGREGATE)) {
+      fetch_cf(recordType, entityKey, period)
+    }
+
+    /*
     // aggregate column family
     val aggResults: ColumnList[String] = fetch_cf(RecordType.AGGREGATE, entityKey, period).getResult
     aggResults.asScala.map(c => ret.put(c.getName, new Metric(Metric.RecordType.AGGREGATE, c.getLongValue())))
@@ -37,11 +39,13 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
     // absolutes column family
     val absResults: ColumnList[String] = fetch_cf(RecordType.ABSOLUTE, entityKey, period).getResult
     absResults.asScala.map(c => ret.put(c.getName, new Metric(Metric.RecordType.ABSOLUTE, c.getLongValue())))
+    */
 
     ret
   }
 
-  def removeTimestamp(row:Row[String, String]):String = row.getKey.replaceFirst("-[0-9]+$", "")
+  // Unused?
+  // def removeTimestamp(row:Row[String, String]):String = row.getKey.replaceFirst("-[0-9]+$", "")
 
   /**
    * Returns all the row keys in a tier as an iterator with many, many duplicate strings. This is very slow. Do
@@ -51,12 +55,13 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
     fastfail.proceedOrThrow()
     try {
 
-      val qb = QueryBuilder.select() // select id?
+      val qb = QueryBuilder.select("key").distinct()
         .from(context.keyspace, Cassandra11Util.getColumnFamily(period, recordType))
         .limit(100)
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
-      val retVal = context.newSession.execute(qb).all()
+      val rows = context.newSession.execute(qb).all()
+      val retVal = asScalaIterator(rows.iterator()).map(_.get(0, classOf[String]))
 
       /*
       val retVal: Iterator[String] = context.getEntity.prepareQuery(Cassandra11Util.getColumnFamily(period, recordType))
@@ -77,14 +82,15 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
     }
   }
 
-  def fetch_cf(recordType: RecordType, entityKey: String, period: Period): ju.List[Row] = {
+  def fetch_cf(recordType: RecordType, entityKey: String, period: Period): Iterator[Row] = {
     fastfail.proceedOrThrow()
     try {
-      val qb = QueryBuilder.select().all()
+      val qb = QueryBuilder.select()
         .from(context.keyspace, Cassandra11Util.getColumnFamily(period, recordType))
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
-      val retVal = context.newSession.execute(qb).all()
+      val rows = context.newSession.execute(qb).all()
+      val retVal = asScalaIterator(rows.iterator())
 
       /*
       val retVal: OperationResult[com.netflix.astyanax.model.ColumnList[String]] = context.getEntity
@@ -130,7 +136,7 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
       val qb = QueryBuilder.update(context.keyspace, Cassandra11Util.getColumnFamily(period, RecordType.AGGREGATE))
       for { (k,v) <- aggregates } {
         if (k != "") {
-          batchStatement.add(qb.`with`(QueryBuilder.incr(k, v.value.longValue)))
+          batchStatement.add(qb.`with`(QueryBuilder.incr(k, v.getValue.longValue)))
         } else {
           logger warn "dropping metric with empty string as column"
         }
