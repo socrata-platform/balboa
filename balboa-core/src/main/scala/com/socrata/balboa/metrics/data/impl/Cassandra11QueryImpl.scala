@@ -66,22 +66,24 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
     }
   }
 
-  def fetch_cf(recordType: RecordType, entityKey: String, period: Period): OperationResult[ColumnList[String]] = {
+  def fetch_cf(recordType: RecordType, entityKey: String, period: Period): ju.List[Row] = {
     fastfail.proceedOrThrow()
     try {
-      val prepared = new DefaultPreparedStatement
-      prepared
+      val qb = QueryBuilder.select()
+        .from(context.keyspace, Cassandra11Util.getColumnFamily(period, recordType))
         .setConsistencyLevel(ConsistencyLevel.ONE)
-        .setRoutingKey(encoder.encode(entityKey))
 
-      context.newSession.prepare(prepared)
+      val retVal = context.newSession.execute(qb).all()
 
+      /*
       val retVal: OperationResult[com.netflix.astyanax.model.ColumnList[String]] = context.getEntity
         .prepareQuery(Cassandra11Util.getColumnFamily(period, recordType))
         .setConsistencyLevel(ConsistencyLevel.CL_ONE)
         .withRetryPolicy(new ExponentialBackoff(250, 5))
         .getKey(entityKey)
         .execute()
+      */
+
       fastfail.markSuccess()
       retVal
     } catch {
