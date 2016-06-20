@@ -26,7 +26,6 @@ object BalboaService {
 
   def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
     // Add dependencies for base Services.
-    log4j
   )
 }
 
