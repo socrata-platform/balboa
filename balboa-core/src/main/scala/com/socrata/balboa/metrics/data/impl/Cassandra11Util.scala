@@ -79,8 +79,8 @@ object Cassandra11Util extends StrictLogging {
     }.filter(_ != null)
   }
 
-  def getColumnFamily(period:Period, recordType:RecordType):ColumnFamily[String, String] = {
-    new ColumnFamily[String, String](period.toString + "_" + recordType.toString, StringSerializer.get(), StringSerializer.get())
+  def getColumnFamily(period:Period, recordType:RecordType):String = {
+    period.toString + "_" + recordType.toString
   }
 
   def createEntityKey(entityId:String, timestamp:Long): String = entityId + "-" + timestamp
