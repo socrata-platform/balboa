@@ -63,6 +63,7 @@ object Dependencies {
   val jackson_core_asl = "org.codehaus.jackson" % "jackson-core-asl" % versions.jackson
   val jackson_mapper_asl = "org.codehaus.jackson" % "jackson-mapper-asl" % versions.jackson
   val jetty_webapp = "org.eclipse.jetty" % "jetty-webapp" % versions.jetty_webapp % "compile;container"
+  val java_nullable_annotation = "com.google.code.findbugs" % "jsr305" % "1.3.+"
   val junit = "junit" % "junit" % versions.junit % "test"
   val jopt_simple = "net.sf.jopt-simple" % "jopt-simple" % versions.jopt_simple
   val json4s = "org.json4s" %% "json4s-jackson" % "3.3.0"

@@ -15,6 +15,7 @@ object BalboaCore {
     cassandra_driver_mapping,
     cassandra_driver_extras,
     log4j,
+    java_nullable_annotation,
     junit
   )
 }
