@@ -37,7 +37,6 @@ case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration) extends Met
              timestamp: Long = new Date().getTime,
              recordType: Metric.RecordType = Metric.RecordType.AGGREGATE): Unit = {
 
-    // TODO: lazy load metrics for the same entity and send them over in batches
     val metricToWrite = EntityJSON(timestamp, Map(name.toString -> MetricJSON(value, recordType.toString)))
 
     val url = new URL(s"$balboaHttpURL/metrics/$entity")
@@ -50,10 +49,10 @@ case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration) extends Met
       case Success(response) =>
         val responseCode = response.code.code
         if (responseCode != Ok.code) {
-          logger info s"HTTP POST to Balboa HTTP returned error code $responseCode: " + response.bodyString
+          logger info s"HTTP POST to Balboa HTTP returned error code $responseCode: ${response.bodyString}"
         }
       case Failure(failure) =>
-        logger info s"HTTP POST to Balboa HTTP failed with " + failure.getMessage
+        logger info s"HTTP POST to Balboa HTTP failed with ${failure.getMessage}"
     }
   }
 

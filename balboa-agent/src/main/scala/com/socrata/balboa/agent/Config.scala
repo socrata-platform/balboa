@@ -15,7 +15,7 @@ object Keys {
 
   lazy val InitialDelay = "balboa.agent.initialdelay"
 
-  lazy val HttpOrMq = "balboa.agent.http.or.mq"
+  lazy val TransportType = "balboa.agent.transport.type"
 
   lazy val BalboaHttpUrl = "balboa.agent.balboa.http.url"
 
@@ -36,15 +36,15 @@ trait Config extends JMSClientConfig {
 
   def initialDelay(defaultDelay: Long = 0): Long = Configuration.get().getLong(Keys.InitialDelay, defaultDelay)
 
-  def httpOrMQ(defaultMethod: HttpOrMq = HttpOrMq.HTTP): HttpOrMq =
-    Configuration.get().getString(Keys.HttpOrMq, defaultMethod.toString) match {
-      case "HTTP" => HttpOrMq.HTTP
-      case "MQ" => HttpOrMq.MQ
+  def transportType(defaultMethod: TransportType = Mq): TransportType =
+    Configuration.get().getString(Keys.TransportType, defaultMethod.toString) match {
+      case "HTTP" => Http
+      case "MQ" => Mq
       case _ => defaultMethod
     }
 
-  def balboaHttpUrl(defaultUrl: String): String =
-    Configuration.get().getString(Keys.HttpOrMq, defaultUrl.toString)
+  def balboaHttpUrl: Option[String] =
+    Option(Configuration.get().getString(Keys.BalboaHttpUrl))
 
   def balboaHttpTimeout(defaultTimeout: Duration): Duration =
     Configuration.get().getLong(Keys.BalboaHttpTimeoutMs, defaultTimeout.toMillis).millis

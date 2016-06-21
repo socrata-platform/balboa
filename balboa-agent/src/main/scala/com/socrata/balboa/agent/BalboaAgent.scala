@@ -37,13 +37,14 @@ object BalboaAgent extends App with Config with StrictLogging {
   logger info "Starting the JMX Reporter."
   jmxReporter.start()
 
-  private val reportStrategy = this.httpOrMQ()
+  private val reportStrategy = this.transportType()
 
   val metricQueue = reportStrategy match {
-    case HttpOrMq.MQ => amqMetricQueue()
-    case HttpOrMq.HTTP =>
-      //throw new RuntimeException("Metric reporting by HTTP not yet supported")
-      new HttpMetricQueue(this.balboaHttpUrl(""), this.balboaHttpTimeout(1.seconds))
+    case Mq => amqMetricQueue()
+    case Http =>
+      new HttpMetricQueue(
+        this.balboaHttpUrl.getOrElse({ throw new IllegalArgumentException("No BalboaHttpUrl provided.") }),
+        this.balboaHttpTimeout(1.seconds))
   }
 
   val future: ScheduledFuture[_] = scheduler.scheduleWithFixedDelay(new Runnable {
@@ -97,8 +98,10 @@ object BalboaAgent extends App with Config with StrictLogging {
   })
 
 
+  // scalastyle:off method.length
   def amqMetricQueue(): MetricQueue = {
-    logger info "Initializing ActiveMQ connection factory. (This is setting the username, password and destination.)"
+    logger info "Initializing ActiveMQ connection factory. " +
+      "(This is setting the username, password and destination.)"
     val amqConnectionFactory = (activemqUser, activemqPassword) match {
       case (Some(user), Some(password)) => new ActiveMQConnectionFactory(user, password, activemqServer)
       case _                            => new ActiveMQConnectionFactory(activemqServer)
@@ -119,7 +122,8 @@ object BalboaAgent extends App with Config with StrictLogging {
       // as well. So this log message will appear after the call to `.start` down
       // below.
       override def transportInterupted(): Unit =
-        logger warn "ActiveMQ connection is being closed or has suffered an interruption from which it hopes to recover."
+        logger warn "ActiveMQ connection is being closed or has suffered an interruption " +
+          "from which it hopes to recover."
 
       override def transportResumed(): Unit =
         logger warn "ActiveMQ connection is starting up or has resumed after an interruption."
