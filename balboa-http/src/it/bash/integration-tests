@@ -88,7 +88,7 @@ BALBOA_HTTP_PID=$!
 
 echo -n "Waiting for balboa-http to start on port $SERVICE_PORT."
 i=0
-while ! grep "Starting server" $SERVICE_LOG >& /dev/null ; do
+while ! grep "Starting balboa-http service" $SERVICE_LOG >& /dev/null ; do
     sleep 1
     i=$((i + 1))
     echo -n "."
