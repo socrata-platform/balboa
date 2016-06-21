@@ -5,7 +5,7 @@ import java.nio.charset.Charset
 import java.{util => ju}
 
 import com.datastax.driver.core.querybuilder.QueryBuilder
-import com.datastax.driver.core.{BatchStatement, ConsistencyLevel, DefaultPreparedStatement, Row}
+import com.datastax.driver.core.{BatchStatement, ConsistencyLevel, Row}
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.data.impl.Cassandra11Util.DatastaxContext
 import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, Period}
@@ -28,7 +28,8 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
     val ret: Metrics = new Metrics()
 
     for (recordType <- List(RecordType.ABSOLUTE, RecordType.AGGREGATE)) {
-      fetch_cf(recordType, entityKey, period)
+      fetch_cf(RecordType.AGGREGATE, entityKey, period).map(row =>
+        ret.put(row.getString("column1"), new Metric(RecordType.AGGREGATE, row.getLong("value"))))
     }
 
     /*
@@ -44,8 +45,7 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
     ret
   }
 
-  // Unused?
-  // def removeTimestamp(row:Row[String, String]):String = row.getKey.replaceFirst("-[0-9]+$", "")
+  def removeTimestamp(key: String): String = key.replaceFirst("-[0-9]+$", "")
 
   /**
    * Returns all the row keys in a tier as an iterator with many, many duplicate strings. This is very slow. Do
@@ -61,7 +61,7 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
       val rows = context.newSession.execute(qb).all()
-      val retVal = asScalaIterator(rows.iterator()).map(_.get(0, classOf[String]))
+      val retVal = asScalaIterator(rows.iterator()).map(_.getString("key")).map(removeTimestamp)
 
       /*
       val retVal: Iterator[String] = context.getEntity.prepareQuery(Cassandra11Util.getColumnFamily(period, recordType))
@@ -85,8 +85,9 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
   def fetch_cf(recordType: RecordType, entityKey: String, period: Period): Iterator[Row] = {
     fastfail.proceedOrThrow()
     try {
-      val qb = QueryBuilder.select()
+      val qb = QueryBuilder.select().all()
         .from(context.keyspace, Cassandra11Util.getColumnFamily(period, recordType))
+        .where(QueryBuilder.eq("key", entityKey))
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
       val rows = context.newSession.execute(qb).all()
@@ -122,9 +123,7 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
 
     val batchStatement = new BatchStatement(BatchStatement.Type.LOGGED)
 
-    /*
-            TODO: The below should definitely use entityKey, but I'm not sure where
-     */
+    val entityKeyWhere = QueryBuilder.eq("key", entityKey)
 
     /*
     val m:MutationBatch = context.getEntity.prepareMutationBatch
@@ -132,13 +131,27 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
       .withRetryPolicy(new ExponentialBackoff(250, 5))
     */
 
-    if (aggregates.nonEmpty) {
-      val qb = QueryBuilder.update(context.keyspace, Cassandra11Util.getColumnFamily(period, RecordType.AGGREGATE))
-      for { (k,v) <- aggregates } {
-        if (k != "") {
-          batchStatement.add(qb.`with`(QueryBuilder.incr(k, v.getValue.longValue)))
-        } else {
-          logger warn "dropping metric with empty string as column"
+    for (sameTypeRecords <- List(aggregates, absolutes)) {
+      if (sameTypeRecords.nonEmpty) {
+        // Initialize the query to work with either AGGREGATE or ABSOLUTE type values
+        val table =  Cassandra11Util.getColumnFamily(period, sameTypeRecords.iterator.next()._2.getType)
+
+        for {(k, v) <- sameTypeRecords} {
+          if (k != "") {
+            v.getType match {
+              case RecordType.ABSOLUTE =>
+                batchStatement.add(
+                   QueryBuilder.insertInto(table).value("key", entityKey).value("column1", k).value("value", v.getValue))
+                logger info QueryBuilder.insertInto(table).value("key", entityKey).value("column1", k).value("value", v.getValue).getQueryString()
+              case RecordType.AGGREGATE =>
+                batchStatement.add(
+                  QueryBuilder.update(table)
+                    .`with`(QueryBuilder.incr("value", v.getValue.longValue))
+                    .where(entityKeyWhere).and(QueryBuilder.eq("column1", k)))
+            }
+          } else {
+            logger warn "dropping metric with empty string as column"
+          }
         }
       }
     }
@@ -152,17 +165,6 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
       }
     }
     */
-
-    if (absolutes.nonEmpty) {
-      val qb = QueryBuilder.update(context.keyspace, Cassandra11Util.getColumnFamily(period, RecordType.ABSOLUTE))
-      for { (k,v) <- absolutes } {
-        if (k != "") {
-          batchStatement.add(qb.`with`(QueryBuilder.set(k, v.getValue.longValue)))
-        } else {
-          logger warn "dropping metric with empty string as column"
-        }
-      }
-    }
 
     /*
     if (absolutes.nonEmpty) {
