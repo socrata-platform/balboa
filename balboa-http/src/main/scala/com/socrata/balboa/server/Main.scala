@@ -1,13 +1,11 @@
 package com.socrata.balboa.server
 
+import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.eclipse.jetty.server.Server
-import org.slf4j.LoggerFactory
 import org.eclipse.jetty.webapp.WebAppContext
 import org.scalatra.servlet.ScalatraListener
 
-object Main extends App {
-  val logger = LoggerFactory.getLogger(getClass)
-
+object Main extends App with StrictLogging {
   val DefaultPort = 9012
   val port = if (args.length > 0) {
     try {
