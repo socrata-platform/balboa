@@ -21,15 +21,13 @@ import scala.collection.JavaConversions.asScalaIterator
  */
 class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query with StrictLogging {
 
-  val encoder = Charset.forName("UTF-8").newEncoder()
-
   def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {
     val entityKey: String = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
     val ret: Metrics = new Metrics()
 
     for (recordType <- List(RecordType.ABSOLUTE, RecordType.AGGREGATE)) {
-      fetch_cf(RecordType.AGGREGATE, entityKey, period).map(row =>
-        ret.put(row.getString("column1"), new Metric(RecordType.AGGREGATE, row.getLong("value"))))
+      fetch_cf(recordType, entityKey, period).foreach(row => {
+        ret.put(row.getString("column1"), new Metric(recordType, row.getLong("value")))})
     }
 
     /*
@@ -85,12 +83,14 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
   def fetch_cf(recordType: RecordType, entityKey: String, period: Period): Iterator[Row] = {
     fastfail.proceedOrThrow()
     try {
+
       val qb = QueryBuilder.select().all()
         .from(context.keyspace, Cassandra11Util.getColumnFamily(period, recordType))
         .where(QueryBuilder.eq("key", entityKey))
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
       val rows = context.newSession.execute(qb).all()
+
       val retVal = asScalaIterator(rows.iterator())
 
       /*
@@ -141,8 +141,8 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
             v.getType match {
               case RecordType.ABSOLUTE =>
                 batchStatement.add(
-                   QueryBuilder.insertInto(table).value("key", entityKey).value("column1", k).value("value", v.getValue))
-                logger info QueryBuilder.insertInto(table).value("key", entityKey).value("column1", k).value("value", v.getValue).getQueryString()
+                   QueryBuilder.insertInto(table)
+                     .value("key", entityKey).value("column1", k).value("value", v.getValue))
               case RecordType.AGGREGATE =>
                 batchStatement.add(
                   QueryBuilder.update(table)
