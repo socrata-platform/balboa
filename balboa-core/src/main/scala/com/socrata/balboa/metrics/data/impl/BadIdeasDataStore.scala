@@ -2,25 +2,24 @@ package com.socrata.balboa.metrics.data.impl
 
 import java.{util => ju}
 
-import com.socrata.balboa.metrics.{Timeslice, Metrics}
+import com.socrata.balboa.metrics.{Metrics, Timeslice}
 import com.socrata.balboa.metrics.data.{DataStore, Period}
-import org.apache.commons.logging.{Log, LogFactory}
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
 import scala.collection.JavaConverters._
 
 /**
  * All the bad ideas go here. Things which are not clear from the API, or which seem odd.
  */
-class BadIdeasDataStore(child:DataStore) extends DataStoreImpl {
-  private val log: Log = LogFactory.getLog(classOf[BadIdeasDataStore])
+class BadIdeasDataStore(child:DataStore) extends DataStoreImpl with StrictLogging {
 
   def entities(pattern: String): ju.Iterator[String] = {
-    log.error("Getting all the entities from balboa is a slow, dangerous thing. Please do not do this regularly.")
+    logger error "Getting all the entities from balboa is a slow, dangerous thing. Please do not do this regularly."
     child.entities(pattern)
   }
 
   def entities(): ju.Iterator[String] = {
-    log.error("Getting all the entities from balboa is a slow, dangerous thing. Please do not do this regularly.")
+    logger error "Getting all the entities from balboa is a slow, dangerous thing. Please do not do this regularly."
     child.entities()
   }
 
