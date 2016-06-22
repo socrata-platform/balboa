@@ -1,6 +1,5 @@
 package com.socrata.balboa.agent
 
-import java.io.IOException
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import javax.jms.{ExceptionListener, JMSException}
 
@@ -9,7 +8,6 @@ import com.codahale.metrics.JmxReporter
 import com.socrata.balboa.agent.metrics.BalboaAgentMetrics
 import com.socrata.balboa.util.FileUtils
 import com.typesafe.scalalogging.slf4j.StrictLogging
-import org.apache.activemq.transport.TransportListener
 import org.apache.activemq.{ActiveMQConnection, ActiveMQConnectionFactory}
 
 import util.control.NonFatal
@@ -43,23 +41,7 @@ object BalboaAgent extends App with Config with StrictLogging {
   // The ActiveMQ libraries can be obscure when they are misbehaving. The hope
   // is that by registering this listener, additional information will be
   // written to the logs for troubleshooting.
-  amqConnectionFactory.setTransportListener(new TransportListener {
-    // The onCommand handler seems to be a routine handler. No additional error
-    // reporting information is available by overriding it.
-    override def onCommand(command: scala.Any): Unit = {}
-
-    override def onException(error: IOException): Unit =
-      logger error("Problem with ActiveMQ connection.", error)
-
-    // This method appears to be invoked when the library is first initializing
-    // as well. So this log message will appear after the call to `.start` down
-    // below.
-    override def transportInterupted(): Unit =
-      logger warn "ActiveMQ connection is being closed or has suffered an interruption from which it hopes to recover."
-
-    override def transportResumed(): Unit =
-      logger warn "ActiveMQ connection is starting up or has resumed after an interruption."
-  })
+  amqConnectionFactory.setTransportListener(new LoggingTransportListener())
 
   // An ActiveAMQConnection already contains the logic to do exponential backoff
   // and retry on failed connections. It will also automatically apply the same

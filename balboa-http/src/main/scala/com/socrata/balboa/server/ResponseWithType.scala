@@ -22,4 +22,3 @@ object ResponseWithType {
   def badRequest(parameter: String, msg: String): ResponseWithType =
     ResponseWithType(json, BadRequest(Error(BAD_REQUEST_400, s"Unable to parse $parameter : " + msg)))
 }
-

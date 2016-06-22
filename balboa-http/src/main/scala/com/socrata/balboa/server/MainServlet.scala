@@ -55,6 +55,15 @@ class MainServlet extends ScalatraServlet
     response.result
   }
 
+  post("/metrics/:entityId") {
+    // Note: content type must be set -before- calling extractOpt for the body to be sent as JSON
+    contentType = json
+    val entityId = params("entityId")
+    val entityOpt = parsedBody.extractOpt[EntityJSON]
+    val response = MetricsRest.post(entityId, entityOpt)
+    response.result
+  }
+
   get("/metrics/:entityId/range*") {
     val entityId = params("entityId")
     val response = MetricsRest.range(entityId, params, getAccepts(request))

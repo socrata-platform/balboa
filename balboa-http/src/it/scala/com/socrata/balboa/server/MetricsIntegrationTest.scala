@@ -2,16 +2,16 @@ package com.socrata.balboa.server
 
 import java.net.URL
 
-import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.balboa.metrics.data.DataStoreFactory
 import com.stackmob.newman.ApacheHttpClient
-import com.stackmob.newman.dsl.GET
+import com.stackmob.newman.dsl.{GET, POST}
 import com.stackmob.newman.response.{HttpResponse, HttpResponseCode}
-import com.stackmob.newman.response.HttpResponseCode.{BadRequest, NotFound, Ok}
+import com.stackmob.newman.response.HttpResponseCode.{BadRequest, NoContent, NotFound, Ok}
+import org.json4s._
 import org.json4s.jackson.JsonMethods.{parse, pretty, render}
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 
+import scala.collection.mutable
 import scala.language.implicitConversions
 import scala.concurrent.Await
 import scala.language.postfixOps
@@ -28,6 +28,8 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   val testPersistedDateEpoch = ServiceUtils.parseDate(testPersistedDate).get.getTime
   val testEnd = "1970-02-02"
   val protobuf = "application/x-protobuf"
+
+  protected implicit val jsonFormats: Formats = DefaultFormats
 
   class AssertionJSON(j: => String) {
     def shouldBeJSON(expected: String) = {
@@ -179,20 +181,41 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
 
   // Returns the JSON string representation of the metric added
   def persistSingleMetric(): String = {
-    val metrics = new Metrics()
-    metrics.put(testMetricName, new Metric(RecordType.ABSOLUTE, 1))
-    dataStore.persist(testEntityName, testPersistedDateEpoch, metrics)
+    val url = new URL(Config.Server, s"/metrics/$testEntityName")
+    val result = Await.result(
+      POST(url).setBody(
+        pretty(render(Extraction.decompose(
+          EntityJSON(
+            testPersistedDateEpoch,
+            Map(testMetricName -> MetricJSON(1, "ABSOLUTE")))))))
+      .apply,
+      Config.RequestTimeout)
+
+    result.code.code should be (NoContent.code)
 
     """{ "%s": { "value": 1, "type": "absolute" } }""".format(testMetricName)
   }
 
   // Returns the JSON string representation of the metrics added
   def persistManyMetrics(metRange: Range): String = {
-    val metrics = new Metrics()
+    val url = new URL(Config.Server, s"/metrics/$testEntityName")
+
+    val metrics = new mutable.HashMap[String, MetricJSON]
     for (i <- metRange) {
-      metrics.put(testMetricName + "-" + i, new Metric(RecordType.ABSOLUTE, 1))
+      metrics.put(testMetricName + "-" + i, new MetricJSON(1, "ABSOLUTE"))
     }
-    dataStore.persist(testEntityName, testPersistedDateEpoch, metrics)
+
+    val result = Await.result(
+      POST(url).setBody(
+        pretty(render(Extraction.decompose(
+          EntityJSON(
+            testPersistedDateEpoch,
+            metrics.toMap)))))
+      .apply,
+      Config.RequestTimeout
+    )
+
+    result.code.code should be (NoContent.code)
 
     "{" +
       metRange.map(i =>
