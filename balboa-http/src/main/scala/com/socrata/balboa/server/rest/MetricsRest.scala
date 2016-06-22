@@ -11,7 +11,7 @@ import com.socrata.balboa.server.{EntityJSON, ResponseWithType, ServiceUtils}
 import com.socrata.balboa.server.ResponseWithType._
 import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
-import org.scalatra.{Ok, Params}
+import org.scalatra.{Ok, NoContent, Params}
 
 class MetricsRest
 
@@ -80,7 +80,7 @@ object MetricsRest {
       metrics.put(name, new Metric(recordType, metric.value))
     }
     dataStore.persist(entityId, entity.timestamp, metrics)
-    ResponseWithType(json, Ok("{}"))
+    ResponseWithType(json, NoContent())
   }
 
   def range(entityId: String, params: Params, accepts: Seq[String]): ResponseWithType = {
