@@ -5,10 +5,6 @@
 // are published as libraries and consumed by both Scala 2.10 and Scala 2.11
 // projects.
 //
-// balboa-http can not be cross compiled because of it's dependency on the
-// socrata-http library. socrata-http is compiled for Scala 2.10 in the version
-// we use, and has a backward incompatible API in the newer versions.
-//
 // Now, odd quirk of sbt, it takes it's crossScalaVersions setting from the
 // project context in which it is invoked, not the project context which is
 // being built. So:
