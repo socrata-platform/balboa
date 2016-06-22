@@ -119,14 +119,6 @@ object Cassandra11Util extends StrictLogging {
     val dcPolicy = DCAwareRoundRobinPolicy.builder()
     datacenter.foreach(dc => dcPolicy.withLocalDc(dc))
 
-    /*
-    val connectionPoolConfiguration = new ConnectionPoolConfigurationImpl("BalboaPool")
-      .setConnectTimeout(sotimeout)
-      .setTimeoutWindow(sotimeout)
-      .setMaxConnsPerHost(connections)
-      .setSeeds(seeds)
-      */
-
     val poolingOptions = new PoolingOptions()
       .setIdleTimeoutSeconds(sotimeout)
       .setPoolTimeoutMillis(sotimeout)
@@ -146,19 +138,6 @@ object Cassandra11Util extends StrictLogging {
       .withPoolingOptions(poolingOptions)
       .withLoadBalancingPolicy(dcPolicy.build())
       .build()
-
-    /*
-    val cxt:AstyanaxContext[Keyspace] = new Builder()
-      .forKeyspace(keyspace)
-      .withAstyanaxConfiguration(new AstyanaxConfigurationImpl()
-        .setDiscoveryType (NodeDiscoveryType.RING_DESCRIBE)
-      )
-      .withConnectionPoolConfiguration(connectionPoolConfiguration)
-      .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
-      .buildKeyspace(ThriftFamilyFactory.getInstance())
-    cxt.start()
-    cxt
-    */
 
     DatastaxContext(cluster, keyspace)
   }

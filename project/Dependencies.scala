@@ -11,7 +11,6 @@ object Dependencies {
    * External Library versions.
    */
   private object versions {
-    val astyanax = "1.56.26"
     val commons_logging = "1.1"
     val datastax = "3.0.0"
     val dropwizard = "3.1.2"
@@ -82,4 +81,5 @@ object Dependencies {
   val scalatra = "org.scalatra" %% "scalatra" % versions.scalatra
   val scalatra_json = "org.scalatra" %% "scalatra-json" % versions.scalatra
   val typesafe_config = "com.typesafe" % "config" % "1.2.1" % "it"
+  val yammer_metrics = "com.yammer.metrics" % "metrics-core" % "2.2.0"
 }
