@@ -114,7 +114,6 @@ object Cassandra11Util extends StrictLogging {
     // to only make connections to the Cassandra nodes in the datacenter
     // and prevent this service from unintentionally reaching across a
     // VPN to connect to a Cassandra node.
-    //datacenter.foreach(connectionPoolConfiguration.setLocalDatacenter)
 
     val dcPolicy = DCAwareRoundRobinPolicy.builder()
     datacenter.foreach(dc => dcPolicy.withLocalDc(dc))
