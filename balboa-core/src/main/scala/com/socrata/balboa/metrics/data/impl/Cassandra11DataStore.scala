@@ -6,7 +6,7 @@ import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.metrics.data.{DateRange, Period, QueryOptimizer}
 import com.socrata.balboa.metrics.{Metric, Metrics, Timeslice}
-import org.apache.commons.logging.LogFactory
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
 import scala.collection.JavaConverters._
 
@@ -17,8 +17,7 @@ import scala.collection.JavaConverters._
  *
  */
 class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext()))
-  extends DataStoreImpl {
-  private val log = LogFactory.getLog(classOf[Cassandra11DataStore])
+  extends DataStoreImpl with StrictLogging {
   private val timeSvc = new TimeService()
 
 
@@ -178,7 +177,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
       }
 
     }
-    log.info("Persisted entity: " + entityId + " with " + absolutes.size + " absolute and " + aggregates.size + " aggregated metrics - took " + (timeSvc.currentTimeMillis() - start) + "ms")
+    logger info s"Persisted entity: $entityId  with " + absolutes.size + " absolute and " + aggregates.size + " aggregated metrics - took " + (timeSvc.currentTimeMillis() - start) + "ms"
   }
 
 
