@@ -4,7 +4,7 @@ import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.data.DataStore
 import kafka.consumer.{Consumer, ConsumerConfig, ConsumerConnector, KafkaStream}
-import org.apache.commons.logging.LogFactory
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
 /**
  * A [[KafkaConsumerGroupComponent[String, Message]] that is meant to handle Balboa specific Kafka message traffic.
@@ -27,9 +27,7 @@ case class BalboaConsumerGroup(connector: ConsumerConnector,
                                partitionsForTopic: Int,
                                dataStore: DataStore,
                                waitTime: Long,
-                               retries: Int) extends BalboaConsumerGroupLike {
-
-  private val Log = LogFactory.getLog(this.getClass)
+                               retries: Int) extends BalboaConsumerGroupLike with StrictLogging {
 
   def this(consumerConfig: ConsumerConfig,
            topic: String,
@@ -44,7 +42,7 @@ case class BalboaConsumerGroup(connector: ConsumerConnector,
    * Create the streams on demand.
    */
   lazy val streams: List[KafkaStream[String,Message]] = {
-    Log.info(s"Initializing Kafka Streams for topic $topic using $partitionsForTopic")
+    logger.info(s"Initializing Kafka Streams for topic $topic using $partitionsForTopic")
     connector.createMessageStreams[String, Message](Map((topic, partitionsForTopic)), new StringCodec(), new BalboaMessageCodec())(topic)
   }
 
@@ -54,7 +52,7 @@ case class BalboaConsumerGroup(connector: ConsumerConnector,
    * @return A list of Kafka Consumers that belong exclusively to this group.
    */
   override val consumers: List[KafkaConsumer] = {
-    Log.info("Initializing individual BalboaConsumers")
+    logger.info("Initializing individual BalboaConsumers")
     this.streams.map(s => {
       val d = this.dataStore
       val w = this.waitTime
@@ -74,12 +72,12 @@ case class BalboaConsumerGroup(connector: ConsumerConnector,
    */
   override def stop(): Option[Exception] = {
     try {
-      Log.info(s"Stopping ${this.toString}.")
+      logger.info(s"Stopping ${this.toString}.")
       connector.shutdown()
       super.stop()
     } catch {
       case e: Exception =>
-        Log.warn(s"Exception caught while attempting to shutdown ${this.toString}. Exception: ${e}")
+        logger.warn(s"Exception caught while attempting to shutdown ${this.toString}. Exception: ${e}")
         Some(e)
     }
   }
