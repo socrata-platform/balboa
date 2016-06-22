@@ -97,27 +97,25 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
 
     val entityKeyWhere = QueryBuilder.eq("key", entityKey)
 
-    for (sameTypeRecords <- List(aggregates, absolutes)) {
-      if (sameTypeRecords.nonEmpty) {
-        // Initialize the query to work with either AGGREGATE or ABSOLUTE type values
-        val table =  Cassandra11Util.getColumnFamily(period, sameTypeRecords.iterator.next()._2.getType)
+    for (sameTypeRecords <- List(aggregates, absolutes).filter(_.nonEmpty)) {
+      // Initialize the query to work with either AGGREGATE or ABSOLUTE type values
+      val table =  Cassandra11Util.getColumnFamily(period, sameTypeRecords.iterator.next()._2.getType)
 
-        for {(k, v) <- sameTypeRecords} {
-          if (k != "") {
-            v.getType match {
-              case RecordType.ABSOLUTE =>
-                batchStatement.add(
-                   QueryBuilder.insertInto(table)
-                     .value("key", entityKey).value("column1", k).value("value", v.getValue))
-              case RecordType.AGGREGATE =>
-                batchStatement.add(
-                  QueryBuilder.update(table)
-                    .`with`(QueryBuilder.incr("value", v.getValue.longValue))
-                    .where(entityKeyWhere).and(QueryBuilder.eq("column1", k)))
-            }
-          } else {
-            logger warn "dropping metric with empty string as column"
+      for {(k, v) <- sameTypeRecords} {
+        if (k != "") {
+          v.getType match {
+            case RecordType.ABSOLUTE =>
+              batchStatement.add(
+                 QueryBuilder.insertInto(table)
+                   .value("key", entityKey).value("column1", k).value("value", v.getValue))
+            case RecordType.AGGREGATE =>
+              batchStatement.add(
+                QueryBuilder.update(table)
+                  .`with`(QueryBuilder.incr("value", v.getValue.longValue))
+                  .where(entityKeyWhere).and(QueryBuilder.eq("column1", k)))
           }
+        } else {
+          logger warn "dropping metric with empty string as column"
         }
       }
     }
