@@ -4,33 +4,47 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 
 import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.{EntityJSON, Metric, Metrics}
+import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, Period}
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics
-import com.socrata.balboa.server.{ResponseWithType, ServiceUtils}
+import com.socrata.balboa.server.{EntityJSON, ResponseWithType, ServiceUtils}
 import com.socrata.balboa.server.ResponseWithType._
 import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
-import org.scalatra.{Ok, Params}
+import org.scalatra.{NoContent, Ok, Params}
 
 class MetricsRest
 
 object MetricsRest {
-  val seriesMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "series queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
-  val rangeMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "range queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
-  val periodMeter = com.yammer.metrics.Metrics.newTimer(classOf[MetricsRest], "period queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
   val dataStore = DataStoreFactory.get()
 
+  val StartKey = "start"
+  val EndKey = "end"
+  val PeriodKey = "period"
+  val DateKey = "date"
+  val CombineKey = "combine"
+  val FieldKey = "field"
+
+  val seriesMeter = com.yammer.metrics.Metrics.newTimer(
+    classOf[MetricsRest], "series queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
+
+  val rangeMeter = com.yammer.metrics.Metrics.newTimer(
+    classOf[MetricsRest], "range queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
+
+  val periodMeter = com.yammer.metrics.Metrics.newTimer(
+    classOf[MetricsRest], "period queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
+
+
   def get(entityId: String, params: Params, accepts: Seq[String]): ResponseWithType = {
-    val period = params.get("period").map(Extractable[Period].extract) match {
+    val period = params.get(PeriodKey).map(Extractable[Period].extract) match {
       case Some(Right(value)) => value
-      case Some(Left(err)) => return br("period", err)
-      case None => return required("period")
+      case Some(Left(err)) => return badRequest(PeriodKey, err)
+      case None => return required(PeriodKey)
     }
 
-    val date = params.getOrElse("date", { return required("date") })
-    val combine = params.get("combine")
-    val field = params.get("field")
+    val date = params.getOrElse(DateKey, { return required(DateKey) })
+    val combine = params.get(CombineKey)
+    val field = params.get(FieldKey)
 
     val mediaType = bestMediaType(accepts, json, protobuf).getOrElse { return unacceptable }
 
@@ -61,19 +75,19 @@ object MetricsRest {
       val recordType = metric.`type` match {
         case "ABSOLUTE" => RecordType.ABSOLUTE
         case "AGGREGATE" => RecordType.AGGREGATE
-        case _ => return br("metric type", "must be ABSOLUTE or AGGREGATE")
+        case _ => return badRequest("metric type", "must be ABSOLUTE or AGGREGATE")
       }
       metrics.put(name, new Metric(recordType, metric.value))
     }
     dataStore.persist(entityId, entity.timestamp, metrics)
-    ResponseWithType(json, Ok("{}"))
+    ResponseWithType(json, NoContent())
   }
 
   def range(entityId: String, params: Params, accepts: Seq[String]): ResponseWithType = {
-    val start = params.getOrElse(("start"), { return required("start") })
-    val end = params.getOrElse(("end"), { return required("end") })
-    val combine = params.get("combine")
-    val field = params.get("field")
+    val start = params.getOrElse((StartKey), { return required(StartKey) })
+    val end = params.getOrElse((EndKey), { return required(EndKey) })
+    val combine = params.get(CombineKey)
+    val field = params.get(FieldKey)
 
     val startDate = ServiceUtils.parseDate(start).getOrElse { return malformedDate(start) }
     val endDate = ServiceUtils.parseDate(end).getOrElse { return malformedDate(end) }
@@ -99,13 +113,13 @@ object MetricsRest {
   }
 
   def series(entityId: String, params: Params, accepts: Seq[String]): ResponseWithType = {
-    val period = params.get("period").map(Extractable[Period].extract) match {
+    val period = params.get(PeriodKey).map(Extractable[Period].extract) match {
       case Some(Right(value)) => value
-      case Some(Left(err)) => return br("period", err)
-      case None => return required("period")
+      case Some(Left(err)) => return badRequest(PeriodKey, err)
+      case None => return required(PeriodKey)
     }
-    val start = params.getOrElse("start", { return required("start") })
-    val end = params.getOrElse("end", { return required("end") })
+    val start = params.getOrElse(StartKey, { return required(StartKey) })
+    val end = params.getOrElse(EndKey, { return required(EndKey) })
 
     val startDate = ServiceUtils.parseDate(start).getOrElse { return malformedDate(start) }
     val endDate = ServiceUtils.parseDate(end).getOrElse { return malformedDate(end) }
@@ -125,7 +139,6 @@ object MetricsRest {
     }
   }
 
-  // ok, so this isn't actually correct.  Screw correct, I just want this to work.
   def bestMediaType(accepts: Seq[String], types: String*): Option[String] = {
     if(accepts.isEmpty) return Some(types(0))
     for {

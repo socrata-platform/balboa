@@ -10,7 +10,7 @@ import com.netflix.astyanax.{AstyanaxContext, Keyspace, MutationBatch}
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, Period}
 import com.socrata.balboa.metrics.{Metric, Metrics}
-import org.apache.commons.logging.LogFactory
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
 import scala.collection.JavaConverters._
 import scala.{collection => sc}
@@ -19,9 +19,7 @@ import scala.{collection => sc}
  * Query Implementation
  *
  */
-class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra11Query {
-
-  private val log = LogFactory.getLog(classOf[Cassandra11QueryImpl])
+class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra11Query with StrictLogging {
 
   def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {
     val entityKey: String = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
@@ -87,7 +85,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
               aggregates: sc.Map[String, Metric],
               absolutes: sc.Map[String, Metric]): Unit = {
     val entityKey = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
-    log.debug("Using entity/row key " + entityKey + " at period " + period)
+    logger debug s"Using entity/row key $entityKey at period $period"
     fastfail.proceedOrThrow()
 
 
@@ -98,7 +96,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
       var cols = m.withRow(Cassandra11Util.getColumnFamily(period, RecordType.AGGREGATE), entityKey)
       for { (k,v) <- aggregates } {
         if (k != ""){ cols = cols.incrementCounterColumn(k, v.getValue.longValue) }
-        else { log.warn("dropping metric with empty string as column") }
+        else { logger warn("dropping metric with empty string as column") }
       }
     }
 
@@ -106,7 +104,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
       var cols = m.withRow(Cassandra11Util.getColumnFamily(period, RecordType.ABSOLUTE), entityKey)
       for { (k,v) <- absolutes } {
         if (k != ""){ cols = cols.putColumn(k, v.getValue.longValue) }
-        else { log.warn("dropping metric with empty string as column") }
+        else { logger warn("dropping metric with empty string as column") }
       }
     }
 
@@ -118,7 +116,7 @@ class Cassandra11QueryImpl(context: AstyanaxContext[Keyspace]) extends Cassandra
       case e: Exception =>
         val wrapped = new IOException("Error writing metrics " + entityKey + " from " + period, e)
         fastfail.markFailure(wrapped)
-        log.error("Error writing metrics " + entityKey + " from " + period, e)
+        logger.error(s"Error writing metrics $entityKey from $period", e)
         throw wrapped
     }
   }

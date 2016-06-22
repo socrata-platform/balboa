@@ -3,11 +3,11 @@ package com.socrata.balboa.server
 import javax.servlet.http.HttpServletRequest
 
 import com.socrata.balboa.BuildInfo
-import com.socrata.balboa.metrics.EntityJSON
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck
 import com.socrata.balboa.server.rest.{EntitiesRest, MetricsRest}
 import com.socrata.balboa.server.ResponseWithType.json
 import com.typesafe.scalalogging.slf4j.StrictLogging
+import org.eclipse.jetty.http.HttpStatus._
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{InternalServerError, NotFound, Ok, ScalatraServlet}
 import org.scalatra.json.JacksonJsonSupport
@@ -29,7 +29,7 @@ class MainServlet extends ScalatraServlet
 
   get("/*") {
     contentType = json
-    NotFound(Error(404, "Not found."))
+    NotFound(Error(NOT_FOUND_404, "Not found."))
   }
 
   get("/version*") {

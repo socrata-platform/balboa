@@ -2,19 +2,18 @@ package com.socrata.balboa.server
 
 import java.net.URL
 
-import com.socrata.balboa.metrics.{EntityJSON, MetricJSON}
 import com.socrata.balboa.metrics.data.DataStoreFactory
 import com.stackmob.newman.ApacheHttpClient
 import com.stackmob.newman.dsl.{GET, POST}
 import com.stackmob.newman.response.{HttpResponse, HttpResponseCode}
-import com.stackmob.newman.response.HttpResponseCode.{BadRequest, NotFound, Ok}
+import com.stackmob.newman.response.HttpResponseCode.{BadRequest, NoContent, NotFound, Ok}
 import org.json4s._
 import org.json4s.jackson.JsonMethods.{parse, pretty, render}
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
 
 import scala.collection.mutable
-import scala.language.implicitConversions
 import scala.concurrent.Await
+import scala.language.implicitConversions
 import scala.language.postfixOps
 
 class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterEach {
@@ -192,8 +191,7 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
       .apply,
       Config.RequestTimeout)
 
-    result.bodyString shouldBeJSON "{}"
-    result.code.code should be (Ok.code)
+    result.code.code should be (NoContent.code)
 
     """{ "%s": { "value": 1, "type": "absolute" } }""".format(testMetricName)
   }
@@ -216,6 +214,8 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
       .apply,
       Config.RequestTimeout
     )
+
+    result.code.code should be (NoContent.code)
 
     "{" +
       metRange.map(i =>
