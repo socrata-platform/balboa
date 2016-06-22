@@ -11,7 +11,7 @@ import scala.{collection => sc}
 /**
  * Queries the underlying datastore
  */
-trait Cassandra11Query {
+trait CassandraQuery {
   def getAllEntityIds(recordType:RecordType, period:Period):Iterator[String]
 
   def fetch(entityKey:String, period:Period, bucket:ju.Date):Metrics

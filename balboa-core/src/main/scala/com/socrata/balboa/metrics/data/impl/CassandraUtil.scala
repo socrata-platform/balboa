@@ -16,7 +16,7 @@ import scala.{collection => sc}
 /**
  * Holds Connection Pool and Common ColumnFamily definitions
  */
-object Cassandra11Util extends StrictLogging {
+object CassandraUtil extends StrictLogging {
   val periods = Configuration.get().getSupportedPeriods
   val leastGranular:Period = Period.leastGranular(periods)
   val mostGranular:Period = Period.mostGranular(periods)
@@ -74,14 +74,14 @@ object Cassandra11Util extends StrictLogging {
       Iterator.empty
     }
   }
-  def sliceIterator(queryImpl:Cassandra11Query, entityId:String, period:Period, query:List[ju.Date]):Iterator[Timeslice] = {
+  def sliceIterator(queryImpl:CassandraQuery, entityId:String, period:Period, query:List[ju.Date]):Iterator[Timeslice] = {
     query.iterator.map { date =>
           val range = DateRange.create(period, date)
           new Timeslice(range.start.getTime, range.end.getTime, queryImpl.fetch(entityId, period, date))
     }.filter(_ != null)
   }
 
-  def metricsIterator(queryImpl: Cassandra11Query,
+  def metricsIterator(queryImpl: CassandraQuery,
                       entityId: String,
                       query: sc.Seq[(ju.Date, Period)]): Iterator[Metrics] = {
     {
