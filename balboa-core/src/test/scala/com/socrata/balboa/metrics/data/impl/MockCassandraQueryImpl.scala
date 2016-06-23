@@ -16,6 +16,9 @@ class MockCassandraQueryImpl extends CassandraQuery {
   var metricsToReturn:Metrics = _
   val uniqEntityNames = 3 // should match the stubbed fn getAllEntityIds
 
+  @throws[Exception]
+  def checkHealth() = {}
+
   def getAllEntityIds(recordType:RecordType, period:Period):Iterator[String] = {
     entities = entities ::: List[AEntitySearch](new AEntitySearch(recordType, period))
     List("one", "two", "one", "two", "three").iterator

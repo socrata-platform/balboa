@@ -19,6 +19,11 @@ import scala.collection.JavaConverters.iterableAsScalaIterableConverter
  */
 class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with StrictLogging {
 
+  @throws(classOf[Exception])
+  def checkHealth(): Unit = {
+    context.newSession.execute("SELECT now() FROM system.LOCAL;").all()
+  }
+
   def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {
     val entityKey: String = CassandraUtil.createEntityKey(entityId, bucket.getTime)
     val ret: Metrics = new Metrics()

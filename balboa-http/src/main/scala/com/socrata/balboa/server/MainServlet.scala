@@ -14,6 +14,7 @@ import org.scalatra.json.JacksonJsonSupport
 import scala.collection.JavaConverters._
 
 class MainServlet extends ScalatraServlet
+    with ClientCounter
     with StrictLogging
     with JacksonJsonSupport
     with NotFoundFilter
