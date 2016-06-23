@@ -1,7 +1,6 @@
 package com.socrata.balboa.metrics.data.impl
 
 import java.io.IOException
-import java.nio.charset.Charset
 import java.{util => ju}
 
 import com.datastax.driver.core.querybuilder.QueryBuilder
@@ -13,7 +12,7 @@ import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.typesafe.scalalogging.slf4j.StrictLogging
 
 import scala.{collection => sc}
-import scala.collection.JavaConversions.asScalaIterator
+import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 /**
  * Query Implementation
@@ -49,7 +48,7 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
       val rows = context.newSession.execute(qb).all()
-      val retVal = asScalaIterator(rows.iterator()).map(_.getString("key")).map(removeTimestamp)
+      val retVal = rows.asScala.map(_.getString("key")).map(removeTimestamp).iterator
 
       fastfail.markSuccess()
       retVal
@@ -72,7 +71,7 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
 
       val rows = context.newSession.execute(qb).all()
 
-      val retVal = asScalaIterator(rows.iterator())
+      val retVal = rows.asScala.iterator
 
       fastfail.markSuccess()
       retVal
