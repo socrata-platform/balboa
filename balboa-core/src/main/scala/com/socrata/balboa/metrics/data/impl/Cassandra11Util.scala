@@ -9,7 +9,7 @@ import com.socrata.balboa.metrics.{Metrics, Timeslice}
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.metrics.data.{DateRange, Period}
 import com.typesafe.scalalogging.slf4j.StrictLogging
-import com.datastax.driver.core.{Cluster, HostDistance, PoolingOptions, Session}
+import com.datastax.driver.core._
 
 import scala.{collection => sc}
 
@@ -119,22 +119,26 @@ object Cassandra11Util extends StrictLogging {
     datacenter.foreach(dc => dcPolicy.withLocalDc(dc))
 
     val poolingOptions = new PoolingOptions()
-      .setIdleTimeoutSeconds(sotimeout)
-      .setPoolTimeoutMillis(sotimeout)
       .setMaxConnectionsPerHost(HostDistance.LOCAL, connections)
       .setMaxConnectionsPerHost(HostDistance.REMOTE, connections)
 
+    val socketOptions = new SocketOptions()
+      .setConnectTimeoutMillis(sotimeout)
+
     val seedInetAddrs = seeds.split(",").map(addrStr => {
-      val addrAndPort = addrStr.split(":")
+      val addrAndPort = addrStr.trim().split(":")
       if (addrAndPort.length != 2) {
         throw new IllegalArgumentException("Address and port must be separated by a ':' in: " + addrStr)
       }
       new InetSocketAddress(addrAndPort(0), addrAndPort(1).toInt)
     })
 
+    logger info s"Connecting to Cassandra on seed addresses: ${ seedInetAddrs.fold("")(_ + ", " + _) }"
+
     val cluster = Cluster.builder()
       .addContactPointsWithPorts(seedInetAddrs:_*)
       .withPoolingOptions(poolingOptions)
+      .withSocketOptions(socketOptions)
       .withLoadBalancingPolicy(dcPolicy.build())
       .build()
 
