@@ -1,5 +1,7 @@
 import sbt.Keys._
 import sbt._
+import sbtassembly.AssemblyKeys._
+import sbtassembly.MergeStrategy
 
 object BuildSettings {
   val buildSettings: Seq[Setting[_]] = Defaults.coreDefaultSettings++ Seq(
@@ -28,6 +30,10 @@ object BuildSettings {
       val _ = initialize.value
       if (sys.props("java.specification.version") != "1.8")
         sys.error("Java 8 is required for this project.")
+    },
+    assemblyMergeStrategy in assembly := {
+      case "META-INF/io.netty.versions.properties" => MergeStrategy.last
+      case x => (assemblyMergeStrategy in assembly).value(x)
     }
   )
   val projectSettings: Seq[Setting[_]] = buildSettings

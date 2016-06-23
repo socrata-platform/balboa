@@ -11,8 +11,8 @@ object Dependencies {
    * External Library versions.
    */
   private object versions {
-    val astyanax = "1.56.26"
     val commons_logging = "1.1"
+    val datastax = "3.0.0"
     val dropwizard = "3.1.2"
     val jackson = "1.9.12"
     val jetty_webapp = "9.2.14.v20151106"
@@ -52,18 +52,17 @@ object Dependencies {
   // will show up as runtime problems and only be logged correctly when the AMQ
   // library is at log level DEBUG.
   val activemqOpenwire = "org.apache.activemq" % "activemq-openwire-legacy" % "5.13.3"
-
-  val astyanax = "com.netflix.astyanax" % "astyanax" % versions.astyanax excludeAll(
-    ExclusionRule(organization = "org.mortbay.jetty"),
-    ExclusionRule(organization = "javax.servlet")
-  )
   val commons_logging = "commons-logging" % "commons-logging" % versions.commons_logging
+  val cassandra_driver_core = "com.datastax.cassandra" % "cassandra-driver-core" % versions.datastax withSources() withJavadoc()
+  val cassandra_driver_mapping = "com.datastax.cassandra" % "cassandra-driver-mapping" % versions.datastax withSources() withJavadoc()
+  val cassandra_driver_extras = "com.datastax.cassandra" % "cassandra-driver-extras" % versions.datastax withSources() withJavadoc()
   val dropwizard_metrics = "io.dropwizard.metrics" % "metrics-core" % versions.dropwizard
   val dropwizard_healthcheck = "io.dropwizard.metrics" % "metrics-healthchecks" % versions.dropwizard
   val dropwizard_servlets = "io.dropwizard.metrics" % "metrics-servlets" % versions.dropwizard
   val jackson_core_asl = "org.codehaus.jackson" % "jackson-core-asl" % versions.jackson
   val jackson_mapper_asl = "org.codehaus.jackson" % "jackson-mapper-asl" % versions.jackson
   val jetty_webapp = "org.eclipse.jetty" % "jetty-webapp" % versions.jetty_webapp % "compile;container"
+  val java_nullable_annotation = "com.google.code.findbugs" % "jsr305" % "1.3.+"
   val junit = "junit" % "junit" % versions.junit % "test"
   val jopt_simple = "net.sf.jopt-simple" % "jopt-simple" % versions.jopt_simple
   val json4s = "org.json4s" %% "json4s-jackson" % "3.3.0"
@@ -82,4 +81,5 @@ object Dependencies {
   val scalatra = "org.scalatra" %% "scalatra" % versions.scalatra
   val scalatra_json = "org.scalatra" %% "scalatra-json" % versions.scalatra
   val typesafe_config = "com.typesafe" % "config" % "1.2.1" % "it"
+  val yammer_metrics = "com.yammer.metrics" % "metrics-core" % "2.2.0"
 }
