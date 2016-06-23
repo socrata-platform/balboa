@@ -28,7 +28,7 @@ trap cleanUp EXIT
 function getCassandraSeedNodes() {
     case $ENVIRONMENT in
         *)
-            echo "localhost:9160"
+            echo "localhost:9042"
             ;;
     esac
 }
@@ -105,4 +105,3 @@ echo "balboa-http service is started."
 echo "Running integration tests."
 export SERVICE_PORT  # So it is available for integration test configuration.
 sbt balboa-http/it:test
-

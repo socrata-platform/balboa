@@ -1,20 +1,15 @@
 package com.socrata.balboa.metrics.data.impl
 
+import java.net.InetSocketAddress
 import java.{util => ju}
 
-import com.netflix.astyanax.AstyanaxContext.Builder
-import com.netflix.astyanax.connectionpool.NodeDiscoveryType
-import com.netflix.astyanax.connectionpool.impl.{ConnectionPoolConfigurationImpl, CountingConnectionPoolMonitor}
-import com.netflix.astyanax.impl.AstyanaxConfigurationImpl
-import com.netflix.astyanax.model.ColumnFamily
-import com.netflix.astyanax.serializers.StringSerializer
-import com.netflix.astyanax.thrift.ThriftFamilyFactory
-import com.netflix.astyanax.{AstyanaxContext, Keyspace}
+import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, LoggingRetryPolicy}
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.{Metrics, Timeslice}
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.metrics.data.{DateRange, Period}
 import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.datastax.driver.core._
 
 import scala.{collection => sc}
 
@@ -25,6 +20,10 @@ object Cassandra11Util extends StrictLogging {
   val periods = Configuration.get().getSupportedPeriods
   val leastGranular:Period = Period.leastGranular(periods)
   val mostGranular:Period = Period.mostGranular(periods)
+
+  case class DatastaxContext(cluster: Cluster, keyspace: String) {
+    def newSession: Session = cluster.connect(keyspace)
+  }
 
   /*
    * Roll up a timeslice into another, more granular, unsupported Period
@@ -81,17 +80,17 @@ object Cassandra11Util extends StrictLogging {
     }.filter(_ != null)
   }
 
-  def getColumnFamily(period:Period, recordType:RecordType):ColumnFamily[String, String] = {
-    new ColumnFamily[String, String](period.toString + "_" + recordType.toString, StringSerializer.get(), StringSerializer.get())
+  def getColumnFamily(period:Period, recordType:RecordType):String = {
+    period.toString + "_" + recordType.toString
   }
 
   def createEntityKey(entityId:String, timestamp:Long): String = entityId + "-" + timestamp
 
-  def initializeContext():AstyanaxContext[Keyspace] = {
+  def initializeContext():DatastaxContext = {
     initializeContext(Configuration.get())
   }
 
-  def initializeContext(conf:Configuration):AstyanaxContext[Keyspace] = {
+  def initializeContext(conf:Configuration): DatastaxContext = {
 
     val seeds = conf.getProperty("cassandra.servers")
     val keyspace = conf.getProperty("cassandra.keyspace")
@@ -109,28 +108,41 @@ object Cassandra11Util extends StrictLogging {
     logger.info("Setting Cassandra socket timeout to '{}'", sotimeout.toString)
     logger.info("Using keyspace '{}'", keyspace)
 
-    val connectionPoolConfiguration = new ConnectionPoolConfigurationImpl("BalboaPool")
-      .setConnectTimeout(sotimeout)
-      .setTimeoutWindow(sotimeout)
-      .setMaxConnsPerHost(connections)
-      .setSeeds(seeds)
 
     // Set local DC as side-effect if specified in configuration.
     // If the local datacenter is specified it will limit the driver
     // to only make connections to the Cassandra nodes in the datacenter
     // and prevent this service from unintentionally reaching across a
     // VPN to connect to a Cassandra node.
-    datacenter.foreach(connectionPoolConfiguration.setLocalDatacenter)
 
-    val cxt:AstyanaxContext[Keyspace] = new Builder()
-      .forKeyspace(keyspace)
-      .withAstyanaxConfiguration(new AstyanaxConfigurationImpl()
-        .setDiscoveryType (NodeDiscoveryType.RING_DESCRIBE)
-      )
-      .withConnectionPoolConfiguration(connectionPoolConfiguration)
-      .withConnectionPoolMonitor(new CountingConnectionPoolMonitor())
-      .buildKeyspace(ThriftFamilyFactory.getInstance())
-    cxt.start()
-    cxt
+    val dcPolicy = DCAwareRoundRobinPolicy.builder()
+    datacenter.foreach(dc => dcPolicy.withLocalDc(dc))
+
+    val poolingOptions = new PoolingOptions()
+      .setMaxConnectionsPerHost(HostDistance.LOCAL, connections)
+      .setMaxConnectionsPerHost(HostDistance.REMOTE, connections)
+
+    val socketOptions = new SocketOptions()
+      .setConnectTimeoutMillis(sotimeout)
+
+    val seedInetAddrs = seeds.split(",").map(addrStr => {
+      val addrAndPort = addrStr.trim().split(":")
+      if (addrAndPort.length != 2) {
+        throw new IllegalArgumentException("Address and port must be separated by a ':' in: " + addrStr)
+      }
+      new InetSocketAddress(addrAndPort(0), addrAndPort(1).toInt)
+    })
+
+    logger info s"Connecting to Cassandra on seed addresses: ${ seedInetAddrs.mkString(", ") }"
+
+    val cluster = Cluster.builder()
+      .addContactPointsWithPorts(seedInetAddrs:_*)
+      .withPoolingOptions(poolingOptions)
+      .withSocketOptions(socketOptions)
+      .withLoadBalancingPolicy(dcPolicy.build())
+      .withRetryPolicy(new LoggingRetryPolicy(DefaultRetryPolicy.INSTANCE))
+      .build()
+
+    DatastaxContext(cluster, keyspace)
   }
 }
