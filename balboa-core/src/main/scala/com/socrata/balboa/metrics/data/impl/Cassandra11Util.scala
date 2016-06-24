@@ -21,7 +21,18 @@ object Cassandra11Util extends StrictLogging {
   val leastGranular:Period = Period.leastGranular(periods)
   val mostGranular:Period = Period.mostGranular(periods)
 
-  case class DatastaxContext(cluster: Cluster, keyspace: String) {
+  case class DatastaxContext(cluster: Cluster, _keyspace: String) {
+    def keyspace = {
+      // Mixed case names are automatically lower cased somewhere along the
+      // way to Cassandra. So keyspaces that have mixed case names must be
+      // quoted to preserve case.
+      if (_keyspace != _keyspace.toLowerCase) {
+        '"' + _keyspace + '"'
+      } else {
+        _keyspace
+      }
+    }
+
     def newSession: Session = cluster.connect(keyspace)
   }
 
