@@ -26,10 +26,10 @@
 // all invocation paths, so needed to remain backwards compatible, the Jenkins
 // build jobs work yet a different way, and are invoked:
 //
-//     sbt "set crossScalaVersion = List("2.10.6", "2.11.7")" "+balboa-client-dispatcher/compile"
+//     sbt "set crossScalaVersion = List("2.10.6", "2.11.8")" "+balboa-client-dispatcher/compile"
 //
 
-scalaVersion := "2.10.6"
+scalaVersion := "2.11.8"
 
 maintainer := "Socrata Mission Control Team, mission-control-l@socrata.com"
 
