@@ -80,6 +80,6 @@ object Dependencies {
   val scalatest = "org.scalatest" %% "scalatest" % "2.2.4" % "test,it"
   val scalatra = "org.scalatra" %% "scalatra" % versions.scalatra
   val scalatra_json = "org.scalatra" %% "scalatra-json" % versions.scalatra
+  val scalatra_metrics = "org.scalatra" %% "scalatra-metrics" % versions.scalatra
   val typesafe_config = "com.typesafe" % "config" % "1.2.1" % "it"
-  val yammer_metrics = "com.yammer.metrics" % "metrics-core" % "2.2.0"
 }

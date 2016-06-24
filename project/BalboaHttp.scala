@@ -18,9 +18,9 @@ object BalboaHttp {
     simple_arm,
     scalatra,
     scalatra_json,
+    scalatra_metrics,
     newman % "it",
     typesafe_config,
-    scalatest,
-    yammer_metrics
+    scalatest
   )
 }
