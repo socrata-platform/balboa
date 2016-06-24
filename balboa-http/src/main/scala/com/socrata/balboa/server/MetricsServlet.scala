@@ -23,6 +23,8 @@ class MetricsServlet extends JacksonJsonServlet
 
   val dataStore = DataStoreFactory.get()
 
+  val MaxLogLength = 1000000
+
   val StartKey = "start"
   val EndKey = "end"
   val PeriodKey = "period"
@@ -203,7 +205,13 @@ class MetricsServlet extends JacksonJsonServlet
     val entityOpt = parsedBody.extractOpt[EntityJSON]
 
     val entity = entityOpt.getOrElse({
-      return required("entity").result
+      val bodyToPrint = if (request.body.length < MaxLogLength) {
+        request.body
+      } else {
+        "truncated - body too large to log"
+      }
+      logger error s"Unable to parse metrics to save. Received '$bodyToPrint'"
+      return badRequest("message body", "unable to parse as metrics entity").result
     })
     val metrics = new Metrics()
     for ((name, metric) <- entity.metrics) {
