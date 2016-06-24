@@ -42,7 +42,9 @@ object BalboaAgent extends App with Config with StrictLogging {
     case Http =>
       new HttpMetricQueue(
         this.balboaHttpUrl.getOrElse({ throw new IllegalArgumentException("No BalboaHttpUrl provided.") }),
-        this.balboaHttpTimeout(1.seconds))
+        this.balboaHttpTimeout(250.millis),
+        this.balboaHttpMaxRetryWait(5.seconds)
+      )
   }
 
   val future: ScheduledFuture[_] = scheduler.scheduleWithFixedDelay(new Runnable {

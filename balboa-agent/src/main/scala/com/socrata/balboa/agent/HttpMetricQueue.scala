@@ -9,14 +9,17 @@ import com.stackmob.newman.ApacheHttpClient
 import com.stackmob.newman.dsl.POST
 import com.stackmob.newman.response.HttpResponseCode.Ok
 import com.typesafe.scalalogging.slf4j.StrictLogging
-import org.json4s.{DefaultFormats, Extraction, Formats}
 import org.json4s.jackson.JsonMethods.{pretty, render}
+import org.json4s.{DefaultFormats, Extraction, Formats}
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration) extends MetricQueue with StrictLogging {
+case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration, maxRetryWait: Duration)
+  extends MetricQueue with StrictLogging {
+
+  val StartingWaitDuration = 50.millis
 
   implicit val httpClient = new ApacheHttpClient
   implicit val jsonFormats: Formats = DefaultFormats
@@ -38,21 +41,27 @@ case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration) extends Met
              recordType: Metric.RecordType = Metric.RecordType.AGGREGATE): Unit = {
 
     val metricToWrite = EntityJSON(timestamp, Map(name.toString -> MetricJSON(value, recordType.toString)))
-
     val url = new URL(s"$balboaHttpURL/metrics/$entity")
+    val request = POST(url).setBody(pretty(render(Extraction.decompose(metricToWrite))))
 
-    val request = POST(url).setBody(pretty(render(Extraction.decompose(metricToWrite)))).apply
+    var waitInLoop = StartingWaitDuration
 
-    val requestWithTimeout = Future { Await.result(request, timeout) }
+    while (true) {
+      val requestWithTimeout = Future { Await.result(request.apply, timeout) }
 
-    requestWithTimeout.onComplete {
-      case Success(response) =>
-        val responseCode = response.code.code
-        if (responseCode != Ok.code) {
+      requestWithTimeout.onComplete {
+        case Success(response) =>
+          val responseCode = response.code.code
+          if (responseCode != Ok.code) {
+            return
+          }
           logger info s"HTTP POST to Balboa HTTP returned error code $responseCode: ${response.bodyString}"
-        }
-      case Failure(failure) =>
-        logger info s"HTTP POST to Balboa HTTP failed with ${failure.getMessage}"
+        case Failure(failure) =>
+          logger info s"HTTP POST to Balboa HTTP failed with ${failure.getMessage}"
+      }
+
+      Thread.sleep(waitInLoop.toMillis)
+      waitInLoop = Math.min(maxRetryWait.toMillis, (waitInLoop * 2).toMillis).millis
     }
   }
 

@@ -21,6 +21,7 @@ object Keys {
 
   lazy val BalboaHttpTimeoutMs = "balboa.agent.balboa.http.timeout"
 
+  lazy val BalboaHttpMaxRetryWaitMs = "balboa.agent.balboa.http.max.retry.wait"
 }
 
 /**
@@ -48,6 +49,9 @@ trait Config extends JMSClientConfig {
 
   def balboaHttpTimeout(defaultTimeout: Duration): Duration =
     Configuration.get().getLong(Keys.BalboaHttpTimeoutMs, defaultTimeout.toMillis).millis
+
+  def balboaHttpMaxRetryWait(defaultTimeout: Duration): Duration =
+    Configuration.get().getLong(Keys.BalboaHttpMaxRetryWaitMs, defaultTimeout.toMillis).millis
 }
 
 /**
