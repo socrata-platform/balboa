@@ -11,6 +11,11 @@ import java.util.Iterator;
 public interface DataStore extends WatchDog.WatchDogListener
 {
     /**
+     * Throws an exception if it cannot perform a query to Cassandra
+     */
+    void checkHealth() throws Exception;
+
+    /**
      * Retrieve an iterator that contains all the entity ids that the pattern
      * string matches. You probably don't want to use this, because it's
      * terribly slow and possibly dangerous.

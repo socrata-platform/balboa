@@ -58,6 +58,10 @@ public class BufferedDataStore extends DataStoreImpl {
 
     }
 
+    public void checkHealth() throws Exception {
+        underlying.checkHealth();
+    }
+
     public void heartbeat() {
         long timestamp = timeService.currentTimeMillis();
         long nearestSlice = timestamp - (timestamp % AGGREGATE_GRANULARITY);

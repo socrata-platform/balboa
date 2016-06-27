@@ -12,6 +12,9 @@ import scala.{collection => sc}
  * Queries the underlying datastore
  */
 trait CassandraQuery {
+  @throws(classOf[Exception])
+  def checkHealth()
+
   def getAllEntityIds(recordType:RecordType, period:Period):Iterator[String]
 
   def fetch(entityKey:String, period:Period, bucket:ju.Date):Metrics

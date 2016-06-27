@@ -27,6 +27,7 @@ public class BufferedDataStoreTest {
             metricMap.put(entityId, metrics);
             persists++;
         }
+        public void checkHealth() {}
         public void onStart() {}
         public void onStop() {}
         public void heartbeat() {}

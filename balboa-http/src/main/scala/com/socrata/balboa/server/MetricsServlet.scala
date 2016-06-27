@@ -16,6 +16,7 @@ import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
 import org.scalatra.{NoContent, Ok}
 
 class MetricsServlet extends JacksonJsonServlet
+    with ClientCounter
     with StrictLogging
     with NotFoundFilter
     with UnexpectedErrorFilter {

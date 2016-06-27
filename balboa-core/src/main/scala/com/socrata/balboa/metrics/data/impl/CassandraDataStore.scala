@@ -17,6 +17,10 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
   extends DataStoreImpl with StrictLogging {
   private val timeSvc = new TimeService()
 
+  @throws(classOf[Exception])
+  override def checkHealth(): Unit = {
+    queryImpl.checkHealth()
+  }
 
   /**
    * Retrieve an iterator that contains all the entity ids that the pattern

@@ -27,6 +27,8 @@ class BadIdeasDataStoreTest {
 }
 
 class MockDataStore extends DataStoreImpl {
+  @throws[Exception]
+  def checkHealth() = {}
   def entities(pattern: String) = null
   def entities() = null
   def slices(entityId: String, period: Period, start: Date, end: Date) = null
