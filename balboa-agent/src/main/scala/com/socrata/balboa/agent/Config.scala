@@ -19,9 +19,9 @@ object Keys {
 
   lazy val BalboaHttpUrl = "balboa.agent.balboa.http.url"
 
-  lazy val BalboaHttpTimeoutMs = "balboa.agent.balboa.http.timeout"
+  lazy val BalboaHttpTimeoutMs = "balboa.agent.balboa.http.timeout.ms"
 
-  lazy val BalboaHttpMaxRetryWaitMs = "balboa.agent.balboa.http.max.retry.wait"
+  lazy val BalboaHttpMaxRetryWaitMs = "balboa.agent.balboa.http.max.retry.wait.ms"
 }
 
 /**

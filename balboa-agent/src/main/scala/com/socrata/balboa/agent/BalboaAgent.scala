@@ -35,9 +35,9 @@ object BalboaAgent extends App with Config with StrictLogging {
   logger info "Starting the JMX Reporter."
   jmxReporter.start()
 
-  private val reportStrategy = this.transportType()
+  private val transportType = this.transportType()
 
-  val metricQueue = reportStrategy match {
+  val metricPublisher = transportType match {
     case Mq => amqMetricQueue()
     case Http =>
       new HttpMetricQueue(
@@ -50,7 +50,7 @@ object BalboaAgent extends App with Config with StrictLogging {
   val future: ScheduledFuture[_] = scheduler.scheduleWithFixedDelay(new Runnable {
     override def run(): Unit = {
       try {
-        val mc = new MetricConsumer(dataDir, metricQueue)
+        val mc = new MetricConsumer(dataDir, metricPublisher)
         try {
           logger debug s"Attempting to run Metric Consumer $mc"
           mc.run() // Recursively reads all metric data files and writes them to a queue.
