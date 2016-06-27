@@ -29,7 +29,7 @@ case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration, maxRetryWai
   logger info s"Initializing HttpMetricQueue targeting $balboaHttpURL"
 
   /**
-   * Interface for receiving a Metric
+   * Accepts a metric to transmit to the remote metric store.
    *
    * @param entity Entity which this Metric belongs to (ex: a domain).
    * @param name Name of the Metric to store.
@@ -49,6 +49,21 @@ case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration, maxRetryWai
 
     var waitInLoop = StartingWaitDuration
 
+    // Originally the transport mechanism for publishing metrics from
+    // balboa-agent to the metric store was ActiveMQ. ActiveMQ has a built in
+    // infinite retry for publishing to the queue. During the transition from
+    // ActiveMQ to sending metrics via HTTP, a strategy of replicating
+    // ActiveMQ's behavior of getting stuck here and infinitely retrying was
+    // taken to make the code transition simpler.
+    //
+    // An improvement on this naive infinite retry policy could go 1 of two ways:
+    // 1. Adapt `balboa-http` to accept all transmissions and persist the ones
+    //    it can't parse, retrying them later (when it's been upgraded for
+    //    example). This would safer for keeping accurate metrics.
+    // 2. Make `balboa-agent` respond differently to different HTTP error
+    //    codes. Possibly, for example (but not exhaustively) 404, 500s are
+    //    infinite retry, but 400s are written to a file to be retried in the
+    //    future.
     while (true) {
       val requestWithTimeout = Future { Await.result(request.apply, timeout) }
 
