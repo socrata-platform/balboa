@@ -1,6 +1,6 @@
 package com.socrata.balboa.agent
 
-import java.net.URL
+import java.net.{URL, URLEncoder}
 import java.util.Date
 
 import com.socrata.balboa.metrics.{EntityJSON, Metric, MetricJSON}
@@ -20,10 +20,13 @@ case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration, maxRetryWai
   extends MetricQueue with StrictLogging {
 
   val StartingWaitDuration = 50.millis
+  val Utf8 = "UTF_8"
 
   implicit val httpClient = new ApacheHttpClient
   implicit val jsonFormats: Formats = DefaultFormats
   implicit val executionContext = ExecutionContext.global
+
+  logger info s"Initializing HttpMetricQueue targeting $balboaHttpURL"
 
   /**
    * Interface for receiving a Metric
@@ -41,7 +44,7 @@ case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration, maxRetryWai
              recordType: Metric.RecordType = Metric.RecordType.AGGREGATE): Unit = {
 
     val metricToWrite = EntityJSON(timestamp, Map(name.toString -> MetricJSON(value, recordType.toString)))
-    val url = new URL(s"$balboaHttpURL/metrics/$entity")
+    val url = new URL(s"$balboaHttpURL/metrics/${URLEncoder.encode(entity.toString, Utf8)}")
     val request = POST(url).setBody(pretty(render(Extraction.decompose(metricToWrite))))
 
     var waitInLoop = StartingWaitDuration
