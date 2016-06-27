@@ -8,10 +8,7 @@ import com.socrata.balboa.metrics.{Metric, Metrics}
 
 import scala.{collection => sc}
 
-/**
- *
- */
-class MockCassandra11QueryImpl extends Cassandra11Query {
+class MockCassandraQueryImpl extends CassandraQuery {
   var persists = List[APersist]()
   var fetches = List[AFetch]()
   var entities = List[AEntitySearch]()
@@ -25,14 +22,14 @@ class MockCassandra11QueryImpl extends Cassandra11Query {
   }
 
   def fetch(entityId:String, period:Period, bucket:Date):Metrics = {
-    val entityKey:String = Cassandra11Util.createEntityKey(entityId,bucket.getTime)
+    val entityKey:String = CassandraUtil.createEntityKey(entityId,bucket.getTime)
     //println("Fetching " + entityKey + " in period " + period + " DATE: " + bucket.toGMTString)
     fetches = fetches ::: List[AFetch](new AFetch(entityKey, period))
     metricsToReturn
   }
 
   def persist(entityId:String, bucket:Date, period:Period, aggregates:sc.Map[String, Metric], absolutes:sc.Map[String, Metric]) {
-    val entityKey:String = Cassandra11Util.createEntityKey(entityId,bucket.getTime)
+    val entityKey:String = CassandraUtil.createEntityKey(entityId,bucket.getTime)
     //println("Persisting " + entityKey + " in period " + period + " DATE: " + bucket.toGMTString)
     persists = persists ::: List[APersist](new APersist(entityKey, period, aggregates, absolutes))
   }
@@ -47,8 +44,8 @@ class APersist(val entityKey:String, val period:Period, val agg:sc.Map[String, M
     }
   }
 
-  override def toString():String = {
-    return "PERSIST: entityKey: " + entityKey + " period:" + period + " agg:" + agg + " abs:" + abs
+  override def toString:String = {
+    "PERSIST: entityKey: " + entityKey + " period:" + period + " agg:" + agg + " abs:" + abs
   }
 }
 
@@ -61,11 +58,11 @@ class AFetch(val entityKey:String, val period:Period) {
     }
   }
 
-  override def toString():String = {
-    return "FETCH: entityKey: " + entityKey + " period:" + period
+  override def toString:String = {
+    "FETCH: entityKey: " + entityKey + " period:" + period
   }
 }
 
 class AEntitySearch(val recordType:RecordType, val period:Period) extends Ordered[AEntitySearch]{
-  def compare(that:AEntitySearch) =  if (that.period.compareTo(this.period) == 0) (that.recordType.compareTo(this.recordType)) else that.period.compareTo(this.period)
+  def compare(that:AEntitySearch) =  if (that.period.compareTo(this.period) == 0) that.recordType.compareTo(this.recordType) else that.period.compareTo(this.period)
 }

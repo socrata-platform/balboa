@@ -11,12 +11,9 @@ import com.typesafe.scalalogging.slf4j.StrictLogging
 import scala.collection.JavaConverters._
 
 /**
- * DataStore Implementation for Cassandra 1.1
- *
- *
- *
+ * DataStore Implementation for Cassandra.
  */
-class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext()))
+class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(CassandraUtil.initializeContext()))
   extends DataStoreImpl with StrictLogging {
   private val timeSvc = new TimeService()
 
@@ -58,7 +55,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     if (requestPeriod == null) {
       // We can't find a period which is more granular than the one given, so
       // we do our best.
-      requestPeriod = Cassandra11Util.mostGranular
+      requestPeriod = CassandraUtil.mostGranular
     }
     requestPeriod
   }
@@ -78,9 +75,9 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
   def slices(entityId: String, period:Period, start: ju.Date, end: ju.Date): ju.Iterator[Timeslice] = {
     val requestPeriod = getValidGranularity(period)
     val dates = new DateRange(start, end).toDates(requestPeriod)
-    val timeSlice = Cassandra11Util.sliceIterator(queryImpl, entityId, requestPeriod, dates.asScala.toList)
+    val timeSlice = CassandraUtil.sliceIterator(queryImpl, entityId, requestPeriod, dates.asScala.toList)
     if (requestPeriod != period) {
-      Cassandra11Util.rollupSliceIterator(period, timeSlice).asJava
+      CassandraUtil.rollupSliceIterator(period, timeSlice).asJava
     } else {
       timeSlice.asJava
     }
@@ -121,7 +118,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
    */
   def find(entityId: String, period:Period, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = {
     val query = new DateRange(start, end).toDates(period).asScala.map(date => (date, period))
-    Cassandra11Util.metricsIterator(queryImpl, entityId, query).asJava
+    CassandraUtil.metricsIterator(queryImpl, entityId, query).asJava
   }
 
   /**
@@ -143,7 +140,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     }.sorted
 
     // create the query set from the optimal slice
-    Cassandra11Util.metricsIterator(queryImpl, entityId, query).asJava
+    CassandraUtil.metricsIterator(queryImpl, entityId, query).asJava
   }
 
   /**
@@ -155,16 +152,15 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     val absolutes = scala.collection.mutable.HashMap[String, Metric]()
     val aggregates = scala.collection.mutable.HashMap[String, Metric]()
     metrics.asScala.foreach {
-      case(key,value) => {
+      case(key,value) =>
         value.getType match {
           case RecordType.AGGREGATE => aggregates.put(key, value)
           case RecordType.ABSOLUTE => absolutes.put(key, value)
         }
-      }
     }
     val start = timeSvc.currentTimeMillis()
     // increment/store metrics in each period
-    var period:Period = Cassandra11Util.leastGranular
+    var period:Period = CassandraUtil.leastGranular
     while (period != null && period != Period.REALTIME)
     {
       val range:DateRange = DateRange.create(period, new ju.Date(timestamp))
@@ -172,7 +168,7 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
       // Skip to the next largest period which we are configured
       // to use.
       period = period.moreGranular
-      while (period != null && !Cassandra11Util.periods.contains(period)) {
+      while (period != null && !CassandraUtil.periods.contains(period)) {
         period = period.moreGranular
       }
 
@@ -180,7 +176,4 @@ class Cassandra11DataStore(queryImpl:Cassandra11Query = new Cassandra11QueryImpl
     logger info s"Persisted entity: $entityId  with " + absolutes.size + " absolute and " + aggregates.size + " aggregated metrics - took " + (timeSvc.currentTimeMillis() - start) + "ms"
   }
 
-
-
 }
-
