@@ -34,6 +34,13 @@ object CassandraUtil extends StrictLogging {
     }
 
     def newSession: Session = cluster.connect(keyspace)
+
+    def execute(stmt: Statement): ju.List[Row] = {
+      val session = this.newSession
+      val result = session.execute(stmt).all()
+      session.close()
+      result
+    }
   }
 
   /*
