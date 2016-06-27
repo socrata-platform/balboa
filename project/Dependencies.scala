@@ -21,7 +21,7 @@ object Dependencies {
     val kafka = "0.8.2.0"
     val log4j = "1.2.17"
     val mockito = "1.+"
-    val newman = "1.3.5"
+    val newman = "1.3.12"
     val opencsv = "2.0.1"
     val protobuf_java = "2.3.0"
     val rojoma_json = "[2.1.0, 3.0.0)"
@@ -70,7 +70,7 @@ object Dependencies {
   val kafka_test = kafka % "test" classifier "test"
   val mockito_test = "org.mockito" % "mockito-core" % versions.mockito % "test"
   // Functionally Nice REST Client Currently newman only supports scala version 2.9.2 and 2.10
-  val newman = "com.stackmob" %% "newman" % versions.newman
+  val newman = "io.megam" %% "newman" % versions.newman
   val opencsv = "net.sf.opencsv" % "opencsv" % versions.opencsv
   val protobuf_java = "com.google.protobuf" % "protobuf-java" % versions.protobuf_java
   val rojoma_json = "com.rojoma" %% "rojoma-json" % versions.rojoma_json

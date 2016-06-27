@@ -7,6 +7,7 @@ import org.scalatra.sbt.ScalatraPlugin
 object BalboaHttp {
   lazy val settings: Seq[Setting[_]] =
     BuildSettings.projectSettings ++ Seq(
+    scalaVersion := "2.11.8",
     libraryDependencies <++= scalaVersion {libraries(_)},
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
   ) ++ ScalatraPlugin.scalatraFullSettings

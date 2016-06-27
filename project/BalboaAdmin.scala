@@ -5,6 +5,7 @@ import scoverage.ScoverageSbtPlugin
 
 object BalboaAdmin {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
+    scalaVersion := "2.11.8",
     mainClass in sbtassembly.AssemblyKeys.assembly := Some("com.socrata.balboa.admin.BalboaAdmin"),
     libraryDependencies <++= scalaVersion { libraries(_) },
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 100
