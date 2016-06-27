@@ -193,7 +193,10 @@ class MetricsServlet extends JacksonJsonServlet
 
   post("/:entityId")(postMetrics())
   def postMetrics(): Any = {
-    // Note: content type must be set -before- calling extractOpt for the body to be sent as JSON
+    // Note: The `contentType` is used to determine how the response is to be
+    // interpreted. For some unclear reason, it must be set -before- calling
+    // extractOpt for the body of the request in order for it to take effect on
+    // the response.
     contentType = json
     val entityId = params("entityId")
     val entityOpt = parsedBody.extractOpt[EntityJSON]
