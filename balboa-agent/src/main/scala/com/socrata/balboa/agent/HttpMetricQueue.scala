@@ -14,7 +14,7 @@ import org.json4s.{DefaultFormats, Extraction, Formats}
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration, maxRetryWait: Duration)
   extends MetricQueue with StrictLogging {
@@ -65,9 +65,9 @@ case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration, maxRetryWai
     //    infinite retry, but 400s are written to a file to be retried in the
     //    future.
     while (true) {
-      val requestWithTimeout = Future { Await.result(request.apply, timeout) }
+      val requestWithTimeout = Try(Await.result(request.apply, timeout))
 
-      requestWithTimeout.onComplete {
+      requestWithTimeout match {
         case Success(response) =>
           val responseCode = response.code.code
           if (responseCode != Ok.code) {
