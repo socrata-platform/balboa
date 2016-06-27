@@ -35,9 +35,7 @@ object BalboaAgent extends App with Config with StrictLogging {
   logger info "Starting the JMX Reporter."
   jmxReporter.start()
 
-  private val transportType = this.transportType()
-
-  val metricPublisher = transportType match {
+  val metricPublisher = this.transportType() match {
     case Mq => amqMetricQueue()
     case Http =>
       new HttpMetricQueue(
