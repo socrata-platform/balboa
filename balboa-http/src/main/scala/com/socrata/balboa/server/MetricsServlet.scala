@@ -208,7 +208,7 @@ class MetricsServlet extends JacksonJsonServlet
       val bodyToPrint = if (request.body.length < MaxLogLength) {
         request.body
       } else {
-        "truncated - body too large to log"
+        "<truncated - body too large to log>"
       }
       logger error s"Unable to parse metrics to save. Received '$bodyToPrint'"
       return badRequest("message body", "unable to parse as metrics entity").result
