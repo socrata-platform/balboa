@@ -4,16 +4,16 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.util.concurrent.TimeUnit
 
 import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, Period}
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics
-import com.socrata.balboa.server.rest.Extractable
+import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.balboa.server.ResponseWithType._
 import com.socrata.balboa.server.ScalatraUtil.getAccepts
+import com.socrata.balboa.server.rest.Extractable
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
-import org.scalatra.{NoContent, Ok, ScalatraServlet}
+import org.scalatra.{NoContent, Ok}
 
 class MetricsServlet extends JacksonJsonServlet
     with StrictLogging
@@ -40,7 +40,7 @@ class MetricsServlet extends JacksonJsonServlet
 
   // Match paths like /metrics/:entityId and /metrics/:entityId/whatever
   get("""^\/([^\/]+).*""".r)(getMetrics)
-  def getMetrics(): Any = {
+  def getMetrics: Any = {
     val entityId = params("captures")
 
     val period = params.get(PeriodKey).map(Extractable[Period].extract) match {
@@ -146,14 +146,12 @@ class MetricsServlet extends JacksonJsonServlet
 
     val period = params.get(PeriodKey).map(Extractable[Period].extract) match {
       case Some(Right(value)) => value
-      case Some(Left(err)) => {
+      case Some(Left(err)) =>
         contentType = json
         return badRequest(PeriodKey, err).result
-      }
-      case None => {
+      case None =>
         contentType = json
         return required(PeriodKey).result
-      }
     }
     val start = params.getOrElse(StartKey, {
       contentType = json

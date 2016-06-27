@@ -1,6 +1,7 @@
 package com.socrata.balboa.server
 
 import javax.servlet.http.HttpServletRequest
+
 import scala.collection.JavaConverters._
 
 object ScalatraUtil {
