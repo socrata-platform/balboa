@@ -6,7 +6,7 @@ import java.{util => ju}
 import com.datastax.driver.core.querybuilder.QueryBuilder
 import com.datastax.driver.core.{BatchStatement, ConsistencyLevel, Row}
 import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.data.impl.Cassandra11Util.DatastaxContext
+import com.socrata.balboa.metrics.data.impl.CassandraUtil.DatastaxContext
 import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, Period}
 import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.typesafe.scalalogging.slf4j.StrictLogging
@@ -16,12 +16,11 @@ import scala.collection.JavaConverters.iterableAsScalaIterableConverter
 
 /**
  * Query Implementation
- *
  */
-class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query with StrictLogging {
+class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with StrictLogging {
 
   def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {
-    val entityKey: String = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
+    val entityKey: String = CassandraUtil.createEntityKey(entityId, bucket.getTime)
     val ret: Metrics = new Metrics()
 
     for (recordType <- List(RecordType.ABSOLUTE, RecordType.AGGREGATE)) {
@@ -43,7 +42,7 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
     try {
 
       val qb = QueryBuilder.select("key").distinct()
-        .from(context.keyspace, Cassandra11Util.getColumnFamily(period, recordType))
+        .from(context.keyspace, CassandraUtil.getColumnFamily(period, recordType))
         .limit(100)
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
@@ -65,7 +64,7 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
     try {
 
       val qb = QueryBuilder.select().all()
-        .from(context.keyspace, Cassandra11Util.getColumnFamily(period, recordType))
+        .from(context.keyspace, CassandraUtil.getColumnFamily(period, recordType))
         .where(QueryBuilder.eq("key", entityKey))
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
@@ -88,7 +87,7 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
               period: Period,
               aggregates: sc.Map[String, Metric],
               absolutes: sc.Map[String, Metric]): Unit = {
-    val entityKey = Cassandra11Util.createEntityKey(entityId, bucket.getTime)
+    val entityKey = CassandraUtil.createEntityKey(entityId, bucket.getTime)
     logger debug s"Using entity/row key $entityKey at period $period"
     fastfail.proceedOrThrow()
 
@@ -98,7 +97,7 @@ class Cassandra11QueryImpl(context: DatastaxContext) extends Cassandra11Query wi
 
     for (sameTypeRecords <- List(aggregates, absolutes).filter(_.nonEmpty)) {
       // Initialize the query to work with either AGGREGATE or ABSOLUTE type values
-      val table =  Cassandra11Util.getColumnFamily(period, sameTypeRecords.iterator.next()._2.getType)
+      val table =  CassandraUtil.getColumnFamily(period, sameTypeRecords.iterator.next()._2.getType)
 
       for {(k, v) <- sameTypeRecords} {
         if (k != "") {

@@ -11,12 +11,9 @@ import org.junit.{Before, Ignore, Test}
 
 import scala.collection.JavaConverters._
 
-/**
- *
- */
-class Cassandra11DataStoreTest {
-  val mock = new MockCassandra11QueryImpl()
-  val cds: Cassandra11DataStore = new Cassandra11DataStore(mock)
+class CassandraDataStoreTest {
+  val mock = new MockCassandraQueryImpl()
+  val cds: CassandraDataStore = new CassandraDataStore(mock)
   val testMetrics: Metrics = new Metrics()
   val testEntity = "foo"
   val aggMetric = new Metric(Metric.RecordType.AGGREGATE, 1)
@@ -39,7 +36,7 @@ class Cassandra11DataStoreTest {
   @Test
   @Ignore("Requires a local cassandra server and should be executed in isolation")
   def testPersistIntegration(): Unit = {
-    val cds: Cassandra11DataStore = new Cassandra11DataStore()
+    val cds: CassandraDataStore = new CassandraDataStore()
     cds.persist(testEntity, System.currentTimeMillis(), testMetrics)
   }
 
@@ -223,11 +220,11 @@ class Cassandra11DataStoreTest {
     val expectedRanges = dr.toDates(requestPeriod).asScala.toList
 
     // Run it through the roll-up iterator
-    val tsItr = Cassandra11Util.sliceIterator(mock, "blah", supportedPeriod, inRanges)
-    val rdItr = Cassandra11Util.rollupSliceIterator(requestPeriod, tsItr)
+    val tsItr = CassandraUtil.sliceIterator(mock, "blah", supportedPeriod, inRanges)
+    val rdItr = CassandraUtil.rollupSliceIterator(requestPeriod, tsItr)
 
     // Pretend we support this period
-    val expectedItr = Cassandra11Util.sliceIterator(mock, "blah", requestPeriod, expectedRanges)
+    val expectedItr = CassandraUtil.sliceIterator(mock, "blah", requestPeriod, expectedRanges)
 
     // We can have more requested timeslices returned than if the query were natively supported
     // because
@@ -236,10 +233,9 @@ class Cassandra11DataStoreTest {
       val expect = expectedItr.next()
       requestPeriod match {
         case Period.MONTHLY => {}
-        case _ => {
+        case _ =>
           Assert.assertEquals("Expected start to be == rolledUp start",  expect.getStart, ts.getStart) // time slices do not have to exactly align on boundarys
           Assert.assertEquals("Expected end to be == rolledUp end",expect.getEnd, ts.getEnd)
-        }
       }
 
       Assert.assertTrue(DateRange.liesOnBoundary(new Date(ts.getStart), requestPeriod))
@@ -261,9 +257,9 @@ class Cassandra11DataStoreTest {
 
   @Test
   def rollUpSliceCrossOddBoundary() {
-    val start = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+    val start = new GregorianCalendar(TimeZone.getTimeZone("UTC"))
     start.set(2010, 0, 12)
-    val end = new GregorianCalendar(TimeZone.getTimeZone("UTC"));
+    val end = new GregorianCalendar(TimeZone.getTimeZone("UTC"))
     end.set(2010, 3, 16)
     rollUpIteratorTest(Period.MONTHLY, Period.WEEKLY, start.getTime.getTime, end.getTime.getTime)
   }

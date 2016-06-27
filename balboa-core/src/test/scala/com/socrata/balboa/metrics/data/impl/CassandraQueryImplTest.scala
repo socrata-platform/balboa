@@ -13,11 +13,11 @@ import org.junit.{Ignore, Test}
 /**
  * Integration Test; Tests Ignored Manually
  */
-class Cassandra11QueryImplTest {
+class CassandraQueryImplTest {
   @Test
   @Ignore("Requires a local cassandra server and should be executed in isolation")
   def testFetchSet(): Unit = {
-    val q:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext())
+    val q:CassandraQuery = new CassandraQueryImpl(CassandraUtil.initializeContext())
     q.persist("mykey", DateRange.create(Period.HOURLY,new Date(1000)).start, Period.HOURLY,
       Map("mymetric1" -> new Metric(RecordType.AGGREGATE, 1), "mymetric2" -> new Metric(RecordType.AGGREGATE, 555)),
       Map("mymetric3" -> new Metric(RecordType.ABSOLUTE, 666), "mymetric4" -> new Metric(RecordType.ABSOLUTE, 777)))
@@ -28,7 +28,7 @@ class Cassandra11QueryImplTest {
   @Test
   @Ignore("Requires a local cassandra server and should be executed in isolation")
   def testGetKeys(): Unit = {
-    val keysItr:Iterator[String] = new Cassandra11QueryImpl(Cassandra11Util.initializeContext()).getAllEntityIds(RecordType.AGGREGATE, Period.HOURLY)
+    val keysItr:Iterator[String] = new CassandraQueryImpl(CassandraUtil.initializeContext()).getAllEntityIds(RecordType.AGGREGATE, Period.HOURLY)
     keysItr.foreach(println)
   }
 
@@ -37,7 +37,7 @@ class Cassandra11QueryImplTest {
   def testConnectionFailureOnPersist() {
     BalboaFastFailCheck.getInstance().markSuccess()
     Configuration.get().setProperty("cassandra.servers", "example.test-socrata.com:12345")
-    val q:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext())
+    val q:CassandraQuery = new CassandraQueryImpl(CassandraUtil.initializeContext())
     try {
       Assert.assertTrue(BalboaFastFailCheck.getInstance().proceed())
       q.persist("mykey", DateRange.create(Period.HOURLY,new Date(1000)).start, Period.HOURLY,
@@ -53,7 +53,7 @@ class Cassandra11QueryImplTest {
   def testConnectionFailureOnFetch() {
     BalboaFastFailCheck.getInstance().markSuccess()
     Configuration.get().setProperty("cassandra.servers", "example.test-socrata.com:12345")
-    val q:Cassandra11Query = new Cassandra11QueryImpl(Cassandra11Util.initializeContext())
+    val q:CassandraQuery = new CassandraQueryImpl(CassandraUtil.initializeContext())
     try {
       Assert.assertTrue(BalboaFastFailCheck.getInstance().proceed())
       q.fetch("mykey", Period.HOURLY, new DateRange(new Date(1000), new Date(2000)).start)
@@ -61,6 +61,5 @@ class Cassandra11QueryImplTest {
       Assert.assertTrue(BalboaFastFailCheck.getInstance().isInFailureMode)
     }
   }
-
 
 }

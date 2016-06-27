@@ -33,17 +33,17 @@ public class DataStoreFactory
         if (datastore.equals("buffered-cassandra")) {
             return new BufferedDataStore(
                     new BadIdeasDataStore(
-                            new Cassandra11DataStore(
-                                    new Cassandra11QueryImpl(
-                                            Cassandra11Util.initializeContext(conf)))));
+                            new CassandraDataStore(
+                                    new CassandraQueryImpl(
+                                            CassandraUtil.initializeContext(conf)))));
         }
 
         if (datastore.equals("cassandra"))
         {
             return new BadIdeasDataStore(
-                    new Cassandra11DataStore(
-                            new Cassandra11QueryImpl(
-                                    Cassandra11Util.initializeContext(conf))));
+                    new CassandraDataStore(
+                            new CassandraQueryImpl(
+                                    CassandraUtil.initializeContext(conf))));
         }
         else
         {
