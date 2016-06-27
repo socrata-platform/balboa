@@ -26,6 +26,8 @@ object Main extends App with StrictLogging {
   context.setResourceBase("src/main/webapp")
   context.addEventListener(new ScalatraListener())
   context.addServlet(classOf[MainServlet], "/")
+  context.addServlet(classOf[MetricsServlet], "/metrics")
+  context.addServlet(classOf[HealthCheckServlet], "/health")
 
   server.setHandler(context)
 

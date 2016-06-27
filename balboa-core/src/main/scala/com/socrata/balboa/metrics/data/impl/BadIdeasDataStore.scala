@@ -13,6 +13,11 @@ import scala.collection.JavaConverters._
  */
 class BadIdeasDataStore(child:DataStore) extends DataStoreImpl with StrictLogging {
 
+  @throws(classOf[Exception])
+  def checkHealth(): Unit = {
+    child.checkHealth()
+  }
+
   def entities(pattern: String): ju.Iterator[String] = {
     logger error "Getting all the entities from balboa is a slow, dangerous thing. Please do not do this regularly."
     child.entities(pattern)

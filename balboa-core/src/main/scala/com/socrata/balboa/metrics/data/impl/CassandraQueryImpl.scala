@@ -19,6 +19,11 @@ import scala.collection.JavaConverters.iterableAsScalaIterableConverter
  */
 class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with StrictLogging {
 
+  @throws(classOf[Exception])
+  def checkHealth(): Unit = {
+    context.newSession.execute("SELECT now() FROM system.LOCAL;").all()
+  }
+
   def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {
     val entityKey: String = CassandraUtil.createEntityKey(entityId, bucket.getTime)
     val ret: Metrics = new Metrics()
@@ -46,7 +51,7 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
         .limit(100)
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
-      val rows = context.newSession.execute(qb).all()
+      val rows = context.execute(qb)
       val retVal = rows.asScala.map(_.getString("key")).map(removeTimestamp).iterator
 
       fastfail.markSuccess()
@@ -68,7 +73,7 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
         .where(QueryBuilder.eq("key", entityKey))
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
-      val rows = context.newSession.execute(qb).all()
+      val rows = context.execute(qb)
 
       val retVal = rows.asScala.iterator
 
@@ -119,8 +124,7 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
     }
 
     try {
-      val retVal = context.newSession.execute(batchStatement)
-      retVal.all()
+      context.execute(batchStatement)
       fastfail.markSuccess()
     } catch {
       case e: Exception =>
