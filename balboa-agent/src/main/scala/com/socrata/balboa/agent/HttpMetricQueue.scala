@@ -5,24 +5,26 @@ import java.util.Date
 
 import com.socrata.balboa.metrics.{EntityJSON, Metric, MetricJSON}
 import com.socrata.metrics.{IdParts, MetricQueue}
-import com.stackmob.newman.ApacheHttpClient
 import com.stackmob.newman.dsl.POST
 import com.stackmob.newman.response.HttpResponseCode.Ok
+import com.stackmob.newman.{ApacheHttpClient, HttpClient}
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.json4s.jackson.JsonMethods.{pretty, render}
 import org.json4s.{DefaultFormats, Extraction, Formats}
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{Await, ExecutionContext}
 import scala.util.{Failure, Success, Try}
 
-case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration, maxRetryWait: Duration)
+case class HttpMetricQueue(balboaHttpURL: String,
+                           timeout: Duration,
+                           maxRetryWait: Duration,
+                           implicit val httpClient: HttpClient = new ApacheHttpClient)
   extends MetricQueue with StrictLogging {
 
   val StartingWaitDuration = 50.millis
   val Utf8 = "UTF_8"
 
-  implicit val httpClient = new ApacheHttpClient
   implicit val jsonFormats: Formats = DefaultFormats
   implicit val executionContext = ExecutionContext.global
 
@@ -56,9 +58,9 @@ case class HttpMetricQueue(balboaHttpURL: String, timeout: Duration, maxRetryWai
     // ActiveMQ's behavior of getting stuck here and infinitely retrying was
     // taken to make the code transition simpler.
     //
-    // An improvement on this naive infinite retry policy could go 1 of two ways:
+    // An improvement on this naive infinite retry policy could go one of two ways:
     // 1. Adapt `balboa-http` to accept all transmissions and persist the ones
-    //    it can't parse, retrying them later (when it's been upgraded for
+    //    it can't parsed, retrying them later (when it's been upgraded for
     //    example). This would safer for keeping accurate metrics.
     // 2. Make `balboa-agent` respond differently to different HTTP error
     //    codes. Possibly, for example (but not exhaustively) 404, 500s are
