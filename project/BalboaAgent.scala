@@ -8,7 +8,6 @@ import scoverage.ScoverageSbtPlugin
 
 object BalboaAgent extends DockerKeys with LinuxKeys {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
-    scalaVersion := "2.11.8",
     mainClass in sbtassembly.AssemblyKeys.assembly := Some("com.socrata.balboa.agent.BalboaAgent"),
     libraryDependencies <++= scalaVersion { libraries(_) },
     dockerBaseImage := "socrata/java",

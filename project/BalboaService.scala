@@ -13,7 +13,6 @@ object BalboaService {
    * Base Settings for all BalboaServices.
    */
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
-    scalaVersion := "2.11.8",
     libraryDependencies <++= scalaVersion {libraries(_)},
     parallelExecution in Test := false,
     assemblyMergeStrategy in assembly := {
