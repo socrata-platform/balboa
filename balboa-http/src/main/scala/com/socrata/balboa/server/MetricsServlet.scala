@@ -1,7 +1,6 @@
 package com.socrata.balboa.server
 
 import java.nio.charset.StandardCharsets.UTF_8
-import java.util.concurrent.TimeUnit
 
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, Period}
@@ -13,9 +12,11 @@ import com.socrata.balboa.server.rest.Extractable
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
+import org.scalatra.metrics.MetricsSupport
 import org.scalatra.{NoContent, Ok}
 
 class MetricsServlet extends JacksonJsonServlet
+    with MetricsSupport
     with ClientCounter
     with StrictLogging
     with NotFoundFilter
@@ -31,15 +32,6 @@ class MetricsServlet extends JacksonJsonServlet
   val DateKey = "date"
   val CombineKey = "combine"
   val FieldKey = "field"
-
-  val seriesMeter = com.yammer.metrics.Metrics.newTimer(
-    classOf[MetricsServlet], "series queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
-
-  val rangeMeter = com.yammer.metrics.Metrics.newTimer(
-    classOf[MetricsServlet], "range queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
-
-  val periodMeter = com.yammer.metrics.Metrics.newTimer(
-    classOf[MetricsServlet], "period queries", TimeUnit.MILLISECONDS, TimeUnit.SECONDS)
 
   // Match paths like /metrics/:entityId and /metrics/:entityId/whatever
   get("""^\/([^\/]+).*""".r)(getMetrics)
@@ -69,15 +61,12 @@ class MetricsServlet extends JacksonJsonServlet
       return unacceptable.result
     }
 
-    val begin = System.currentTimeMillis()
-
     val range = DateRange.create(period, ServiceUtils.parseDate(date).getOrElse {
       contentType = json
       return malformedDate(date).result
     })
 
-    try
-    {
+    timer("period queries") {
       val iter = dataStore.find(entityId, period, range.start, range.end)
       var metrics = Metrics.summarize(iter)
 
@@ -87,10 +76,6 @@ class MetricsServlet extends JacksonJsonServlet
       val response = render(mediaType, metrics)
       contentType = response.contentType
       response.result
-    }
-    finally
-    {
-      periodMeter.update(System.currentTimeMillis() - begin, TimeUnit.MILLISECONDS)
     }
   }
 
@@ -123,10 +108,7 @@ class MetricsServlet extends JacksonJsonServlet
       return unacceptable
     })
 
-    val begin = System.currentTimeMillis()
-
-    try
-    {
+    timer("range queries") {
       val iter = dataStore.find(entityId, startDate, endDate)
       var metrics = Metrics.summarize(iter)
 
@@ -136,10 +118,6 @@ class MetricsServlet extends JacksonJsonServlet
       val result = render(mediaType, metrics)
       contentType = result.contentType
       result.result
-    }
-    finally
-    {
-      rangeMeter.update(System.currentTimeMillis() - begin, TimeUnit.MILLISECONDS)
     }
   }
 
@@ -179,18 +157,11 @@ class MetricsServlet extends JacksonJsonServlet
       return unacceptable
     })
 
-    val begin = System.currentTimeMillis()
-
-    try
-    {
+    timer("series queries") {
       val body = renderJson(dataStore.slices(entityId, period, startDate, endDate)).getBytes(UTF_8)
       val resp = ResponseWithType(json, Ok(body))
       contentType = resp.contentType
       resp.result
-    }
-    finally
-    {
-      seriesMeter.update(System.currentTimeMillis() - begin, TimeUnit.MILLISECONDS)
     }
   }
 
