@@ -95,22 +95,37 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
     val entityKey = CassandraUtil.createEntityKey(entityId, bucket.getTime)
     logger debug s"Using entity/row key $entityKey at period $period"
     fastfail.proceedOrThrow()
-
-    val batchStatement = new BatchStatement(BatchStatement.Type.LOGGED)
-
     val entityKeyWhere = QueryBuilder.eq("key", entityKey)
 
-    for (sameTypeRecords <- List(aggregates, absolutes).filter(_.nonEmpty)) {
+    for (sameTypeRecords <- List(absolutes, aggregates).filter(_.nonEmpty)) {
+      // Must execute counter and non-counter separately, since counter batches
+      // can only contain counter statements, and non-counter batches can only contain
+      // non-counter statements
+      //
+      // Beyond that, absolutes must go first so that the query doesn't fail
+      // after executing the non-idempotent part of the request (i.e. successfully
+      // increments aggregate but then fails to write absolute)
+
+      val recordType = sameTypeRecords.iterator.next()._2.getType
+
+      val batchStatement = new BatchStatement(
+        if (recordType == RecordType.AGGREGATE) {
+          BatchStatement.Type.COUNTER
+        } else {
+          BatchStatement.Type.LOGGED
+        }
+      )
+
       // Initialize the query to work with either AGGREGATE or ABSOLUTE type values
-      val table =  CassandraUtil.getColumnFamily(period, sameTypeRecords.iterator.next()._2.getType)
+      val table = CassandraUtil.getColumnFamily(period, recordType)
 
       for {(k, v) <- sameTypeRecords} {
         if (k != "") {
           v.getType match {
             case RecordType.ABSOLUTE =>
               batchStatement.add(
-                 QueryBuilder.insertInto(table)
-                   .value("key", entityKey).value("column1", k).value("value", v.getValue))
+                QueryBuilder.insertInto(table)
+                  .value("key", entityKey).value("column1", k).value("value", v.getValue))
             case RecordType.AGGREGATE =>
               batchStatement.add(
                 QueryBuilder.update(table)
@@ -121,18 +136,20 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
           logger warn "dropping metric with empty string as column"
         }
       }
+
+      try {
+        context.executeUpdate(batchStatement)
+        fastfail.markSuccess()
+      } catch {
+        case e: Exception =>
+          val wrapped = new IOException("Error writing metrics " + entityKey + " from " + period, e)
+          fastfail.markFailure(wrapped)
+          logger.error(s"Error writing metrics $entityKey from $period", e)
+          throw wrapped
+      }
     }
 
-    try {
-      context.executeUpdate(batchStatement)
-      fastfail.markSuccess()
-    } catch {
-      case e: Exception =>
-        val wrapped = new IOException("Error writing metrics " + entityKey + " from " + period, e)
-        fastfail.markFailure(wrapped)
-        logger.error(s"Error writing metrics $entityKey from $period", e)
-        throw wrapped
-    }
+    fastfail.markSuccess()
   }
 
   val fastfail: BalboaFastFailCheck = BalboaFastFailCheck.getInstance
