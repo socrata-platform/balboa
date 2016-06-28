@@ -5,6 +5,7 @@ import sbtassembly.MergeStrategy
 
 object BuildSettings {
   val buildSettings: Seq[Setting[_]] = Defaults.coreDefaultSettings++ Seq(
+    scalaVersion := "2.11.8",
     // TODO: enable style build failures
     com.socrata.sbtplugins.StylePlugin.StyleKeys.styleFailOnError in Compile := false,
     // TODO: enable findbugs build failures
