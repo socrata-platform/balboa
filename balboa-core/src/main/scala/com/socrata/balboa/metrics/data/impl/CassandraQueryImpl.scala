@@ -124,7 +124,7 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
     }
 
     try {
-      context.execute(batchStatement)
+      context.executeUpdate(batchStatement)
       fastfail.markSuccess()
     } catch {
       case e: Exception =>
