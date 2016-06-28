@@ -1,6 +1,10 @@
 resolvers := Seq(
   "sonatype-snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
-  "socrata maven" at "https://repository-socrata-oss.forge.cloudbees.com/release"
+  "socrata maven" at "https://repository-socrata-oss.forge.cloudbees.com/release",
+  Resolver.sonatypeRepo("releases"),
+  Resolver.sonatypeRepo("snapshots"),
+  Resolver.bintrayRepo("scalaz", "releases"),
+  Resolver.bintrayRepo("megamsys", "scala")
 )
 
 addSbtPlugin("com.socrata" % "socrata-sbt-plugins" % "1.6.1")

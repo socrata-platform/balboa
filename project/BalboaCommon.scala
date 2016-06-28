@@ -7,7 +7,7 @@ object BalboaCommon {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},
     sbtbuildinfo.BuildInfoKeys.buildInfoPackage := "com.socrata.balboa",
-    crossScalaVersions := Seq("2.10.6", "2.11.7"),
+    crossScalaVersions := Seq("2.10.6", "2.11.8"),
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
   )
 
