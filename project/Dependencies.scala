@@ -70,6 +70,7 @@ object Dependencies {
   val kafka_test = kafka % "test" classifier "test"
   val mockito_test = "org.mockito" % "mockito-core" % versions.mockito % "test"
   // Functionally Nice REST Client Currently newman only supports scala version 2.9.2 and 2.10
+  // Because of this, its been replaced with megam newman, which supports scala 2.11
   val newman = "io.megam" %% "newman" % versions.newman
   val opencsv = "net.sf.opencsv" % "opencsv" % versions.opencsv
   val protobuf_java = "com.google.protobuf" % "protobuf-java" % versions.protobuf_java
