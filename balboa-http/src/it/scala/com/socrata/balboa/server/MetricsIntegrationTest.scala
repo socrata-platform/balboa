@@ -2,6 +2,7 @@ package com.socrata.balboa.server
 
 import java.net.URL
 
+import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.data.DataStoreFactory
 import com.stackmob.newman.ApacheHttpClient
 import com.stackmob.newman.dsl.{GET, POST}
@@ -76,13 +77,13 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   // determine if this is in use anywhere and it can be removed. Proper
   // response for this endpoint should be a 404.
   "Retrieve /metrics/*/range/*" should "show the same results as /metrics/*/range" in {
-    persistManyMetrics(1 to 10)
+    persistManyMetrics(10, RecordType.ABSOLUTE)
     val rangeResponse = getJSONResponse(s"metrics/$testEntityName/range?start=$testStart&end=$testEnd")
     val rangeWithExtraResponse = getJSONResponse(s"metrics/$testEntityName/range/whatever?start=$testStart&end=$testEnd")
     rangeWithExtraResponse.bodyString shouldBeJSON rangeResponse.bodyString
   }
   "Retrieve /metrics/*/series/*" should "show the same results as /metrics/*/series" in {
-    persistManyMetrics(1 to 10)
+    persistManyMetrics(10, RecordType.ABSOLUTE)
     val seriesResponse = getJSONResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=$testStart&end=$testEnd")
     val seriesWithExtraResponse = getJSONResponse(s"metrics/$testEntityName/series/whatever?period=MONTHLY&start=$testStart&end=$testEnd")
     seriesWithExtraResponse.bodyString shouldBeJSON seriesResponse.bodyString
@@ -180,29 +181,33 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   }
 
   // Returns the JSON string representation of the metric added
-  def persistSingleMetric(): String = {
+  def persistSingleMetric(metricType: RecordType = RecordType.ABSOLUTE): String = {
     val url = new URL(Config.Server, s"/metrics/$testEntityName")
     val result = Await.result(
       POST(url).setBody(
         pretty(render(Extraction.decompose(
           EntityJSON(
             testPersistedDateEpoch,
-            Map(testMetricName -> MetricJSON(1, "ABSOLUTE")))))))
+            Map(testMetricName -> MetricJSON(1, metricType.toString.toUpperCase)))))))
       .apply,
       Config.RequestTimeout)
 
     result.code.code should be (NoContent.code)
 
-    """{ "%s": { "value": 1, "type": "absolute" } }""".format(testMetricName)
+    s"""{ "$testMetricName": { "value": 1, "type": "${metricType.toString}" } }"""
   }
 
   // Returns the JSON string representation of the metrics added
-  def persistManyMetrics(metRange: Range): String = {
+  def persistManyMetrics(count: Int, metricTypes: RecordType*): String = {
     val url = new URL(Config.Server, s"/metrics/$testEntityName")
+    val metRange = 0 to count
 
     val metrics = new mutable.HashMap[String, MetricJSON]
-    for (i <- metRange) {
-      metrics.put(testMetricName + "-" + i, new MetricJSON(1, "ABSOLUTE"))
+    for ((metricType, typeIndex) <- metricTypes.zipWithIndex) {
+      for (i <- metRange) {
+        val testNum = (typeIndex * (count + 1)) + i
+        metrics.put(testMetricName + "-" + testNum, new MetricJSON(1, metricType.toString.toUpperCase))
+      }
     }
 
     val result = Await.result(
@@ -218,15 +223,35 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
     result.code.code should be (NoContent.code)
 
     "{" +
-      metRange.map(i =>
-        """ "%s-%d": { "value": 1, "type": "absolute" } """
-          .format(testMetricName, i)
-      ).mkString(", ") +
+      metricTypes.zipWithIndex.flatMap({
+        case (metricType, typeIndex) =>
+          metRange.map(i =>
+            s""" "$testMetricName-${(typeIndex * (count + 1)) + i}": { "value": 1, "type": "${metricType.toString}" } """
+      )}).mkString(", ") +
       "}"
+  }
+
+  "Persist absolute metrics via POST" should "succeed" in {
+    persistManyMetrics(10, RecordType.ABSOLUTE)
+  }
+
+  "Persist aggregate metrics via POST" should "succeed" in {
+    persistManyMetrics(10, RecordType.AGGREGATE)
+  }
+
+  "Persist both absolute and aggregate metrics in the same request" should "succeed" in {
+    persistManyMetrics(10, RecordType.ABSOLUTE, RecordType.AGGREGATE)
   }
 
   "Retrieve /metrics/* after persisting" should "show persisted metric" in {
     val expected = persistSingleMetric()
+    val response = getJSONProtoResponse(s"/metrics/$testEntityName?period=YEARLY&date=$testPersistedDate")
+    response shouldHaveCode Ok
+    response.json.bodyString shouldBeJSON expected
+  }
+
+  "Retrieve /metrics/* after persisting many absolute and aggregate metrics" should "show persisted metrics" in {
+    val expected = persistManyMetrics(10, RecordType.ABSOLUTE, RecordType.AGGREGATE)
     val response = getJSONProtoResponse(s"/metrics/$testEntityName?period=YEARLY&date=$testPersistedDate")
     response shouldHaveCode Ok
     response.json.bodyString shouldBeJSON expected
@@ -241,7 +266,7 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
 
   "Retrieve /metrics range after persisting multiple metrics" should "show multiple persisted metrics" in {
     val metRange = 1 to 10
-    val expected = persistManyMetrics(metRange)
+    val expected = persistManyMetrics(10, RecordType.ABSOLUTE)
     val response = getJSONProtoResponse(s"metrics/$testEntityName/range?start=$testStart&end=$testEnd")
     response shouldHaveCode Ok
     response.json.bodyString shouldBeJSON expected
@@ -262,7 +287,7 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
 
   "Retrieve /metrics series after persisting multiple metrics" should "show persisted metrics" in {
     val metRange = 1 to 10
-    val expectedMetrics = persistManyMetrics(metRange)
+    val expectedMetrics = persistManyMetrics(10, RecordType.ABSOLUTE)
 
     val response = getJSONResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=$testStart&end=$testEnd")
     response.code.code should be (Ok.code)
