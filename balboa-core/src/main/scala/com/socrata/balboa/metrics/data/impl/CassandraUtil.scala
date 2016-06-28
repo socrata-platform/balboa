@@ -11,6 +11,7 @@ import com.socrata.balboa.metrics.data.{DateRange, Period}
 import com.typesafe.scalalogging.slf4j.StrictLogging
 import com.datastax.driver.core._
 
+import scala.util.Try
 import scala.{collection => sc}
 
 /**
@@ -37,9 +38,18 @@ object CassandraUtil extends StrictLogging {
 
     def execute(stmt: Statement): ju.List[Row] = {
       val session = this.newSession
-      val result = session.execute(stmt).all()
+      val result = Try(session.execute(stmt).all())
       session.close()
-      result
+      result.get
+    }
+
+    def executeUpdate(stmt: Statement): Unit = {
+      val session = this.newSession
+      try {
+        session.execute(stmt)
+      } finally {
+        session.close()
+      }
     }
   }
 

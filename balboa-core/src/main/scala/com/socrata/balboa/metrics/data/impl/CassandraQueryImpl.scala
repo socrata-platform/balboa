@@ -117,15 +117,15 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
       )
 
       // Initialize the query to work with either AGGREGATE or ABSOLUTE type values
-      val table =  CassandraUtil.getColumnFamily(period, recordType)
+      val table = CassandraUtil.getColumnFamily(period, recordType)
 
       for {(k, v) <- sameTypeRecords} {
         if (k != "") {
           v.getType match {
             case RecordType.ABSOLUTE =>
               batchStatement.add(
-                 QueryBuilder.insertInto(table)
-                   .value("key", entityKey).value("column1", k).value("value", v.getValue))
+                QueryBuilder.insertInto(table)
+                  .value("key", entityKey).value("column1", k).value("value", v.getValue))
             case RecordType.AGGREGATE =>
               batchStatement.add(
                 QueryBuilder.update(table)
@@ -138,7 +138,8 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
       }
 
       try {
-        context.execute(batchStatement)
+        context.executeUpdate(batchStatement)
+        fastfail.markSuccess()
       } catch {
         case e: Exception =>
           val wrapped = new IOException("Error writing metrics " + entityKey + " from " + period, e)
@@ -147,7 +148,9 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
           throw wrapped
       }
     }
+
     fastfail.markSuccess()
   }
+
   val fastfail: BalboaFastFailCheck = BalboaFastFailCheck.getInstance
 }
