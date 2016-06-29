@@ -66,7 +66,7 @@ class MetricsServlet extends JacksonJsonServlet
       return malformedDate(date).result
     })
 
-    timer("period queries") {
+    timer("period queries")({
       val iter = dataStore.find(entityId, period, range.start, range.end)
       var metrics = Metrics.summarize(iter)
 
@@ -76,7 +76,7 @@ class MetricsServlet extends JacksonJsonServlet
       val response = render(mediaType, metrics)
       contentType = response.contentType
       response.result
-    }
+    }).call()
   }
 
   get("/:entityId/range*")(getRange)
@@ -108,7 +108,7 @@ class MetricsServlet extends JacksonJsonServlet
       return unacceptable
     })
 
-    timer("range queries") {
+    timer("range queries")({
       val iter = dataStore.find(entityId, startDate, endDate)
       var metrics = Metrics.summarize(iter)
 
@@ -118,7 +118,7 @@ class MetricsServlet extends JacksonJsonServlet
       val result = render(mediaType, metrics)
       contentType = result.contentType
       result.result
-    }
+    }).call()
   }
 
   get("/:entityId/series*")(getSeries)
@@ -157,12 +157,12 @@ class MetricsServlet extends JacksonJsonServlet
       return unacceptable
     })
 
-    timer("series queries") {
+    timer("series queries")({
       val body = renderJson(dataStore.slices(entityId, period, startDate, endDate)).getBytes(UTF_8)
       val resp = ResponseWithType(json, Ok(body))
       contentType = resp.contentType
       resp.result
-    }
+    }).call()
   }
 
   post("/:entityId")(postMetrics())
