@@ -9,13 +9,13 @@ import com.stackmob.newman.dsl.{GET, POST}
 import com.stackmob.newman.response.{HttpResponse, HttpResponseCode}
 import com.stackmob.newman.response.HttpResponseCode.{BadRequest, NoContent, NotFound, Ok}
 import org.json4s._
-import org.json4s.jackson.JsonMethods.{parse, pretty, render}
+import org.json4s.jackson.JsonMethods.{pretty, render}
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
+
+import com.socrata.balboa.util.TestUtil._
 
 import scala.collection.mutable
 import scala.concurrent.Await
-import scala.language.implicitConversions
-import scala.language.postfixOps
 
 class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterEach {
   implicit val httpClient = new ApacheHttpClient
@@ -31,19 +31,6 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   val protobuf = "application/x-protobuf"
 
   protected implicit val jsonFormats: Formats = DefaultFormats
-
-  class AssertionJSON(j: => String) {
-    def shouldBeJSON(expected: String) = {
-      val actualObj = parse(j)
-      val expectObj = parse(expected)
-
-      withClue(
-        "\nTextual actual:\n\n" + pretty(render(actualObj)) + "\n\n\n" +
-        "Textual expected:\n\n" + pretty(render(expectObj)) + "\n\n")
-        { actualObj should be (expectObj) }
-    }
-  }
-  implicit def convertJSONAssertion(j: => String): AssertionJSON = new AssertionJSON(j)
 
   case class JSONAndProtoResponse(json: HttpResponse, proto: HttpResponse) {
     def shouldHaveCode(code: HttpResponseCode) = {

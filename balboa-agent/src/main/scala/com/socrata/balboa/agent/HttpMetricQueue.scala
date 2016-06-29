@@ -23,7 +23,7 @@ case class HttpMetricQueue(balboaHttpURL: String,
   extends MetricQueue with StrictLogging {
 
   val StartingWaitDuration = 50.millis
-  val Utf8 = "UTF_8"
+  val Utf8 = "UTF-8"
 
   implicit val jsonFormats: Formats = DefaultFormats
   implicit val executionContext = ExecutionContext.global
