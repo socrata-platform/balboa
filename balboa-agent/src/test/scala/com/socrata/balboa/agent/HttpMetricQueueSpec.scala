@@ -32,6 +32,8 @@ class HttpMetricQueueSpec extends WordSpec
   val Timeout = 20.millis
   val MaxRetryWait = 500.millis
 
+  val TestTimeout = 5000 // millis
+
   val TestEntity = MetricIdParts(DomainId(42), UserUid("EntityUser"), ViewUid("EntityView"))
   val TestName = MetricIdParts(DomainId(55), UserUid("NameUser"), ViewUid("NameView"))
   val TestVal = 67
@@ -48,17 +50,23 @@ class HttpMetricQueueSpec extends WordSpec
   "An HttpMetricQueue" when {
     "a metric is created" should {
       "make an http request with the proper arguments" in {
-        val createFut = Future { httpMetricQueue.create(TestEntity, TestName, TestVal, TestTime, TestType) }
+        Future { httpMetricQueue.create(TestEntity, TestName, TestVal, TestTime, TestType) }
 
         val url = ArgumentCaptor.forClass(classOf[URL])
         val body = ArgumentCaptor.forClass(classOf[RawBody])
 
-        verify(mockHttpClient, timeout(5000)).post(url.capture(), notNull(classOf[Headers]), body.capture())
+        verify(mockHttpClient, timeout(TestTimeout)).post(url.capture(), notNull(classOf[Headers]), body.capture())
 
         url.getValue should be (new URL(s"$TestUrl/metrics/$TestEntity"))
 
         val bodyString = new String(body.getValue.map(_.toChar))
         bodyString shouldBeJSON s""" { "timestamp": $TestTime, "metrics": { "$TestName": { "value": $TestVal, "type": "$TestType" } } } """
+      }
+
+      "retry when it doesn't hear back" in {
+        Future { httpMetricQueue.create(TestEntity, TestName, TestVal, TestTime, TestType) }
+
+        verify(mockHttpClient, timeout(TestTimeout).times(3)).post(any(), any(), any())
       }
     }
   }
