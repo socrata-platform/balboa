@@ -53,7 +53,7 @@ class HttpMetricQueueSpec extends WordSpec
   val Timeout = 20.millis
   val MaxRetryWait = 500.millis
 
-  val TestTimeout = 5000 // millis
+  val TestTimeout = 5.seconds.toMillis
 
   val TestEntity = MetricIdParts(DomainId(42), UserUid("EntityUser"), ViewUid("EntityView"))
   val TestName = MetricIdParts(DomainId(55), UserUid("NameUser"), ViewUid("NameView"))
