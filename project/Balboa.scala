@@ -20,7 +20,7 @@ object Balboa extends Build {
 
   lazy val balboaCore = project("balboa-core", BalboaCore, balboaCommon)
 
-  lazy val balboaHttp = project("balboa-http", BalboaHttp, balboaCore)
+  lazy val balboaHttp = project("balboa-http", BalboaHttp, balboaCore, balboaCommon)
     .enablePlugins(JettyPlugin)
     .configs(IntegrationTest)
     .settings(Defaults.itSettings: _*)
