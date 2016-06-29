@@ -78,7 +78,7 @@ object Dependencies {
   val scopt = "com.github.scopt" %% "scopt" % versions.scopt
   val simple_arm = "com.rojoma" %% "simple-arm" % versions.simple_arm
   val socrata_utils = "com.socrata" %% "socrata-utils" % versions.socrata_utils
-  val scalatest = "org.scalatest" %% "scalatest" % "2.2.4"
+  val scalatest = "org.scalatest" %% "scalatest" % "2.2.4" % "it;test"
   val scalatra = "org.scalatra" %% "scalatra" % versions.scalatra
   val scalatra_json = "org.scalatra" %% "scalatra-json" % versions.scalatra
   val scalatra_metrics = "org.scalatra" %% "scalatra-metrics" % versions.scalatra

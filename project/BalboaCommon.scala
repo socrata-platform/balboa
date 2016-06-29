@@ -18,8 +18,7 @@ object BalboaCommon {
     jackson_core_asl,
     jackson_mapper_asl,
     jopt_simple,
-    json4s,
-    scalatest
+    json4s
   ) ++ balboa_logging
 }
 

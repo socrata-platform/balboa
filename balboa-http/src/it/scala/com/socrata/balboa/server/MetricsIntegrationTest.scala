@@ -2,6 +2,7 @@ package com.socrata.balboa.server
 
 import java.net.URL
 
+import com.fasterxml.jackson.core.JsonParseException
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.data.DataStoreFactory
 import com.stackmob.newman.ApacheHttpClient
@@ -9,13 +10,12 @@ import com.stackmob.newman.dsl.{GET, POST}
 import com.stackmob.newman.response.{HttpResponse, HttpResponseCode}
 import com.stackmob.newman.response.HttpResponseCode.{BadRequest, NoContent, NotFound, Ok}
 import org.json4s._
-import org.json4s.jackson.JsonMethods.{pretty, render}
+import org.json4s.jackson.JsonMethods.{parse, pretty, render}
 import org.scalatest.{BeforeAndAfterEach, FlatSpec, Matchers}
-
-import com.socrata.balboa.util.TestUtil._
 
 import scala.collection.mutable
 import scala.concurrent.Await
+import scala.util.Try
 
 class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterEach {
   implicit val httpClient = new ApacheHttpClient
@@ -31,6 +31,22 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   val protobuf = "application/x-protobuf"
 
   protected implicit val jsonFormats: Formats = DefaultFormats
+
+  import scala.language.implicitConversions
+  class AssertionJSON(actual: => String) {
+      def shouldBeJSON(expected: String) = {
+        val actualObj = Try(parse(actual)).recover({ case jpe: JsonParseException =>
+                          fail(s"""Unable to parse actual value "$actual" as JSON""", jpe)}).get
+        val expectObj = Try(parse(expected)).recover({ case jpe: JsonParseException =>
+                          fail(s"""Unable to parse expected value "$expected" as JSON""", jpe)}).get
+
+        withClue(
+          "\nTextual actual:\n\n" + pretty(render(actualObj)) + "\n\n\n" +
+          "Textual expected:\n\n" + pretty(render(expectObj)) + "\n\n")
+          { actualObj should be (expectObj) }
+      }
+  }
+  implicit def convertJSONAssertion(j: => String): AssertionJSON = new AssertionJSON(j)
 
   case class JSONAndProtoResponse(json: HttpResponse, proto: HttpResponse) {
     def shouldHaveCode(code: HttpResponseCode) = {
