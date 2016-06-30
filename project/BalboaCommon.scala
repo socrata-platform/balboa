@@ -17,7 +17,8 @@ object BalboaCommon {
     mockito_test,
     jackson_core_asl,
     jackson_mapper_asl,
-    jopt_simple
+    jopt_simple,
+    json4s
   ) ++ balboa_logging
 }
 

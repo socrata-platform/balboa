@@ -5,6 +5,8 @@ import java.io.File
 import com.socrata.balboa.config.JMSClientConfig
 import com.socrata.balboa.metrics.config.Configuration
 
+import scala.concurrent.duration._
+
 object Keys {
 
   lazy val DataDirectory = "balboa.agent.data.dir"
@@ -13,6 +15,13 @@ object Keys {
 
   lazy val InitialDelay = "balboa.agent.initialdelay"
 
+  lazy val TransportType = "balboa.agent.transport.type"
+
+  lazy val BalboaHttpUrl = "balboa.agent.balboa.http.url"
+
+  lazy val BalboaHttpTimeoutMs = "balboa.agent.balboa.http.timeout.ms"
+
+  lazy val BalboaHttpMaxRetryWaitMs = "balboa.agent.balboa.http.max.retry.wait.ms"
 }
 
 /**
@@ -20,7 +29,6 @@ object Keys {
  * shared between all clients.
  */
 trait Config extends JMSClientConfig {
-
   def dataDirectory(defaultFile: File = null): File // scalastyle:ignore
     = Configuration.get().getFile(Keys.DataDirectory, defaultFile)
 
@@ -29,6 +37,21 @@ trait Config extends JMSClientConfig {
 
   def initialDelay(defaultDelay: Long = 0): Long = Configuration.get().getLong(Keys.InitialDelay, defaultDelay)
 
+  def transportType(defaultMethod: TransportType = Mq): TransportType =
+    Configuration.get().getString(Keys.TransportType, defaultMethod.toString) match {
+      case "HTTP" => Http
+      case "MQ" => Mq
+      case _ => defaultMethod
+    }
+
+  def balboaHttpUrl: Option[String] =
+    Option(Configuration.get().getString(Keys.BalboaHttpUrl))
+
+  def balboaHttpTimeout(defaultTimeout: Duration): Duration =
+    Configuration.get().getLong(Keys.BalboaHttpTimeoutMs, defaultTimeout.toMillis).millis
+
+  def balboaHttpMaxRetryWait(defaultTimeout: Duration): Duration =
+    Configuration.get().getLong(Keys.BalboaHttpMaxRetryWaitMs, defaultTimeout.toMillis).millis
 }
 
 /**
