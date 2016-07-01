@@ -1,5 +1,7 @@
 package com.socrata.balboa.metrics.data.impl
 
+// scalastyle: off file.size.limit
+
 import java.net.InetSocketAddress
 import java.{util => ju}
 
@@ -95,7 +97,7 @@ object CassandraUtil extends StrictLogging {
     query.iterator.map { date =>
           val range = DateRange.create(period, date)
           new Timeslice(range.start.getTime, range.end.getTime, queryImpl.fetch(entityId, period, date))
-    }.filter(_ != null)
+    }.filter(Option(_).isDefined)
   }
 
   def metricsIterator(queryImpl: CassandraQuery,
@@ -105,7 +107,7 @@ object CassandraUtil extends StrictLogging {
       for {
         (date, period) <- query.iterator
       } yield queryImpl.fetch(entityId, period, date)
-    }.filter(_ != null)
+    }.filter(Option(_).isDefined)
   }
 
   def getColumnFamily(period:Period, recordType:RecordType):String = {
@@ -118,6 +120,7 @@ object CassandraUtil extends StrictLogging {
     initializeContext(Configuration.get())
   }
 
+  // scalastyle: off
   def initializeContext(conf:Configuration): DatastaxContext = {
 
     val seeds = conf.getProperty("cassandra.servers")

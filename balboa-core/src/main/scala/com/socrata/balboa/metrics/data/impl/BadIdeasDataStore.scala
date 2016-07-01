@@ -12,6 +12,8 @@ import scala.collection.JavaConverters._
  * All the bad ideas go here. Things which are not clear from the API, or which seem odd.
  */
 class BadIdeasDataStore(child:DataStore) extends DataStoreImpl with StrictLogging {
+  
+  val DoubleUnderscore = "__"
 
   @throws(classOf[Exception])
   def checkHealth(): Unit = {
@@ -34,18 +36,18 @@ class BadIdeasDataStore(child:DataStore) extends DataStoreImpl with StrictLoggin
   def find(entityId: String, period: Period, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = child.find(entityId, period, start, end)
   def find(entityId: String, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = child.find(entityId, start, end)
   def persist(entityId: String, timestamp: Long, metrics: Metrics): Unit = {
-    if (entityId.startsWith("__") && entityId.endsWith("__"))
+    if (entityId.startsWith(DoubleUnderscore) && entityId.endsWith(DoubleUnderscore))
     {
       throw new IllegalArgumentException("Unable to persist entities " +
-        "that start and end with two underscores '__'. These " +
+        s"that start and end with two underscores '$DoubleUnderscore'. These " +
         "entities are reserved for meta data.")
     }
 
     metrics.asScala.foreach {
       case (key, value) =>
-        if (key.startsWith("__") && key.endsWith("__")) {
+        if (key.startsWith(DoubleUnderscore) && key.endsWith(DoubleUnderscore)) {
           throw new IllegalArgumentException("Unable to persist metrics " +
-            "that start and end with two underscores '__'. These " +
+            s"that start and end with two underscores '$DoubleUnderscore'. These " +
             "entities are reserved for meta data.")
         }
     }

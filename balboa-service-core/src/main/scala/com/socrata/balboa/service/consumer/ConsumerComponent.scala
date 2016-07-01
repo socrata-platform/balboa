@@ -11,8 +11,8 @@ trait ConsumerComponent[A] {
   type Consumer <: ConsumerLike
 
   /**
-   * Underlying consumer that is meant to continuous consume messages until shutdown, stopped, or the method of consumption
-   *  does not block and the consumer completes.
+   * Underlying consumer that is meant to continuous consume messages until shutdown, stopped, or the method of
+   * consumption does not block and the consumer completes.
    */
   trait ConsumerLike extends Callable[Option[Exception]] with AutoCloseable {
 
@@ -24,8 +24,8 @@ trait ConsumerComponent[A] {
     def start(): Option[Exception]
 
     /**
-     * Called when the client wishes to gracefully shutdown any currently running consumptions or halts the consumer from
-     * waiting any further for following requests.
+     * Called when the client wishes to gracefully shutdown any currently running consumptions or halts the consumer
+     * from waiting any further for following requests.
      *
      * @return Some(exception) if something unexpected happened while shutting down.
      */
@@ -43,11 +43,11 @@ trait ConsumerComponent[A] {
      * Starts the consumption process.  If you want to start the consumption process explicitly this is the same
      * as effectively calling [[start()]]
      */
-    final override def call(): Option[Exception] = this.start()
+    override final def call(): Option[Exception] = this.start()
 
     /**
      * Auto closes by call [[stop()]].
      */
-    final override def close(): Unit = this.stop()
+    override final def close(): Unit = this.stop()
   }
 }

@@ -39,5 +39,6 @@ trait ActiveMQueueComponent extends MessageQueueComponent {
     }
   }
 
-  def MessageQueue(): MessageQueueLike = new MessageQueue()
+  // scalastyle:
+  def MessageQueue(): MessageQueueLike = new MessageQueue() // scalastyle:ignore
 }

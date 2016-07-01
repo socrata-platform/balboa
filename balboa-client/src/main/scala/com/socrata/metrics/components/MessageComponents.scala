@@ -25,6 +25,7 @@ trait MessageQueueComponent {
     def stop():Unit
   }
 
+  // scalastyle: off method.name
   def MessageQueue():MessageQueueLike
 }
 
@@ -35,5 +36,6 @@ trait EmergencyFileWriterComponent {
     def close():Unit
   }
 
+  // scalastyle: off method.name
   def EmergencyFileWriter(file:File):EmergencyFileWriter
 }

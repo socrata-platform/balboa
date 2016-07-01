@@ -52,16 +52,16 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
 
   def getValidGranularity(period: Period): Period = {
     val supported = Configuration.get().getSupportedPeriods
-    var requestPeriod = period
-    while (requestPeriod != null && !supported.contains(requestPeriod)) {
-      requestPeriod = requestPeriod.moreGranular()
+    var requestPeriod = Option(period)
+    while (requestPeriod.isDefined && !supported.contains(requestPeriod.get)) {
+      requestPeriod = Option(requestPeriod.get.moreGranular())
     }
-    if (requestPeriod == null) {
+    if (requestPeriod.isEmpty) {
       // We can't find a period which is more granular than the one given, so
       // we do our best.
-      requestPeriod = CassandraUtil.mostGranular
+      requestPeriod = Some(CassandraUtil.mostGranular)
     }
-    requestPeriod
+    requestPeriod.get
   }
 
   /**
@@ -151,7 +151,7 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
    * Save a set of metrics. The data store is responsible for making sure the
    * persist applies correctly to all supported tiers.
    */
-  def persist(entityId: String, timestamp: Long, metrics: Metrics) {
+  def persist(entityId: String, timestamp: Long, metrics: Metrics): Unit = {
     // Sort the metrics into aggregates/absolutes
     val absolutes = scala.collection.mutable.HashMap[String, Metric]()
     val aggregates = scala.collection.mutable.HashMap[String, Metric]()
@@ -164,20 +164,20 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
     }
     val start = timeSvc.currentTimeMillis()
     // increment/store metrics in each period
-    var period:Period = CassandraUtil.leastGranular
-    while (period != null && period != Period.REALTIME)
+    var period:Option[Period] = Option(CassandraUtil.leastGranular)
+    while (period.isDefined && period.get != Period.REALTIME)
     {
-      val range:DateRange = DateRange.create(period, new ju.Date(timestamp))
-      queryImpl.persist(entityId, range.start, period, aggregates, absolutes)
+      val range:DateRange = DateRange.create(period.get, new ju.Date(timestamp))
+      queryImpl.persist(entityId, range.start, period.get, aggregates, absolutes)
       // Skip to the next largest period which we are configured
       // to use.
-      period = period.moreGranular
-      while (period != null && !CassandraUtil.periods.contains(period)) {
-        period = period.moreGranular
+      period = Option(period.get.moreGranular)
+      while (period.isDefined && !CassandraUtil.periods.contains(period.get)) {
+        period = period.map(_.moreGranular)
       }
-
     }
-    logger info s"Persisted entity: $entityId  with " + absolutes.size + " absolute and " + aggregates.size + " aggregated metrics - took " + (timeSvc.currentTimeMillis() - start) + "ms"
+    logger info s"Persisted entity: $entityId  with " + absolutes.size + " absolute and " +
+      aggregates.size + " aggregated metrics - took " + (timeSvc.currentTimeMillis() - start) + "ms"
   }
 
 }

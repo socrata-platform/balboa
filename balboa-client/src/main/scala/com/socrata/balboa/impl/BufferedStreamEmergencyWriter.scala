@@ -13,25 +13,30 @@ trait BufferedStreamEmergencyWriterComponent extends EmergencyFileWriterComponen
     val fileStream = new FileOutputStream(file, true)
     val stream = new BufferedOutputStream(fileStream)
 
+    val FF = 0xff // scalastyle: ignore
+    val FE = 0xfe // scalastyle: ignore
+
     def send(msg:Message): Unit = {
       val metrics = msg.getMetrics
-      for (name <- metrics.keySet().asScala) {
-        stream.write(0xff)
+      for {
+        name <- metrics.keySet().asScala
+      } yield {
+        stream.write(FF)
 
         stream.write(utf8(msg.getTimestamp.toString))
-        stream.write(0xfe)
+        stream.write(FE)
 
         stream.write(utf8(msg.getEntityId))
-        stream.write(0xfe)
+        stream.write(FE)
 
         stream.write(utf8(name))
-        stream.write(0xfe)
+        stream.write(FE)
 
         stream.write(utf8(metrics.get(name).getValue.toString))
-        stream.write(0xfe)
+        stream.write(FE)
 
         stream.write(utf8(metrics.get(name).getType.toString))
-        stream.write(0xfe)
+        stream.write(FE)
 
         stream.flush()
       }
@@ -43,5 +48,6 @@ trait BufferedStreamEmergencyWriterComponent extends EmergencyFileWriterComponen
 
   }
 
+  // scalastyle: off method.name
   def EmergencyFileWriter(file:File): EmergencyFileWriter = new EmergencyFileWriter(file)
 }

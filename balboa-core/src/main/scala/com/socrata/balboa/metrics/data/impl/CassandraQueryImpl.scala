@@ -19,6 +19,10 @@ import scala.collection.JavaConverters.iterableAsScalaIterableConverter
  */
 class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with StrictLogging {
 
+  val Key = "key"
+  val ColumnOne = "column1"
+  val Value = "value"
+
   @throws(classOf[Exception])
   def checkHealth(): Unit = {
     context.newSession.execute("SELECT now() FROM system.LOCAL;").all()
@@ -28,9 +32,11 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
     val entityKey: String = CassandraUtil.createEntityKey(entityId, bucket.getTime)
     val ret: Metrics = new Metrics()
 
-    for (recordType <- List(RecordType.ABSOLUTE, RecordType.AGGREGATE)) {
-      fetch_cf(recordType, entityKey, period).foreach(row => {
-        ret.put(row.getString("column1"), new Metric(recordType, row.getLong("value")))})
+    for {
+      recordType <- List(RecordType.ABSOLUTE, RecordType.AGGREGATE)
+    } yield {
+      fetchColumnFamily(recordType, entityKey, period).foreach(row => {
+        ret.put(row.getString(ColumnOne), new Metric(recordType, row.getLong(Value)))})
     }
 
     ret
@@ -38,6 +44,7 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
 
   def removeTimestamp(key: String): String = key.replaceFirst("-[0-9]+$", "")
 
+  val MaxEntityIds = 100
   /**
    * Returns all the row keys in a tier as an iterator with many, many duplicate strings. This is very slow. Do
    * not use this outside the admin tool.
@@ -46,13 +53,13 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
     fastfail.proceedOrThrow()
     try {
 
-      val qb = QueryBuilder.select("key").distinct()
+      val qb = QueryBuilder.select(Key).distinct()
         .from(context.keyspace, CassandraUtil.getColumnFamily(period, recordType))
-        .limit(100)
+        .limit(MaxEntityIds)
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
       val rows = context.execute(qb)
-      val retVal = rows.asScala.map(_.getString("key")).map(removeTimestamp).iterator
+      val retVal = rows.asScala.map(_.getString(Key)).map(removeTimestamp).iterator
 
       fastfail.markSuccess()
       retVal
@@ -64,13 +71,13 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
     }
   }
 
-  def fetch_cf(recordType: RecordType, entityKey: String, period: Period): Iterator[Row] = {
+  def fetchColumnFamily(recordType: RecordType, entityKey: String, period: Period): Iterator[Row] = {
     fastfail.proceedOrThrow()
     try {
 
       val qb = QueryBuilder.select().all()
         .from(context.keyspace, CassandraUtil.getColumnFamily(period, recordType))
-        .where(QueryBuilder.eq("key", entityKey))
+        .where(QueryBuilder.eq(Key, entityKey))
         .setConsistencyLevel(ConsistencyLevel.ONE)
 
       val rows = context.execute(qb)
@@ -87,6 +94,7 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
     }
   }
 
+  // scalastyle:off method.length
   def persist(entityId: String,
               bucket: ju.Date,
               period: Period,
@@ -95,9 +103,11 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
     val entityKey = CassandraUtil.createEntityKey(entityId, bucket.getTime)
     logger debug s"Using entity/row key $entityKey at period $period"
     fastfail.proceedOrThrow()
-    val entityKeyWhere = QueryBuilder.eq("key", entityKey)
+    val entityKeyWhere = QueryBuilder.eq(Key, entityKey)
 
-    for (sameTypeRecords <- List(absolutes, aggregates).filter(_.nonEmpty)) {
+    for {
+      sameTypeRecords <- List(absolutes, aggregates).filter(_.nonEmpty)
+    } yield {
       // Must execute counter and non-counter separately, since counter batches
       // can only contain counter statements, and non-counter batches can only contain
       // non-counter statements
@@ -119,18 +129,20 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
       // Initialize the query to work with either AGGREGATE or ABSOLUTE type values
       val table = CassandraUtil.getColumnFamily(period, recordType)
 
-      for {(k, v) <- sameTypeRecords} {
+      for {
+        (k, v) <- sameTypeRecords
+      } yield {
         if (k != "") {
           v.getType match {
             case RecordType.ABSOLUTE =>
               batchStatement.add(
                 QueryBuilder.insertInto(table)
-                  .value("key", entityKey).value("column1", k).value("value", v.getValue))
+                  .value(Key, entityKey).value(ColumnOne, k).value(Value, v.getValue))
             case RecordType.AGGREGATE =>
               batchStatement.add(
                 QueryBuilder.update(table)
-                  .`with`(QueryBuilder.incr("value", v.getValue.longValue))
-                  .where(entityKeyWhere).and(QueryBuilder.eq("column1", k)))
+                  .`with`(QueryBuilder.incr(Value, v.getValue.longValue))
+                  .where(entityKeyWhere).and(QueryBuilder.eq(ColumnOne, k)))
           }
         } else {
           logger warn "dropping metric with empty string as column"

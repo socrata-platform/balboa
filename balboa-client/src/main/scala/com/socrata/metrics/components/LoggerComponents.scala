@@ -30,9 +30,14 @@ trait BaseMetricLoggerComponent extends MetricLoggerComponent {
     val started = metricDequeuer.start(delay, interval)
 
     /** See [[MetricLoggerLike.logMetric()]] */
-    override def logMetric(entityId: String, name: String, value: Number, timestamp: Long, recordType: RecordType): Unit = {
-      if (!acceptEnqueues.get())
+    override def logMetric(entityId: String,
+                           name: String,
+                           value: Number,
+                           timestamp: Long,
+                           recordType: RecordType): Unit = {
+      if (!acceptEnqueues.get()) {
         throw new IllegalStateException(s"${getClass.getSimpleName} has already been stopped")
+      }
       enqueue(MetricEntry(entityId, name, value, timestamp, recordType))
     }
 
@@ -75,6 +80,8 @@ trait MetricLoggerComponent {
      */
     def stop():Unit
   }
+
+  // scalastyle: off method.name
 
   /**
    * Method that creates a Metric Logger using a String interp

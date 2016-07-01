@@ -1,5 +1,7 @@
 package com.socrata.balboa.service.kafka
 
+// scalastyle: off
+
 import java.util.Properties
 
 import com.socrata.balboa.metrics.Message
