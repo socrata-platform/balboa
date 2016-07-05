@@ -7,7 +7,7 @@ import com.socrata.metrics.MetricQueue.{AccessChannel, Action}
 
 object MetricQueue {
 
-  // scalastyle: off field.name
+  // scalastyle:off field.name
   val AGGREGATE_GRANULARITY: Long = 120 * 1000
 
   object Action extends Enumeration {
@@ -58,6 +58,8 @@ trait MetricQueue extends AutoCloseable {
              timestamp: Long = new Date().getTime, recordType: Metric.RecordType = Metric.RecordType.AGGREGATE): Unit
 
 }
+
+// scalastyle:off multiple.string.literals
 
 /**
  * TODO: This Class should die.  Socrata specific class in Open Source Project needs to go Away.

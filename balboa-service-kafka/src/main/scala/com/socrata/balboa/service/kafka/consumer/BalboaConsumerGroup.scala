@@ -1,6 +1,6 @@
 package com.socrata.balboa.service.kafka.consumer
 
-// scalastyle: off
+// scalastyle:off
 
 import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
 import com.socrata.balboa.metrics.Message

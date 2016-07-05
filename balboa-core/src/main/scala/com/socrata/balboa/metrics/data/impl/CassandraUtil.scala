@@ -25,7 +25,7 @@ object CassandraUtil extends StrictLogging {
   val mostGranular:Period = Period.mostGranular(periods)
 
   case class DatastaxContext(cluster: Cluster, _keyspace: String) {
-    def keyspace = {
+    def keyspace: String = {
       // Mixed case names are automatically lower cased somewhere along the
       // way to Cassandra. So keyspaces that have mixed case names must be
       // quoted to preserve case.
@@ -93,7 +93,10 @@ object CassandraUtil extends StrictLogging {
       Iterator.empty
     }
   }
-  def sliceIterator(queryImpl:CassandraQuery, entityId:String, period:Period, query:List[ju.Date]):Iterator[Timeslice] = {
+  def sliceIterator(queryImpl:CassandraQuery,
+                    entityId:String,
+                    period:Period,
+                    query:List[ju.Date]):Iterator[Timeslice] = {
     query.iterator.map { date =>
           val range = DateRange.create(period, date)
           new Timeslice(range.start.getTime, range.end.getTime, queryImpl.fetch(entityId, period, date))

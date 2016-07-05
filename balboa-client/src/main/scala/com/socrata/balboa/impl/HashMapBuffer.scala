@@ -103,6 +103,6 @@ trait HashMapBufferComponent extends BufferComponent {
 
   }
 
-  // scalastyle: off method.name
+  // scalastyle:off method.name
   def Buffer(): Buffer = new Buffer()
 }

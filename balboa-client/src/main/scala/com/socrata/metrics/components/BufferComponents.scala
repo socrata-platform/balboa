@@ -14,6 +14,6 @@ trait BufferComponent {
     def stop():Unit
   }
 
-  // scalastyle: off method.name
+  // scalastyle:off method.name
   def Buffer():Buffer
 }

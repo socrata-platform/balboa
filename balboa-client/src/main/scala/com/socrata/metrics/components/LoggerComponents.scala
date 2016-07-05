@@ -81,7 +81,7 @@ trait MetricLoggerComponent {
     def stop():Unit
   }
 
-  // scalastyle: off method.name
+  // scalastyle:off method.name
 
   /**
    * Method that creates a Metric Logger using a String interp

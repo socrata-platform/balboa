@@ -70,6 +70,6 @@ trait MetricDequeuerService {
     }
   }
 
-  // scalastyle: off method.name
+  // scalastyle:off method.name
   def MetricDequeuer(): MetricDequeuer = new MetricDequeuer()
 }

@@ -1,6 +1,6 @@
 package com.socrata.balboa.service.kafka
 
-// scalastyle: off
+// scalastyle:off
 
 import java.util.Properties
 

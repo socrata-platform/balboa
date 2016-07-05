@@ -7,7 +7,7 @@ import java.util.UUID
  * A way of statically typing some of the entity/metric name keys
  */
 sealed class IdParts(val _parts:Seq[MetricIdPart] = Seq()) {
-  val Percent = "%"
+  val Percent = "%" // scalastyle:ignore
   protected def percentAround(s: String): String = Percent + s + Percent
 
   override def toString: String = _parts.mkString("")
@@ -34,7 +34,7 @@ sealed class IdParts(val _parts:Seq[MetricIdPart] = Seq()) {
   }
 }
 sealed class MetricIdPart(val part: String) extends IdParts() {
-  override def toString: String = if (part == null) { percentAround("unknown") } else { part }
+  override def toString: String = if (Option(part).isDefined) { percentAround("unknown") } else { part }
   override def getParts: Seq[MetricIdPart] = Seq(this)
 }
 case class MetricIdParts(p:MetricIdPart *) extends IdParts(p)
@@ -51,7 +51,7 @@ case class ReferrerUri(referrer: String)
     }) {
 
   def isBlank(query:String): Boolean = {
-    query == null || query.trim.isEmpty
+    Option(query).isEmpty || query.trim.isEmpty
   }
 
   def getPath: String = {

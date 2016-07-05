@@ -48,6 +48,6 @@ trait BufferedStreamEmergencyWriterComponent extends EmergencyFileWriterComponen
 
   }
 
-  // scalastyle: off method.name
+  // scalastyle:off method.name
   def EmergencyFileWriter(file:File): EmergencyFileWriter = new EmergencyFileWriter(file)
 }

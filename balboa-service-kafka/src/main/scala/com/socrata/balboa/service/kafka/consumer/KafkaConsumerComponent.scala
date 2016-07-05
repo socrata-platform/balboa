@@ -1,6 +1,6 @@
 package com.socrata.balboa.service.kafka.consumer
 
-// scalastyle: off
+// scalastyle:off
 
 import java.io.IOException
 
