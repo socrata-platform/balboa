@@ -4,11 +4,13 @@ import javax.jms.Session
 
 import com.socrata.balboa.metrics.Message
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MessageQueueComponent}
-import com.typesafe.scalalogging.StrictLogging
 import org.apache.activemq.ActiveMQConnectionFactory
+import org.slf4j.LoggerFactory
 
-trait ActiveMQueueComponent extends MessageQueueComponent with StrictLogging {
+trait ActiveMQueueComponent extends MessageQueueComponent {
   self: ServerInformation with EmergencyFileWriterComponent =>
+
+  val logger = LoggerFactory.getLogger(this.getClass)
 
   class MessageQueue extends MessageQueueLike {
     val factory = new ActiveMQConnectionFactory(activeServer)
