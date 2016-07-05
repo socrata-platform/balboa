@@ -8,7 +8,7 @@ import com.codahale.metrics.JmxReporter
 import com.socrata.balboa.agent.metrics.BalboaAgentMetrics
 import com.socrata.balboa.util.FileUtils
 import com.socrata.metrics.MetricQueue
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.activemq.{ActiveMQConnection, ActiveMQConnectionFactory}
 
 import util.control.NonFatal

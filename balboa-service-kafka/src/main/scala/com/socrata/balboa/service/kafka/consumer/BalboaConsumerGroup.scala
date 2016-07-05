@@ -4,7 +4,7 @@ import com.socrata.balboa.common.kafka.codec.{BalboaMessageCodec, StringCodec}
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.data.DataStore
 import kafka.consumer.{Consumer, ConsumerConfig, ConsumerConnector, KafkaStream}
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 
 /**
  * A [[KafkaConsumerGroupComponent[String, Message]] that is meant to handle Balboa specific Kafka message traffic.

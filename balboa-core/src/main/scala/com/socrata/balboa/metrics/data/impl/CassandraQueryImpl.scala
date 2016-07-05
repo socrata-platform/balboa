@@ -9,7 +9,7 @@ import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.data.impl.CassandraUtil.DatastaxContext
 import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, Period}
 import com.socrata.balboa.metrics.{Metric, Metrics}
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.{collection => sc}
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
