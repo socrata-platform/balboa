@@ -23,7 +23,7 @@ trait MetricLoggerToQueue extends BaseMetricLoggerComponent {
 
   // scalastyle:off method.name
 
-  def MetricLogger(serverName:String, queueName:String, backupFileName:String):MetricLogger = { // scalastyle: ignore
+  def MetricLogger(serverName:String, queueName:String, backupFileName:String):MetricLogger = { // scalastyle:ignore
     new MetricLogger() with MetricEnqueuer
                        with MetricDequeuerService
                        with HashMapBufferComponent
@@ -40,7 +40,7 @@ trait MetricLoggerToQueue extends BaseMetricLoggerComponent {
    *
    * @return [[MetricLoggerLike]] instance.
    */
-  override def MetricLogger(): MetricLogger = new MetricLogger() with MetricEnqueuer // scalastyle: ignore
+  override def MetricLogger(): MetricLogger = new MetricLogger() with MetricEnqueuer // scalastyle:ignore
     with MetricDequeuerService
     with HashMapBufferComponent
     with ActiveMQueueComponent

@@ -13,8 +13,8 @@ trait BufferedStreamEmergencyWriterComponent extends EmergencyFileWriterComponen
     val fileStream = new FileOutputStream(file, true)
     val stream = new BufferedOutputStream(fileStream)
 
-    val FF = 0xff // scalastyle: ignore
-    val FE = 0xfe // scalastyle: ignore
+    val FF = 0xff // scalastyle:ignore
+    val FE = 0xfe // scalastyle:ignore
 
     def send(msg:Message): Unit = {
       val metrics = msg.getMetrics

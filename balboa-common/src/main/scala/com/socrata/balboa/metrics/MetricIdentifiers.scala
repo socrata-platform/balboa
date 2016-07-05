@@ -34,7 +34,7 @@ sealed class IdParts(val _parts:Seq[MetricIdPart] = Seq()) {
   }
 }
 sealed class MetricIdPart(val part: String) extends IdParts() {
-  override def toString: String = if (Option(part).isDefined) { percentAround("unknown") } else { part }
+  override def toString: String = if (Option(part).isEmpty) { percentAround("unknown") } else { part }
   override def getParts: Seq[MetricIdPart] = Seq(this)
 }
 case class MetricIdParts(p:MetricIdPart *) extends IdParts(p)
