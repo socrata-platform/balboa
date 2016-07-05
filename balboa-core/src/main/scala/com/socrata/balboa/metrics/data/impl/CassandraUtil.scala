@@ -123,7 +123,7 @@ object CassandraUtil extends StrictLogging {
     initializeContext(Configuration.get())
   }
 
-  // scalastyle: off
+  // scalastyle:off
   def initializeContext(conf:Configuration): DatastaxContext = {
 
     val seeds = conf.getProperty("cassandra.servers")

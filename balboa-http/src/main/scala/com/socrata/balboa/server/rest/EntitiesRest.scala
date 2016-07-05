@@ -13,6 +13,8 @@ import org.scalatra.{BadRequest, Ok, Params}
 import scala.collection.JavaConverters._
 import scala.util.Try
 
+// scalastyle:off return
+
 object EntitiesRest {
   val dataStore = DataStoreFactory.get
 
