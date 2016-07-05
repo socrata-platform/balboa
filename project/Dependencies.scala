@@ -60,7 +60,7 @@ object Dependencies {
   val dropwizard_metrics = "io.dropwizard.metrics" % "metrics-core" % versions.dropwizard
   val dropwizard_healthcheck = "io.dropwizard.metrics" % "metrics-healthchecks" % versions.dropwizard
   val dropwizard_servlets = "io.dropwizard.metrics" % "metrics-servlets" % versions.dropwizard
-  val gatling = "io.gatling" % "gatling-test-framework" % versions.gatling % "it"
+  val gatling = "io.gatling" % "gatling-test-framework" % versions.gatling % "it" excludeAll ExclusionRule(organization = "ch.qos.logback")
   val gatling_highcharts = "io.gatling.highcharts" % "gatling-charts-highcharts" % versions.gatling % "it"
   val jackson_core_asl = "org.codehaus.jackson" % "jackson-core-asl" % versions.jackson
   val jackson_mapper_asl = "org.codehaus.jackson" % "jackson-mapper-asl" % versions.jackson
