@@ -1,7 +1,7 @@
 package com.socrata.balboa.server
 
 import com.socrata.balboa.server.ResponseWithType.json
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.eclipse.jetty.http.HttpStatus.INTERNAL_SERVER_ERROR_500
 import org.scalatra.json.JacksonJsonSupport
 import org.scalatra.{InternalServerError, ScalatraServlet}

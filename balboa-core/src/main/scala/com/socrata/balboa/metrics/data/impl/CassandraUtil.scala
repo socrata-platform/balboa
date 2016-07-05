@@ -8,7 +8,7 @@ import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.{Metrics, Timeslice}
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.metrics.data.{DateRange, Period}
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import com.datastax.driver.core._
 
 import scala.util.Try

@@ -26,7 +26,7 @@ object Dependencies {
     val opencsv = "2.0.1"
     val protobuf_java = "2.3.0"
     val rojoma_json = "[2.1.0, 3.0.0)"
-    val scala_logging = "2.1.2"
+    val scala_logging = "3.4.0"
     val slf4j_log4j = "1.7.12"
     val scopt = "3.3.0"
     val simple_arm = "[1.1.10, 2.0.0)"
@@ -39,7 +39,7 @@ object Dependencies {
   //////////////////////////////////////////////////////////////////
 
   // Logging Abstraction Layer for Scala and Java.  Using SLF4J
-  val scala_logging = "com.typesafe.scala-logging" %% "scala-logging-slf4j" % versions.scala_logging
+  val scala_logging = "com.typesafe.scala-logging" %% "scala-logging" % versions.scala_logging
   // Logging SLF4J binding to Log4J
   val slf4j_log4j = "org.slf4j" % "slf4j-log4j12" % versions.slf4j_log4j
   // Underlying Log4J library
@@ -60,6 +60,7 @@ object Dependencies {
   val dropwizard_metrics = "io.dropwizard.metrics" % "metrics-core" % versions.dropwizard
   val dropwizard_healthcheck = "io.dropwizard.metrics" % "metrics-healthchecks" % versions.dropwizard
   val dropwizard_servlets = "io.dropwizard.metrics" % "metrics-servlets" % versions.dropwizard
+  val gatling = "io.gatling" % "gatling-test-framework" % versions.gatling % "it"
   val gatling_highcharts = "io.gatling.highcharts" % "gatling-charts-highcharts" % versions.gatling % "it"
   val jackson_core_asl = "org.codehaus.jackson" % "jackson-core-asl" % versions.jackson
   val jackson_mapper_asl = "org.codehaus.jackson" % "jackson-mapper-asl" % versions.jackson

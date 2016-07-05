@@ -2,7 +2,7 @@ package com.socrata.balboa.agent
 
 import java.io.IOException
 
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.activemq.transport.TransportListener
 
 class LoggingTransportListener extends TransportListener with StrictLogging {

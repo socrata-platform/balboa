@@ -1,18 +1,17 @@
 package com.socrata.balboa.agent
 
-import java.net.URL
+import java.net.{URL, URLEncoder}
 
 import com.fasterxml.jackson.core.JsonParseException
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.metrics.{DomainId, MetricIdParts, UserUid, ViewUid}
 import com.stackmob.newman.{ApacheHttpClient, Headers, RawBody}
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.mockito.ArgumentCaptor
 import org.scalatest.{BeforeAndAfterEach, ShouldMatchers, WordSpec}
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.scalatest.mock.MockitoSugar
-
 import org.json4s._
 import org.json4s.jackson.JsonMethods.{parse, pretty, render}
 
@@ -78,7 +77,7 @@ class HttpMetricQueueSpec extends WordSpec
 
         verify(mockHttpClient, timeout(TestTimeout)).post(url.capture(), notNull(classOf[Headers]), body.capture())
 
-        url.getValue should be (new URL(s"$TestUrl/metrics/$TestEntity"))
+        url.getValue should be (new URL(s"$TestUrl/metrics/${URLEncoder.encode(TestEntity.toString, "UTF-8")}"))
 
         val bodyString = new String(body.getValue.map(_.toChar))
         bodyString shouldBeJSON s""" { "timestamp": $TestTime, "metrics": { "$TestName": { "value": $TestVal, "type": "$TestType" } } } """

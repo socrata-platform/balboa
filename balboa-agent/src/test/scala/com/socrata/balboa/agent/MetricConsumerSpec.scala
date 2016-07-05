@@ -5,7 +5,7 @@ import java.nio.file.{Files, Path}
 import com.blist.metrics.impl.queue.MetricFileQueue
 import com.socrata.balboa.metrics.Metric
 import com.socrata.metrics.{Fluff, MetricIdParts, MetricQueue}
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.mockito.Matchers
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ShouldMatchers, WordSpec}

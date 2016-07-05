@@ -4,13 +4,13 @@ import javax.jms.Session
 
 import com.socrata.balboa.metrics.Message
 import com.socrata.metrics.components.{EmergencyFileWriterComponent, MessageQueueComponent}
-import com.typesafe.scalalogging.slf4j.Logger
 import org.apache.activemq.ActiveMQConnectionFactory
 import org.slf4j.LoggerFactory
 
 trait ActiveMQueueComponent extends MessageQueueComponent {
   self: ServerInformation with EmergencyFileWriterComponent =>
-  private val log: Logger = Logger(LoggerFactory.getLogger(this.getClass))
+
+  val logger = LoggerFactory.getLogger(this.getClass)
 
   class MessageQueue extends MessageQueueLike {
     val factory = new ActiveMQConnectionFactory(activeServer)
@@ -25,7 +25,7 @@ trait ActiveMQueueComponent extends MessageQueueComponent {
     def stop(): Unit = {
       connection.close()
       fileWriter.close()
-      log.info("Shutdown BalboaClient")
+      logger info "Shutdown BalboaClient"
     }
 
     def send(msg:Message): Unit = {
@@ -33,7 +33,7 @@ trait ActiveMQueueComponent extends MessageQueueComponent {
         producer.send(session.createTextMessage(new String(msg.serialize())))
       } catch {
         case e:Exception =>
-          log.error("Sending message to ActiveMQ failed (see previous error); writing message to file " + backupFile, e)
+          logger.error("Sending message to ActiveMQ failed (see previous error); writing message to file " + backupFile, e)
           fileWriter.send(msg)
       }
     }

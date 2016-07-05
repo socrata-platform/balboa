@@ -8,7 +8,7 @@ import com.socrata.metrics.{IdParts, MetricQueue}
 import com.stackmob.newman.dsl.POST
 import com.stackmob.newman.response.HttpResponseCode.Ok
 import com.stackmob.newman.{ApacheHttpClient, HttpClient}
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.json4s.jackson.JsonMethods.{pretty, render}
 import org.json4s.{DefaultFormats, Extraction, Formats}
 
@@ -72,8 +72,8 @@ case class HttpMetricQueue(balboaHttpURL: String,
       requestWithTimeout match {
         case Success(response) =>
           val responseCode = response.code.code
-          if (responseCode != Ok.code) {
-            return
+          if (responseCode == Ok.code) {
+            return // scalastyle:ignore return
           }
           logger info s"HTTP POST to Balboa HTTP returned error code $responseCode: ${response.bodyString}"
         case Failure(failure) =>
