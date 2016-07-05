@@ -72,8 +72,8 @@ case class HttpMetricQueue(balboaHttpURL: String,
       requestWithTimeout match {
         case Success(response) =>
           val responseCode = response.code.code
-          if (responseCode != Ok.code) {
-            return
+          if (responseCode == Ok.code) {
+            return // scalastyle:ignore return
           }
           logger info s"HTTP POST to Balboa HTTP returned error code $responseCode: ${response.bodyString}"
         case Failure(failure) =>
