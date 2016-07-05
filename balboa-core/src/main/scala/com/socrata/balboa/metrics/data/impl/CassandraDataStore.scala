@@ -165,15 +165,15 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
     val start = timeSvc.currentTimeMillis()
     // increment/store metrics in each period
     var period:Option[Period] = Option(CassandraUtil.leastGranular)
-    while (period.isDefined && period.get != Period.REALTIME)
+    while (period.exists(_ != Period.REALTIME))
     {
       val range:DateRange = DateRange.create(period.get, new ju.Date(timestamp))
       queryImpl.persist(entityId, range.start, period.get, aggregates, absolutes)
       // Skip to the next largest period which we are configured
       // to use.
-      period = Option(period.get.moreGranular)
-      while (period.isDefined && !CassandraUtil.periods.contains(period.get)) {
-        period = period.map(_.moreGranular)
+      period = period.flatMap(p => Option(p.moreGranular))
+      while (period.exists(!CassandraUtil.periods.contains(_))) {
+        period = period.flatMap(p => Option(p.moreGranular))
       }
     }
     logger info s"Persisted entity: $entityId  with " + absolutes.size + " absolute and " +
