@@ -7,6 +7,8 @@ import io.gatling.http.Predef._
 import org.json4s.{DefaultFormats, Extraction, Formats}
 import org.json4s.jackson.JsonMethods.{pretty, render}
 
+import scala.concurrent.duration._
+
 class PostLoadTest extends Simulation {
   protected implicit val jsonFormats: Formats = DefaultFormats
 
@@ -23,10 +25,14 @@ class PostLoadTest extends Simulation {
     Map("loadTestMetric" -> MetricJSON(testLoadVal, testLoadType))))))
 
   val serialInsertPopulationBuilder = scenario("Serial insert")
-    .exec(http("insert metric").post(testPostUrl).body(StringBody(testLoadEntity)))
-    .inject(atOnceUsers(1))
+    .repeat(100) {
+        exec(http("insert metric")
+          .post(testPostUrl)
+          .body(StringBody(testLoadEntity)))
+    }
+    .inject(rampUsers(100) over 10.seconds)
 
   setUp(
     serialInsertPopulationBuilder
-  ).protocols(httpConf)
+  ).protocols(httpConf).maxDuration(30.seconds)
 }
