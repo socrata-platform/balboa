@@ -12,6 +12,9 @@ class PostLoadTest extends Simulation {
 
   val httpConf = http.baseURL(Config.Server.toString)
 
+  val testEntityId = "loadTestEntity"
+  val testPostUrl = s"metrics/$testEntityId"
+
   val testLoadVal = 57
   val testLoadType = RecordType.ABSOLUTE.toString.toUpperCase
   val testLoadDate = "1900-01-01"
@@ -20,7 +23,7 @@ class PostLoadTest extends Simulation {
     Map("loadTestMetric" -> MetricJSON(testLoadVal, testLoadType))))))
 
   val serialInsertPopulationBuilder = scenario("Serial insert")
-    .exec(http("insert metric").post("/metrics/loadEntity").body(StringBody(testLoadEntity)))
+    .exec(http("insert metric").post(testPostUrl).body(StringBody(testLoadEntity)))
     .inject(atOnceUsers(1))
 
   setUp(
