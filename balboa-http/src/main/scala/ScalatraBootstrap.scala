@@ -1,7 +1,7 @@
 import javax.servlet.ServletContext
 
 import com.socrata.balboa.server.{HealthCheckServlet, MainServlet, MetricsServlet}
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.scalatra.LifeCycle
 import org.scalatra.metrics.MetricsBootstrap
 

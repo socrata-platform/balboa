@@ -6,7 +6,7 @@ import com.socrata.balboa.BuildInfo
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck
 import com.socrata.balboa.server.rest.EntitiesRest
 import com.socrata.balboa.server.ResponseWithType.json
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra.{InternalServerError, Ok, ScalatraServlet}
 import org.scalatra.json.JacksonJsonSupport

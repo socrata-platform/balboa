@@ -17,5 +17,5 @@ object BalboaCore {
     log4j,
     java_nullable_annotation,
     junit
-  )
+  ) ++ balboa_logging
 }
