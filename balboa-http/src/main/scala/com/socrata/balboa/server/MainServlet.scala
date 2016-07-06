@@ -51,7 +51,7 @@ class MainServlet extends ScalatraServlet
       params.get("filter").map(Pattern.compile)
         .map { pattern => (str: String) => pattern.matcher(str).matches }.getOrElse(_ => true)
 
-    timer("entities queries")({
+    timer("entities-get")({
       val it = dataStore.entities().asScala.filter(predicate)
       // backwards-compatibility: -1 == no limit
       val limitString = params.getOrElse("limit", "-1")

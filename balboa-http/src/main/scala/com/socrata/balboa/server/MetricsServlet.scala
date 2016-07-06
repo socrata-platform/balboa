@@ -66,6 +66,9 @@ class MetricsServlet extends JacksonJsonServlet
       return malformedDate(date).result
     })
 
+    // This timer name doesn't follow the recommended entity-verb-details pattern.
+    // It has been preserved for backwards compatibility until we know the full
+    // cost of changing the name.
     timer("period queries")({
       val iter = dataStore.find(entityId, period, range.start, range.end)
       var metrics = Metrics.summarize(iter)
@@ -108,6 +111,9 @@ class MetricsServlet extends JacksonJsonServlet
       return unacceptable.result
     })
 
+    // This timer name doesn't follow the recommended entity-verb-details pattern.
+    // It has been preserved for backwards compatibility until we know the full
+    // cost of changing the name.
     timer("range queries")({
       val iter = dataStore.find(entityId, startDate, endDate)
       var metrics = Metrics.summarize(iter)
@@ -194,7 +200,7 @@ class MetricsServlet extends JacksonJsonServlet
       metrics.put(name, new Metric(recordType, metric.value))
     }
 
-    timer("metric entity post")({
+    timer("metric-post")({
       dataStore.persist(entityId, entity.timestamp, metrics)
     }).call()
 
