@@ -21,7 +21,7 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
 
   @throws(classOf[Exception])
   def checkHealth(): Unit = {
-    context.newSession.execute("SELECT now() FROM system.LOCAL;").all()
+    context.getSession.execute("SELECT now() FROM system.LOCAL;").all()
   }
 
   def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {
