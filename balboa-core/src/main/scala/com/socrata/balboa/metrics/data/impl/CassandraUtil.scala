@@ -11,7 +11,6 @@ import com.socrata.balboa.metrics.data.{DateRange, Period}
 import com.typesafe.scalalogging.StrictLogging
 import com.datastax.driver.core._
 
-import scala.util.Try
 import scala.{collection => sc}
 
 /**
@@ -23,6 +22,8 @@ object CassandraUtil extends StrictLogging {
   val mostGranular:Period = Period.mostGranular(periods)
 
   case class DatastaxContext(cluster: Cluster, _keyspace: String) {
+    private var session: Option[Session] = None
+
     def keyspace = {
       // Mixed case names are automatically lower cased somewhere along the
       // way to Cassandra. So keyspaces that have mixed case names must be
@@ -34,21 +35,32 @@ object CassandraUtil extends StrictLogging {
       }
     }
 
-    def newSession: Session = cluster.connect(keyspace)
+    def getSession: Session = {
+      this.synchronized {
+        if (session.isEmpty) {
+          session = Some(cluster.connect(keyspace))
+        } else if (session.get.isClosed) {
+          session.get.close()
+          session = Some(cluster.connect(keyspace))
+        }
+        session.get
+      }
+    }
 
     def execute(stmt: Statement): ju.List[Row] = {
-      val session = this.newSession
-      val result = Try(session.execute(stmt).all())
-      session.close()
-      result.get
+      getSession.execute(stmt).all()
     }
 
     def executeUpdate(stmt: Statement): Unit = {
-      val session = this.newSession
-      try {
-        session.execute(stmt)
-      } finally {
-        session.close()
+      getSession.execute(stmt)
+    }
+
+    def close(): Unit = {
+      this.synchronized {
+        if (session.isDefined) {
+          session.get.close()
+          session = None
+        }
       }
     }
   }
