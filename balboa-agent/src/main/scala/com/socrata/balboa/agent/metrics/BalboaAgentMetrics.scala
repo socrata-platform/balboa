@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import com.codahale.metrics._
 import com.socrata.balboa.util.FileUtils
-import com.typesafe.scalalogging.slf4j.LazyLogging
+import com.typesafe.scalalogging.LazyLogging
 
 import scala.util.{Failure, Success, Try}
 

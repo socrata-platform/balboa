@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.JsonParseException
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.metrics.{DomainId, MetricIdParts, UserUid, ViewUid}
 import com.stackmob.newman.{ApacheHttpClient, Headers, RawBody}
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.mockito.ArgumentCaptor
 import org.scalatest.{BeforeAndAfterEach, ShouldMatchers, WordSpec}
 import org.mockito.Mockito._

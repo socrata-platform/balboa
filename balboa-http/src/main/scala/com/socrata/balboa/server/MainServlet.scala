@@ -6,10 +6,10 @@ import javax.servlet.http.HttpServletRequest
 import com.socrata.balboa.BuildInfo
 import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, DataStoreFactory}
 import com.socrata.balboa.server.ResponseWithType.json
-import com.typesafe.scalalogging.slf4j.StrictLogging
 import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
 import org.eclipse.jetty.http.HttpStatus.BAD_REQUEST_400
+import com.typesafe.scalalogging.StrictLogging
 import org.json4s.{DefaultFormats, Formats}
 import org.scalatra._
 import org.scalatra.json.JacksonJsonSupport

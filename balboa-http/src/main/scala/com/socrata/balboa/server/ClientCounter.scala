@@ -2,7 +2,7 @@ package com.socrata.balboa.server
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.scalatra.ScalatraServlet
 
 trait ClientCounter extends ScalatraServlet with StrictLogging {

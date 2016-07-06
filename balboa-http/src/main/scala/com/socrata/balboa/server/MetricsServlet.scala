@@ -9,7 +9,7 @@ import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.balboa.server.ResponseWithType._
 import com.socrata.balboa.server.ScalatraUtil.getAccepts
 import com.socrata.balboa.server.rest.Extractable
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
 import org.scalatra.metrics.MetricsSupport
