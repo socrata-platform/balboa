@@ -3,6 +3,7 @@ package com.socrata.balboa.server.load
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.server.{Config, EntityJSON, MetricJSON, ServiceUtils}
 import io.gatling.core.Predef._
+import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef._
 import org.json4s.{DefaultFormats, Extraction, Formats}
 import org.json4s.jackson.JsonMethods.{pretty, render}
@@ -24,15 +25,20 @@ class PostLoadTest extends Simulation {
   val testLoadEntity = pretty(render(Extraction.decompose(EntityJSON(testLoadEpoch,
     Map("loadTestMetric" -> MetricJSON(testLoadVal, testLoadType))))))
 
-  val serialInsertPopulationBuilder = scenario("Serial insert")
-    .repeat(100) {
-        exec(http("insert metric")
-          .post(testPostUrl)
-          .body(StringBody(testLoadEntity)))
-    }
-    .inject(rampUsers(100) over 10.seconds)
+  val scn: ScenarioBuilder =
+    scenario(s"Repeated serial insert with many users")
+        .during(30.seconds) {
+          exec(http(s"insert metric")
+            .post(testPostUrl)
+            .body(StringBody(testLoadEntity)))
+        }
 
   setUp(
-    serialInsertPopulationBuilder
-  ).protocols(httpConf).maxDuration(30.seconds)
+    scn.inject(
+      nothingFor(1.second),
+      atOnceUsers(1),
+      nothingFor(5.seconds),
+      rampUsers(200) over 20.seconds
+    )
+  ).protocols(httpConf).maxDuration(40.seconds)
 }
