@@ -3,6 +3,8 @@ import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
 import com.typesafe.sbt.packager.debian.DebianPlugin
 import com.typesafe.sbt.packager.docker.DockerPlugin
 import com.typesafe.sbt.packager.universal.UniversalPlugin
+import io.gatling.sbt.GatlingPlugin
+import io.gatling.sbt.GatlingKeys.GatlingIt
 import sbt._
 
 object Balboa extends Build {
@@ -22,7 +24,8 @@ object Balboa extends Build {
 
   lazy val balboaHttp = project("balboa-http", BalboaHttp, balboaCore)
     .enablePlugins(JettyPlugin)
-    .configs(IntegrationTest)
+    .enablePlugins(GatlingPlugin)
+    .configs(IntegrationTest, GatlingIt)
     .settings(Defaults.itSettings: _*)
 
   lazy val balboaServiceCore = project("balboa-service-core", BalboaService, balboaCore)

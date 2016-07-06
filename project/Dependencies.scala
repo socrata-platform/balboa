@@ -14,6 +14,7 @@ object Dependencies {
     val commons_logging = "1.1"
     val datastax = "3.0.0"
     val dropwizard = "3.1.2"
+    val gatling = "2.2.2"
     val jackson = "1.9.12"
     val jetty_webapp = "9.2.14.v20151106"
     val junit = "4.5"
@@ -59,6 +60,8 @@ object Dependencies {
   val dropwizard_metrics = "io.dropwizard.metrics" % "metrics-core" % versions.dropwizard
   val dropwizard_healthcheck = "io.dropwizard.metrics" % "metrics-healthchecks" % versions.dropwizard
   val dropwizard_servlets = "io.dropwizard.metrics" % "metrics-servlets" % versions.dropwizard
+  val gatling = "io.gatling" % "gatling-test-framework" % versions.gatling % "it" excludeAll ExclusionRule(organization = "ch.qos.logback")
+  val gatling_highcharts = "io.gatling.highcharts" % "gatling-charts-highcharts" % versions.gatling % "it"
   val jackson_core_asl = "org.codehaus.jackson" % "jackson-core-asl" % versions.jackson
   val jackson_mapper_asl = "org.codehaus.jackson" % "jackson-mapper-asl" % versions.jackson
   val jetty_webapp = "org.eclipse.jetty" % "jetty-webapp" % versions.jetty_webapp % "compile;container"
