@@ -42,9 +42,22 @@ sbt balboa-http/test
 
 ### Integration Tests
 
+```
 sbt balboa-http/run "-Dbalboa.config=balboa-agent/src/main/resources/config/config.properties"
 sbt balboa-http/it:test
+```
 
 ### Load Tests
+
+balboa-http includes a set of load tests using [Gatling](http://gatling.io/#/).
+These live in balboa-http/src/it/scala/com.socrata.balboa.server/load.
+Each file implements a Gatling simulation designed to load test a
+particular aspect of balboa-http. After the tests have been run, the
+commandline output wil include the URL of a local file where the results
+may be viewed.
+
+```
+sbt balboa-http/run "-Dbalboa.config=balboa-agent/src/main/resources/config/config.properties"
 sbt gatling-it:test
+```
 
