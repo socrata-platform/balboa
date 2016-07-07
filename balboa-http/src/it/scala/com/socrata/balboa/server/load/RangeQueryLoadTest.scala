@@ -7,6 +7,10 @@ import io.gatling.http.Predef._
 
 import scala.concurrent.duration._
 
+/**
+  * Load test simulating a heavy load of repeated GET requests to
+  * the metrics/:entityId/range endpoint of balboa-http
+  */
 class RangeQueryLoadTest extends Simulation {
 
   val httpConf = http.baseURL(Config.Server.toString)
@@ -15,7 +19,7 @@ class RangeQueryLoadTest extends Simulation {
   val testPeriod = "YEARLY"
   val testStartDate = "1970-01-01"
   val testEndDate = "1970-01-02"
-  val testGetUrl = s"metrics/$testEntityId?start=$testStartDate&end=$testEndDate"
+  val testGetUrl = s"metrics/$testEntityId/range?period=$testPeriod&start=$testStartDate&end=$testEndDate"
 
   val scn: ScenarioBuilder =
     scenario(s"Repeated serial range querying at /metrics/$testEntityId with many users")

@@ -10,6 +10,10 @@ import org.json4s.jackson.JsonMethods.{pretty, render}
 
 import scala.concurrent.duration._
 
+/**
+  * Load test simulating a heavy load of repeated POST requests to
+  * the metrics/:entityId endpoint of balboa-http
+  */
 class PostLoadTest extends Simulation {
   protected implicit val jsonFormats: Formats = DefaultFormats
 

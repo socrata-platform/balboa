@@ -45,3 +45,6 @@ sbt balboa-http/test
 sbt balboa-http/run "-Dbalboa.config=balboa-agent/src/main/resources/config/config.properties"
 sbt balboa-http/it:test
 
+### Load Tests
+sbt gatling-it:test
+

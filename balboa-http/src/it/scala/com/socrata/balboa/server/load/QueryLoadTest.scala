@@ -6,7 +6,10 @@ import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef._
 
 import scala.concurrent.duration._
-
+/**
+  * Load test simulating a heavy load of repeated GET requests to
+  * the metrics/:entityId endpoint of balboa-http
+  */
 class QueryLoadTest extends Simulation {
 
   val httpConf = http.baseURL(Config.Server.toString)
