@@ -2,6 +2,7 @@ import sbt.Keys._
 import sbt._
 import sbtassembly.AssemblyKeys._
 import sbtassembly.MergeStrategy
+import io.gatling.sbt.GatlingKeys.GatlingIt
 
 object BuildSettings {
   val buildSettings: Seq[Setting[_]] = Defaults.coreDefaultSettings++ Seq(
@@ -13,6 +14,7 @@ object BuildSettings {
     com.socrata.sbtplugins.findbugs.JavaFindBugsPlugin.JavaFindBugsKeys.findbugsFailOnError in Test := false,
     fork in test := true,
     javaOptions in test += "-Dsocrata.env=test",
+    scalaSource in GatlingIt := file("balboa-http/src/it/scala/com.socrata.balboa.server/load"),
     scalacOptions in (Compile, doc) ++= Seq( // Related Issue: http://scala-language.1934581.n4.nabble.com/Scaladoc-2-11-quot-throws-tag-quot-cannot-find-any-member-to-link-td4641850.html
       "-no-link-warnings" // Suppresses problems with Scaladoc @throws links
     ),
