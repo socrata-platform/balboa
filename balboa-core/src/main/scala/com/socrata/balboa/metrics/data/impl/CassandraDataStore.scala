@@ -6,7 +6,7 @@ import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.metrics.data.{DateRange, Period, QueryOptimizer}
 import com.socrata.balboa.metrics.{Metric, Metrics, Timeslice}
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.collection.JavaConverters._
 

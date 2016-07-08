@@ -9,17 +9,18 @@ import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.balboa.server.ResponseWithType._
 import com.socrata.balboa.server.ScalatraUtil.getAccepts
 import com.socrata.balboa.server.rest.Extractable
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
 import org.scalatra.metrics.MetricsSupport
-import org.scalatra.{NoContent, Ok}
+import org.scalatra.{ActionResult, NoContent, Ok}
 
 // scalastyle:off return
 
 class MetricsServlet extends JacksonJsonServlet
     with MetricsSupport
     with ClientCounter
+    with RequestLogger
     with StrictLogging
     with NotFoundFilter
     with UnexpectedErrorFilter {
@@ -37,7 +38,7 @@ class MetricsServlet extends JacksonJsonServlet
 
   // Match paths like /metrics/:entityId and /metrics/:entityId/whatever
   get("""^\/([^\/]+).*""".r)(getMetrics)
-  def getMetrics: Any = {
+  def getMetrics: ActionResult = {
     val entityId = params("captures")
 
     val period = params.get(PeriodKey).map(Extractable[Period].extract) match {
@@ -68,6 +69,9 @@ class MetricsServlet extends JacksonJsonServlet
       return malformedDate(date).result
     })
 
+    // This timer name doesn't follow the recommended entity-verb-details pattern.
+    // It has been preserved for backwards compatibility until we know the full
+    // cost of changing the name.
     timer("period queries")({
       val iter = dataStore.find(entityId, period, range.start, range.end)
       var metrics = Metrics.summarize(iter)
@@ -82,7 +86,7 @@ class MetricsServlet extends JacksonJsonServlet
   }
 
   get("/:entityId/range*")(getRange)
-  def getRange: Any = {
+  def getRange: ActionResult = {
     val entityId = params("entityId")
 
     val start = params.getOrElse(StartKey, {
@@ -107,9 +111,12 @@ class MetricsServlet extends JacksonJsonServlet
 
     val mediaType = bestMediaType(getAccepts(request), json, protobuf).getOrElse({
       contentType = json
-      return unacceptable
+      return unacceptable.result
     })
 
+    // This timer name doesn't follow the recommended entity-verb-details pattern.
+    // It has been preserved for backwards compatibility until we know the full
+    // cost of changing the name.
     timer("range queries")({
       val iter = dataStore.find(entityId, startDate, endDate)
       var metrics = Metrics.summarize(iter)
@@ -124,7 +131,7 @@ class MetricsServlet extends JacksonJsonServlet
   }
 
   get("/:entityId/series*")(getSeries)
-  def getSeries: Any = {
+  def getSeries: ActionResult = {
     val entityId = params("entityId")
 
     val period = params.get(PeriodKey).map(Extractable[Period].extract) match {
@@ -151,12 +158,12 @@ class MetricsServlet extends JacksonJsonServlet
     })
     val endDate = ServiceUtils.parseDate(end).getOrElse({
       contentType = json
-      return malformedDate(end)
+      return malformedDate(end).result
     })
 
     bestMediaType(getAccepts(request), json).getOrElse({
       contentType = json
-      return unacceptable
+      return unacceptable.result
     })
 
     timer("series queries")({
@@ -168,7 +175,7 @@ class MetricsServlet extends JacksonJsonServlet
   }
 
   post("/:entityId")(postMetrics())
-  def postMetrics(): Any = {
+  def postMetrics(): ActionResult = {
     // Note: The `contentType` is used to determine how the response is to be
     // interpreted. For some unclear reason, it must be set -before- calling
     // extractOpt for the body of the request in order for it to take effect on
@@ -198,7 +205,10 @@ class MetricsServlet extends JacksonJsonServlet
       metrics.put(name, new Metric(recordType, metric.value))
     }
 
-    dataStore.persist(entityId, entity.timestamp, metrics)
+    timer("metric-post")({
+      dataStore.persist(entityId, entity.timestamp, metrics)
+    }).call()
+
     NoContent()
   }
 

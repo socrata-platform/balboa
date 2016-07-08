@@ -9,7 +9,7 @@ import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.data.impl.CassandraUtil.DatastaxContext
 import com.socrata.balboa.metrics.data.{BalboaFastFailCheck, Period}
 import com.socrata.balboa.metrics.{Metric, Metrics}
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.{collection => sc}
 import scala.collection.JavaConverters.iterableAsScalaIterableConverter
@@ -25,7 +25,7 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
 
   @throws(classOf[Exception])
   def checkHealth(): Unit = {
-    context.newSession.execute("SELECT now() FROM system.LOCAL;").all()
+    context.getSession.execute("SELECT now() FROM system.LOCAL;").all()
   }
 
   def fetch(entityId: String, period: Period, bucket:ju.Date): Metrics = {

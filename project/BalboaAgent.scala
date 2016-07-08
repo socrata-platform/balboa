@@ -32,5 +32,5 @@ object BalboaAgent extends DockerKeys with LinuxKeys {
     scalatest,
     typesafe_config,
     json4s
-  )
+  ) ++ balboa_logging
 }

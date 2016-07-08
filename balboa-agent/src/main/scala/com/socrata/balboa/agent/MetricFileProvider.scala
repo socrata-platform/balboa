@@ -3,7 +3,7 @@ package com.socrata.balboa.agent
 import java.io.File
 import java.nio.file.Path
 import com.socrata.balboa.util.FileUtils
-import com.typesafe.scalalogging.slf4j.LazyLogging
+import com.typesafe.scalalogging.LazyLogging
 import scala.collection.JavaConverters._
 
 /**

@@ -2,7 +2,7 @@ package com.socrata.balboa.agent
 
 import javax.jms.{ExceptionListener, JMSException, Session}
 
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 import org.apache.activemq.command.ActiveMQDestination
 import org.apache.activemq.{ActiveMQConnection, ActiveMQConnectionFactory}
 

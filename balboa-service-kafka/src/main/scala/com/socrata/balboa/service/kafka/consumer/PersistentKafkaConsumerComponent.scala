@@ -5,8 +5,7 @@ package com.socrata.balboa.service.kafka.consumer
 import java.io.IOException
 
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck
-import com.typesafe.scalalogging.slf4j.Logger
-import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.StrictLogging
 
 trait PersistentKafkaConsumerReadiness extends KafkaConsumerReadiness {
 
@@ -26,10 +25,8 @@ trait PersistentKafkaConsumerReadiness extends KafkaConsumerReadiness {
  */
 trait PersistentKafkaConsumerComponent[K,M] extends KafkaConsumerComponent[K,M] {
 
-  trait PersistentKafkaConsumer extends KafkaConsumer {
+  trait PersistentKafkaConsumer extends KafkaConsumer with StrictLogging {
     self: KafkaConsumerStreamProvider[K,M] with PersistentKafkaConsumerReadiness =>
-
-    private val Log = Logger(LoggerFactory getLogger this.getClass)
 
     /**
      * Attempt to persist a message.
@@ -51,7 +48,7 @@ trait PersistentKafkaConsumerComponent[K,M] extends KafkaConsumerComponent[K,M] 
       // As an effect, Having the node or killing the service will potentially result in a message loss
       
       if(attempts >= retries) {
-        Log.error("Exceeded allowed number of retries")
+        logger error "Exceeded allowed number of retries"
         throw new IOException("Exceeded allowed number of retries")
       }
 
@@ -66,7 +63,7 @@ trait PersistentKafkaConsumerComponent[K,M] extends KafkaConsumerComponent[K,M] 
           waitUntilReady()
           consume(key, message, attempts + 1)
         case e: Exception =>
-          Log.error(s"Unable to persist Kafka Key-Message: $key-$message.", e)
+          logger error(s"Unable to persist Kafka Key-Message: $key-$message.", e)
           val errorMessage = e.getMessage
           Some(s"Unable to persist Kafka Key-Message: $key-$message..  Reason: $errorMessage")
       }

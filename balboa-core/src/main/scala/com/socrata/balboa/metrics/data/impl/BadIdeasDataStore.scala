@@ -4,7 +4,7 @@ import java.{util => ju}
 
 import com.socrata.balboa.metrics.{Metrics, Timeslice}
 import com.socrata.balboa.metrics.data.{DataStore, Period}
-import com.typesafe.scalalogging.slf4j.StrictLogging
+import com.typesafe.scalalogging.StrictLogging
 
 import scala.collection.JavaConverters._
 

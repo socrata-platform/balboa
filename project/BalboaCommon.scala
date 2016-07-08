@@ -12,6 +12,10 @@ object BalboaCommon {
   )
 
   def libraries(implicit scalaVersion: String) = Seq(
+    // SLF4J is used directly here instead of scala-logging to allow for cross-compilation to 2.10
+    log4j,
+    slf4j_log4j,
+
     junit,
     protobuf_java,
     mockito_test,
@@ -19,7 +23,7 @@ object BalboaCommon {
     jackson_mapper_asl,
     jopt_simple,
     json4s
-  ) ++ balboa_logging
+  )
 }
 
 object BalboaKafkaCommon {
