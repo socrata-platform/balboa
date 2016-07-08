@@ -61,3 +61,7 @@ sbt balboa-http/run "-Dbalboa.config=balboa-agent/src/main/resources/config/conf
 sbt gatling-it:test
 ```
 
+To run the load tests against a specific port or URL, use the environment
+variables `SERVICE_HOST` and `SERVICE_PORT`, just as in the normal
+integration tests.
+
