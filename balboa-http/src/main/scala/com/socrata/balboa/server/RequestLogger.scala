@@ -5,8 +5,7 @@ import org.scalatra.ScalatraServlet
 
 trait RequestLogger extends ScalatraServlet with StrictLogging {
   before() {
-    logger info s"in-bound request: ${request.getMethod} ${request.getRequestURI}?${request.getQueryString}"
-  }
-  after() {
+    val requestParams = Option(request.getQueryString).map("?" + _).getOrElse("")
+    logger info s"in-bound request: ${request.getMethod} ${request.getRequestURI}$requestParams"
   }
 }
