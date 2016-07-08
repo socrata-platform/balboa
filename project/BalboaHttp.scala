@@ -12,6 +12,8 @@ object BalboaHttp {
   ) ++ ScalatraPlugin.scalatraFullSettings
 
   def libraries(implicit scalaVersion: String) = Seq(
+    gatling,
+    gatling_highcharts,
     jetty_webapp,
     junit,
     json4s,
