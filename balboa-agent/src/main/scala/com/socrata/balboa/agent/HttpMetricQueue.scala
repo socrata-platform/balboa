@@ -16,9 +16,19 @@ import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext}
 import scala.util.{Failure, Success, Try}
 
+/**
+  * Utility for persisting metrics to balboa-http
+  *
+  * @param balboaHttpURL Base url of balboa-http
+  * @param timeout Duration to wait before a request should be considered failed
+  * @param maxRetryWait Maximum delay between retries
+  * @param maxRetries Max number times to retry the HTTP request
+  * @param httpClient The HttpClient to use for making requests to balboa-http
+  */
 case class HttpMetricQueue(balboaHttpURL: String,
                            timeout: Duration,
                            maxRetryWait: Duration,
+                           maxRetries: Option[Int] = None,
                            implicit val httpClient: HttpClient = new ApacheHttpClient)
   extends MetricQueue with StrictLogging {
 
@@ -66,7 +76,8 @@ case class HttpMetricQueue(balboaHttpURL: String,
     //    codes. Possibly, for example (but not exhaustively) 404, 500s are
     //    infinite retry, but 400s are written to a file to be retried in the
     //    future.
-    while (true) {
+    var i = 0
+    while (maxRetries.forall(i < _)) {
       val requestWithTimeout = Try(Await.result(request.apply, timeout))
 
       requestWithTimeout match {
@@ -82,6 +93,8 @@ case class HttpMetricQueue(balboaHttpURL: String,
 
       Thread.sleep(waitInLoop.toMillis)
       waitInLoop = Math.min(maxRetryWait.toMillis, (waitInLoop * 2).toMillis).millis
+
+      i += 1
     }
   }
 

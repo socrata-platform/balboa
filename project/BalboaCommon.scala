@@ -15,7 +15,6 @@ object BalboaCommon {
     // SLF4J is used directly here instead of scala-logging to allow for cross-compilation to 2.10
     log4j,
     slf4j_log4j,
-
     junit,
     protobuf_java,
     mockito_test,
