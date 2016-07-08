@@ -15,7 +15,6 @@ import org.scalatest.mock.MockitoSugar
 import org.json4s._
 import org.json4s.jackson.JsonMethods.{parse, pretty, render}
 
-import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.Try
 
@@ -59,23 +58,25 @@ class HttpMetricQueueSpec extends WordSpec
   val TestVal = 67
   val TestTime = 82
   val TestType = RecordType.ABSOLUTE
+  val TestRetryNum = 3
 
   var mockHttpClient = mock[ApacheHttpClient]
-  var httpMetricQueue = new HttpMetricQueue(TestUrl, Timeout, MaxRetryWait, mockHttpClient)
+  var httpMetricQueue = new HttpMetricQueue(TestUrl, Timeout, MaxRetryWait, Some(TestRetryNum), mockHttpClient)
   override def beforeEach(): Unit = {
     mockHttpClient = mock[ApacheHttpClient]
-    httpMetricQueue = new HttpMetricQueue(TestUrl, Timeout, MaxRetryWait, mockHttpClient)
+    httpMetricQueue = new HttpMetricQueue(TestUrl, Timeout, MaxRetryWait, Some(TestRetryNum), mockHttpClient)
   }
 
   "An HttpMetricQueue" when {
     "a metric is created" should {
       "make an http request with the proper arguments" in {
-        Future { httpMetricQueue.create(TestEntity, TestName, TestVal, TestTime, TestType) }
+        httpMetricQueue.create(TestEntity, TestName, TestVal, TestTime, TestType)
 
         val url = ArgumentCaptor.forClass(classOf[URL])
         val body = ArgumentCaptor.forClass(classOf[RawBody])
 
-        verify(mockHttpClient, timeout(TestTimeout)).post(url.capture(), notNull(classOf[Headers]), body.capture())
+        verify(mockHttpClient, atLeastOnce)
+          .post(url.capture(), notNull(classOf[Headers]), body.capture())
 
         url.getValue should be (new URL(s"$TestUrl/metrics/${URLEncoder.encode(TestEntity.toString, "UTF-8")}"))
 
@@ -84,9 +85,10 @@ class HttpMetricQueueSpec extends WordSpec
       }
 
       "retry when it doesn't hear back" in {
-        Future { httpMetricQueue.create(TestEntity, TestName, TestVal, TestTime, TestType) }
+        httpMetricQueue.create(TestEntity, TestName, TestVal, TestTime, TestType)
 
-        verify(mockHttpClient, timeout(TestTimeout).times(3)).post(any(), any(), any())
+        verify(mockHttpClient, times(TestRetryNum))
+          .post(any(), any(), any())
       }
     }
   }

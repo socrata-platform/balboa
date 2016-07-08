@@ -21,6 +21,7 @@ class MainServlet extends ScalatraServlet
     with MetricsSupport
     with ClientCounter
     with StrictLogging
+    with RequestLogger
     with JacksonJsonSupport
     with NotFoundFilter
     with UnexpectedErrorFilter {
