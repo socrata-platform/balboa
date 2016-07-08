@@ -6,7 +6,9 @@ import org.scalatra.ScalatraServlet
 
 import scala.util.{Failure, Success, Try}
 
-class HealthCheckServlet extends ScalatraServlet with NotFoundFilter {
+class HealthCheckServlet extends ScalatraServlet
+  with NotFoundFilter
+  with RequestLogger {
 
   val dataStore = DataStoreFactory.get()
 
