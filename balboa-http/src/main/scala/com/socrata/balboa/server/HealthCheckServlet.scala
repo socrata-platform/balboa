@@ -8,7 +8,7 @@ import scala.util.{Failure, Success, Try}
 
 class HealthCheckServlet extends ScalatraServlet
   with NotFoundFilter
-  /*with RequestLogger*/ {
+  with RequestLogger {
 
   val dataStore = DataStoreFactory.get()
 
