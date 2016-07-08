@@ -18,6 +18,7 @@ import org.scalatra.{ActionResult, NoContent, Ok}
 class MetricsServlet extends JacksonJsonServlet
     with MetricsSupport
     with ClientCounter
+    with RequestLogger
     with StrictLogging
     with NotFoundFilter
     with UnexpectedErrorFilter {
