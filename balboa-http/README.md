@@ -69,7 +69,10 @@ integration tests.
 
 The `ReplayFileLoadTest` simulation runs a simulation from a file.
 It can be run in isolation with:
-```sbt gatling-it:test-only com.socrata.balboa.server.load.ReplayFileLoadTest```
+
+```
+sbt gatling-it:test-only com.socrata.balboa.server.load.ReplayFileLoadTest
+```
 
 This simulation looks for the CSV pointed to by the `replay_load_test_file`
 variable in `src/it/resources/reference.conf` or with the 
