@@ -21,8 +21,7 @@ class HealthCheckServlet extends ScalatraServlet
     val serving = if (ClientCounter.get() > 0) { 1 } else { 0 }
 
     contentType = "text/plain"
-    s"""
-      |healthy: $cassandra
+    s"""healthy: $cassandra
       |healthy.cassandra: $cassandra
       |serving: $serving
       |version: ${BuildInfo.version}
