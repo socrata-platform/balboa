@@ -17,7 +17,7 @@ To build the image,fdsa run:
 IE: "10.0.0.1:2181,10.0.0.2:2181"
 
 * CASSANDRA_ENSEMBLE: Comma separated list of Cassandra nodes (host:port,host:port,...).
-IE: 10.98.6.4:9160
+IE: 10.98.6.4:9042
 
 * KAFKA_TOPIC: String that represent Kafka Topic.  IE. metrics.tenant
 
@@ -46,7 +46,7 @@ have to start Cassandra and Zookeeper locally outside your vm.
 
 ## Running your container
 
-`docker run --env-file=<full path to your envfile> -p 9160:9160 `
+`docker run --env-file=<full path to your envfile> -p 9042:9042`
 
 References:
 * [How to Docker](https://docs.google.com/a/socrata.com/document/d/1pSYyuf32tr-eLF6HRtBIZI5fMhpHGwrkFldsGU6F9uI/edit#heading=h.v3c2hdhylifl)

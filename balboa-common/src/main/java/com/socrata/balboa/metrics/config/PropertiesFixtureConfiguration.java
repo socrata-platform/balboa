@@ -12,7 +12,7 @@ public class PropertiesFixtureConfiguration extends Configuration
         setSupportedTypes(Arrays.asList(
                 Period.HOURLY, Period.DAILY, Period.MONTHLY
         ));
-        setProperty("cassandra.servers", "localhost:9160");
+        setProperty("cassandra.servers", "localhost:9042");
         setProperty("cassandra.keyspace", "Metrics3");
         setProperty("cassandra.maxpoolsize", "1");
         setProperty("cassandra.sotimeout", "1000");

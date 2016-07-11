@@ -10,8 +10,8 @@ activemq: # Not actually the version we run in production
 cassandra: # Not actually the version we run in production
   build: cassandra
   ports:
-    - "9160:9160" # Thrift
     - "9042:9042" # Native
+    - "9160:9160" # Thrift
     - "7199:7199" # JMX
 
 
