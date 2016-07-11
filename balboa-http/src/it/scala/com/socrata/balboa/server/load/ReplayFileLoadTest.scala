@@ -20,25 +20,20 @@ class ReplayFileLoadTest extends Simulation {
       "/" + Config.conf.getString("replay_load_test_file")))
 
   val replayTimeout = Config.conf.getInt("replay_load_test_timeout_sec")
-
-  val replayRows = replayFile.getLines.drop(1)
-    .map(_.split(",").map(_.trim)) // Break CSV into columns
-    .map(row => (row(0).toInt, row(1))) // Array[String] => Tuple(millisecond request time as int, request)
-    .toList
-    .sortWith(_._1 < _._1) // Sort by request time
+  val replayMaxUsers = Config.conf.getInt("replay_load_test_max_users")
 
   val scn: ScenarioBuilder =
-    replayRows.zipWithIndex.foldRight(scenario(s"Replaying log file"))({
-      case (((time, request), index), scnAcc) =>
-        if (index == 0) {
-          scnAcc
-        } else {
-          val timeAfterLast = time - replayRows(index - 1)._1
-          scnAcc.pause(timeAfterLast.millis)
-        }.exec(http(s"GET $request").get(request.stripPrefix("/")))
-    })
+    replayFile.getLines
+      .foldRight(scenario(s"Replaying log file"))(
+        (request, scnAcc) =>
+          scnAcc.exec(http(s"GET $request").get(request.stripPrefix("/")))
+    )
 
   setUp(
-    scn.inject(atOnceUsers(1))
-  ).protocols(httpConf).maxDuration(40.seconds)
+    scn.inject(
+      atOnceUsers(1),
+      nothingFor(4.seconds),
+      rampUsers(replayMaxUsers) over 20.seconds
+    )
+  ).protocols(httpConf).maxDuration(replayTimeout)
 }
