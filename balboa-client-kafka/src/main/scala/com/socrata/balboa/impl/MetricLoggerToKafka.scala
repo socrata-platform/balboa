@@ -1,13 +1,13 @@
 package com.socrata.balboa.impl
 
+// scalastyle:off
+
 import java.io.File
 import java.nio.file.Paths
 
 import com.socrata.balboa.metrics.util.AddressAndPort
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{BaseMetricLoggerComponent, MetricEnqueuer, MetricLoggerComponent}
-
-
 
 /**
  * Entry point for how to funnel Metric logs entries to Kafka.

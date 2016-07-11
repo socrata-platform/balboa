@@ -1,5 +1,7 @@
 package com.socrata.balboa.service.kafka.consumer
 
+// scalastyle:off
+
 import com.socrata.balboa.service.consumer.ConsumerGroupComponent
 
 /**

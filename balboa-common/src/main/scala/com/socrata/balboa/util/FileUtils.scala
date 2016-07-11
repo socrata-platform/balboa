@@ -7,17 +7,21 @@ import java.io.{File, FileFilter}
   */
 object FileUtils {
 
+  // scalastyle:off field.name
+
   val BROKEN_FILE_EXTENSION = ".broken"
 
   val LOCK_FILE_EXTENSION = ".lock"
 
   val IMMUTABLE_FILE_EXTENSION = ".completed"
 
+  // scalastyle:on field.name
+
   val isBalboaDataFile = new FileFilter() {
     override def accept(file: File): Boolean = file match {
-      case f if f.isDirectory => false
-      case f if isBalboaImmutableFile.accept(f) => true
-      case f if !(isBalboaBrokenFile.accept(file) || isBalboaLockFile.accept(file)) => true
+      case _ if file.isDirectory => false
+      case _ if isBalboaImmutableFile.accept(file) => true
+      case _ if !(isBalboaBrokenFile.accept(file) || isBalboaLockFile.accept(file)) => true
       case _ => false
     }
   }

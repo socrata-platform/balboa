@@ -1,5 +1,7 @@
 package com.socrata.balboa.common.kafka.codec
 
+// scalastyle:off
+
 import com.socrata.balboa.metrics.Message
 import com.socrata.balboa.metrics.impl.JsonMessage
 import kafka.utils.VerifiableProperties
