@@ -13,11 +13,15 @@ import scala.{collection => sc}
  */
 trait CassandraQuery {
   @throws(classOf[Exception])
-  def checkHealth()
+  def checkHealth(): Unit
 
   def getAllEntityIds(recordType:RecordType, period:Period):Iterator[String]
 
   def fetch(entityKey:String, period:Period, bucket:ju.Date):Metrics
 
-  def persist(entityId:String, bucket:ju.Date, period:Period, aggregates:sc.Map[String, Metric], absolutes:sc.Map[String, Metric])
+  def persist(entityId:String,
+              bucket:ju.Date,
+              period:Period,
+              aggregates:sc.Map[String, Metric],
+              absolutes:sc.Map[String, Metric]): Unit
 }

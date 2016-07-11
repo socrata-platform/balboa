@@ -21,7 +21,7 @@ trait HashMapBufferComponent extends BufferComponent {
     val bufferMap = mutable.HashMap.empty[String, BufferItem]
     val messageQueue = self.MessageQueue()
 
-    def add(item:BufferItem) {
+    def add(item:BufferItem): Unit = {
       val timeslice = timeBoundary(item.timestamp)
       val bufferKey = item.entityId + ":" + timeslice
       val buffered = bufferMap.get(bufferKey)
@@ -36,7 +36,9 @@ trait HashMapBufferComponent extends BufferComponent {
       val unionKeys = metrics1.keySet().asScala union metrics2.keySet().asScala
       val metricsComb = new Metrics()
 
-      for (key <- unionKeys) {
+      for {
+        key <- unionKeys
+      } yield {
         val metric1 = Option(metrics1.get(key))
         val metric2 = Option(metrics2.get(key))
         (metric1, metric2) match {
@@ -49,9 +51,13 @@ trait HashMapBufferComponent extends BufferComponent {
             } else {
               m1.getType match {
                 case RecordType.ABSOLUTE =>
-                  metricsComb.put(key, new Metric(RecordType.ABSOLUTE, (new Absolution).combine(m1.getValue, m2.getValue)))
+                  metricsComb.put(key, new Metric(
+                    RecordType.ABSOLUTE,
+                    (new Absolution).combine(m1.getValue, m2.getValue)))
                 case RecordType.AGGREGATE =>
-                  metricsComb.put(key, new Metric(RecordType.AGGREGATE, (new Summation).combine(m1.getValue, m2.getValue)))
+                  metricsComb.put(key, new Metric(
+                    RecordType.AGGREGATE,
+                    (new Summation).combine(m1.getValue, m2.getValue)))
               }
             }
         }
@@ -61,7 +67,9 @@ trait HashMapBufferComponent extends BufferComponent {
 
     def flush(): Int = {
       val size = bufferMap.size
-      for (item <- bufferMap.values){
+      for {
+        item <- bufferMap.values
+      } yield {
         val msg = asMessage(item)
         messageQueue.send(msg)
       }
@@ -79,12 +87,12 @@ trait HashMapBufferComponent extends BufferComponent {
 
     def timeBoundary(timestamp:Long): Long = timestamp - (timestamp % MetricQueue.AGGREGATE_GRANULARITY)
 
-    def start() {
+    def start(): Unit = {
       messageQueue.start()
     }
 
-    def stop() {
-      if (bufferMap.size > 0) {
+    def stop(): Unit = {
+      if (bufferMap.nonEmpty) {
         log.info("Flushing " + bufferMap.size + " metrics from BalboaClient buffer before shutting down ...")
         flush()
       }
@@ -95,5 +103,6 @@ trait HashMapBufferComponent extends BufferComponent {
 
   }
 
+  // scalastyle:off method.name
   def Buffer(): Buffer = new Buffer()
 }

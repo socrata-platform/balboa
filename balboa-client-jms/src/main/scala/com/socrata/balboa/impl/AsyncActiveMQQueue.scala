@@ -35,8 +35,8 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
   private var started = false
 
   /**
-   * Initializes necessary connections with external services. Must be called before create(_). Should not be called again
-   * without first calling close().
+   * Initializes necessary connections with external services. Must be called before create(_). Should not be called
+   * again without first calling close().
    */
   def start(): Unit = {
     if (!started) {
@@ -50,7 +50,8 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
           })
           underlying = connection.map(new MetricJmsQueueNotSingleton(_, queueName))
         case Failure(e) =>
-          // Using failover transport, this should never happen; rather, createConnection() will hang until it finds a connection
+          // Using failover transport, this should never happen; rather, createConnection() will hang
+          // until it finds a connection
           log.error("ActiveMQ initial connection failed. Metrics will not function until a restart!", e)
       }
     } else {
@@ -71,7 +72,8 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
         finally { connection.map(_.close()) }
       } else {
         // ActiveMQ connection can be deadlocked in this situation, so close() can simply hang.. grr
-        throw new RuntimeException("Unable to properly shutdown ActiveMQ connections.. resources might not have been properly unallocated!")
+        throw new RuntimeException(
+          "Unable to properly shutdown ActiveMQ connections.. resources might not have been properly unallocated!")
       }
     } finally {
       underlying = None
@@ -96,7 +98,11 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
    * @param timestamp Time when this metric was created
    * @param metricType Type of metric to add
    */
-  override def create(entity: IdParts, name: IdParts, value: Long, timestamp: Long, metricType: Metric.RecordType): Unit = {
+  override def create(entity: IdParts,
+                      name: IdParts,
+                      value: Long,
+                      timestamp: Long,
+                      metricType: Metric.RecordType): Unit = {
     underlying match {
       case Some(queue) if BalboaTransportListener.isConnected =>
         queue.create(entity, name, value, timestamp, metricType)
@@ -123,7 +129,7 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
 
     def isConnected: Boolean = jmsConnected
 
-    def close() {
+    def close(): Unit = {
       jmsConnected = false
     }
   }

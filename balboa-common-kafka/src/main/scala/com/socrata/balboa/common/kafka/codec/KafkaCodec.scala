@@ -1,5 +1,7 @@
 package com.socrata.balboa.common.kafka.codec
 
+// scalastyle:off
+
 import kafka.serializer.{Decoder, Encoder}
 
 /**

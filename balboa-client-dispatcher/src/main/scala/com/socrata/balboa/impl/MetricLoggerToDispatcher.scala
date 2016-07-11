@@ -14,11 +14,14 @@ import org.slf4j.LoggerFactory
 trait MetricLoggerToDispatcher extends BaseMetricLoggerComponent {
   private val Log = LoggerFactory.getLogger(classOf[MetricLoggerToDispatcher])
 
+  // scalastyle:off method.name
+
   /**
    * NOTE: This method is being replaced with [[MetricLogger()]].
    */
   @deprecated("Use MetricLogger", "v0.15.1 (2015-04-15)")
-  override def MetricLogger(serverName: String, queueName: String, backupFileName: String): MetricLogger = MetricLogger()
+  override def MetricLogger(serverName: String, queueName: String, backupFileName: String): MetricLogger =
+    MetricLogger()
 
   /**
    * Creates a Metric Logger using preset configurations.
@@ -38,13 +41,17 @@ trait MetricLoggerToDispatcher extends BaseMetricLoggerComponent {
      */
     override lazy val components: Iterable[MessageQueueComponent] = {
       val cTypes = DispatcherConfig.clientTypes
-      if (cTypes.isEmpty)
+      if (cTypes.isEmpty) {
         throw new IllegalStateException(s"No valid client types found.  Please configure ${
-          Keys.DISPATCHER_CLIENT_TYPES} with a comma separated list including one or many of the following valid " +
+          Keys.DISPATCHER_CLIENT_TYPES
+        } with a comma separated list including one or many of the following valid " +
           s"types: $availableClientTypeString")
+      }
       cTypes.map(component)
     }
   }
+
+  // scalastyle:on method.name
 
   /**
    * Creates a component based off of its configuration type
@@ -61,7 +68,7 @@ trait MetricLoggerToDispatcher extends BaseMetricLoggerComponent {
       new BalboaKafkaComponent()
         with ConfiguredKafkaProducerInfo
         with BufferedStreamEmergencyWriterComponent
-    case x =>
+    case x: Any =>
       throw new IllegalStateException(s"Unsupported Client Type $x.  Please use one of the following client " +
         s"types: $availableClientTypeString")
   }

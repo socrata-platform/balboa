@@ -1,5 +1,7 @@
 package com.socrata.balboa.service.kafka.consumer
 
+// scalastyle:off
+
 import java.io.IOException
 
 import com.socrata.balboa.metrics.data.BalboaFastFailCheck

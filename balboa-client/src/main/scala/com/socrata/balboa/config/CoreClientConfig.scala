@@ -6,7 +6,7 @@ import java.nio.file.{Files, Path, Paths}
 
 import com.socrata.balboa.metrics.config.{Configuration, Keys}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
  * Parent Configuration class for all Client Configurations.  This class encapsulates core functionality that can be
@@ -35,17 +35,20 @@ trait CoreClientConfig {
    *
    * @param name Emergency File short name.
    */
-  def emergencyBackUpFile(name: String): File = emergencyBackUpDir.toPath.resolve(name) match {
-    case p: Path if Files.exists(p) && Files.isWritable(p) => p.toFile
-    case p: Path if Files.exists(p) && !Files.isWritable(p) && !p.toFile.setWritable(true) => throw new
-        IllegalStateException(s"$p exists but is not and could not make that file writable")
-    case p: Path if !Files.exists(p) =>
-      Files.createFile(p, PosixFilePermissions.asFileAttribute(Set(
+  def emergencyBackUpFile(name: String): File = {
+    val path = emergencyBackUpDir.toPath.resolve(name)
+    if (Files.exists(path)) {
+      if (Files.isWritable(path) || path.toFile.setWritable(true)) {
+        path.toFile
+      } else {
+        throw new IllegalStateException(s"$path exists but is not and could not make that file writable")
+      }
+    } else {
+      Files.createFile(path, PosixFilePermissions.asFileAttribute(Set(
         PosixFilePermission.GROUP_READ,
         PosixFilePermission.OTHERS_READ,
         PosixFilePermission.OWNER_READ,
-        PosixFilePermission.OWNER_WRITE))).toFile
-    // Again should never reach this point.  If it does, obvious logic error.
+        PosixFilePermission.OWNER_WRITE).asJava)).toFile
+    }
   }
-
 }

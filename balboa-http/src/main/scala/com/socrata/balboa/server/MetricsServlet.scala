@@ -15,6 +15,8 @@ import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
 import org.scalatra.metrics.MetricsSupport
 import org.scalatra.{ActionResult, NoContent, Ok}
 
+// scalastyle:off return
+
 class MetricsServlet extends JacksonJsonServlet
     with MetricsSupport
     with ClientCounter
@@ -192,7 +194,9 @@ class MetricsServlet extends JacksonJsonServlet
       return badRequest("message body", "unable to parse as metrics entity").result
     })
     val metrics = new Metrics()
-    for ((name, metric) <- entity.metrics) {
+    for {
+      (name, metric) <- entity.metrics
+    } yield {
       val recordType = metric.`type` match {
         case "ABSOLUTE" => RecordType.ABSOLUTE
         case "AGGREGATE" => RecordType.AGGREGATE

@@ -38,7 +38,8 @@ trait MetricDequeuerService {
       override def run(): Unit = {
         val numFlushed = buffer.synchronized { buffer.flush() }
         val queueSize = queue.size
-        if (numFlushed < queueSize) log.warn("The metric queue contains " + queueSize + " elements; the last buffer flush emptied out " + numFlushed + " elements.")
+        if (numFlushed < queueSize) log.warn(
+          s"The metric queue contains $queueSize elements; the last buffer flush emptied out $numFlushed elements.")
       }
     }
 
@@ -69,5 +70,6 @@ trait MetricDequeuerService {
     }
   }
 
+  // scalastyle:off method.name
   def MetricDequeuer(): MetricDequeuer = new MetricDequeuer()
 }
