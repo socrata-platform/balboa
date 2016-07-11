@@ -5,7 +5,7 @@ This Docker configuration for Balboa-HTTP
 
 To build the image run:
 
-  `docker build -rm -t balboa-http path/to/balboa-http/docker`
+  `docker build --rm -t balboa-http path/to/balboa-http/docker`
 
 ## Required:
 
