@@ -44,6 +44,7 @@ class MainServlet extends ScalatraServlet
     }
   }
 
+  // scalastyle:off return
   get("/entities*")(getEntities)
   def getEntities: ActionResult = {
     contentType = json

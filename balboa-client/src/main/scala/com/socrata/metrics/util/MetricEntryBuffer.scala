@@ -11,7 +11,8 @@ import scala.collection.SetLike
  *
  * Reference: [[MetricEntry]]
  */
-class MetricEntryBuffer(underlying: Set[MetricEntry]) extends Set[MetricEntry] with SetLike[MetricEntry, MetricEntryBuffer] {
+class MetricEntryBuffer(underlying: Set[MetricEntry]) extends Set[MetricEntry]
+    with SetLike[MetricEntry, MetricEntryBuffer] {
 
   // Composition pattern but makes it so this class is mutable. TODO Find a better pattern for this.
   var buffer = underlying

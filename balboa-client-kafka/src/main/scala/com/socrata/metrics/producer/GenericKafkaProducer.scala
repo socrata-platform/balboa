@@ -1,5 +1,7 @@
 package com.socrata.metrics.producer
 
+// scalastyle:off
+
 import java.util.Properties
 
 import com.socrata.balboa.metrics.util.AddressAndPort

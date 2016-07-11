@@ -1,5 +1,7 @@
 package com.socrata.balboa.impl
 
+// scalastyle:off
+
 import java.io.File
 import java.util.Properties
 

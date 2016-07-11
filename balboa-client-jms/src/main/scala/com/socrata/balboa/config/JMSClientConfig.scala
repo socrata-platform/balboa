@@ -17,9 +17,9 @@ trait JMSClientConfig extends CoreClientConfig {
    */
   def activemqQueue: String = Configuration.get().getString(Keys.JMS_ACTIVEMQ_QUEUE)
 
-  def activemqUser: Option[String] = Option(Configuration.get().getString(Keys.JMS_ACTIVEMQ_USER, null))
+  def activemqUser: Option[String] = Option(Configuration.get().getString(Keys.JMS_ACTIVEMQ_USER))
 
-  def activemqPassword: Option[String] = Option(Configuration.get().getString(Keys.JMS_ACTIVEMQ_PASSWORD, null))
+  def activemqPassword: Option[String] = Option(Configuration.get().getString(Keys.JMS_ACTIVEMQ_PASSWORD))
 
   def bufferSize: Int = Configuration.get().getInt(Keys.JMS_ACTIVEMQ_MAX_BUFFER_SIZE, 1)
 

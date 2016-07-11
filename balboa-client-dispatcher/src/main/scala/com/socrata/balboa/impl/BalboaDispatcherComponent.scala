@@ -39,6 +39,7 @@ trait BalboaDispatcherComponent extends MessageQueueComponent {
     override def send(msg: Message): Unit = queues.foreach(_.send(msg))
   }
 
+  // scalastyle:off method.name
   override def MessageQueue(): MessageQueueLike = new MessageDispatcher
 
 }

@@ -48,11 +48,11 @@ trait ConsumerGroupComponent[A] extends Callable[List[Future[Option[Exception]]]
    *
    * @return
    */
-  final override def call(): List[Future[Option[Exception]]] = start()
+  override final def call(): List[Future[Option[Exception]]] = start()
 
   /**
    * AutoCloses by calling [[stop()]].  Place all shutdown and clean up processes overriding
    * [[stop()]] but remember to call `super.stop()`
    */
-  final override def close(): Unit = stop()
+  override final def close(): Unit = stop()
 }
