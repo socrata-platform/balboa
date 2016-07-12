@@ -11,6 +11,10 @@ balboa-http can built into an executable Assembly (Fat) Jar.
 sbt balboa-http/assembly
 ```
 
+### Docker
+
+See [balboa-http/docker/README.md](docker/README.md).
+
 ### Configuration
 
 Configuration is done through properties files or via the

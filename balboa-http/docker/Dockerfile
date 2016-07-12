@@ -1,4 +1,4 @@
-FROM socrata/java8
+FROM socrata/runit-java8
 
 # Forward the ZooKeeper and Cassandra Port.
 ENV BALBOA_PORT 2012
@@ -6,18 +6,18 @@ ENV JMX_PORT 40506
 EXPOSE $BALBOA_PORT $JMX_PORT
 
 ### Environment Variables
-ENV BALBOA_ROOT /srv/balboa-http
-ENV BALBOA_ARTIFACT balboa-http-assembly.jar
+ENV APP balboa-http
+ENV SERVICE_DIR /etc/service/${APP}
+ENV BALBOA_ARTIFACT ${APP}-assembly.jar
 ENV BALBOA_CONFIG balboa.properties
 ENV BALBOA_LOG4J log4j.properties
 
 # Default Values
 ENV JAVA_XMX 1024m
 
-WORKDIR $BALBOA_ROOT
+RUN mkdir ${SERVICE_DIR}
 
-ADD ship.d /etc/ship.d
-
-COPY $BALBOA_ARTIFACT $BALBOA_ROOT/
-COPY ${BALBOA_CONFIG}.j2 $BALBOA_ROOT/
-COPY ${BALBOA_LOG4J}.j2 $BALBOA_ROOT/
+COPY $BALBOA_ARTIFACT ${SERVICE_DIR}/
+COPY ${BALBOA_CONFIG}.j2 ${SERVICE_DIR}/
+COPY ${BALBOA_LOG4J}.j2 ${SERVICE_DIR}/
+COPY run ${SERVICE_DIR}/
