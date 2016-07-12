@@ -1,7 +1,14 @@
 CASSANDRAS=127.0.0.1:9042
 CASSANDRA_KEYSPACE=Metrics2012
-# CASSANDRA_DATACENTER=datacenter1
 CASSANDRA_SOTIMEOUT=1000
 CASSANDRA_MAXPOOLSIZE=50
 LOG_LEVEL=DEBUG
+
+# Setting the CASSANDRA_DATACENTER will limit Cassandra connections to only
+# cluster members in the specified datacenter. If there are none, it won't
+# connect. However, connecting to only local cluster members significantly
+# reduces the latency of Cassandra queries. If this value is not specified,
+# Cassandra connections by this service may connect to any member of the
+# Cassandra cluster.
+# CASSANDRA_DATACENTER=datacenter1
 
