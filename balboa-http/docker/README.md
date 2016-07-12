@@ -1,11 +1,14 @@
-Balboa-HTTP Docker
-======================
+# Balboa-HTTP Docker
 
 This Docker configuration for Balboa-HTTP
 
 To build the image run:
 
-  `docker build --rm -t balboa-http path/to/balboa-http/docker`
+```bash
+sbt clean balboa-http/assembly
+cp balboa-http/target/scala-2.11/balboa-http-assembly-*.jar balboa-http/docker/balboa-http-assembly.jar
+docker build --rm -t balboa-http balboa-http/docker
+```
 
 ## Required:
 
@@ -23,8 +26,8 @@ config, commonly located at `/usr/local/etc/cassandra/cassandra.yaml`).
 
 ## Configure your environment.
 
-To run locally update the `env/local` or copy it to a new file.  Place your IP into the new or updated configuration
-file.
+To run locally update the `env/local` or copy it to a new file.  Place your IP
+into the new or updated configuration file.
 
 ## Running your container
 
