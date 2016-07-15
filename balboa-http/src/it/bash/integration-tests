@@ -176,18 +176,102 @@ function startServiceStack() {
   echo "balboa-http service is started."
 }
 
+function printUsage() {
+  echo
+  if [[ ! -z $1 ]]; then
+    echo "$1"
+    echo
+  fi
+  echo "$(basename $0) [--help] [-h <host-name> [-p <port>] | -c <config-file-name> ]"
+  echo
+  echo "    -h    the host name running the service to target the integration tests at."
+  echo "    -p    the port on the host to target the integration tests at. Defaults to 80."
+  echo "    -c    the name of the config file to source. Normally it would be something"
+  echo "          like 'staging' or 'rc'."
+  echo
+  echo "This script will also look for the ENVIRONMENT variable. If specified, it will"
+  echo "function the same as the -c parameter. If both the ENVIRONMENT variable and -c"
+  echo "are specified, -c takes precedence."
+  echo
+}
+
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+    --help)
+      printUsage
+      exit
+      ;;
+    -h)
+      host="$2"
+      shift # past argument
+      if [[ -z $host ]]; then
+        printUsage "-h requires the host be specified."
+        exit 1
+      fi
+      ;;
+    -p)
+      port="$2"
+      shift # past argument
+      if [[ -z $port ]]; then
+        printUsage "-p requires the port be specified."
+        exit 1
+      fi
+      ;;
+    -c)
+      config_name="$2"
+      shift
+      if [[ -z $config_name ]]; then
+        printUsage "-c requires the config file name be specified."
+        exit 1
+      fi
+      ;;
+    *)
+      printUsage "Don't know what to do with '$key'."
+      exit 1
+      ;;
+  esac
+  shift # past argument or value
+done
+
+# If this script is executing inside Jenkins ($BUILD_NUMBER is defined), turn
+# off the colorization of the output so it doesn't obfuscate the build logs.
+[[ ! -z $BUILD_NUMBER ]] && SBT_OPTS="$SBT_OPTS -Dsbt.log.noformat=true"
+
+if [[ ! -z $config_name ]]; then
+  config_file=$(dirname $0)/$config_name.config
+elif [[ ! -z $ENVIRONMENT ]]; then
+  # This is the environment variable typically provided by the Jenkins job to
+  # indicate which environment the integration tests should execute against.
+  config_file=$(dirname $0)/$ENVIRONMENT.config
+fi
+if [[ ! -z $config_file ]]; then
+  if [[ ! -r $config_file ]]; then
+    echo "Unable to read the file '$config_file'."
+    exit 1
+  fi
+  source $config_file
+  SERVICE_PORT=${SERVICE_PORT:-80}
+fi
+if [[ ! -z $host ]]; then
+  SERVICE_HOST=$host
+  SERVICE_PORT=${port:-80}
+fi
+
 echo
 echo "************************************************************"
 echo " Starting balboa-http integration tests."
 echo
 
-startServiceStack
+if [[ -z $SERVICE_HOST ]]; then
+  startServiceStack
+fi
 
 # These environment variables are how the script communicates the balboa-http
 # endpoint to be targeted with the integration tests.
 export SERVICE_HOST
 export SERVICE_PORT
-echo "Running integration tests."
+echo "Running integration tests against '$SERVICE_HOST:$SERVICE_PORT'."
 sbt balboa-http/it:test
 rc=$?
 if [[ ! $rc -eq 0 ]]; then
