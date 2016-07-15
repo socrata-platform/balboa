@@ -12,13 +12,12 @@ import com.socrata.balboa.server.rest.Extractable
 import com.typesafe.scalalogging.StrictLogging
 import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
-import org.scalatra.metrics.MetricsSupport
 import org.scalatra.{ActionResult, NoContent, Ok}
 
 // scalastyle:off return
 
 class MetricsServlet extends JacksonJsonServlet
-    with MetricsSupport
+    with SocrataMetricsSupport
     with ClientCounter
     with RequestLogger
     with StrictLogging
@@ -69,10 +68,7 @@ class MetricsServlet extends JacksonJsonServlet
       return malformedDate(date).result
     })
 
-    // This timer name doesn't follow the recommended entity-verb-details pattern.
-    // It has been preserved for backwards compatibility until we know the full
-    // cost of changing the name.
-    timer("period queries")({
+    timer("metrics-get")({
       val iter = dataStore.find(entityId, period, range.start, range.end)
       var metrics = Metrics.summarize(iter)
 
@@ -114,10 +110,7 @@ class MetricsServlet extends JacksonJsonServlet
       return unacceptable.result
     })
 
-    // This timer name doesn't follow the recommended entity-verb-details pattern.
-    // It has been preserved for backwards compatibility until we know the full
-    // cost of changing the name.
-    timer("range queries")({
+    timer("metrics-get-range")({
       val iter = dataStore.find(entityId, startDate, endDate)
       var metrics = Metrics.summarize(iter)
 
@@ -166,7 +159,7 @@ class MetricsServlet extends JacksonJsonServlet
       return unacceptable.result
     })
 
-    timer("series queries")({
+    timer("metrics-get-series")({
       val body = renderJson(dataStore.slices(entityId, period, startDate, endDate)).getBytes(UTF_8)
       val resp = ResponseWithType(json, Ok(body))
       contentType = resp.contentType
