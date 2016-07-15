@@ -10,9 +10,6 @@ set -ev
 exec su socrata -c '/usr/bin/java \
     -Xmx${JAVA_XMX} \
     -Xms${JAVA_XMX} \
-    -Dcom.sun.management.jmxremote.port=${JMX_PORT} \
-    -Dcom.sun.management.jmxremote.ssl=false \
-    -Dcom.sun.management.jmxremote.authenticate=false \
     -Dbalboa.config=${BALBOA_CONFIG} \
     -Dlog4j.configuration=${BALBOA_LOG4J} \
     -jar $BALBOA_ARTIFACT $BALBOA_PORT'
