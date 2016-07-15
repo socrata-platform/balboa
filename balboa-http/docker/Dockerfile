@@ -2,8 +2,7 @@ FROM socrata/runit-java8
 
 # Forward the ZooKeeper and Cassandra Port.
 ENV BALBOA_PORT 2012
-ENV JMX_PORT 40506
-EXPOSE $BALBOA_PORT $JMX_PORT
+EXPOSE $BALBOA_PORT
 
 ### Environment Variables
 ENV APP balboa-http
