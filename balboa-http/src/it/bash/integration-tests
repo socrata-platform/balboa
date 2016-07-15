@@ -1,9 +1,17 @@
 #! /bin/bash
+#
+# This script coordinates the different pieces required to execute the
+# integration tests. It creates some Docker images, starts them, confirms they
+# are working, executes the integration tests then cleans up.
+#
+
 
 BALBOA_HTTP_PID=0
 
 DB_IMAGE_NAME=socrata-balboa-http-cassandra-${BUILD_NUMBER:-$RANDOM}
 
+# Modify this function to include all the necessary cleanup steps. Shutting
+# down supporting services, deleting temp files, so forth.
 function cleanUp() {
     echo
     echo "Shutting down the Cassandra Docker container. ($(docker stop $DB_IMAGE_NAME))"
@@ -23,13 +31,10 @@ function cleanUp() {
         echo
     fi
 }
-# Perform clean up activities under all circumstances (except kill -9) by
-# trapping the 'EXIT' pseudo-signal. Installing this signal handler means the
-# cleanUp function will be called whenever this script exits, even if
-# interrupted from the keyboard, 'kill'ed from the command line or exits
-# naturally at the end.
-trap cleanUp EXIT
 
+# Retry the passed in command until it succeeds, or the timeouts are exceeded.
+# If the timeouts are exceeded, the function will return 1. If the command is
+# eventually successful, the function will return 0.
 function waitForSuccess() {
   i=0
   while ! ( "$@" ) ; do
@@ -65,113 +70,129 @@ function getAvailableServicePort() {
     echo $PORT
 }
 
+function startServiceStack() {
+  if uname -a | grep Darwin >& /dev/null ; then
+    # On a Mac, look for the IP address of the VM docker-machine is using to run
+    # Docker containers.
+    eval $(docker-machine env)
+    dockerHost=$(docker-machine ip)
+    if [[ ! $? -eq 0 ]]; then
+      echo "Could not get the IP address of an active docker-machine instance."
+      echo "Use 'docker-machine ls' to confirm there is an active host."
+      exit 1
+    fi
+  else
+    # On Linux, look for the IP address associated with the 'docker' interface.
+    dockerHost=$(/sbin/ifconfig docker0 | sed '/inet addr:/!d;s|.*inet addr:\([^ ]*\).*|\1|')
+    if [[ -z $dockerHost ]]; then
+      echo "Could not find a docker network interface. Is Docker installed?"
+      exit 1
+    fi
+  fi
+
+  # Perform clean up activities under all circumstances (except kill -9) by
+  # trapping the 'EXIT' pseudo-signal. Installing this signal handler means the
+  # cleanUp function will be called whenever this script exits, even if
+  # interrupted from the keyboard, 'kill'ed from the command line or exits
+  # naturally at the end.
+  trap cleanUp EXIT
+
+  # Process the Cassandra schema template and replace the necessary variables
+  # with useful values.
+  SCHEMA_DIR=target/balboa-http-schema
+  mkdir -p $SCHEMA_DIR
+  sed "
+      s|{{datacenter-name}}|datacenter1|;
+      s|{{replication-factor}}|1|;
+  " etc/balboa-cassandra.cql > ${SCHEMA_DIR}/balboa-cassandra.cql
+
+  docker run \
+    -d \
+    --name $DB_IMAGE_NAME \
+    -p 9042/tcp \
+    -p 9160/tcp \
+    -v $(pwd)/${SCHEMA_DIR}:/balboa-schema \
+    cassandra:2.1
+
+  dbServerIp=$dockerHost
+  dbPort=$(docker inspect --format '{{ (index (index .NetworkSettings.Ports "9042/tcp") 0).HostPort }}' $DB_IMAGE_NAME)
+
+  echo "Looking for the Cassandra database on '$dbServerIp:$dbPort'"
+  if ! waitForSuccess nc -w 1 $dbServerIp $dbPort ; then
+    echo "Problem starting the database image."
+    echo "============================== Docker Logs: Database Image =============================="
+    docker logs $DB_IMAGE_NAME
+    exit 1
+  fi
+  echo "Database is started."
+
+  # Install the schema on the database.
+  echo "Installing the schema in the Cassandra database."
+  if ! docker exec $DB_IMAGE_NAME cassandra-cli -f /balboa-schema/balboa-cassandra.cql ; then
+    echo "Failed to install the Cassandra schema."
+    exit 1
+  fi
+
+  ORIGINAL_PROPERTIES_FILE=balboa-http/src/main/resources/config/config.properties
+  TEST_PROPERTIES_FILE="target/balboa-http-integrationtest-config-$$.properties"
+
+  export CASSANDRAS=$dbServerIp:$dbPort
+  echo "Writing temporary properties file to '$TEST_PROPERTIES_FILE'."
+  sed "
+      /^ *cassandra.servers[ =]/s|=.*|= $CASSANDRAS|
+  " $ORIGINAL_PROPERTIES_FILE > $TEST_PROPERTIES_FILE
+
+  # By adding a pre-compile step, the length of the compile does not add to the
+  # timeout around waiting for the service to start up. Using a separate step
+  # also allows for more explicit error reporting.
+  if ! sbt balboa-http/compile ; then
+      EXIT_MESSAGE="ERROR: balboa-http/compile failed."
+      exit 1
+  fi
+
+  # Make sure the log file exists so that if there will be no race condition
+  # where we grep for the success message before sbt gets started.
+  SERVICE_LOG=target/balboa-http-$$.log
+  touch $SERVICE_LOG
+  echo "Writing service log to '$SERVICE_LOG'"
+
+  # The dataset-of-datasets integration tests build a dockerized service for
+  # doing the testing, but making the dockerized service consumes a significant
+  # portion of the time for executing the integration tests. These tests run the
+  # service using sbt in the background to try to execute integration tests
+  # faster.
+  SERVICE_HOST=127.0.0.1
+  SERVICE_PORT=$(getAvailableServicePort)
+  sbt "balboa-http/run $SERVICE_PORT" "-Dbalboa.config=$TEST_PROPERTIES_FILE" >& $SERVICE_LOG &
+  BALBOA_HTTP_PID=$!
+
+  echo "Waiting for balboa-http to start on port '$SERVICE_HOST:$SERVICE_PORT'."
+  if ! waitForSuccess grep -q 'Starting balboa-http service' $SERVICE_LOG ; then
+    echo "Problem starting balboa-http service."
+    echo "============================== balboa-http service logs  =============================="
+    cat $SERVICE_LOG
+    exit 1
+  fi
+  echo "balboa-http service is started."
+}
+
 echo
 echo "************************************************************"
 echo " Starting balboa-http integration tests."
 echo
 
-if uname -a | grep Darwin >& /dev/null ; then
-  # On a Mac, look for the IP address of the VM docker-machine is using to run
-  # Docker containers.
-  eval $(docker-machine env)
-  dockerHost=$(docker-machine ip)
-  if [[ ! $? -eq 0 ]]; then
-    echo "Could not get the IP address of an active docker-machine instance."
-    echo "Use 'docker-machine ls' to confirm there is an active host."
-    exit 1
-  fi
-else
-  # On Linux, look for the IP address associated with the 'docker' interface.
-  dockerHost=$(/sbin/ifconfig docker0 | sed '/inet addr:/!d;s|.*inet addr:\([^ ]*\).*|\1|')
-  if [[ -z $dockerHost ]]; then
-    echo "Could not find a docker network interface. Is Docker installed?"
-    exit 1
-  fi
-fi
+startServiceStack
 
-# Process the Cassandra schema template and replace the necessary variables
-# with useful values.
-SCHEMA_DIR=target/balboa-http-schema
-mkdir -p $SCHEMA_DIR
-sed "
-    s|{{datacenter-name}}|datacenter1|;
-    s|{{replication-factor}}|1|;
-" etc/balboa-cassandra.cql > ${SCHEMA_DIR}/balboa-cassandra.cql
-
-docker run \
-  -d \
-  --name $DB_IMAGE_NAME \
-  -p 9042/tcp \
-  -p 9160/tcp \
-  -v $(pwd)/${SCHEMA_DIR}:/balboa-schema \
-  cassandra:2.1
-
-dbServerIp=$dockerHost
-dbPort=$(docker inspect --format '{{ (index (index .NetworkSettings.Ports "9042/tcp") 0).HostPort }}' $DB_IMAGE_NAME)
-
-echo "Looking for the database on $dbServerIp:$dbPort"
-if ! waitForSuccess nc -w 1 $dbServerIp $dbPort ; then
-  echo "Problem starting the database image."
-  echo "============================== Docker Logs: Database Image =============================="
-  docker logs $DB_IMAGE_NAME
-  exit 1
-fi
-echo "Database is started."
-
-# Install the schema on the database.
-echo "Installing the schema in the Cassandra database."
-if ! docker exec $DB_IMAGE_NAME cassandra-cli -f /balboa-schema/balboa-cassandra.cql ; then
-  echo "Failed to install the Cassandra schema."
-  exit 1
-fi
-
-ORIGINAL_PROPERTIES_FILE=balboa-http/src/main/resources/config/config.properties
-TEST_PROPERTIES_FILE="target/balboa-http-integrationtest-config-$$.properties"
-
-export CASSANDRAS=$dbServerIp:$dbPort
-echo "Writing temporary properties file to '$TEST_PROPERTIES_FILE'."
-sed "
-    /^ *cassandra.servers[ =]/s|=.*|= $CASSANDRAS|
-" $ORIGINAL_PROPERTIES_FILE > $TEST_PROPERTIES_FILE
-
-# By adding a pre-compile step, the length of the compile does not add to the
-# timeout around waiting for the service to start up. Using a separate step
-# also allows for more explicit error reporting.
-if ! sbt balboa-http/compile ; then
-    EXIT_MESSAGE="ERROR: balboa-http/compile failed."
-    exit 1
-fi
-
-# Make sure the log file exists so that if there will be no race condition
-# where we grep for the success message before sbt gets started.
-SERVICE_LOG=target/balboa-http-$$.log
-touch $SERVICE_LOG
-echo "Writing service log to '$SERVICE_LOG'"
-
-# The dataset-of-datasets integration tests build a dockerized service for
-# doing the testing, but making the dockerized service consumes a significant
-# portion of the time for executing the integration tests. These tests run the
-# service using sbt in the background to try to execute integration tests
-# faster.
-SERVICE_PORT=$(getAvailableServicePort)
-sbt "balboa-http/run $SERVICE_PORT" "-Dbalboa.config=$TEST_PROPERTIES_FILE" >& $SERVICE_LOG &
-BALBOA_HTTP_PID=$!
-
-echo "Waiting for balboa-http to start on port $SERVICE_PORT."
-if ! waitForSuccess grep -q 'Starting balboa-http service' $SERVICE_LOG ; then
-  echo "Problem starting balboa-http service."
-  echo "============================== balboa-http service logs  =============================="
-  cat $SERVICE_LOG
-  exit 1
-fi
-echo "balboa-http service is started."
-
+# These environment variables are how the script communicates the balboa-http
+# endpoint to be targeted with the integration tests.
+export SERVICE_HOST
+export SERVICE_PORT
 echo "Running integration tests."
-export SERVICE_PORT  # So it is available for integration test configuration.
 sbt balboa-http/it:test
 rc=$?
 if [[ ! $rc -eq 0 ]]; then
-  echo "============================== balboa-http service logs  =============================="
+  echo "============================== balboa-http service logs : start =============================="
   cat $SERVICE_LOG
+  echo "=============================== balboa-http service logs : end ==============================="
 fi
 exit $rc
