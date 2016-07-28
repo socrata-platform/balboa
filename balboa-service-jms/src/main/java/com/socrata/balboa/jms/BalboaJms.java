@@ -69,7 +69,7 @@ public class BalboaJms {
         p.load(BalboaJms.class.getClassLoader().getResourceAsStream("config/config.properties"));
 
         String logLevel = System.getProperty("loglevel");
-        if (logLevel.equals("DEBUG") || logLevel.equals("INFO") | logLevel.equals("ERROR")) {
+        if (null != logLevel && (logLevel.equals("DEBUG") || logLevel.equals("INFO") || logLevel.equals("ERROR"))) {
             p.setProperty("log4j.logger.com.socrata.balboa", logLevel);
         } else {
             System.out.println("Unable to determine log level from environment, using default");
