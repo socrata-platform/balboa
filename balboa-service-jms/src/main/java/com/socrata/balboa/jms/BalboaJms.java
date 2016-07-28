@@ -17,7 +17,7 @@ public class BalboaJms {
     private static final Logger log = LoggerFactory.getLogger(BalboaJms.class);
 
     static void usage() {
-        System.err.println("java -jar balboa-jms [thread count] [activemq urls] [activemq channel] [log level]");
+        System.err.println("java -jar balboa-jms [thread count] [activemq urls] [activemq channel]");
     }
 
     static Integer parseThreads(String[] args)
@@ -68,14 +68,11 @@ public class BalboaJms {
         Properties p = new Properties();
         p.load(BalboaJms.class.getClassLoader().getResourceAsStream("config/config.properties"));
 
-        if (args.length > 3) {
-            String logLevel = args[3];
-            if (logLevel.equals("DEBUG") || logLevel.equals("INFO") | logLevel.equals("ERROR")) {
-                p.setProperty("log4j.logger.com.socrata.balboa", logLevel);
-            } else {
-                System.out.println("Invalid log level: " + logLevel);
-                System.exit(1);
-            }
+        String logLevel = System.getProperty("loglevel");
+        if (logLevel.equals("DEBUG") || logLevel.equals("INFO") | logLevel.equals("ERROR")) {
+            p.setProperty("log4j.logger.com.socrata.balboa", logLevel);
+        } else {
+            System.out.println("Unable to determine log level from environment, using default");
         }
 
         Integer threads = parseThreads(args);
