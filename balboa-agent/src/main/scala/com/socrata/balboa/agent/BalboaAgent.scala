@@ -87,8 +87,8 @@ object BalboaAgent extends App with Config with StrictLogging {
       // forever (at least longer than my patience to test), and the
       // `.setCloseTimeout(...)` call does not do what the documentation says
       // it will.
-      //     amqConnection.setCloseTimeout(1)
-      //     amqConnection.close()
+      //     metricPublisher.setCloseTimeout(1)
+      //     metricPublisher.close()
 
       logger info "Stopping the JMX Reporter."
       jmxReporter.stop()
