@@ -42,32 +42,32 @@ public class MetricConsumer implements Runnable, AutoCloseable {
             ENTITY_ID, NAME, VALUE, RECORD_TYPE);
 
     private final File directory;
-    private final MetricQueue queue;
+    private final MetricQueue metricPublisher;
     private final MetricFileProvider fileProvider;
 
     /**
      * Creates Metric consumer that will attempt to find all the metric data within a directory
-     * and push them to a queue.
+     * and push them to a metricPublisher. Does not take responsibility for closing the metricPublisher.
      */
-    public MetricConsumer(File directory, MetricQueue queue) {
-        this(directory, queue, new AlphabeticMetricFileProvider(directory.toPath()));
+    public MetricConsumer(File directory, MetricQueue metricPublisher) {
+        this(directory, metricPublisher, new AlphabeticMetricFileProvider(directory.toPath()));
     }
 
     /**
-     * Creates a MetricConsumer that processes files from `directory` and emits them to `queue`.  The `fileProvider`
+     * Creates a MetricConsumer that processes files from `directory` and emits them to `metricPublisher`.  The `fileProvider`
      * is a control mechanism that allows clients to make determinations on which {@link File}s can be processed.
      *
      * @param directory Directory in which to process metrics.
-     * @param queue Queue to emit metrics to.
+     * @param metricPublisher Queue to emit metrics to.
      * @param fileProvider The {@link FileFilter} used to determine which files are allowed to be processed.
      */
-    public MetricConsumer(File directory, MetricQueue queue, MetricFileProvider fileProvider) {
+    public MetricConsumer(File directory, MetricQueue metricPublisher, MetricFileProvider fileProvider) {
         if (directory == null || !directory.isDirectory())
             throw new IllegalArgumentException("Illegal Data directory " + directory);
-        if (queue == null)
+        if (metricPublisher == null)
             throw new NullPointerException("Metric Queue cannot be null");
         this.directory = directory;
-        this.queue = queue;
+        this.metricPublisher = metricPublisher;
         this.fileProvider = fileProvider;
     }
 
@@ -105,7 +105,7 @@ public class MetricConsumer implements Runnable, AutoCloseable {
             }
 
             for (MetricsRecord r : records) {
-                queue.create(
+                metricPublisher.create(
                         new Fluff(r.getEntityId()),
                         new Fluff(r.getName()),
                         r.getValue().longValue(),
@@ -129,26 +129,16 @@ public class MetricConsumer implements Runnable, AutoCloseable {
     }
 
     /**
-     * Closing the Metric Consumer is effectively a delegation method that allows the Metric Consumers
-     * internal resources to close and clean up (If necessary).
-     *
-     * @throws IOException When there is a problem closing the queue.
+     * This method does nothing. As the MetricConsumer does not take unique
+     * ownership of its metricPublisher, it cannot be sure that it is safe to close.
      */
-    @Override
-    public void close() throws Exception {
-        try {
-            queue.close();
-        } catch (Exception e) {
-            log.error("Error shutting down Metric Consumer", e);
-            throw e;
-        }
-    }
+    public void close() throws Exception {}
 
     private static final Pattern integerPattern = Pattern.compile("-?[0-9]+");
 
     /**
      * Given a metrics data file, attempt to extract all the metrics from the file and
-     * pushes these metrics into the underlying queue.
+     * pushes these metrics into the underlying metricPublisher.
      *
      * @param f File to process.
      * @return A list of {@link MetricsRecord}s that were process.
@@ -295,7 +285,7 @@ public class MetricConsumer implements Runnable, AutoCloseable {
     public String toString() {
         return "MetricConsumer{" +
                 "directory=" + directory +
-                ", queue=" + queue +
+                ", metricPublisher=" + metricPublisher +
                 '}';
     }
 }
