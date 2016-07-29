@@ -2,6 +2,8 @@ package com.socrata.balboa.config
 
 import com.socrata.balboa.metrics.config.{Configuration, Keys}
 
+import scala.util.Try
+
 /**
  * JMS Client configuration.
  */
@@ -17,9 +19,9 @@ trait JMSClientConfig extends CoreClientConfig {
    */
   def activemqQueue: String = Configuration.get().getString(Keys.JMS_ACTIVEMQ_QUEUE)
 
-  def activemqUser: Option[String] = Option(Configuration.get().getString(Keys.JMS_ACTIVEMQ_USER))
+  def activemqUser: Option[String] = Try(Configuration.get().getString(Keys.JMS_ACTIVEMQ_USER)).toOption
 
-  def activemqPassword: Option[String] = Option(Configuration.get().getString(Keys.JMS_ACTIVEMQ_PASSWORD))
+  def activemqPassword: Option[String] = Try(Configuration.get().getString(Keys.JMS_ACTIVEMQ_PASSWORD)).toOption
 
   def bufferSize: Int = Configuration.get().getInt(Keys.JMS_ACTIVEMQ_MAX_BUFFER_SIZE, 1)
 
