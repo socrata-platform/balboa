@@ -46,16 +46,3 @@ object BalboaJms {
   )
 }
 
-/**
- * Kafka message consumption service.
- */
-object BalboaKafka {
-  lazy val settings: Seq[Setting[_]] = BalboaService.settings ++ Seq(
-    mainClass in assembly := Some("com.socrata.balboa.service.kafka.BalboaKafkaConsumerCLI"),
-    libraryDependencies <++= scalaVersion {libraries(_)},
-    parallelExecution in Test := false,
-    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
-  )
-
-  def libraries(implicit scalaVersion: String) = BalboaService.libraries ++ BalboaKafkaCommon.libraries
-}

@@ -31,17 +31,6 @@ object BalboaClientJMS {
   )
 }
 
-object BalboaClientKafka {
-  lazy val settings: Seq[Setting[_]] = BalboaClient.settings ++ Seq(
-    libraryDependencies <++= scalaVersion {libraries(_)},
-    parallelExecution in Test := false,
-    testOptions += Tests.Argument(TestFrameworks.JUnit, "-q", "-v"),
-    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
-  )
-
-  def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ BalboaKafkaCommon.libraries
-}
-
 object BalboaClientDispatcher {
   lazy val settings: Seq[Setting[_]] = BalboaClient.settings ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},

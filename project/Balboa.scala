@@ -14,8 +14,7 @@ object Balboa extends Build {
     file("."),
     settings = BuildSettings.buildSettings ++ Seq(Keys.parallelExecution := false)
   ) aggregate (balboaAgent, balboaAdmin, balboaCommon, balboaCore, balboaHttp, balboaServiceCore, balboaJms,
-     balboaClientCore, balboaClientJMS, balboaKafkaCommon, balboaKafkaClient,
-    balboaKafkaService, balboaClientDispatcher) // Add new project definitions here.
+     balboaClientCore, balboaClientJMS, balboaClientDispatcher) // Add new project definitions here.
 
   lazy val balboaCommon = project("balboa-common", BalboaCommon)
     .enablePlugins(com.socrata.sbtplugins.BuildInfoPlugin)
@@ -52,18 +51,9 @@ object Balboa extends Build {
   lazy val balboaClientJMS = project("balboa-client-jms", BalboaClientJMS, balboaClientCore,
     balboaClientCore % "test->test;compile->compile")
 
-  lazy val balboaKafkaCommon = project("balboa-common-kafka", BalboaKafkaCommon,
-    balboaCommon % "test->test;compile->compile")
-
-  lazy val balboaKafkaClient = project("balboa-client-kafka", BalboaClientKafka,
-    balboaClientCore, balboaKafkaCommon % "test->test;compile->compile", balboaClientCore % "test->test;compile->compile")
-
-  lazy val balboaKafkaService = project("balboa-service-kafka",
-    BalboaKafka, balboaServiceCore, balboaKafkaClient % "test->test;compile->compile")
-
   lazy val balboaClientDispatcher = project("balboa-client-dispatcher",
     BalboaClientDispatcher,
-    balboaClientJMS % "test->test;compile->compile", balboaKafkaClient % "test->test;compile->compile")
+    balboaClientJMS % "test->test;compile->compile")
 
   // NOTE: Add your new project or submodule here.
 

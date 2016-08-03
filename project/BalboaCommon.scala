@@ -24,16 +24,3 @@ object BalboaCommon {
     json4s
   )
 }
-
-object BalboaKafkaCommon {
-
-  lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
-    libraryDependencies <++= scalaVersion {libraries(_)},
-    parallelExecution in Test := false,
-    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 55
-  )
-  def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
-    kafka,
-    kafka_test
-  )
-}

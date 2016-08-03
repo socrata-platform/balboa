@@ -64,10 +64,6 @@ trait MetricLoggerToDispatcher extends BaseMetricLoggerComponent {
       new ActiveMQueueComponent()
         with ConfiguredServerInformation
         with BufferedStreamEmergencyWriterComponent
-    case ClientType.kafka =>
-      new BalboaKafkaComponent()
-        with ConfiguredKafkaProducerInfo
-        with BufferedStreamEmergencyWriterComponent
     case x: Any =>
       throw new IllegalStateException(s"Unsupported Client Type $x.  Please use one of the following client " +
         s"types: $availableClientTypeString")
