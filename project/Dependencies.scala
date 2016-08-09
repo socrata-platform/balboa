@@ -19,7 +19,6 @@ object Dependencies {
     val jetty_webapp = "9.2.14.v20151106"
     val junit = "4.5"
     val jopt_simple = "4.8"
-    val kafka = "0.8.2.0"
     val log4j = "1.2.17"
     val mockito = "1.+"
     val newman = "1.3.12"
@@ -69,8 +68,6 @@ object Dependencies {
   val junit = "junit" % "junit" % versions.junit % "test"
   val jopt_simple = "net.sf.jopt-simple" % "jopt-simple" % versions.jopt_simple
   val json4s = "org.json4s" %% "json4s-jackson" % "3.3.0"
-  val kafka = "org.apache.kafka" %% "kafka" % versions.kafka
-  val kafka_test = kafka % "test" classifier "test"
   val mockito_test = "org.mockito" % "mockito-core" % versions.mockito % "test"
   // Functionally Nice REST Client Currently newman only supports scala version 2.9.2 and 2.10
   // Because of this, its been replaced with megam newman, which supports scala 2.11
