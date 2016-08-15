@@ -7,6 +7,7 @@ set -ev
 /bin/env_parse ${BALBOA_LOG4J}.j2
 
 exec sudo -u socrata java \
+  -Dloglevel=${LOG_LEVEL} \
   -Xmx${JAVA_XMX} \
   -Xms${JAVA_XMX} \
   -Dbalboa.config="$BALBOA_CONFIG" \
