@@ -133,14 +133,7 @@ function startServiceStack() {
     exit 1
   fi
 
-  ORIGINAL_PROPERTIES_FILE=balboa-http/src/main/resources/config/config.properties
-  TEST_PROPERTIES_FILE="target/balboa-http-integrationtest-config-$$.properties"
-
-  export CASSANDRAS=$dbServerIp:$dbPort
-  echo "Writing temporary properties file to '$TEST_PROPERTIES_FILE'."
-  sed "
-      /^ *cassandra.servers[ =]/s|=.*|= $CASSANDRAS|
-  " $ORIGINAL_PROPERTIES_FILE > $TEST_PROPERTIES_FILE
+  export CASSANDRA_SERVERS=$dbServerIp:$dbPort
 
   # By adding a pre-compile step, the length of the compile does not add to the
   # timeout around waiting for the service to start up. Using a separate step
@@ -163,7 +156,7 @@ function startServiceStack() {
   # faster.
   SERVICE_HOST=127.0.0.1
   SERVICE_PORT=$(getAvailableServicePort)
-  sbt "balboa-http/run $SERVICE_PORT" "-Dbalboa.config=$TEST_PROPERTIES_FILE" >& $SERVICE_LOG &
+  sbt "balboa-http/run $SERVICE_PORT" >& $SERVICE_LOG &
   BALBOA_HTTP_PID=$!
 
   echo "Waiting for balboa-http to start on port '$SERVICE_HOST:$SERVICE_PORT'."

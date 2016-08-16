@@ -16,13 +16,12 @@ import util.Random
 class WriteMetricIntegrationTest extends FlatSpec with BeforeAndAfterAll with Matchers {
   val EntityName: String = s"this.is.an.entity.name.${UUID.randomUUID()}"
 
-  val connectionFactory: ActiveMQConnectionFactory = new ActiveMQConnectionFactory(Config.activemqServer)
+  val connectionFactory: ActiveMQConnectionFactory = new ActiveMQConnectionFactory(IntegrationTestConfig.activemqServer)
   val connection: Connection = connectionFactory.createConnection()
 
   override def beforeAll(): Unit = {
     // The metric output directory may not exist.
-    Config.metricDirectory.mkdirs()
-
+    IntegrationTestConfig.metricDirectory.mkdirs()
     connection.setExceptionListener(new ExceptionListener {
       override def onException(exception: JMSException): Unit = {
         println(s"ERROR: There was some kind of problem with the ActiveMQ connection. $exception")
@@ -40,7 +39,7 @@ class WriteMetricIntegrationTest extends FlatSpec with BeforeAndAfterAll with Ma
     // Read from the ActiveMQ queue where the running balboa-agent should have
     // written the metric.
     val session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
-    val destination = session.createQueue(Config.activemqQueue)
+    val destination = session.createQueue(IntegrationTestConfig.activemqQueue)
     val consumer = session.createConsumer(destination)
     // Before beginning, clear the queue of any existing messages.
     var message: Message = null
@@ -54,7 +53,7 @@ class WriteMetricIntegrationTest extends FlatSpec with BeforeAndAfterAll with Ma
     val metricValue = Random.nextInt()
 
     // Write a metric to where the running balboa-agent instance can see it.
-    val metricFileQueue = new MetricFileQueue(Config.metricDirectory)
+    val metricFileQueue = new MetricFileQueue(IntegrationTestConfig.metricDirectory)
     metricFileQueue.create(new MetricIdPart(EntityName), Fluff(metricName), metricValue)
     // Close the metric stream will cause the output file to be marked as
     // completed. balboa-agent won't start consuming metrics from a file until

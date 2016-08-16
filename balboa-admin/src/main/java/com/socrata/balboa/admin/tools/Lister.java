@@ -14,9 +14,15 @@ import java.util.List;
  */
 public class Lister {
 
+    private final DataStoreFactory dataStoreFactory;
+
+    public Lister(DataStoreFactory dataStoreFactory) {
+        this.dataStoreFactory = dataStoreFactory;
+    }
+
     public void list(List<String> filters) throws IOException {
         {
-            DataStore ds = DataStoreFactory.get();
+            DataStore ds = dataStoreFactory.get();
             Iterator<String> entities;
             if (filters.size() > 0)
             {

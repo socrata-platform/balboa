@@ -3,7 +3,6 @@ package com.socrata.balboa.metrics.data.impl
 import java.{util => ju}
 
 import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.metrics.data.{DateRange, Period, QueryOptimizer}
 import com.socrata.balboa.metrics.{Metric, Metrics, Timeslice}
 import com.typesafe.scalalogging.StrictLogging
@@ -15,7 +14,9 @@ import scala.collection.JavaConverters._
  */
 class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(CassandraUtil.initializeContext()))
   extends DataStoreImpl with StrictLogging {
+
   private val timeSvc = new TimeService()
+  private val supportedPeriods = CassandraUtil.periods
 
   @throws(classOf[Exception])
   override def checkHealth(): Unit = {
@@ -32,7 +33,7 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
     // of the leastGranular tier, returning them only if they match the filter and have not
     // been seen before (HashSet ent).
     val ent = collection.mutable.HashSet[String]()
-    val period = Period.leastGranular(Configuration.get().getSupportedPeriods)
+    val period = Period.leastGranular(supportedPeriods)
     RecordType.values().iterator.flatMap(
       queryImpl.getAllEntityIds(_,period)
           .filter(_.contains(pattern))
@@ -51,9 +52,8 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
   }
 
   def getValidGranularity(period: Period): Period = {
-    val supported = Configuration.get().getSupportedPeriods
     var requestPeriod = Option(period)
-    while (requestPeriod.isDefined && !supported.contains(requestPeriod.get)) {
+    while (requestPeriod.isDefined && !supportedPeriods.contains(requestPeriod.get)) {
       requestPeriod = Option(requestPeriod.get.moreGranular())
     }
     if (requestPeriod.isEmpty) {
@@ -134,7 +134,7 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
    */
   def find(entityId: String, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = {
     val range:DateRange = new DateRange(start, end)
-    val optimalSlices = new QueryOptimizer().optimalSlices(range.start, range.end).asScala
+    val optimalSlices = new QueryOptimizer(supportedPeriods).optimalSlices(range.start, range.end).asScala
     val query = {
       for {
         (period, ranges) <- optimalSlices.toSeq
@@ -172,7 +172,7 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
       // Skip to the next largest period which we are configured
       // to use.
       period = period.flatMap(p => Option(p.moreGranular))
-      while (period.exists(!CassandraUtil.periods.contains(_))) {
+      while (period.exists(!supportedPeriods.contains(_))) {
         period = period.flatMap(p => Option(p.moreGranular))
       }
     }

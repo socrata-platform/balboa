@@ -30,6 +30,7 @@ object Dependencies {
     val scopt = "3.3.0"
     val simple_arm = "[1.1.10, 2.0.0)"
     val socrata_utils = "[0.6.0, 1.0.0)"
+    val socrata_thirdparty_utils = "4.0.1"
     val scalatra = "2.4.0"
   }
 
@@ -78,9 +79,10 @@ object Dependencies {
   val scopt = "com.github.scopt" %% "scopt" % versions.scopt
   val simple_arm = "com.rojoma" %% "simple-arm" % versions.simple_arm
   val socrata_utils = "com.socrata" %% "socrata-utils" % versions.socrata_utils
+  val socrata_thirdparty_utils = "com.socrata" %% "socrata-thirdparty-utils" % versions.socrata_thirdparty_utils
   val scalatest = "org.scalatest" %% "scalatest" % "2.2.4" % "it;test"
   val scalatra = "org.scalatra" %% "scalatra" % versions.scalatra
   val scalatra_json = "org.scalatra" %% "scalatra-json" % versions.scalatra
   val scalatra_metrics = "org.scalatra" %% "scalatra-metrics" % versions.scalatra
-  val typesafe_config = "com.typesafe" % "config" % "1.2.1" % "it"
+  val typesafe_config = "com.typesafe" % "config" % "1.2.1"
 }

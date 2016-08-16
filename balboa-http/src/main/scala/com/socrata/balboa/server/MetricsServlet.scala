@@ -3,7 +3,7 @@ package com.socrata.balboa.server
 import java.nio.charset.StandardCharsets.UTF_8
 
 import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, Period}
+import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, DefaultDataStoreFactory, Period}
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics
 import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.balboa.server.ResponseWithType._
@@ -16,7 +16,9 @@ import org.scalatra.{ActionResult, NoContent, Ok}
 
 // scalastyle:off return
 
-class MetricsServlet extends JacksonJsonServlet
+class MetricsServletWithDefaultDatastore extends MetricsServlet(DefaultDataStoreFactory)
+
+class MetricsServlet(dataStoreFactory: DataStoreFactory) extends JacksonJsonServlet
     with SocrataMetricsSupport
     with ClientCounter
     with RequestLogger
@@ -24,7 +26,7 @@ class MetricsServlet extends JacksonJsonServlet
     with NotFoundFilter
     with UnexpectedErrorFilter {
 
-  val dataStore = DataStoreFactory.get()
+  val dataStore = dataStoreFactory.get
 
   val MaxLogLength = 1000000
 

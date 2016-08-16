@@ -6,12 +6,12 @@ import java.util.UUID
 /**
  * A way of statically typing some of the entity/metric name keys
  */
-sealed class IdParts(val _parts:Seq[MetricIdPart] = Seq()) {
+sealed class IdParts(val parts:Seq[MetricIdPart] = Seq()) {
   val Percent = "%" // scalastyle:ignore
   protected def percentAround(s: String): String = Percent + s + Percent
 
-  override def toString: String = _parts.mkString("")
-  def getParts: Seq[MetricIdPart] = _parts
+  override def toString: String = parts.mkString("")
+  def getParts: Seq[MetricIdPart] = parts
   def replacePart(in:MetricIdPart, out:MetricIdPart): MetricIdParts = {
     MetricIdParts( getParts.map { p:MetricIdPart => if (p == in) { out } else { p } }:_* )  // magic vargs
   }

@@ -5,7 +5,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class JsonSerializer implements Serializer<Object>
+public class JsonSerializer implements Serializer
 {
     @Override
     public byte[] serialize(Object value) throws IOException

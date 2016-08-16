@@ -34,7 +34,7 @@ object BalboaClientJMS {
 object BalboaClientDispatcher {
   lazy val settings: Seq[Setting[_]] = BalboaClient.settings ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},
-    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 70
+    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 64
   )
 
   def libraries(implicit scalaVersion: String) = BalboaClient.libraries

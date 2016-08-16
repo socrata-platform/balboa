@@ -3,7 +3,6 @@ package com.socrata.balboa.admin.tools;
 import au.com.bytecode.opencsv.CSVReader;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.Metrics;
-import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.DataStoreFactory;
 import com.socrata.balboa.metrics.data.DateRange;
@@ -11,33 +10,34 @@ import com.socrata.balboa.metrics.data.Period;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Filler
 {
     CSVReader reader;
+    private final DataStoreFactory dataStoreFactory;
+    private final List<Period> supportedPeriods;
 
-    public Filler(CSVReader reader)
-    {
+    /**
+     * @param supportedPeriods List of supported time periods ordered by increasing length
+     */
+    public Filler(CSVReader reader, DataStoreFactory dataStoreFactory, List<Period> supportedPeriods) {
         this.reader = reader;
+        this.dataStoreFactory = dataStoreFactory;
+        this.supportedPeriods = supportedPeriods;
     }
 
-    public static class Buffer
-    {
+    private class Buffer {
         Map<Long, Map<String, Metrics>> items;
 
-        Buffer()
-        {
-            items = new HashMap<Long, Map<String, Metrics>>();
+        Buffer() {
+            items = new HashMap<>();
         }
 
         public synchronized void add(String entityId, long timestamp, String name, Metric metric) throws IOException
         {
             Date when = new Date(timestamp);
-            Period mostGranular = Period.mostGranular(Configuration.get().getSupportedPeriods());
+            Period mostGranular = Period.mostGranular(supportedPeriods);
 
             Metrics original = new Metrics();
             original.put(name, metric);
@@ -61,7 +61,7 @@ public class Filler
 
         public synchronized void flush() throws IOException
         {
-            DataStore ds = DataStoreFactory.get();
+            DataStore ds = dataStoreFactory.get();
 
             System.out.println("Flushing " + items.size() + " timeslices.");
 

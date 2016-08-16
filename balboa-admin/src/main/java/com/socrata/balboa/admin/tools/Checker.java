@@ -2,7 +2,6 @@ package com.socrata.balboa.admin.tools;
 
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.Metrics;
-import com.socrata.balboa.metrics.config.Configuration;
 import com.socrata.balboa.metrics.data.*;
 
 import java.io.IOException;
@@ -10,11 +9,21 @@ import java.util.*;
 
 public class Checker
 {
+    private final DataStoreFactory dataStoreFactory;
+    private final List<Period> supportedPeriods;
+
+    /**
+     * @param supportedPeriods List of supported time periods ordered by increasing length
+     */
+    public Checker(DataStoreFactory dataStoreFactory, List<Period> supportedPeriods) {
+        this.dataStoreFactory = dataStoreFactory;
+        this.supportedPeriods = supportedPeriods;
+    }
+
     public Period lessGranular(Period period) throws IOException
     {
-        List<Period> periods = Configuration.get().getSupportedPeriods();
         period = period.lessGranular();
-        while (period != null && !periods.contains(period))
+        while (period != null && !supportedPeriods.contains(period))
         {
             period = period.lessGranular();
         }
@@ -24,7 +33,7 @@ public class Checker
 
     public Map<String, List<Number>> difference(String entityId, Date start, Period period) throws IOException
     {
-        DataStore ds = DataStoreFactory.get();
+        DataStore ds = dataStoreFactory.get();
 
         DateRange range = DateRange.create(lessGranular(period), start);
         Metrics moreGranularResults = Metrics.summarize(ds.find(entityId, period, range.start, range.end));
@@ -58,29 +67,25 @@ public class Checker
 
     public void check(List<String> filters) throws IOException
     {
-        DataStore ds = DataStoreFactory.get();
+        DataStore ds = dataStoreFactory.get();
         Iterator<String> entities;
 
-        if (filters.size() > 0)
-        {
+        if (filters.size() > 0) {
             List<Iterator<String>> iters = new ArrayList<>(filters.size());
-            for (String filter : filters)
-            {
+            for (String filter : filters) {
                 iters.add(ds.entities(filter));
             }
             entities = new CompoundIterator<>(iters);
-        }
-        else
-        {
+        } else {
             entities = ds.entities();
         }
 
-        List<Period> periods = new ArrayList<>(Configuration.get().getSupportedPeriods());
+        List<Period> periods = new LinkedList<>(supportedPeriods);
         Period leastGranular = Period.leastGranular(periods);
 
-        // Remove the last (least granular) item from the list so that we don't
+        // Remove the least granular item from the set so that we don't
         // try to validate (least granular -> null).
-        periods.remove(periods.size() - 1);
+        periods.remove(leastGranular);
 
         while (entities.hasNext())
         {
@@ -93,30 +98,23 @@ public class Checker
             System.out.print(entity + " ... ");
             System.out.flush();
 
-            while (current.before(cutoff))
-            {
-                for (Period period : periods)
-                {
+            while (current.before(cutoff)) {
+                for (Period period : periods) {
                     Map<String, List<Number>> diff = difference(entity, current, period);
 
-                    if (diff.size() > 0)
-                    {
+                    if (diff.size() > 0) {
                         if (!errored) {
                             error();
                             errored = true;
                         }
 
                         DateRange range = DateRange.create(lessGranular(period), current);
-                        for (Map.Entry<String, List<Number>> entry : diff.entrySet())
-                        {
+                        for (Map.Entry<String, List<Number>> entry : diff.entrySet()) {
                             String first, second = null;
-                            if (entry.getValue().size() > 1)
-                            {
+                            if (entry.getValue().size() > 1) {
                                 first = entry.getValue().get(0).toString();
                                 second = entry.getValue().get(1).toString();
-                            }
-                            else
-                            {
+                            } else {
                                 // Sometimes
                                 first = entry.getValue().get(0).toString();
                             }

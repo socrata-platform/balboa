@@ -16,7 +16,7 @@ import org.apache.activemq.{ActiveMQConnection, ActiveMQConnectionFactory}
 object RemoveQueue extends App with StrictLogging {
 
   logger info "Initializing ActiveMQ connection. (This is setting the username, password and destination.)"
-  val connectionFactory: ActiveMQConnectionFactory = new ActiveMQConnectionFactory(Config.activemqServer)
+  val connectionFactory: ActiveMQConnectionFactory = new ActiveMQConnectionFactory(IntegrationTestConfig.activemqServer)
   val connection = connectionFactory.createConnection().asInstanceOf[ActiveMQConnection]
 
   connection.setExceptionListener(new ExceptionListener {
@@ -28,9 +28,9 @@ object RemoveQueue extends App with StrictLogging {
   logger info s"Connected to ActiveMQ broker '${connection.getBrokerInfo}'."
 
   val session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
-  logger info s"Getting the destination queue ${Config.activemqQueue}"
-  val destination = session.createQueue(Config.activemqQueue).asInstanceOf[ActiveMQDestination]
-  logger info s"Removing the destination queue ${Config.activemqQueue}"
+  logger info s"Getting the destination queue ${IntegrationTestConfig.activemqQueue}"
+  val destination = session.createQueue(IntegrationTestConfig.activemqQueue).asInstanceOf[ActiveMQDestination]
+  logger info s"Removing the destination queue ${IntegrationTestConfig.activemqQueue}"
   try {
     connection.destroyDestination(destination)
   } catch {

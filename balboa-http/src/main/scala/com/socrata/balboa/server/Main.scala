@@ -1,5 +1,7 @@
 package com.socrata.balboa.server
 
+import com.socrata.balboa.util.LoggingConfigurator
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.webapp.WebAppContext
@@ -19,7 +21,7 @@ object Main extends App with StrictLogging {
     DefaultPort
   }
 
-  LogLevel.configureForMainClass(Main.getClass)
+  LoggingConfigurator.configureLogging(ConfigFactory.load())
 
   val server = new Server(port)
   val context = new WebAppContext()
@@ -27,9 +29,11 @@ object Main extends App with StrictLogging {
   context.setContextPath("/")
   context.setResourceBase("src/main/webapp")
   context.addEventListener(new ScalatraListener())
-  context.addServlet(classOf[MainServlet], "/")
-  context.addServlet(classOf[MetricsServlet], "/metrics")
-  context.addServlet(classOf[HealthCheckServlet], "/health")
+  context.addServlet(classOf[VersionServlet], "/version")
+  context.addServlet(classOf[EntitiesServletWithDefaultDataStore], "/entities")
+  context.addServlet(classOf[MetricsServletWithDefaultDatastore], "/metrics")
+  context.addServlet(classOf[HealthCheckServletWithDefaultDataStore], "/health")
+  context.addServlet(classOf[NotFoundServlet], "/")
 
   server.setHandler(context)
 

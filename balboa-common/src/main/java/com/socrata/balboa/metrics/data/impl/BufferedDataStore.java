@@ -2,10 +2,10 @@ package com.socrata.balboa.metrics.data.impl;
 
 import com.socrata.balboa.metrics.Metrics;
 import com.socrata.balboa.metrics.Timeslice;
-import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.metrics.config.ConfigurationException;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.Period;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +39,7 @@ public class BufferedDataStore extends DataStoreImpl {
     public  final long AGGREGATE_GRANULARITY;
     private final DataStore underlying;
     private long currentSlice = -1;
-    private final Map<String, Metrics> buffer = new HashMap<String, Metrics>();
+    private final Map<String, Metrics> buffer = new HashMap<>();
     private final TimeService timeService;
 
     public BufferedDataStore(DataStore underlying) {
@@ -49,13 +49,8 @@ public class BufferedDataStore extends DataStoreImpl {
     public BufferedDataStore(DataStore underlying, TimeService timeService) {
         this.underlying = underlying;
         this.timeService = timeService;
-        try {
-            Configuration config = Configuration.get();
-            AGGREGATE_GRANULARITY = Long.parseLong(config.getProperty("buffer.granularity"));
-        } catch (IOException e) {
-            throw new ConfigurationException("BufferedDataStore Configuration Error", e);
-        }
-
+        Config config = ConfigFactory.load();
+        AGGREGATE_GRANULARITY = Long.parseLong(config.getString("buffer.granularity"));
     }
 
     public void checkHealth() throws Exception {

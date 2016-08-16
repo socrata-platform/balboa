@@ -8,10 +8,10 @@ import java.{util => ju}
 import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, LoggingRetryPolicy}
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.{Metrics, Timeslice}
-import com.socrata.balboa.metrics.config.Configuration
 import com.socrata.balboa.metrics.data.{DateRange, Period}
 import com.typesafe.scalalogging.StrictLogging
 import com.datastax.driver.core._
+import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.{collection => sc}
 
@@ -19,9 +19,10 @@ import scala.{collection => sc}
  * Holds Connection Pool and Common ColumnFamily definitions
  */
 object CassandraUtil extends StrictLogging {
-  val periods = Configuration.get().getSupportedPeriods
-  val leastGranular:Period = Period.leastGranular(periods)
-  val mostGranular:Period = Period.mostGranular(periods)
+  val conf = ConfigFactory.load()
+  val periods = SupportedPeriods.getSupportedPeriodsJava(conf)
+  val leastGranular: Period = Period.leastGranular(periods)
+  val mostGranular: Period = Period.mostGranular(periods)
 
   case class DatastaxContext(cluster: Cluster, _keyspace: String) {
 
@@ -109,7 +110,7 @@ object CassandraUtil extends StrictLogging {
   def sliceIterator(queryImpl:CassandraQuery,
                     entityId:String,
                     period:Period,
-                    query:List[ju.Date]):Iterator[Timeslice] = {
+                    query:List[ju.Date]): Iterator[Timeslice] = {
     query.iterator.map { date =>
           val range = DateRange.create(period, date)
           new Timeslice(range.start.getTime, range.end.getTime, queryImpl.fetch(entityId, period, date))
@@ -126,24 +127,24 @@ object CassandraUtil extends StrictLogging {
     }.filter(Option(_).isDefined)
   }
 
-  def getColumnFamily(period:Period, recordType:RecordType):String = {
+  def getColumnFamily(period:Period, recordType:RecordType): String = {
     period.toString + "_" + recordType.toString
   }
 
   def createEntityKey(entityId:String, timestamp:Long): String = entityId + "-" + timestamp
 
-  def initializeContext():DatastaxContext = {
-    initializeContext(Configuration.get())
+  def initializeContext(): DatastaxContext = {
+    initializeContext(ConfigFactory.load())
   }
 
   // scalastyle:off
-  def initializeContext(conf:Configuration): DatastaxContext = {
+  def initializeContext(conf: Config): DatastaxContext = {
 
-    val seeds = conf.getProperty("cassandra.servers")
-    val keyspace = conf.getProperty("cassandra.keyspace")
-    val datacenter = Option(conf.getProperty("cassandra.datacenter"))
-    val sotimeout = conf.getProperty("cassandra.sotimeout").toInt
-    val connections = conf.getProperty("cassandra.maxpoolsize").toInt
+    val seeds = conf.getString("cassandra.servers")
+    val keyspace = conf.getString("cassandra.keyspace")
+    val datacenter = if (conf.hasPath("cassandra.datacenter")) Some(conf.getString("cassandra.datacenter")) else None
+    val sotimeout = conf.getInt("cassandra.sotimeout")
+    val connections = conf.getInt("cassandra.maxpoolsize")
 
     logger.info("Connecting to Cassandra servers '{}'", seeds)
     logger.info(

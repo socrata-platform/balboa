@@ -22,7 +22,6 @@ object BalboaHttp {
     scalatra_json,
     scalatra_metrics,
     newman % "it",
-    typesafe_config,
     scalatest
   )
 }

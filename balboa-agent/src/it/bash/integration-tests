@@ -49,23 +49,13 @@ echo "************************************************************"
 echo " Starting balboa-agent integration tests."
 echo
 
-ORIGINAL_PROPERTIES_FILE=balboa-agent/src/main/resources/config/config.properties
-TEST_PROPERTIES_FILE="target/balboa-agent-integrationtest-config-$$.properties"
 
-export ACTIVEMQ_SERVER=$(getActiveMQServer)
+export BALBOA_JMS_AMQ_SERVER=$(getActiveMQServer)
 # A new queue and metric directory are used for each integration test run to
 # avoid colliding with other integration test runs that are running at the same
 # time and sharing servers.
-export ACTIVEMQ_QUEUE="balboa-agent-integration-test-metrics-$$"
-export METRIC_DIRECTORY=/tmp/balboa-agent/integration-test-metrics-$$
-mkdir -p $METRIC_DIRECTORY
-echo "Writing temporary properties file to '$TEST_PROPERTIES_FILE'."
-sed "
-    /^ *balboa.agent.data.dir[ =]/s|=.*|= $METRIC_DIRECTORY|;
-    /^ *balboa.agent.sleeptime[ =]/s|=.*|= 10|;
-    /^ *balboa.jms.activemq.server[ =]/s|=.*|= $ACTIVEMQ_SERVER|;
-    /^ *balboa.jms.activemq.queue[ =]/s|=.*|= $ACTIVEMQ_QUEUE|
-" $ORIGINAL_PROPERTIES_FILE > $TEST_PROPERTIES_FILE
+export BALBOA_JMS_AMQ_QUEUE="balboa-agent-integration-test-metrics-$$"
+export BALBOA_AGENT_DATA_DIR=/tmp/balboa-agent/integration-test-metrics-$$
 
 SERVICE_LOG=target/balboa-agent-$$.log
 echo "Writing service log to '$SERVICE_LOG'"
@@ -83,7 +73,7 @@ fi
 # portion of the time for executing the integration tests. These tests run the
 # service using sbt in the background to try to execute integration tests
 # faster.
-sbt balboa-agent/run "-Dbalboa.config=$TEST_PROPERTIES_FILE" >& $SERVICE_LOG &
+sbt balboa-agent/run >& $SERVICE_LOG &
 BALBOA_AGENT_PID=$!
 
 echo -n "Waiting for balboa-agent to start."

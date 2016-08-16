@@ -1,8 +1,8 @@
 package com.socrata.balboa.metrics.data;
 
-import com.socrata.balboa.metrics.config.Configuration;
-import com.socrata.balboa.metrics.config.ConfigurationException;
+import com.typesafe.config.Config;
 import com.socrata.balboa.metrics.data.impl.TimeService;
+import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,13 +40,9 @@ public class BalboaFastFailCheck {
     // package protected for tests
     protected BalboaFastFailCheck(TimeService timeService) {
         this.timeService = timeService;
-        try {
-            Configuration config = Configuration.get();
-            INITIAL_FAILURE_DELAY_MS = Long.parseLong(config.getProperty("failfast.initialbackoff", "1000"));
-            MAX_FAILURE_DELAY_MS = Long.parseLong(config.getProperty("failfast.maxbackoff", "30000"));
-        } catch (IOException e) {
-            throw new ConfigurationException("BalboaFastFailCheck Configuration Error", e);
-        }
+        Config config = ConfigFactory.load();
+        INITIAL_FAILURE_DELAY_MS = config.getLong("failfast.initialbackoff");
+        MAX_FAILURE_DELAY_MS = config.getLong("failfast.maxbackoff");
     }
 
     /**
