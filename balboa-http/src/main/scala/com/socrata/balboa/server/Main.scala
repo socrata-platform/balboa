@@ -19,6 +19,8 @@ object Main extends App with StrictLogging {
     DefaultPort
   }
 
+  LogLevel.configureForMainClass(Main.getClass)
+
   val server = new Server(port)
   val context = new WebAppContext()
 

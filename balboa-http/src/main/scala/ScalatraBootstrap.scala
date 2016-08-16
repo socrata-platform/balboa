@@ -1,7 +1,7 @@
 import javax.servlet.ServletContext
 
 import com.codahale.metrics.JmxReporter
-import com.socrata.balboa.server.{HealthCheckServlet, MainServlet, MetricsServlet}
+import com.socrata.balboa.server.{HealthCheckServlet, LogLevel, MainServlet, MetricsServlet}
 import com.typesafe.scalalogging.StrictLogging
 import org.scalatra.LifeCycle
 import org.scalatra.metrics.MetricsBootstrap
@@ -18,6 +18,8 @@ class ScalatraBootstrap extends LifeCycle with MetricsBootstrap with StrictLoggi
 
   override def init(context: ServletContext): Unit = {
     jmxReporter.start()
+
+    LogLevel.configureForMainClass(classOf[ScalatraBootstrap])
 
     logger.info("Assigning servlet handlers.")
     context.mount(new MainServlet, "/")
