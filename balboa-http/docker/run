@@ -8,6 +8,7 @@ set -ev
 
 # Run It!
 exec su socrata -c '/usr/bin/java \
+    -Dloglevel=${LOG_LEVEL} \
     -Xmx${JAVA_XMX} \
     -Xms${JAVA_XMX} \
     -Dbalboa.config=${BALBOA_CONFIG} \
