@@ -24,6 +24,14 @@ import scala.concurrent.duration._
   * server.
   */
 object BalboaAgent extends App with Config with StrictLogging {
+  val ueh = new Thread.UncaughtExceptionHandler {
+      def uncaughtException(t: Thread,
+                            e: Throwable) {
+        logger.error("Uncaught exception in thread {}", t.getName, e)
+      }
+    }
+  Thread.setDefaultUncaughtExceptionHandler(ueh)
+
   logger info "Starting balboa-agent."
   private val scheduler = Executors.newScheduledThreadPool(1)
   private val dataDir = dataDirectory()
