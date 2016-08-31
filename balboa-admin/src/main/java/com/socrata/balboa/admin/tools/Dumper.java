@@ -4,6 +4,8 @@ import au.com.bytecode.opencsv.CSVWriter;
 import com.socrata.balboa.metrics.Metric;
 import com.socrata.balboa.metrics.Timeslice;
 import com.socrata.balboa.metrics.data.*;
+import scala.collection.Iterator;
+import scala.collection.JavaConverters;
 
 import java.io.IOException;
 import java.util.*;
@@ -53,14 +55,14 @@ public class Dumper
         Date epoch = new Date(0);
         Date cutoff = DateRange.create(leastGranular, new Date()).end;
         DataStore ds = dataStoreFactory.get();
-        Iterator<Timeslice> bigSlices = ds.slices(entityId, leastGranular, epoch, cutoff);
+        scala.collection.Iterator<Timeslice> bigSlices = ds.slices(entityId, leastGranular, epoch, cutoff);
         while(bigSlices.hasNext()) {
             Timeslice current = bigSlices.next();
             int expected = current.getMetrics().size();
             if (expected > 0) {
                 Date start = new Date(current.getStart());
                 cutoff = new Date(current.getEnd());
-                Iterator<Timeslice> slices = ds.slices(entityId, mostGranular, start, cutoff);
+                Iterator<Timeslice> slices = ds.slices(entityId, mostGranular, start, cutoff).toIterator();
                 int got = output(entityId, slices, writer);
                 if (expected != got) {
                     throw new IllegalStateException(
@@ -84,7 +86,7 @@ public class Dumper
             {
                 iters.add(ds.entities(filter));
             }
-            entities = new CompoundIterator<>(iters);
+            entities = JavaConverters.asScalaIteratorConverter(filters.iterator()).asScala();
         }
         else
         {

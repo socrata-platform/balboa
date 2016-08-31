@@ -16,6 +16,8 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.List;
 
+import scala.collection.JavaConversions;
+
 public class BalboaAdmin
 {
     public static void usage()
@@ -120,7 +122,7 @@ public class BalboaAdmin
             fsck.check(Arrays.asList(args).subList(1, args.length));
         } else if (command.equals("list")) {
             Lister lister = new Lister(dataStoreFactory);
-            lister.list(Arrays.asList(args).subList(1, args.length));
+            lister.list(JavaConversions.asScalaIterator(Arrays.asList(args).subList(1, args.length).iterator()));
         } else {
             System.err.println("Unknown command '" + command + "'.");
             usage();

@@ -14,6 +14,8 @@ import org.codehaus.jackson.map.annotate.JsonSerialize
 import org.codehaus.jackson.map.{ObjectMapper, SerializationConfig}
 import org.scalatra.{ActionResult, NoContent, Ok}
 
+import scala.collection.JavaConverters._
+
 // scalastyle:off return
 
 class MetricsServletWithDefaultDatastore extends MetricsServlet(DefaultDataStoreFactory)
@@ -71,8 +73,7 @@ class MetricsServlet(dataStoreFactory: DataStoreFactory) extends JacksonJsonServ
     })
 
     timer("metrics-get")({
-      val iter = dataStore.find(entityId, period, range.start, range.end)
-      var metrics = Metrics.summarize(iter)
+      var metrics = Metrics.summarize(dataStore.find(entityId, period, range.start, range.end))
 
       combine.foreach { c => metrics = metrics.combine(c) }
       field.foreach { f => metrics = metrics.filter(f) }
@@ -113,8 +114,7 @@ class MetricsServlet(dataStoreFactory: DataStoreFactory) extends JacksonJsonServ
     })
 
     timer("metrics-get-range")({
-      val iter = dataStore.find(entityId, startDate, endDate)
-      var metrics = Metrics.summarize(iter)
+      var metrics = Metrics.summarize(dataStore.find(entityId, startDate, endDate))
 
       combine.foreach { c => metrics = metrics.combine(c) }
       field.foreach { f => metrics = metrics.filter(f) }
