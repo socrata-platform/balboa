@@ -82,7 +82,7 @@ This simulation looks for the file pointed to by the `replay_load_test_file`
 variable in `src/it/resources/reference.conf` or with the 
 `REPLAY_LOAD_TEST_FILE` environment variable.
 
-Similarly, the simulation's timout can be set with the `replay_load_test_timeout_sec`
+Similarly, the simulation's timeout can be set with the `replay_load_test_timeout_sec`
 variable or with the `REPLAY_LOAD_TEST_TIMEOUT_SEC` environment variable,
 and the number of maximum simultaneous requests can be set with
 `replay_load_test_max_users` or with the `REPLAY_LOAD_TEST_MAX_USERS`

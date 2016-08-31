@@ -1,30 +1,22 @@
 package com.socrata.balboa.config
 
-import com.socrata.balboa.metrics.config.{Configuration, Keys}
-
-import scala.util.Try
+import com.socrata.balboa.metrics.config.Keys
+import com.typesafe.config.Config
 
 /**
  * JMS Client configuration.
  */
-trait JMSClientConfig extends CoreClientConfig {
+class JMSClientConfig(conf: Config) extends CoreClientConfig(conf) {
 
-  /**
-   * @return The address and port of the ActiveMQ Server to communicate to.
-   */
-  def activemqServer: String = Configuration.get().getString(Keys.JMS_ACTIVEMQ_SERVER, "failover:tcp://127.0.0.1:61616")
+  /** The address and port of the ActiveMQ Server to communicate to. */
+  val activemqServer: String = conf.getString(Keys.JMSActiveMQServer)
 
-  /**
-   * @return ActiveMQ Queue to publish to.
-   */
-  def activemqQueue: String = Configuration.get().getString(Keys.JMS_ACTIVEMQ_QUEUE)
+  /** ActiveMQ Queue to publish to. */
+  val activemqQueue: String = conf.getString(Keys.JMSActiveMQQueue)
 
-  def activemqUser: Option[String] = Try(Configuration.get().getString(Keys.JMS_ACTIVEMQ_USER)).toOption
+  val activemqUser: String = conf.getString(Keys.JMSActiveMQUser)
 
-  def activemqPassword: Option[String] = Try(Configuration.get().getString(Keys.JMS_ACTIVEMQ_PASSWORD)).toOption
+  val activemqPassword: String = conf.getString(Keys.JMSActiveMQPassword)
 
-  def bufferSize: Int = Configuration.get().getInt(Keys.JMS_ACTIVEMQ_MAX_BUFFER_SIZE, 1)
-
+  val bufferSize: Int = conf.getInt(Keys.JMSActiveMQMaxBufferSize)
 }
-
-object JavaJMSClientConfig extends JMSClientConfig

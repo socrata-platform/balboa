@@ -1,16 +1,18 @@
 package com.socrata.balboa.server
 
 import com.socrata.balboa.BuildInfo
-import com.socrata.balboa.metrics.data.DataStoreFactory
+import com.socrata.balboa.metrics.data.{DataStoreFactory, DefaultDataStoreFactory}
 import org.scalatra.ScalatraServlet
 
 import scala.util.{Failure, Success, Try}
 
-class HealthCheckServlet extends ScalatraServlet
+class HealthCheckServletWithDefaultDataStore extends HealthCheckServlet(DefaultDataStoreFactory)
+
+class HealthCheckServlet(dataStoreFactory: DataStoreFactory) extends ScalatraServlet
   with NotFoundFilter
   with RequestLogger {
 
-  val dataStore = DataStoreFactory.get()
+  lazy val dataStore = dataStoreFactory.get
 
   get("/") {
     val cassandra = Try(dataStore.checkHealth()) match {

@@ -6,9 +6,15 @@ import com.socrata.balboa.admin.tools.Checker;
 import com.socrata.balboa.admin.tools.Dumper;
 import com.socrata.balboa.admin.tools.Filler;
 import com.socrata.balboa.admin.tools.Lister;
+import com.socrata.balboa.metrics.data.DataStoreFactory;
+import com.socrata.balboa.metrics.data.DefaultDataStoreFactory;
+import com.socrata.balboa.metrics.data.Period;
+import com.socrata.balboa.metrics.data.impl.SupportedPeriods;
+import com.typesafe.config.ConfigFactory;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.List;
 
 public class BalboaAdmin
 {
@@ -48,6 +54,8 @@ public class BalboaAdmin
 
     public static void main(String[] args) throws IOException
     {
+        DataStoreFactory dataStoreFactory = DefaultDataStoreFactory.self();
+
         if (args.length == 0)
         {
             usage();
@@ -55,6 +63,7 @@ public class BalboaAdmin
         }
 
         String command = args[0];
+        List<Period> supportedPeriods = SupportedPeriods.getSupportedPeriodsJava(ConfigFactory.load());
 
         if (command.equals("fill")) {
             if (args.length < 2) {
@@ -71,7 +80,7 @@ public class BalboaAdmin
             System.out.println("Using escape character " + escape);
             CSVReader reader = new CSVReader(new InputStreamReader(new BufferedInputStream(new FileInputStream(inputFile)), "UTF-8"), ',', '"', escape);
             try {
-                Filler filler = new Filler(reader);
+                Filler filler = new Filler(reader, dataStoreFactory, supportedPeriods);
                 filler.fill();
             } finally {
                 reader.close();
@@ -79,7 +88,7 @@ public class BalboaAdmin
         } else if (command.equals("dump")) {
             CSVWriter writer = new CSVWriter(new OutputStreamWriter(System.out, "UTF-8"), ',', '"');
             try {
-                Dumper dumper = new Dumper(writer);
+                Dumper dumper = new Dumper(writer, dataStoreFactory, supportedPeriods);
                 dumper.dump(Arrays.asList(args).subList(1, args.length));
             } catch (Throwable t) {
                 t.printStackTrace();
@@ -95,7 +104,7 @@ public class BalboaAdmin
             }
             CSVWriter writer = new CSVWriter(new OutputStreamWriter(System.out, "UTF-8"), ',', '"');
             try {
-                Dumper dumper = new Dumper(writer);
+                Dumper dumper = new Dumper(writer, dataStoreFactory, supportedPeriods);
                 dumper.dumpOnly(args[1]);
             } catch (Throwable t) {
                 t.printStackTrace();
@@ -107,10 +116,10 @@ public class BalboaAdmin
             System.out.println();
             System.out.println();
         } else if (command.equals("fsck")) {
-            Checker fsck = new Checker();
+            Checker fsck = new Checker(dataStoreFactory, supportedPeriods);
             fsck.check(Arrays.asList(args).subList(1, args.length));
         } else if (command.equals("list")) {
-            Lister lister = new Lister();
+            Lister lister = new Lister(dataStoreFactory);
             lister.list(Arrays.asList(args).subList(1, args.length));
         } else {
             System.err.println("Unknown command '" + command + "'.");

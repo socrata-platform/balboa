@@ -1,21 +1,18 @@
 package com.socrata.balboa.metrics.data;
 
-import com.socrata.balboa.metrics.config.Configuration;
-
-import java.io.IOException;
 import java.util.*;
 
 public class QueryOptimizer {
-    Period lessGranular(Period current) {
-        List<Period> types;
-        try {
-            types = Configuration.get().getSupportedPeriods();
-        } catch (IOException e) {
-            throw new QueryException("Unable to load configuration for some reason.", e);
-        }
 
+    private final List<Period> supportedPeriods;
+
+    public QueryOptimizer(List<Period> supportedPeriods) {
+        this.supportedPeriods = supportedPeriods;
+    }
+
+    Period lessGranular(Period current) {
         current = current.lessGranular();
-        while (current != null && !types.contains(current)) {
+        while (current != null && !supportedPeriods.contains(current)) {
             current = current.lessGranular();
         }
 
@@ -86,15 +83,8 @@ public class QueryOptimizer {
     }
 
     public Map<Period, Set<DateRange>> optimalSlices(Date start, Date end) {
-        List<Period> types;
-        try {
-            types = Configuration.get().getSupportedPeriods();
-        } catch (IOException e) {
-            throw new QueryException("Unable to load configuration for some reason.", e);
-        }
-
         Map<Period, Set<DateRange>> optimized = new HashMap<>();
-        optimize(start, end, Period.mostGranular(types), optimized);
+        optimize(start, end, Period.mostGranular(supportedPeriods), optimized);
 
         return optimized;
     }

@@ -1,85 +1,102 @@
 package com.blist.metrics.impl.queue;
 
 import com.socrata.balboa.metrics.Metric;
+import com.socrata.balboa.metrics.Metrics;
+import com.socrata.balboa.metrics.impl.JsonMessage;
 import com.socrata.metrics.IdParts;
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
+import javax.jms.*;
+import java.sql.Timestamp;
+import java.util.Collection;
 
-/** Prefer to use MetricJmsQueueNotSingleton if possible. */
+
+/**
+ * This class mirrors the Event class except that it drops the events in the
+ * JMS queue and doesn't actually create "Event" objects, instead it creates
+ * messages that the metrics service consumes.
+ */
 public class MetricJmsQueue extends AbstractJavaMetricQueue {
-
-    // TODO Merge the Singleton + NonSingleton
-
     private static final Logger log = LoggerFactory.getLogger(MetricJmsQueue.class);
-    private static volatile MetricJmsQueue instance;
-    private static boolean loggedFailToCreateOnce = false;
-    private final ConnectionFactory factory;
-    private final MetricJmsQueueNotSingleton realInstance;
+    private final MetricsBuffer writeBuffer = new MetricsBuffer();
+    private final Session session;
+    private final Destination queue;
+    private final MessageProducer producer;
+    private final int bufferCapacity;
 
-    private static synchronized void createInstance(String server, String queueName) {
-        if (instance == null) {
-            try {
-                ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(server);
-                factory.setUseAsyncSend(true);
-                instance = new MetricJmsQueue(factory, queueName);
-            } catch (JMSException e) {
-                if(loggedFailToCreateOnce) e = null;
-                else loggedFailToCreateOnce = true;
-                log.error("Unable to create a new Metric logger for JMS. Falling back to a NOOP logger.", e);
-            }
+    // TODO Handle the case where we need graceful shutdown.
+
+    /**
+     * Creates a JMS Queue.
+     *
+     * @param connection The Activemq connection.
+     * @param queueName The name of the queue to send metrics to.
+     * @param bufferCapacity The maximum size of the buffer to maintain.
+     * @throws JMSException When there is a problem sending to the JMS Server.
+     */
+    public MetricJmsQueue(Connection connection, String queueName, int bufferCapacity) throws JMSException {
+        if (bufferCapacity < 0) {
+            throw new IllegalArgumentException("Buffer capacity cannot be negative. Actual: " + bufferCapacity);
+        }
+
+        this.session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        this.queue = session.createQueue(queueName);
+        this.producer = session.createProducer(queue);
+        this.bufferCapacity = bufferCapacity;
+    }
+
+    private void flushWriteBuffer() {
+        Collection<MetricsBucket> buckets = writeBuffer.popAll(); // Remove and empty
+        log.info("Flushing the write buffer of all {} metric buckets.", buckets.size());
+        for (MetricsBucket bucket : buckets) {
+            queue(bucket.getId(), bucket.getTimeBucket(), bucket.getData());
         }
     }
 
-    // Ugh really did not want to contribute to this design pattern.  This has caused us so much pain in the past.
-    // Globally visible instance that many things can touch == future sustainability problem.
-    private static synchronized void createInstance(String username, String password, String server, String queueName) {
-        if (instance == null) {
-            try {
-                ActiveMQConnectionFactory factory = new ActiveMQConnectionFactory(username, password, server);
-                factory.setUseAsyncSend(true);
-                instance = new MetricJmsQueue(factory, queueName);
-            } catch (JMSException e) {
-                if(loggedFailToCreateOnce) e = null;
-                else loggedFailToCreateOnce = true;
-                log.error("Unable to create a new Metric logger for JMS. Falling back to a NOOP logger.", e);
-            }
+    private void queue(String entityId, long timestamp, Metrics metrics) {
+        try {
+            log.debug("Sending metrics to queue for entity id: {} with associated time {} and metrics (Size: {}) {}",
+                    entityId, new Timestamp(timestamp).toString(), metrics.size(), metrics);
+            JsonMessage msg = new JsonMessage();
+            msg.setEntityId(entityId);
+            msg.setMetrics(metrics);
+            msg.setTimestamp(timestamp);
+            byte[] bytes = msg.serialize();
+            producer.send(session.createTextMessage(new String(bytes)));
+        } catch (Exception e) {
+            log.error("Error sending metrics to Queue for {} with associated time {} because of {}", entityId,
+                    new Timestamp(timestamp).toString(), e.getMessage());
+            throw new RuntimeException("Unable to queue a message because there was a JMS error.", e);
         }
     }
 
-    /** Note that the parameters are only used on the first invocation. */
-    public static MetricJmsQueue getInstance(String server, String queueName) {
-        if (instance == null) createInstance(server, queueName);
-        return instance;
-    }
+    private void create(String entityId, String name, Number value, long timestamp, Metric.RecordType type) {
+        log.debug("Creating metric {}:{} for {} with associated time {} by sending it to the write buffer",
+                name, value, entityId, new Timestamp(timestamp).toString());
+        Metrics metrics = new Metrics();
+        Metric metric = new Metric();
+        metric.setType(type);
+        metric.setValue(value);
+        metrics.put(name, metric);
 
-    /** Note that the parameters are only used on the first invocation. */
-    public static MetricJmsQueue getInstance(String username, String password, String server, String queueName) {
-        if (instance == null) createInstance(username, password, server, queueName);
-        return instance;
-    }
-
-    private MetricJmsQueue(ConnectionFactory factory, String queueName) throws JMSException {
-        this.factory = factory; // badness happens if it's GC'd
-        Connection connection = factory.createConnection();
-        realInstance = new MetricJmsQueueNotSingleton(connection, queueName);
+        // Flush the buffer if it becomes to large.
+        // A simpler model given the Java default concurrency model.
+        writeBuffer.add(entityId, metrics, timestamp);
+        if (writeBuffer.size() >= this.bufferCapacity) {
+            flushWriteBuffer();
+        }
     }
 
     @Override
     public void close() throws Exception {
-        if (instance != null)
-            instance.close();
-        if (realInstance != null)
-            realInstance.close();
+        log.info("Closing {}, attempting to flush all the metrics to the queue.", this.getClass().getSimpleName());
+        flushWriteBuffer();
     }
 
     @Override
     public void create(IdParts entity, IdParts name, long value, long timestamp, Metric.RecordType type) {
-        realInstance.create(entity, name, value, timestamp, type);
+        create(entity.toString(), name.toString(), value, timestamp, type);
     }
 
 }

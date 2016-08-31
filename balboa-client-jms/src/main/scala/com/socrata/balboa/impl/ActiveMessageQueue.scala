@@ -33,7 +33,8 @@ trait ActiveMQueueComponent extends MessageQueueComponent {
         producer.send(session.createTextMessage(new String(msg.serialize())))
       } catch {
         case e:Exception =>
-          logger.error("Sending message to ActiveMQ failed (see previous error); writing message to file " + backupFile, e)
+          logger.error(
+            "Sending message to ActiveMQ failed (see previous error); writing message to file " + backupFile, e)
           fileWriter.send(msg)
       }
     }

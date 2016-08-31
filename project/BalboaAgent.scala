@@ -27,10 +27,8 @@ object BalboaAgent extends DockerKeys with LinuxKeys {
     dropwizard_servlets,
     junit,
     json4s,
-    mockito_test,
     newman,
     scalatest,
-    typesafe_config,
     json4s
   ) ++ balboa_logging
 }

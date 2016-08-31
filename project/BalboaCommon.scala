@@ -21,6 +21,8 @@ object BalboaCommon {
     jackson_core_asl,
     jackson_mapper_asl,
     jopt_simple,
-    json4s
+    json4s,
+    socrata_thirdparty_utils,
+    typesafe_config
   )
 }

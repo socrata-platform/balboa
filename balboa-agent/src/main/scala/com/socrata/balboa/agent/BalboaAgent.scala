@@ -3,17 +3,16 @@ package com.socrata.balboa.agent
 import java.util.concurrent.{Executors, ScheduledFuture, TimeUnit}
 import javax.jms.{ExceptionListener, JMSException}
 
-import com.blist.metrics.impl.queue.MetricJmsQueueNotSingleton
+import com.blist.metrics.impl.queue.MetricJmsQueue
 import com.codahale.metrics.JmxReporter
 import com.socrata.balboa.agent.metrics.BalboaAgentMetrics
 import com.socrata.balboa.util.FileUtils
 import com.socrata.metrics.MetricQueue
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
 import org.apache.activemq.{ActiveMQConnection, ActiveMQConnectionFactory}
 
 import util.control.NonFatal
-
-import scala.concurrent.duration._
 
 /**
   * Balboa Agent class serves as the entry point for running the existing
@@ -23,10 +22,11 @@ import scala.concurrent.duration._
   * files from a directory, and send the metrics in the files to an ActiveMQ
   * server.
   */
-object BalboaAgent extends App with Config with StrictLogging {
+object BalboaAgent extends App with StrictLogging {
+  val conf = new AgentConfig(ConfigFactory.load())
   logger info "Starting balboa-agent."
   private val scheduler = Executors.newScheduledThreadPool(1)
-  private val dataDir = dataDirectory()
+  private val dataDir = conf.dataDirectory
   BalboaAgentMetrics.numFiles("data", dataDir, Some(FileUtils.isBalboaDataFile))
   BalboaAgentMetrics.numFiles("broken", dataDir, Some(FileUtils.isBalboaBrokenFile))
   BalboaAgentMetrics.numFiles("lock", dataDir, Some(FileUtils.isBalboaLockFile))
@@ -35,13 +35,13 @@ object BalboaAgent extends App with Config with StrictLogging {
   logger info "Starting the JMX Reporter."
   jmxReporter.start()
 
-  val metricPublisher = this.transportType() match {
+  val metricPublisher = conf.transportType match {
     case Mq => amqMetricQueue()
     case Http =>
       new HttpMetricQueue(
-        this.balboaHttpUrl.getOrElse({ throw new IllegalArgumentException("No BalboaHttpUrl provided.") }),
-        this.balboaHttpTimeout(250.millis),
-        this.balboaHttpMaxRetryWait(5.seconds)
+        conf.balboaHttpUrl,
+        conf.balboaHttpTimeout,
+        conf.balboaHttpMaxRetryWait
       )
   }
 
@@ -73,7 +73,7 @@ object BalboaAgent extends App with Config with StrictLogging {
           sys.exit(1)
       }
     }
-  }, initialDelay(), interval(), TimeUnit.MILLISECONDS)
+  }, conf.initialDelayMs, conf.interval, TimeUnit.MILLISECONDS)
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
     override def run(): Unit = {
@@ -100,10 +100,8 @@ object BalboaAgent extends App with Config with StrictLogging {
   def amqMetricQueue(): MetricQueue = {
     logger info "Initializing ActiveMQ connection factory. " +
       "(This is setting the username, password and destination.)"
-    val amqConnectionFactory = (activemqUser, activemqPassword) match {
-      case (Some(user), Some(password)) => new ActiveMQConnectionFactory(user, password, activemqServer)
-      case _                            => new ActiveMQConnectionFactory(activemqServer)
-    }
+    val amqConnectionFactory = new ActiveMQConnectionFactory(
+      conf.activemqUser, conf.activemqPassword, conf.activemqServer)
 
     // The ActiveMQ libraries can be obscure when they are misbehaving. The hope
     // is that by registering this listener, additional information will be
@@ -152,8 +150,8 @@ object BalboaAgent extends App with Config with StrictLogging {
     logger info s"Connected to ActiveMQ broker '${amqConnection.getBrokerInfo}'."
 
     logger info s"Reading metrics from directory '${dataDir.getAbsolutePath}'."
-    logger info s"Sending metrics to ActiveMQ queue '$activemqQueue'"
+    logger info s"Sending metrics to ActiveMQ queue '${conf.activemqQueue}'"
 
-    new MetricJmsQueueNotSingleton(amqConnection, activemqQueue)
+    new MetricJmsQueue(amqConnection, conf.activemqQueue, conf.bufferSize)
   }
 }

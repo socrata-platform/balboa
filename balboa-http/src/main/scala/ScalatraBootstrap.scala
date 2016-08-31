@@ -1,7 +1,10 @@
 import javax.servlet.ServletContext
 
 import com.codahale.metrics.JmxReporter
-import com.socrata.balboa.server.{HealthCheckServlet, LogLevel, MainServlet, MetricsServlet}
+import com.socrata.balboa.metrics.data.DefaultDataStoreFactory
+import com.socrata.balboa.server._
+import com.socrata.balboa.util.LoggingConfigurator
+import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.StrictLogging
 import org.scalatra.LifeCycle
 import org.scalatra.metrics.MetricsBootstrap
@@ -19,12 +22,16 @@ class ScalatraBootstrap extends LifeCycle with MetricsBootstrap with StrictLoggi
   override def init(context: ServletContext): Unit = {
     jmxReporter.start()
 
-    LogLevel.configureForMainClass(classOf[ScalatraBootstrap])
+    LoggingConfigurator.configureLogging(ConfigFactory.load())
 
     logger.info("Assigning servlet handlers.")
-    context.mount(new MainServlet, "/")
-    context.mount(new MetricsServlet, "/metrics")
-    context.mount(new HealthCheckServlet, "/health")
+    val dataStoreFactory = DefaultDataStoreFactory
+
+    context.mount(new VersionServlet(), "/version")
+    context.mount(new EntitiesServlet(dataStoreFactory), "/entities")
+    context.mount(new MetricsServlet(dataStoreFactory), "/metrics")
+    context.mount(new HealthCheckServlet(dataStoreFactory), "/health")
+    context.mount(new NotFoundServlet, "/")
   }
 
   override def destroy(context: ServletContext): Unit = {

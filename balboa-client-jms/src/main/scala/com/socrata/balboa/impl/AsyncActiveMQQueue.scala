@@ -2,7 +2,7 @@ package com.socrata.balboa.impl
 
 import java.io.Closeable
 
-import com.blist.metrics.impl.queue.MetricJmsQueueNotSingleton
+import com.blist.metrics.impl.queue.MetricJmsQueue
 import com.socrata.balboa.metrics.Metric
 import com.socrata.metrics.{AbstractMetricQueue, IdParts}
 import org.apache.activemq.transport.DefaultTransportListener
@@ -22,7 +22,7 @@ import scala.util.{Failure, Success}
  * @param connectionUri Connection URI for ActiveMQ. Use of failover transport is highly recommended
  * @param queueName JMS queue name
  */
-class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends AbstractMetricQueue {
+class AsyncActiveMQQueue(connectionUri: String, queueName: String, bufferSize: Int) extends AbstractMetricQueue {
   private val log = LoggerFactory.getLogger(classOf[AsyncActiveMQQueue])
   private val activeMQFactory: ActiveMQConnectionFactory = {
     val factory = new ActiveMQConnectionFactory(connectionUri)
@@ -31,7 +31,7 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
   }
 
   private var connection: Option[ActiveMQConnection] = None
-  private var underlying: Option[MetricJmsQueueNotSingleton] = None
+  private var underlying: Option[MetricJmsQueue] = None
   private var started = false
 
   /**
@@ -48,7 +48,7 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
             activeMQConn.addTransportListener(BalboaTransportListener)
             activeMQConn
           })
-          underlying = connection.map(new MetricJmsQueueNotSingleton(_, queueName))
+          underlying = connection.map(new MetricJmsQueue(_, queueName, bufferSize))
         case Failure(e) =>
           // Using failover transport, this should never happen; rather, createConnection() will hang
           // until it finds a connection
@@ -84,6 +84,7 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
 
   /**
    * Indicates whether this queue is currently connected to ActiveMQ
+ *
    * @return True if connected; false otherwise
    */
   def isConnected: Boolean = {
@@ -92,6 +93,7 @@ class AsyncActiveMQQueue(connectionUri: String, queueName: String) extends Abstr
 
   /**
    * Add a Metric to Balboa.
+ *
    * @param entity Entity which this Metric belongs to (ex: a domain)
    * @param name Metric to store
    * @param value Numeric value of this metric

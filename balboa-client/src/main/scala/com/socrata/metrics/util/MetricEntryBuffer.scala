@@ -5,6 +5,8 @@ import com.socrata.metrics.MetricQueue
 
 import scala.collection.SetLike
 
+// scalastyle:off
+
 /**
  * Buffer that does not allow multiple Metric Entries that have the same ids.  This buffer is a very light wrapper
  * around a set that ensures the duplicate entries are merged before they are added together.

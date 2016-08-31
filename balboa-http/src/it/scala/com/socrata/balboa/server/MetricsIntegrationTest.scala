@@ -4,7 +4,6 @@ import java.net.URL
 
 import com.fasterxml.jackson.core.JsonParseException
 import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.data.DataStoreFactory
 import com.stackmob.newman.ApacheHttpClient
 import com.stackmob.newman.dsl.{GET, POST}
 import com.stackmob.newman.response.{HttpResponse, HttpResponseCode}
@@ -19,7 +18,6 @@ import scala.util.Try
 
 class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterEach {
   implicit val httpClient = new ApacheHttpClient
-  val dataStore = DataStoreFactory.get()
   val testMetricPrefix = "testMetric"
   val testEntityPrefix = "testMetricsEntity"
   var testEntityName = ""

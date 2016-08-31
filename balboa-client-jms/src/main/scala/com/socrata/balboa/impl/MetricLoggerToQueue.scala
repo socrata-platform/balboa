@@ -6,6 +6,7 @@ import java.nio.file.Paths
 import com.socrata.balboa.config.JMSClientConfig
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{BaseMetricLoggerComponent, MetricEnqueuer}
+import com.typesafe.config.ConfigFactory
 
 trait ServerInformation {
   def activeServer:String
@@ -13,10 +14,15 @@ trait ServerInformation {
   def backupFile:File
 }
 
-trait ConfiguredServerInformation extends ServerInformation with JMSClientConfig {
-  override def activeServer: String = activemqServer
-  override lazy val activeQueue = activemqQueue
-  override lazy val backupFile = emergencyBackUpFile("jms")
+trait ConfiguredServerInformation extends ServerInformation {
+  val jmsClientConfig: JMSClientConfig
+  override def activeServer: String = jmsClientConfig.activemqServer
+  override lazy val activeQueue = jmsClientConfig.activemqQueue
+  override lazy val backupFile = jmsClientConfig.emergencyBackUpFile("jms")
+}
+
+trait LoadJMSClientConfig {
+  val jmsClientConfig = new JMSClientConfig(ConfigFactory.load())
 }
 
 trait MetricLoggerToQueue extends BaseMetricLoggerComponent {
@@ -40,7 +46,9 @@ trait MetricLoggerToQueue extends BaseMetricLoggerComponent {
    *
    * @return [[MetricLoggerLike]] instance.
    */
-  override def MetricLogger(): MetricLogger = new MetricLogger() with MetricEnqueuer // scalastyle:ignore
+  override def MetricLogger(): MetricLogger = new MetricLogger() // scalastyle:ignore
+    with LoadJMSClientConfig
+    with MetricEnqueuer
     with MetricDequeuerService
     with HashMapBufferComponent
     with ActiveMQueueComponent
