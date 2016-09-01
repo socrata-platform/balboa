@@ -1,8 +1,5 @@
 package com.socrata.balboa.metrics;
 
-import scala.collection.Iterator;
-import scala.collection.JavaConversions;
-
 import java.io.IOException;
 import java.util.*;
 import java.util.Map;

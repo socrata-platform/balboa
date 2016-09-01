@@ -1,11 +1,12 @@
 package com.socrata.balboa.server
 
 import java.nio.charset.StandardCharsets.UTF_8
+import java.util.Date
 
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, DefaultDataStoreFactory, Period}
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics
-import com.socrata.balboa.metrics.{Metric, Metrics}
+import com.socrata.balboa.metrics.{Metric, Metrics, Timeslice}
 import com.socrata.balboa.server.ResponseWithType._
 import com.socrata.balboa.server.ScalatraUtil.getAccepts
 import com.socrata.balboa.server.rest.Extractable
@@ -42,6 +43,7 @@ class MetricsServlet(dataStoreFactory: DataStoreFactory) extends JacksonJsonServ
   // Match paths like /metrics/:entityId and /metrics/:entityId/whatever
   get("""^\/([^\/]+).*""".r)(getMetrics)
   def getMetrics: ActionResult = {
+
     val entityId = params("captures")
 
     val period = params.get(PeriodKey).map(Extractable[Period].extract) match {
@@ -84,6 +86,17 @@ class MetricsServlet(dataStoreFactory: DataStoreFactory) extends JacksonJsonServ
     }).call()
   }
 
+  private def rangeMetrics(entityId: String,
+                           startDate: Date,
+                           endDate: Date,
+                           combine: Option[String],
+                           field: Option[String]): Metrics = {
+    var metrics = Metrics.summarize(dataStore.find(entityId, startDate, endDate))
+    combine.foreach { c => metrics = metrics.combine(c) }
+    field.foreach { f => metrics = metrics.filter(f) }
+    metrics
+  }
+
   get("/:entityId/range*")(getRange)
   def getRange: ActionResult = {
     val entityId = params("entityId")
@@ -114,14 +127,44 @@ class MetricsServlet(dataStoreFactory: DataStoreFactory) extends JacksonJsonServ
     })
 
     timer("metrics-get-range")({
-      var metrics = Metrics.summarize(dataStore.find(entityId, startDate, endDate))
-
-      combine.foreach { c => metrics = metrics.combine(c) }
-      field.foreach { f => metrics = metrics.filter(f) }
-
+      val metrics = rangeMetrics(entityId, startDate, endDate, combine, field)
       val result = render(mediaType, metrics)
       contentType = result.contentType
       result.result
+    }).call()
+  }
+
+  get("/range")(getRanges)
+  def getRanges: ActionResult = {
+    val entityIds = multiParams("entityId")
+
+    val start = params.getOrElse(StartKey, {
+      contentType = json
+      return required(StartKey).result
+    })
+    val end = params.getOrElse(EndKey, {
+      contentType = json
+      return required(EndKey).result
+    })
+    val combine = params.get(CombineKey)
+    val field = params.get(FieldKey)
+
+    val startDate = ServiceUtils.parseDate(start).getOrElse({
+      contentType = json
+      return malformedDate(start).result
+    })
+    val endDate = ServiceUtils.parseDate(end).getOrElse({
+      contentType = json
+      return malformedDate(end).result
+    })
+
+    timer("metrics-get-ranges")({
+      val metrics = entityIds.par.map(entityId =>
+        (entityId, rangeMetrics(entityId, startDate, endDate, combine, field))).toMap
+      // asJava is necessary for json4s/Jackson to serialize parallel collections to JSON correctly
+      val body = renderJson(metrics.seq.asJava).getBytes(UTF_8)
+      contentType = json
+      Ok(body)
     }).call()
   }
 
@@ -162,10 +205,52 @@ class MetricsServlet(dataStoreFactory: DataStoreFactory) extends JacksonJsonServ
     })
 
     timer("metrics-get-series")({
-      val body = renderJson(dataStore.slices(entityId, period, startDate, endDate)).getBytes(UTF_8)
-      val resp = ResponseWithType(json, Ok(body))
-      contentType = resp.contentType
-      resp.result
+      val series = dataStore.slices(entityId, period, startDate, endDate)
+      // asJava is necessary for json4s/Jackson to serialize parallel collections to JSON correctly
+      val body = renderJson(series.seq.asJava).getBytes(UTF_8)
+      contentType = json
+      Ok(body)
+    }).call()
+  }
+
+  get("/series")(getSerieses)
+  def getSerieses: ActionResult = {
+    val entityIds = multiParams("entityId")
+
+    val period = params.get(PeriodKey).map(Extractable[Period].extract) match {
+      case Some(Right(value)) => value
+      case Some(Left(err)) =>
+        contentType = json
+        return badRequest(PeriodKey, err).result
+      case None =>
+        contentType = json
+        return required(PeriodKey).result
+    }
+    val start = params.getOrElse(StartKey, {
+      contentType = json
+      return required(StartKey).result
+    })
+    val end = params.getOrElse(EndKey, {
+      contentType = json
+      return required(EndKey).result
+    })
+
+    val startDate = ServiceUtils.parseDate(start).getOrElse({
+      contentType = json
+      return malformedDate(start).result
+    })
+    val endDate = ServiceUtils.parseDate(end).getOrElse({
+      contentType = json
+      return malformedDate(end).result
+    })
+
+    timer("metrics-get-series")({
+      val serieses = entityIds.par.map(entityId =>
+        (entityId, dataStore.slices(entityId, period, startDate, endDate))).toMap
+      // asJava is necessary for json4s/Jackson to serialize parallel collections to JSON correctly
+      val body = renderJson(serieses.map({ case (k, v) => (k, v.asJava) }).seq.asJava).getBytes(UTF_8)
+      contentType = json
+      Ok(body)
     }).call()
   }
 

@@ -13,6 +13,8 @@ import com.typesafe.scalalogging.StrictLogging
 import com.datastax.driver.core._
 import com.typesafe.config.{Config, ConfigFactory}
 
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 import scala.{collection => sc}
 
 /**
@@ -111,20 +113,18 @@ object CassandraUtil extends StrictLogging {
                     entityId:String,
                     period:Period,
                     query:List[ju.Date]): Iterator[Timeslice] = {
-    query.iterator.map { date =>
-          val range = DateRange.create(period, date)
-          new Timeslice(range.start.getTime, range.end.getTime, queryImpl.fetch(entityId, period, date))
-    }.filter(Option(_).isDefined)
+    query.par.map { date =>
+      val range = DateRange.create(period, date)
+      new Timeslice(range.start.getTime, range.end.getTime, queryImpl.fetch(entityId, period, date))
+    }.filter(Option(_).isDefined).iterator
   }
 
   def metricsIterator(queryImpl: CassandraQuery,
                       entityId: String,
                       query: sc.Seq[(ju.Date, Period)]): Iterator[Metrics] = {
-    {
-      for {
-        (date, period) <- query.iterator
-      } yield queryImpl.fetch(entityId, period, date)
-    }.filter(Option(_).isDefined)
+    query.par.map({ case (date, period) =>
+      queryImpl.fetch(entityId, period, date)
+    }).filter(Option(_).isDefined).iterator
   }
 
   def getColumnFamily(period:Period, recordType:RecordType): String = {

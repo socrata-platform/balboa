@@ -78,13 +78,13 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   // determine if this is in use anywhere and it can be removed. Proper
   // response for this endpoint should be a 404.
   "Retrieve /metrics/*/range/*" should "show the same results as /metrics/*/range" in {
-    persistManyMetrics(10, RecordType.ABSOLUTE)
+    persistManyMetrics(testEntityName, 10, RecordType.ABSOLUTE)
     val rangeResponse = getJSONResponse(s"metrics/$testEntityName/range?start=$testStart&end=$testEnd")
     val rangeWithExtraResponse = getJSONResponse(s"metrics/$testEntityName/range/whatever?start=$testStart&end=$testEnd")
     rangeWithExtraResponse.bodyString shouldBeJSON rangeResponse.bodyString
   }
   "Retrieve /metrics/*/series/*" should "show the same results as /metrics/*/series" in {
-    persistManyMetrics(10, RecordType.ABSOLUTE)
+    persistManyMetrics(testEntityName, 10, RecordType.ABSOLUTE)
     val seriesResponse = getJSONResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=$testStart&end=$testEnd")
     val seriesWithExtraResponse = getJSONResponse(s"metrics/$testEntityName/series/whatever?period=MONTHLY&start=$testStart&end=$testEnd")
     seriesWithExtraResponse.bodyString shouldBeJSON seriesResponse.bodyString
@@ -182,8 +182,9 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   }
 
   // Returns the JSON string representation of the metric added
-  def persistSingleMetric(metricType: RecordType = RecordType.ABSOLUTE): String = {
-    val url = new URL(Config.Server, s"/metrics/$testEntityName")
+  def persistSingleMetric(entityId: String = testEntityName,
+                          metricType: RecordType = RecordType.ABSOLUTE): String = {
+    val url = new URL(Config.Server, s"/metrics/$entityId")
     val result = Await.result(
       POST(url).setBody(
         pretty(render(Extraction.decompose(
@@ -199,8 +200,8 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   }
 
   // Returns the JSON string representation of the metrics added
-  def persistManyMetrics(count: Int, metricTypes: RecordType*): String = {
-    val url = new URL(Config.Server, s"/metrics/$testEntityName")
+  def persistManyMetrics(entityId: String, count: Int, metricTypes: RecordType*): String = {
+    val url = new URL(Config.Server, s"/metrics/$entityId")
     val metRange = 0 to count
 
     val metrics = new mutable.HashMap[String, MetricJSON]
@@ -233,15 +234,15 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   }
 
   "Persist absolute metrics via POST" should "succeed" in {
-    persistManyMetrics(10, RecordType.ABSOLUTE)
+    persistManyMetrics(testEntityName, 10, RecordType.ABSOLUTE)
   }
 
   "Persist aggregate metrics via POST" should "succeed" in {
-    persistManyMetrics(10, RecordType.AGGREGATE)
+    persistManyMetrics(testEntityName, 10, RecordType.AGGREGATE)
   }
 
   "Persist both absolute and aggregate metrics in the same request" should "succeed" in {
-    persistManyMetrics(10, RecordType.ABSOLUTE, RecordType.AGGREGATE)
+    persistManyMetrics(testEntityName, 10, RecordType.ABSOLUTE, RecordType.AGGREGATE)
   }
 
   "Retrieve /metrics/* after persisting" should "show persisted metric" in {
@@ -252,7 +253,7 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
   }
 
   "Retrieve /metrics/* after persisting many absolute and aggregate metrics" should "show persisted metrics" in {
-    val expected = persistManyMetrics(10, RecordType.ABSOLUTE, RecordType.AGGREGATE)
+    val expected = persistManyMetrics(testEntityName, 10, RecordType.ABSOLUTE, RecordType.AGGREGATE)
     val response = getJSONProtoResponse(s"/metrics/$testEntityName?period=YEARLY&date=$testPersistedDate")
     response shouldHaveCode Ok
     response.json.bodyString shouldBeJSON expected
@@ -265,12 +266,27 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
     response.json.bodyString shouldBeJSON expected
   }
 
+  "Retrieve /metrics ranges after persisting" should "show persisted metrics" in {
+    val expected = s"""{ "$testEntityName": ${persistSingleMetric()} }"""
+    val response = getJSONResponse(s"metrics/range?entityId=$testEntityName&start=$testStart&end=$testEnd")
+    response.code shouldBe Ok
+    response.bodyString shouldBeJSON expected
+  }
+
   "Retrieve /metrics range after persisting multiple metrics" should "show multiple persisted metrics" in {
-    val metRange = 1 to 10
-    val expected = persistManyMetrics(10, RecordType.ABSOLUTE)
+    val expected = persistManyMetrics(testEntityName, 10, RecordType.ABSOLUTE)
     val response = getJSONProtoResponse(s"metrics/$testEntityName/range?start=$testStart&end=$testEnd")
     response shouldHaveCode Ok
     response.json.bodyString shouldBeJSON expected
+  }
+
+  "Retrieve /metrics ranges after persisting multiple entities" should "show persisted metrics" in {
+    val entity1 = testEntityName + "-1"
+    val entity2 = testEntityName + "-2"
+    val expected = s"""{ "$entity1": ${persistSingleMetric(entity1)}, "$entity2": ${persistSingleMetric(entity2)} }"""
+    val response = getJSONResponse(s"metrics/range?entityId=$entity1&entityId=$entity2&start=$testStart&end=$testEnd")
+    response.code shouldBe Ok
+    response.bodyString shouldBeJSON expected
   }
 
   "Retrieve /metrics series after persisting" should "show persisted metrics" in {
@@ -286,17 +302,32 @@ class MetricsIntegrationTest extends FlatSpec with Matchers with BeforeAndAfterE
     response.bodyString shouldBeJSON expected
   }
 
-  "Retrieve /metrics series after persisting multiple metrics" should "show persisted metrics" in {
-    val metRange = 1 to 10
-    val expectedMetrics = persistManyMetrics(10, RecordType.ABSOLUTE)
-
-    val response = getJSONResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=$testStart&end=$testEnd")
-    response.code.code should be (Ok.code)
+  def persistMultipleMetricSeries(entityId: String = testEntityName): String = {
+    val expectedMetrics = persistManyMetrics(entityId, 10, RecordType.ABSOLUTE)
 
     val expectSeries1 = """ { "start" : -2678400000, "end" : -1, "metrics" : { } } """
     val expectSeries2 = """ { "start" : 0, "end" : 2678399999, "metrics" : %s } """.format(expectedMetrics)
     val expectSeries3 = """ { "start" : 2678400000, "end": 5097599999, "metrics" : { } } """
     val expected = s"[ $expectSeries1, $expectSeries2, $expectSeries3 ]"
+    expected
+  }
+
+  "Retrieve /metrics series after persisting multiple metrics" should "show persisted metrics" in {
+    val expected = persistMultipleMetricSeries()
+    val response = getJSONResponse(s"metrics/$testEntityName/series?period=MONTHLY&start=$testStart&end=$testEnd")
+    response.code.code should be (Ok.code)
+    response.bodyString shouldBeJSON expected
+  }
+
+  "Retrieve /metrics serieses after persisting multiple entities" should "show persisted metrics" in {
+    val entity1 = testEntityName + "-1"
+    val entity2 = testEntityName + "-2"
+    val expected =
+      s"""{ "$entity1": ${persistMultipleMetricSeries(entity1)}, "$entity2": ${persistMultipleMetricSeries(entity2)} }"""
+    val response = getJSONResponse(s"metrics/series?entityId=$entity1&entityId=$entity2&" +
+      s"period=MONTHLY&start=$testStart&end=$testEnd"
+    )
+    response.code.code should be (Ok.code)
     response.bodyString shouldBeJSON expected
   }
 }
