@@ -3,19 +3,24 @@ package com.socrata.balboa.admin.tools
 import java.io.IOException
 
 import com.socrata.balboa.metrics.data.DataStoreFactory
+import scala.collection.JavaConverters._
 
 /**
   * List all the entity keys
   */
 class Lister(dataStoreFactory: DataStoreFactory) {
+
+  def listJava(filters: java.util.Iterator[String]) = list(filters.asScala)
+
   @throws[IOException]
-  def list(filters: Iterator[String]): Unit = {
+  def list(filters: Iterator[String], printer: (String => Unit) = println): Unit = {
     val ds = dataStoreFactory.get
-    val entities = if (filters.isEmpty) {
+    val entities = (if (filters.isEmpty) {
       ds.entities()
     } else {
       filters.flatMap(filter => ds.entities(filter))
-    }
-    entities.foreach(println)
+    }).toList.distinct
+
+    entities.foreach(printer)
   }
 }
