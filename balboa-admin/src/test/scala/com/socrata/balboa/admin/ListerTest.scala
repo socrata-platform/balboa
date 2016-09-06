@@ -8,6 +8,7 @@ import org.mockito.Mockito._
 import org.mockito.Matchers.{eq => eqTo}
 
 import scala.collection.mutable.ListBuffer
+import scala.collection.JavaConverters._
 
 class ListerTest extends FlatSpec with Matchers with MockitoSugar  {
   val dsf = mock[DataStoreFactory]
@@ -29,5 +30,9 @@ class ListerTest extends FlatSpec with Matchers with MockitoSugar  {
     val printed = new ListBuffer[String]
     lister.list(List(filter).iterator, entity => printed += entity)
     printed.toList should be (List("2"))
+  }
+
+  "list() from java with no filters" should "not throw errors" in {
+    lister.listJava(List.empty[String].iterator.asJava)
   }
 }

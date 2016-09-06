@@ -7,7 +7,7 @@ object BalboaAdmin {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
     mainClass in sbtassembly.AssemblyKeys.assembly := Some("com.socrata.balboa.admin.BalboaAdmin"),
     libraryDependencies <++= scalaVersion { libraries(_) },
-    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 75
+    ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 100
   )
 
   def libraries(implicit scalaVersion: String) = Seq(
