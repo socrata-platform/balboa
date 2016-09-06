@@ -40,7 +40,7 @@ class EntitiesServlet(dataStoreFactory: DataStoreFactory) extends ScalatraServle
         .map { pattern => (str: String) => pattern.matcher(str).matches }.getOrElse(_ => true)
 
     timer("entities-get")({
-      val it = dataStore.entities().asScala.filter(predicate)
+      val it = dataStore.entities().filter(predicate)
       // backwards-compatibility: -1 == no limit
       val limitString = params.getOrElse("limit", "-1")
       val limit = try {

@@ -6,6 +6,11 @@ import com.socrata.balboa.metrics.data.*;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.Map;
+import java.util.Set;
+
+import scala.collection.*;
+import scala.collection.Iterator;
 
 public class Checker
 {
@@ -75,7 +80,7 @@ public class Checker
             for (String filter : filters) {
                 iters.add(ds.entities(filter));
             }
-            entities = new CompoundIterator<>(iters);
+            entities = new CompoundIterator<>(JavaConversions.asScalaIterator(iters.iterator()));
         } else {
             entities = ds.entities();
         }

@@ -1,19 +1,17 @@
-package com.socrata.balboa.metrics.data;
+package com.socrata.balboa.metrics.data
 
-import com.socrata.balboa.metrics.Metrics;
-import com.socrata.balboa.metrics.Timeslice;
-import com.socrata.balboa.metrics.WatchDog;
+import java.io.IOException
+import java.util.Date
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.Iterator;
+import com.socrata.balboa.metrics.{Metrics, Timeslice}
+import com.socrata.balboa.metrics.WatchDog.WatchDogListener
 
-public interface DataStore extends WatchDog.WatchDogListener
-{
+trait DataStore extends WatchDogListener {
     /**
      * Throws an exception if it cannot perform a query to Cassandra
      */
-    void checkHealth() throws Exception;
+    @throws[Exception]
+    def checkHealth(): Unit
 
     /**
      * Retrieve an iterator that contains all the entity ids that the pattern
@@ -21,7 +19,8 @@ public interface DataStore extends WatchDog.WatchDogListener
      * terribly slow and possibly dangerous.
      */
     // TODO: @Deprecated ?
-    Iterator<String> entities(String pattern) throws IOException;
+    @throws[IOException]
+    def entities(pattern: String): Iterator[String]
 
     /**
      * Retrieve an iterator that encompasses all entity ids for which there are
@@ -30,7 +29,8 @@ public interface DataStore extends WatchDog.WatchDogListener
      * what you're doing.
      */
     // TODO: @Deprecated ?
-    Iterator<String> entities() throws IOException;
+    @throws[IOException]
+    def entities(): Iterator[String]
 
     /**
      * Return a list of metrics for a period of timeslices over an arbitrary
@@ -39,7 +39,8 @@ public interface DataStore extends WatchDog.WatchDogListener
      * e.g. Give me all of the metrics for some entity broken down by hours in
      * the range 2010-01-01 -> 2010-01-31.
      */
-    Iterator<Timeslice> slices(String entityId, Period period, Date start, Date end) throws IOException;
+    @throws[IOException]
+    def slices(entityId: String, period: Period, start: Date, end: Date): Iterator[Timeslice]
 
     /**
      * Given a date and given a summary range period, create the appropriate range
@@ -53,7 +54,8 @@ public interface DataStore extends WatchDog.WatchDogListener
      *
      * @see DateRange
      */
-    Iterator<Metrics> find(String entityId, Period period, Date date) throws IOException;
+    @throws[IOException]
+    def find(entityId: String, period: Period, date: Date): Iterator[Metrics]
 
     /**
      * Find all the summaries of a particular tier between start and end, ordered
@@ -61,7 +63,8 @@ public interface DataStore extends WatchDog.WatchDogListener
      * arbitrary range and should only be used when you need to query a specific
      * tier for some reason.
      */
-    Iterator<Metrics> find(String entityId, Period period, Date start, Date end) throws IOException;
+    @throws[IOException]
+    def find(entityId: String, period: Period, start: Date, end: Date): Iterator[Metrics]
 
     /**
      * Find the total summaries between two particular dates, ordered by date.
@@ -70,11 +73,13 @@ public interface DataStore extends WatchDog.WatchDogListener
      *
      * @see com.socrata.balboa.metrics.data.Period
      */
-    Iterator<Metrics> find(String entityId, Date start, Date end) throws IOException;
+    @throws[IOException]
+    def find(entityId: String, start: Date, end: Date): Iterator[Metrics]
 
     /**
      * Save a set of metrics. The datastore is responsible for making sure the
      * persist applies correctly to all supported tiers.
      */
-    void persist(String entityId, long timestamp, Metrics metrics) throws IOException;
+    @throws[IOException]
+    def persist(entityId: String, timestamp: Long, metrics: Metrics): Unit
 }

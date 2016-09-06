@@ -27,18 +27,18 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
    * Retrieve an iterator that contains all the entity ids that the pattern
    * string matches. Do not use this outside the admin tool.
    */
-  def entities(pattern: String): ju.Iterator[String] = {
+  def entities(pattern: String): Iterator[String] = {
     // Yes. This does what you think it does. Admin should only use this. It's nasty stuff.
     // It iterates through all entity ids in both the aggregate and absolute column families
     // of the leastGranular tier, returning them only if they match the filter and have not
     // been seen before (HashSet ent).
     val ent = collection.mutable.HashSet[String]()
     val period = Period.leastGranular(supportedPeriods)
-    RecordType.values().iterator.flatMap(
+    RecordType.values().flatMap(
       queryImpl.getAllEntityIds(_,period)
           .filter(_.contains(pattern))
           .filter(x => !ent.contains(x) && ent.add(x))
-    ).asJava
+    ).iterator
   }
 
   /**
@@ -47,7 +47,7 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
    * very expensive and you probably don't want to use it unless you know
    * what you're doing.
    */
-  def entities: ju.Iterator[String] = {
+  def entities: Iterator[String] = {
     entities("")
   }
 
@@ -76,14 +76,14 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
    * will be fixed to the bounds of the requested period and the metrics within
    * each supported bin will be aggregated to the requested bin.
    */
-  def slices(entityId: String, period:Period, start: ju.Date, end: ju.Date): ju.Iterator[Timeslice] = {
+  def slices(entityId: String, period:Period, start: ju.Date, end: ju.Date): Iterator[Timeslice] = {
     val requestPeriod = getValidGranularity(period)
     val dates = new DateRange(start, end).toDates(requestPeriod)
     val timeSlice = CassandraUtil.sliceIterator(queryImpl, entityId, requestPeriod, dates.asScala.toList)
     if (requestPeriod != period) {
-      CassandraUtil.rollupSliceIterator(period, timeSlice).asJava
+      CassandraUtil.rollupSliceIterator(period, timeSlice)
     } else {
-      timeSlice.asJava
+      timeSlice
     }
   }
 
@@ -106,7 +106,7 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
    *
    * @see DateRange
    */
-  def find(entityId: String, period:Period, date: ju.Date): ju.Iterator[Metrics] = {
+  def find(entityId: String, period:Period, date: ju.Date): Iterator[Metrics] = {
     val requestPeriod = getValidGranularity(period)
     val range = DateRange.create(period, date)
     find(entityId, requestPeriod, range.start, range.end)
@@ -120,9 +120,9 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
    *
    * If the period is not supported an exception will be thrown.
    */
-  def find(entityId: String, period:Period, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = {
+  def find(entityId: String, period:Period, start: ju.Date, end: ju.Date): Iterator[Metrics] = {
     val query = new DateRange(start, end).toDates(period).asScala.map(date => (date, period))
-    CassandraUtil.metricsIterator(queryImpl, entityId, query).asJava
+    CassandraUtil.metricsIterator(queryImpl, entityId, query)
   }
 
   /**
@@ -132,7 +132,7 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
    *
    * @see com.socrata.balboa.metrics.data.Period
    */
-  def find(entityId: String, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] = {
+  def find(entityId: String, start: ju.Date, end: ju.Date): Iterator[Metrics] = {
     val range:DateRange = new DateRange(start, end)
     val optimalSlices = new QueryOptimizer(supportedPeriods).optimalSlices(range.start, range.end).asScala
     val query = {
@@ -144,7 +144,7 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
     }.sorted
 
     // create the query set from the optimal slice
-    CassandraUtil.metricsIterator(queryImpl, entityId, query).asJava
+    CassandraUtil.metricsIterator(queryImpl, entityId, query)
   }
 
   /**

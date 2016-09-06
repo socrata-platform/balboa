@@ -1,9 +1,9 @@
 package com.socrata.balboa.metrics;
 
-import com.socrata.balboa.metrics.data.CompoundIterator;
-
 import java.io.IOException;
 import java.util.*;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A bag of metrics which can be merged through summation or
@@ -96,14 +96,11 @@ public class Metrics extends HashMap<String, Metric> {
         }
     }
 
-    @SafeVarargs
-    public static Metrics summarize(Iterator<Metrics>... everything) throws IOException {
+    public static Metrics summarize(scala.collection.Iterator<Metrics> metricsIterator) throws IOException {
         Metrics metrics = new Metrics();
 
-        Iterator<Metrics> iter = new CompoundIterator<>(everything);
-
-        while (iter.hasNext()) {
-            metrics.merge(iter.next());
+        while (metricsIterator.hasNext()) {
+            metrics.merge(metricsIterator.next());
         }
 
         return metrics;

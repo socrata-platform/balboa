@@ -27,7 +27,8 @@ object DefaultDataStoreFactory extends DataStoreFactory {
   def get: DataStore = defaultDataStore
 
   def get(conf: Config): DataStore = {
-    val datastore: String = conf.getString("balboa.datastore")
+    lazy val datastore: String = conf.getString("balboa.datastore")
+    lazy val bufferGranularity: Long = conf.getLong("buffer.granularity")
 
     datastore match {
       case "buffered-cassandra" =>
@@ -35,7 +36,7 @@ object DefaultDataStoreFactory extends DataStoreFactory {
           new BadIdeasDataStore(
             new CassandraDataStore(
               new CassandraQueryImpl(
-                CassandraUtil.initializeContext(conf)))))
+                CassandraUtil.initializeContext(conf)))), bufferGranularity = bufferGranularity)
       case "cassandra" =>
         new BadIdeasDataStore(
           new CassandraDataStore(

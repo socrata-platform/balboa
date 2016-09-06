@@ -12,6 +12,7 @@ object BalboaAdmin {
 
   def libraries(implicit scalaVersion: String) = Seq(
     junit,
-    opencsv
+    opencsv,
+    mockito_test
   )
 }

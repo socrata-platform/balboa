@@ -120,7 +120,7 @@ public class BalboaAdmin
             fsck.check(Arrays.asList(args).subList(1, args.length));
         } else if (command.equals("list")) {
             Lister lister = new Lister(dataStoreFactory);
-            lister.list(Arrays.asList(args).subList(1, args.length));
+            lister.listJava(Arrays.asList(args).subList(1, args.length).iterator());
         } else {
             System.err.println("Unknown command '" + command + "'.");
             usage();

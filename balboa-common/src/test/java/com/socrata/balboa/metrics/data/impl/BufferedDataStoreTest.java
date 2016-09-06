@@ -6,21 +6,24 @@ import com.socrata.balboa.metrics.Timeslice;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.data.Period;
 import org.junit.Test;
+import scala.collection.Iterable;
+import scala.collection.Iterator;
 
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
 public class BufferedDataStoreTest {
 
+    private static final long BUFFER_GRANULARITY = 10;
+
     // Yeah. I know mockito exists. It's just sometimes too
     // much trouble. Or maybe not.
     class MockDataStore implements DataStore {
-        Map<String, Metrics> metricMap = new HashMap<String, Metrics>();
+        Map<String, Metrics> metricMap = new HashMap<>();
 
         long persists = 0;
         public void persist(String entityId, long timestamp, Metrics metrics) throws IOException {
@@ -79,14 +82,14 @@ public class BufferedDataStoreTest {
     public void testHeartbeat() throws Exception {
         MockDataStore mockds = new MockDataStore();
         MockTimeService mockTime = new MockTimeService();
-        BufferedDataStore bds = new BufferedDataStore(mockds, mockTime);
+        BufferedDataStore bds = new BufferedDataStore(mockds, mockTime, BUFFER_GRANULARITY);
         mockTime.retVal = 1000;
         bds.heartbeat();
         bds.persist("one", 1000, getA());
         bds.persist("two", 1000, getA());
         bds.persist("two", 1000, getB());
         assertEquals(0, mockds.persists);
-        mockTime.retVal = 1000 + bds.AGGREGATE_GRANULARITY;
+        mockTime.retVal = 1000 + bds.bufferGranularity();
         bds.heartbeat();
         assertEquals(2, mockds.persists);
     }
@@ -95,14 +98,14 @@ public class BufferedDataStoreTest {
     public void testPersist() throws Exception {
         MockDataStore mockds = new MockDataStore();
         MockTimeService mockTime = new MockTimeService();
-        BufferedDataStore bds = new BufferedDataStore(mockds, mockTime);
+        BufferedDataStore bds = new BufferedDataStore(mockds, mockTime, BUFFER_GRANULARITY);
         long ts = 100;
 
         bds.persist("one", ts, getA());
         bds.persist("two", ts, getA());
         bds.persist("two", ts, getB());
         assertEquals(0, mockds.persists);
-        bds.persist("one", ts + bds.AGGREGATE_GRANULARITY, getB()); // should never be aggregated
+        bds.persist("one", ts + bds.bufferGranularity(), getB()); // should never be aggregated
         assertEquals(2, mockds.persists);
         assertEquals(getA().size(), mockds.metricMap.get("one").size());
         assertEquals(getA().get("fluffies"), mockds.metricMap.get("one").get("fluffies"));
@@ -124,23 +127,23 @@ public class BufferedDataStoreTest {
     public void testMetricsFromThePast() throws Exception {
         MockDataStore mockds = new MockDataStore();
         MockTimeService mockTime = new MockTimeService();
-        BufferedDataStore bds = new BufferedDataStore(mockds, mockTime);
-        bds.persist("one", bds.AGGREGATE_GRANULARITY * 2, getA());
-        bds.persist("one", bds.AGGREGATE_GRANULARITY * 2, getA()); // should be agg
+        BufferedDataStore bds = new BufferedDataStore(mockds, mockTime, BUFFER_GRANULARITY);
+        bds.persist("one", bds.bufferGranularity() * 2, getA());
+        bds.persist("one", bds.bufferGranularity() * 2, getA()); // should be agg
         assertEquals(0, mockds.persists);
 
         // From the past!
-        bds.persist("one", bds.AGGREGATE_GRANULARITY, getA()); // no agg
+        bds.persist("one", bds.bufferGranularity(), getA()); // no agg
         assertEquals(1, mockds.persists);
-        bds.persist("one", bds.AGGREGATE_GRANULARITY, getA()); // no agg
+        bds.persist("one", bds.bufferGranularity(), getA()); // no agg
         assertEquals(2, mockds.persists);
 
         // Current time
-        bds.persist("one", bds.AGGREGATE_GRANULARITY * 2, getA()); // should be agg
+        bds.persist("one", bds.bufferGranularity() * 2, getA()); // should be agg
         assertEquals(2, mockds.persists);
 
         // From the Future!
-        bds.persist("one", bds.AGGREGATE_GRANULARITY * 3, getA()); // should be agg
+        bds.persist("one", bds.bufferGranularity() * 3, getA()); // should be agg
         assertEquals(3, mockds.persists);
     }
 

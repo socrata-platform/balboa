@@ -19,26 +19,26 @@ class BadIdeasDataStore(child:DataStore) extends DataStoreImpl with StrictLoggin
     child.checkHealth()
   }
 
-  def entities(pattern: String): ju.Iterator[String] = {
+  def entities(pattern: String): Iterator[String] = {
     logger error "Getting all the entities from balboa is a slow, dangerous thing. Please do not do this regularly."
     child.entities(pattern)
   }
 
-  def entities(): ju.Iterator[String] = {
+  def entities(): Iterator[String] = {
     logger error "Getting all the entities from balboa is a slow, dangerous thing. Please do not do this regularly."
     child.entities()
   }
 
-  def slices(entityId: String, period: Period, start: ju.Date, end: ju.Date): ju.Iterator[Timeslice] =
+  def slices(entityId: String, period: Period, start: ju.Date, end: ju.Date): Iterator[Timeslice] =
     child.slices(entityId, period, start, end)
 
-  def find(entityId: String, period: Period, date: ju.Date): ju.Iterator[Metrics] =
+  def find(entityId: String, period: Period, date: ju.Date): Iterator[Metrics] =
     child.find(entityId, period, date)
 
-  def find(entityId: String, period: Period, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] =
+  def find(entityId: String, period: Period, start: ju.Date, end: ju.Date): Iterator[Metrics] =
     child.find(entityId, period, start, end)
 
-  def find(entityId: String, start: ju.Date, end: ju.Date): ju.Iterator[Metrics] =
+  def find(entityId: String, start: ju.Date, end: ju.Date): Iterator[Metrics] =
     child.find(entityId, start, end)
 
   def persist(entityId: String, timestamp: Long, metrics: Metrics): Unit = {
