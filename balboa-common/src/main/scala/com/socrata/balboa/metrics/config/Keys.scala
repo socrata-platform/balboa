@@ -12,7 +12,7 @@ object Keys {
   val RootDispatcherNamespace = join(RootNamespace("dispatcher")) _
   val RootJMSNamespace = join(RootNamespace("jms")) _
   val RootAgentNamespace = join(RootNamespace("agent")) _
-  val RootJMSActiveMQNamespace = join(RootNamespace("activemq")) _
+  val RootJMSActiveMQNamespace = join(RootJMSNamespace("activemq")) _
   val RootEmergencyDirNamespace = join(RootNamespace("emergency")) _
 
   val JMSActiveMQServer = RootJMSActiveMQNamespace("server")
