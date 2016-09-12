@@ -25,10 +25,6 @@ Roughly speaking, the metrics serving pipeline is:
      |
     Cassandra
 
-### Core
-
-TODO: Complete README refactor
-
 ### Common
 
 Shared libraries, like configuration and message format data structures.
@@ -40,18 +36,14 @@ values. It is the read portion of the balboa metrics system.
 
 ### Clients
 
-Client libraries provide a mechanism to publish metrics to an existing
+Balboa JMS Client provides a mechanism to publish metrics to an existing
 messaging bus.
-
-* [Balboa JMS Client] TODO: Complete README refactor
 
 ### Services
 
-These services are part of the metrics intake system. balboa-service-jms
+Balboa JMS Service is part of the metrics intake system. balboa-service-jms
 listens on a JMS queue for metrics written by balboa-agent and saves those
 metrics to the database.
-
-* [Balboa JMS Service] TODO: Complete README refactor
 
 ## Usage
 
