@@ -8,7 +8,6 @@ EXPOSE $BALBOA_PORT
 ENV APP balboa-http
 ENV SERVICE_DIR /etc/service/${APP}
 ENV BALBOA_ARTIFACT ${APP}-assembly.jar
-ENV BALBOA_CONFIG balboa.properties
 ENV BALBOA_LOG4J log4j.properties
 
 # Default Values

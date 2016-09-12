@@ -7,7 +7,6 @@ EXPOSE $BALBOA_PORT
 ### Environment Variables
 ENV BALBOA_ROOT /srv/balboa-service-jms
 ENV BALBOA_ARTIFACT balboa-service-jms-assembly.jar
-ENV BALBOA_CONFIG balboa.properties
 ENV BALBOA_LOG4J log4j.properties
 
 # Default Values

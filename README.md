@@ -13,9 +13,9 @@ Roughly speaking the metrics intake pipeline is:
      |
     balboa-agent (one per service host)
      |
-    JMS/Kafka
+    JMS
      |
-    balboa-service-(jms/kafka)
+    balboa-service-jms
      |
     Cassandra
 
@@ -24,10 +24,6 @@ Roughly speaking, the metrics serving pipeline is:
     balboa-http
      |
     Cassandra
-
-### Core
-
-TODO: Complete README refactor
 
 ### Common
 
@@ -40,21 +36,14 @@ values. It is the read portion of the balboa metrics system.
 
 ### Clients
 
-Client libraries provide a mechanism to publish metrics to an existing
+Balboa JMS Client provides a mechanism to publish metrics to an existing
 messaging bus.
-
-* [Balboa JMS Client] TODO: Complete README refactor
-* [Balboa Kafka Client](balboa/balboa-client-kafka/README.md)
 
 ### Services
 
-These services are part of the metrics intake system. balboa-service-jms
+Balboa JMS Service is part of the metrics intake system. balboa-service-jms
 listens on a JMS queue for metrics written by balboa-agent and saves those
-metrics to the database. balboa-service-kafka does something analogous on the
-Kafka message bus.
-
-* [Balboa JMS Service] TODO: Complete README refactor
-* [Balboa Kafka Service](balboa/balboa-service-kafka/README.md)
+metrics to the database.
 
 ## Usage
 
@@ -66,7 +55,7 @@ GET /metrics/{entity}/range?
    end={YYYY-MM-DD HH:MM:SS:mmmm}
 ```
 
-200: Returns a JSON in the form of:
+200: Returns JSON of the form:
 
 ```
 {
@@ -80,10 +69,34 @@ GET /metrics/{entity}/range?
 }
 ```
 
-Where metric name is a particular, tracked metric within an entity. Metrics can
+A metric name is a particular, tracked metric within an entity. Metrics can
 be either aggregate metrics (accumulated within a period) or absolute (replaced
 within a period).
 
+You can also query for multiple entities at the same time.
+
+```
+GET /metrics/range?entityId={entity1}&entityId={entity2}&
+   start={YYYY-MM-DD HH:MM:SS:mmmm}&
+   end={YYYY-MM-DD HH:MM:SS:mmmm}
+```
+
+200: Returns JSON of the form:
+
+```
+{
+  {entity1}: {
+    {metric name 1}: {
+      value: {aggregate value for range},
+      type: "{aggregate|absolute}"
+    },
+    {metric name 2} {... }
+    ...
+    {metric name n} {... }
+  },
+  {entity2}: { ... }
+}
+```
 
 #### Series Queries
 ```
@@ -93,7 +106,7 @@ GET /metrics/{entity}/series?
    period={YEARLY|MONTHLY|DAILY|HOURLY|FIFTEEN_MINUTE}
 ```
 
-200: Returns JSON in the form of:
+200: Returns JSON of the form:
 
 ```
 [
@@ -107,13 +120,50 @@ GET /metrics/{entity}/series?
       end: {time2},
       metrics: { }
    },
-...
+   ...
    {
       start: {time n-1},
       end: {time n:end},
       metrics: { }
-   },
+   }
 ]
+```
+
+Again, it's possible to query for multiple entities at the same time.
+
+```
+GET /metrics/series?entityId={entity1}&entityId={entity2}&
+   start={YYYY-MM-DD HH:MM:SS:mmmm}&
+   end={YYYY-MM-DD HH:MM:SS:mmmm}&
+   period={YEARLY|MONTHLY|DAILY|HOURLY|FIFTEEN_MINUTE}
+```
+
+200: Returns JSON of the form:
+
+```
+{
+  {entity1}: [
+    {
+      start: {time0:start},
+      end: {time1},
+      metrics: { }
+    },
+    {
+      start: {time1},
+      end: {time2},
+      metrics: { }
+    },
+    ...
+    {
+      start: {time n-1},
+      end: {time n:end},
+      metrics: { }
+    }
+  ],
+  {entity2}: [
+    ...
+  ]
+}
 ```
 
 ### Client
@@ -156,7 +206,10 @@ libraryDependencies ++= Seq(
 #### Setup (balboa-jms and balboa-http)
 
 ##### Configuration
-Balboa has default configuration files for each runnable project, under `[project]/src/main/resources`.  To override any of these settings, create the file `/etc/balboa.properties` and add overrides as needed.
+Balboa has default configuration files for each runnable project, under
+`[project]/src/main/resources/application.conf`.  To override any of
+these settings, set the corresponding environmental variable found in
+`[project]/src/main/resources/reference.conf`.
 
 ##### Building and Running
 
@@ -173,8 +226,6 @@ Balboa has default configuration files for each runnable project, under `[projec
 At this point, balboa-client should be capable of depositing metrics into
 balboa server, which can then be queried through the REST API provided by
 balboa-http.
-
-### Setup (balboa-kafka)
 
 ##### Admin Tool
 

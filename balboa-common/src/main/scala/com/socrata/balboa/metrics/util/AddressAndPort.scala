@@ -17,7 +17,7 @@ object AddressAndPort {
    * Parses a comma separated list of host:port,host:port,host:port combinations into an actual list of Address and
    * Port objects.
    *
-   * @param commaSeparatedList Comma separated list of (host:port) Kafka brokers
+   * @param commaSeparatedList Comma separated list of (host:port) addresses
    * @return Structured list of [[AddressAndPort]]
    */
   def parse(commaSeparatedList: String): List[AddressAndPort] = commaSeparatedList match {

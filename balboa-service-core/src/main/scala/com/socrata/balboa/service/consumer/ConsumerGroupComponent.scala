@@ -16,7 +16,7 @@ trait ConsumerGroupComponent[A] extends Callable[List[Future[Option[Exception]]]
   lazy val executor: ExecutorService = Executors.newFixedThreadPool(consumers.size)
 
   /**
-   * @return A list of Kafka Consumers that belong exclusively to this group.
+   * @return A list of Consumers that belong exclusively to this group.
    */
   def consumers: List[ConsumerLike]
 

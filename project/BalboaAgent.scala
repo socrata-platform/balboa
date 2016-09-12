@@ -18,7 +18,6 @@ object BalboaAgent extends DockerKeys with LinuxKeys {
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 61,
     ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages := "<empty>;.*\\.balboa\\.agent\\.BalboaAgent",
     com.socrata.sbtplugins.StylePlugin.StyleKeys.styleFailOnError in Compile := true
-    // TODO Update Ship.d configuration to use a run script.
   )
 
   def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
