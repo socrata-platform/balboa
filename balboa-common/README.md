@@ -9,11 +9,11 @@ Common components between all balboa projects.
 
 ### Protobuf
 
-TODO - Current used but being deprecated
+TODO - Currently used but being deprecated
 
 ### Json Message Format
 
-For convenience and testing purposes plain ol JSON is flowing through Kafka.  Here is the current format
+For convenience and testing purposes plain ol JSON is flowing through the message broker.
 
 #### Version
 

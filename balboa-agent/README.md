@@ -92,18 +92,9 @@ sbt balboa-agent/docker:stage
 
 ### Configuration
 
-Configuration is done through properties files or via the
-command line. Command line arguments overwrite any found file based
-configuration properties.
-
-Properties files are taken from these places, in this order:
-
-1. Off the classpath `config/config.properties`. This is where the defaults
-   come from, and this file is built into the jar.
-2. JVM parameter, `-Dbalboa.config` if it is provided.
-3. `/etc/balboa.properties` if it exists.
-
-Example configuration can be found in `config/config.properties`.
+Configuration is done through environmental variables. The list of
+configurable variables can be found in each project's reference.conf
+file. Defaults can be found in the application.conf files.
 
 ### Running out of the box
 
@@ -122,7 +113,7 @@ sbt balboa-agent/test
 
 ### Integration Tests
 
-sbt balboa-agent/run "-Dbalboa.config=balboa-agent/src/main/resources/config/config.properties"
+sbt balboa-agent/run
 sbt balboa-agent/it:test
 
 * Now, the integration tests should be able to write to the file system and

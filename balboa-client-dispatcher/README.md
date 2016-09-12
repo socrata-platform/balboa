@@ -1,17 +1,19 @@
 # Balboa Dispatcher Client
 
-This project provides an extensible library for publishing metrics to multiple internal clients.
+This project provides an extensible library for publishing metrics to multiple
+internal clients.
 
 ## Motivation
 
-As infrastructure and systems evolve there is a need to be able to deprecate and replace old systems.  One of the key
- requirements is to be able to configure which system to use via configuration.  This project was built to facilitate
-  the smooth transition between different messaging buses.
+As infrastructure and systems evolve there is a need to be able to deprecate and
+replace old systems.  One of the key requirements is to be able to configure
+which system to use via configuration.  This project was built to facilitate the
+smooth transition between different messaging buses.
 
 ## Installation
 
-This project is published as a maven repository and can be utilized and referenced as such through socrata's public
- release library.
+This project is published as a maven repository and can be utilized and
+referenced as such through socrata's public release library.
 
 SBT:
 1. Add the Socrata release repository to the project's `build.sbt`:
@@ -32,38 +34,28 @@ SBT:
  )
 ```
 
-Others: TODO
-
 ## Usage and Code Example
 
 ### Using the existing Metrics Dispatcher
 
-The Metric Dispatcher is fully dependent on the runtime configuration file.  IE. balboa.properties.  The following is
- an example of required properties.  Notice balboa.dispatcher.types value is a comma separated list of 
+The Metric Dispatcher is fully dependent on the runtime configuration, which is
+wholly configurable through environmental variables. The following is an example
+of required properties. Notice balboa.dispatcher.types value is a comma-
+separated list 
  
 ```
- # Declare the desired client types you want to utilize in a comma separated list.
- balboa.dispatcher.types = "jms,kafka"
- # All failed client writes will fall into this directory.  IE. "path/to/directory/jms"
- balboa.emergency.backup.dir = "path/to/directory"
- 
- # Client Specific Configuration Details
- 
- # Client Type: JMS
- # Where is the activemq server.
- balboa.jms.activemq.server = "server:port"
- # Where is the activemq server.
- balboa.jms.activemq.queue = "queue"
+# All failed client writes will fall into this directory.  IE. "path/to/directory/jms"
+export BALBOA_EMERGENCY_BACKUP_DIR="path/to/directory"
 
- # Client Type: KAFKA
- # List of Kafka brokers for pulling down metadata
- balboa.kafka.brokers = "server1:port1,server2:port2,server3:port3"
- # Kafka Topic
- balboa.kafka.topic = "some_topic"
+# Provide the location of the ActiveMQ server:
+export BALBOA_JMS_AMQ_SERVER="server:port"
+
+# Provide the name of the ActiveMQ queue
+export BALBOA_JMS_AMQ_QUEUE="queue"
 ```
 
-Include the MetricLoggerToDispatcher trait in your class, object, or other trait.  Then call MetricLogger() to get a 
-reference to the MetricLogger.
+Include the MetricLoggerToDispatcher trait in your class, object, or other
+trait.  Then call MetricLogger() to get a reference to the MetricLogger.
   
 ```
 class MyContainingClass extends MetricLoggerToDispatcher {
@@ -85,7 +77,8 @@ sbt balboa-dispatcher-client/test
 
 ## Contributing
 
-Let people know how they can dive into the project, include important links to things like issue trackers, irc, twitter accounts if applicable.
+Let people know how they can dive into the project, include important links to
+things like issue trackers, irc, twitter accounts if applicable.
 
 1. Fork it!
 2. Create your feature branch: `git checkout -b my-new-feature`
@@ -93,15 +86,6 @@ Let people know how they can dive into the project, include important links to t
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request :D
 
-## History
-
-TODO: Write history
-
-## Credits
-
-TODO: Write credits
-
 ## License
 
-A short snippet describing the license (MIT, Apache, etc.)
-TODO: Write license
+Balboa is licensed under the [Apache 2.0](https://github.com/socrata/balboa/blob/master/LICENSE.md) license.

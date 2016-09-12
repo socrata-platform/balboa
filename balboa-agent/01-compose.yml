@@ -2,7 +2,6 @@
 # Currently, Balboa agents only dependency is Activemq
 #
 # TODO:
-# * Include Kafka
 # * Include Datastore
 #
 
