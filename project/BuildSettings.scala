@@ -37,7 +37,11 @@ object BuildSettings {
     assemblyMergeStrategy in assembly := {
       case "META-INF/io.netty.versions.properties" => MergeStrategy.last
       case x => (assemblyMergeStrategy in assembly).value(x)
-    }
+    },
+    resolvers ++= Seq(
+      "socrata maven" at "https://repo.socrata.com/artifactory/libs-release/",
+      Resolver.url("socrata ivy", new URL("https://repo.socrata.com/artifactory/ivy-libs-release"))(Resolver.ivyStylePatterns)
+    )
   )
   val projectSettings: Seq[Setting[_]] = buildSettings
 }

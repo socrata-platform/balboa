@@ -1,5 +1,4 @@
 resolvers := Seq(
-  "sonatype-snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
   "socrata maven" at "https://repo.socrata.com/artifactory/libs-release/",
   Resolver.sonatypeRepo("releases"),
   Resolver.sonatypeRepo("snapshots"),
