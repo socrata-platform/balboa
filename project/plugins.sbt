@@ -3,8 +3,7 @@ resolvers := Seq(
   "socrata maven" at "https://repo.socrata.com/artifactory/libs-release/",
   Resolver.sonatypeRepo("releases"),
   Resolver.sonatypeRepo("snapshots"),
-  Resolver.bintrayRepo("scalaz", "releases"),
-  Resolver.bintrayRepo("megamsys", "scala")
+  Resolver.bintrayRepo("scalaz", "releases")
 )
 
 addSbtPlugin("com.socrata" % "socrata-sbt-plugins" % "1.6.1")
