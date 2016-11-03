@@ -10,6 +10,7 @@ import org.apache.activemq.ActiveMQSession;
 import org.apache.activemq.transport.TransportListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.util.resources.cldr.so.CalendarData_so_ET;
 
 import javax.jms.*;
 import javax.naming.NamingException;
@@ -89,11 +90,11 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
         private Queue queue;
         private ActiveMQMessageConsumer consumer;
         private ActiveMQConnection connection;
-        private DataStore ds;
+        private List<DataStore> datastores;
 
-        public Listener(ActiveMQConnectionFactory connFactory, String queueName, DataStore ds) throws NamingException, JMSException
+        public Listener(ActiveMQConnectionFactory connFactory, String queueName, List<DataStore> datastores) throws NamingException, JMSException
         {
-            this.ds = ds;
+            this.datastores = datastores;
             connection = (ActiveMQConnection) connFactory.createConnection();
             session = (ActiveMQSession) connection.createSession(true, Session.SESSION_TRANSACTED);
             queue = session.createQueue(queueName);
@@ -112,7 +113,9 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
 
                 JsonMessage message = new JsonMessage(messageText);
 
-                ds.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
+                for(DataStore ds: datastores){
+                    ds.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
+                }
 
                 session.commit();
                 log.info("Consumed message of size " + (messageText == null ? "null" : messageText.length())
@@ -160,7 +163,7 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
 
     volatile boolean stopped = false;
 
-    public ActiveMQReceiver(List<String> servers, String channel, int threads, DataStore ds) throws NamingException, JMSException
+    public ActiveMQReceiver(List<String> servers, String channel, int threads, List<DataStore> ds) throws NamingException, JMSException
     {
         listeners = new ArrayList<>(servers.size());
         for (String server : servers) {

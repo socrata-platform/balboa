@@ -40,7 +40,8 @@ object BuildSettings {
     },
     resolvers ++= Seq(
       "socrata maven" at "https://repo.socrata.com/artifactory/libs-release/",
-      Resolver.url("socrata ivy", new URL("https://repo.socrata.com/artifactory/ivy-libs-release"))(Resolver.ivyStylePatterns)
+      Resolver.url("socrata ivy", new URL("https://repo.socrata.com/artifactory/ivy-libs-release"))(Resolver.ivyStylePatterns),
+      "Local Maven Repository" at "file://"+Path.userHome.absolutePath+"/.m2/repository"
     )
   )
   val projectSettings: Seq[Setting[_]] = buildSettings

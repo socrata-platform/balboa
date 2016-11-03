@@ -15,6 +15,7 @@ object Dependencies {
     val datastax = "3.0.0"
     val dropwizard = "3.1.2"
     val gatling = "2.2.2"
+    val hawkular_client = "1.0.0.Alpha7"
     val jackson = "1.9.12"
     val jetty_webapp = "9.2.14.v20151106"
     val junit = "4.5"
@@ -62,6 +63,7 @@ object Dependencies {
   val dropwizard_servlets = "io.dropwizard.metrics" % "metrics-servlets" % versions.dropwizard
   val gatling = "io.gatling" % "gatling-test-framework" % versions.gatling % "it" excludeAll ExclusionRule(organization = "ch.qos.logback")
   val gatling_highcharts = "io.gatling.highcharts" % "gatling-charts-highcharts" % versions.gatling % "it"
+  val hawkular_client = "org.hawkular.client" % "hawkular-java-client" % versions.hawkular_client
   val jackson_core_asl = "org.codehaus.jackson" % "jackson-core-asl" % versions.jackson
   val jackson_mapper_asl = "org.codehaus.jackson" % "jackson-mapper-asl" % versions.jackson
   val jetty_webapp = "org.eclipse.jetty" % "jetty-webapp" % versions.jetty_webapp % "compile;container"
@@ -80,9 +82,11 @@ object Dependencies {
   val simple_arm = "com.rojoma" %% "simple-arm" % versions.simple_arm
   val socrata_utils = "com.socrata" %% "socrata-utils" % versions.socrata_utils
   val socrata_thirdparty_utils = "com.socrata" %% "socrata-thirdparty-utils" % versions.socrata_thirdparty_utils
+  val soda_java = "com.socrata" % "soda-api-java" % "0.9.12"
   val scalatest = "org.scalatest" %% "scalatest" % "2.2.4" % "it;test"
   val scalatra = "org.scalatra" %% "scalatra" % versions.scalatra
   val scalatra_json = "org.scalatra" %% "scalatra-json" % versions.scalatra
   val scalatra_metrics = "org.scalatra" %% "scalatra-metrics" % versions.scalatra
+  val swagger = "io.swagger" % "swagger-annotations" % "1.5.10"
   val typesafe_config = "com.typesafe" % "config" % "1.2.1"
 }
