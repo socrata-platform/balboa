@@ -24,7 +24,7 @@ class HawkularMetricStore(hawkularServerAddress: URI, username: String, password
     hawkularServerAddress,
     Optional.of(username),
     Optional.of(password),
-    Map[String,Object]("Hawkular-Admin-Token" -> token).asJava)
+    Map[String,Object]("Hawkular-Admin-Token" -> token,"Hawkular-Tenant" -> "1").asJava)
   val client = new HawkularClient(clientInfo)
   val metricClient = client.metrics()
 

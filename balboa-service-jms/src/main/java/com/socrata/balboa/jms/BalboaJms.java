@@ -62,7 +62,7 @@ public class BalboaJms {
         DataStore ds = DefaultDataStoreFactory.get();
 
         DataStore hawkular = new HawkularMetricStore(
-                new URI("http://10.110.35.139:14996/"),
+                new URI("http://10.110.39.1:31201/"),
                 "jdoe",
                 "password",
                 "secret-admin-token");
