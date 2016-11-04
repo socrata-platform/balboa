@@ -63,7 +63,7 @@ object Dependencies {
   val dropwizard_servlets = "io.dropwizard.metrics" % "metrics-servlets" % versions.dropwizard
   val gatling = "io.gatling" % "gatling-test-framework" % versions.gatling % "it" excludeAll ExclusionRule(organization = "ch.qos.logback")
   val gatling_highcharts = "io.gatling.highcharts" % "gatling-charts-highcharts" % versions.gatling % "it"
-  val hawkular_client = "org.hawkular.client" % "hawkular-java-client" % versions.hawkular_client
+  val hawkular_client = "org.hawkular.client" % "hawkular-java-client" % versions.hawkular_client excludeAll(ExclusionRule(organization = "org.slf4j"), ExclusionRule(organization = "org.jboss.resteasy"))
   val jackson_core_asl = "org.codehaus.jackson" % "jackson-core-asl" % versions.jackson
   val jackson_mapper_asl = "org.codehaus.jackson" % "jackson-mapper-asl" % versions.jackson
   val jetty_webapp = "org.eclipse.jetty" % "jetty-webapp" % versions.jetty_webapp % "compile;container"
