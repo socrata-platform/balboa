@@ -8,6 +8,7 @@ EXPOSE $BALBOA_PORT
 ENV BALBOA_ROOT /srv/balboa-service-jms
 ENV BALBOA_ARTIFACT balboa-service-jms-assembly.jar
 ENV BALBOA_LOG4J log4j.properties
+ENV BALBOA_CONFIG balboa.properties
 
 # Default Values
 ENV JAVA_XMX 1024m
