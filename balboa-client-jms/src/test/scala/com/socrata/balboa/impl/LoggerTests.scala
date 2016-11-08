@@ -38,7 +38,7 @@ class MetricLoggerSpec extends WordSpec with Matchers with MetricLoggerToQueue {
 
   "After the flush interval has passed, the MetricLogger" should {
     "have an empty buffer" in new LoggerSetup {
-      Thread.sleep(1500)
+      Thread.sleep(5000)
       testLogger.metricDequeuer.actualBuffer.bufferMap.isEmpty should be (true)
     }
     "have pushed the buffer contents into the message queue" in new LoggerSetup {
