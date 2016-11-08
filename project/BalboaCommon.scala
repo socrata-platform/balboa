@@ -23,6 +23,7 @@ object BalboaCommon {
     jopt_simple,
     json4s,
     socrata_thirdparty_utils,
-    typesafe_config
+    typesafe_config,
+    hawkular_client
   )
 }

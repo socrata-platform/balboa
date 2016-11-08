@@ -9,6 +9,7 @@ import com.typesafe.config.ConfigFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,7 +60,17 @@ public class BalboaJms {
 
         log.info("Receivers starting, awaiting messages.");
         DataStore ds = DefaultDataStoreFactory.get();
-        ActiveMQReceiver receiver = new ActiveMQReceiver(servers, channel, threads, ds);
+
+        DataStore hawkular = new HawkularMetricStore(
+                new URI("http://10.110.39.1:31201/"),
+                "jdoe",
+                "password",
+                "secret-admin-token");
+
+        List<DataStore> datastores = new ArrayList<DataStore>();
+        datastores.add(ds);
+        datastores.add(hawkular);
+        ActiveMQReceiver receiver = new ActiveMQReceiver(servers, channel, threads, datastores);
         new WatchDog().watchAndWait(receiver, ds);
     }
 }
