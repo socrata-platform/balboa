@@ -16,19 +16,17 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BalboaJms {
-
-    private static final Logger log = LoggerFactory.getLogger(BalboaJms.class);
-
     public static void main(String[] args) throws Exception {
         Config config = ConfigFactory.load();
+        LoggingConfigurator.configureLogging(config);
+
+        Logger log = LoggerFactory.getLogger(BalboaJms.class);
 
         log.info("Loading with config: " + config.root().render(ConfigRenderOptions.concise()));
 
         Integer threads = config.getInt(Keys.JMSActiveMQThreadsPerServer());
         String[] servers = config.getString(Keys.JMSActiveMQServer()).split(",");
         String channel = config.getString(Keys.JMSActiveMQQueue());
-
-        LoggingConfigurator.configureLogging(config);
 
         log.info("Receivers starting, awaiting messages.");
         DataStore ds = DefaultDataStoreFactory.get();

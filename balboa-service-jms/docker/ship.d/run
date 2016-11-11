@@ -3,7 +3,6 @@
 set -ev
 
 exec sudo -E -u socrata java \
-  -Dloglevel=${LOG_LEVEL} \
   -Xmx${JAVA_XMX} \
   -Xms${JAVA_XMX} \
   -jar "$JAR"
