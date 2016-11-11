@@ -20,6 +20,7 @@ object Keys {
   val JMSActiveMQUser = RootJMSActiveMQNamespace("user")
   val JMSActiveMQPassword = RootJMSActiveMQNamespace("password")
   val JMSActiveMQMaxBufferSize = RootJMSActiveMQNamespace("buffer.size")
+  val JMSActiveMQThreadsPerServer = RootJMSActiveMQNamespace("threads-per-server")
 
   val DataDirectory = RootAgentNamespace("data.dir")
   val SleepMs = RootAgentNamespace("sleeptime")
