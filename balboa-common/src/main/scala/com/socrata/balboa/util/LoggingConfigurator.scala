@@ -12,8 +12,6 @@ object LoggingConfigurator {
   def configureLogging(config: Config): Unit = {
     val logProperties = Propertizer.apply("", config)
 
-    System.out.println(logProperties.toString)
-
     val logLevel = System.getProperty("loglevel")
     if (null != logLevel && // scalastyle:ignore
         (logLevel.equals("DEBUG") ||
