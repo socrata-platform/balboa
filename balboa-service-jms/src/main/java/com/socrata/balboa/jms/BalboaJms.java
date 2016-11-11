@@ -7,6 +7,7 @@ import com.socrata.balboa.metrics.data.DefaultDataStoreFactory;
 import com.socrata.balboa.util.LoggingConfigurator;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigRenderOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +21,8 @@ public class BalboaJms {
 
     public static void main(String[] args) throws Exception {
         Config config = ConfigFactory.load();
+
+        log.info("Loading with config: " + config.root().render(ConfigRenderOptions.concise()));
 
         Integer threads = config.getInt(Keys.JMSActiveMQThreadsPerServer());
         String[] servers = config.getString(Keys.JMSActiveMQServer()).split(",");
