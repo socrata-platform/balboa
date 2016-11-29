@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import javax.jms.*;
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Map;
 
 
 /**
@@ -68,6 +69,10 @@ public class MetricJmsQueueNotSingleton extends AbstractJavaMetricQueue {
         try {
             log.debug("Sending metrics to queue for entity id: {} with associated time {} and metrics (Size: {}) {}",
                     entityId, new Timestamp(timestamp).toString(), metrics.size(), metrics);
+            for(Map.Entry<String,Metric> metric: metrics.entrySet()) {
+                log.debug("Sending metric to queue: {}/{} = {} with associated time {}", entityId,
+                        metric.getKey(), metric.getValue(), new Timestamp(timestamp).toString());
+            }
             JsonMessage msg = new JsonMessage();
             msg.setEntityId(entityId);
             msg.setMetrics(metrics);

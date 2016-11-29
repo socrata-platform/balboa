@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -146,7 +147,7 @@ public class MetricConsumer implements Runnable, AutoCloseable {
      */
     private List<MetricsRecord> processFile(File f) throws IOException {
         String filePath = f.getAbsolutePath();
-        log.info("Processing file {}", filePath);
+        log.info("Processing file {} of length {}", filePath, f.length());
         List<MetricsRecord> results = new ArrayList<>();
         InputStream stream = new BufferedInputStream(new FileInputStream(f));
         try {
@@ -168,6 +169,8 @@ public class MetricConsumer implements Runnable, AutoCloseable {
                     }
                 }
 
+                log.debug("Process metric {}/{} = {} (Date={},Type={})",record.get(ENTITY_ID),record.get(NAME),value,new Timestamp(Long.parseLong(record.get(TIMESTAMP))),record.get(RECORD_TYPE));
+
                 results.add(new MetricsRecord(record.get(ENTITY_ID), record.get(NAME),
                         value, Long.parseLong(record.get(TIMESTAMP)),
                         Metric.RecordType.valueOf(record.get(RECORD_TYPE).toUpperCase())));
@@ -177,6 +180,9 @@ public class MetricConsumer implements Runnable, AutoCloseable {
             // Perculate the exception up the call stack.... ugh.
             stream.close();
         }
+
+        log.debug("Returning metrics from file with an list of length {}", results.size());
+
         return results;
     }
 
