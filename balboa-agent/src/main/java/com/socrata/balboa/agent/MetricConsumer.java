@@ -106,11 +106,11 @@ public class MetricConsumer implements Runnable, AutoCloseable {
 
             for (MetricsRecord r : records) {
                 metricPublisher.create(
-                        new Fluff(r.getEntityId()),
-                        new Fluff(r.getName()),
-                        r.getValue().longValue(),
-                        r.getTimestamp(),
-                        r.getType()
+                        new Fluff(r.entityId()),
+                        new Fluff(r.name()),
+                        r.value().longValue(),
+                        r.timestamp(),
+                        r.metricType()
                 );
             }
 

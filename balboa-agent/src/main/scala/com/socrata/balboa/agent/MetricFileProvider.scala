@@ -43,7 +43,7 @@ trait DirectoryBasedMetricFileProvider extends MetricFileProvider {
 }
 
 /**
-  * Recursively finds, filters, and returns a set of files with a root directory based off of the alphabetic ordinality.
+  * Recursively finds, filters, and returns a set of files with a root directory based off of the alphabetic order.
   *
   * See [[AlphabeticMetricFileProvider.path]].
   *
@@ -61,7 +61,7 @@ case class AlphabeticMetricFileProvider(override val path: Path)
     *   * For each sorted list, it returns the last n-1 elements.
     *
     * <br>
-    * If the metric data file producer wrote data files in with any kind of alphabetic ordinality, this provider will
+    * If the metric data file producer wrote data files in with any kind of alphabetic order, this provider will
     * attempt to avoid the last file written.
     *
     * Reference [[MetricFileProvider.provide]]

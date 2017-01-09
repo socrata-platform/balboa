@@ -21,7 +21,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
 
   /**
     * The MetricFileQueue is designed to write to the same file given if subsequent writes occur at the same time.
-    * This makes testing indetermistic right at the same System.currentTime().
+    * This makes testing nondeterministic right at the same System.currentTime().
     */
   private val queueCreateMetricWaitTimeMS = 5
 
@@ -81,7 +81,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
     */
   private def writeToQueue(queue: MetricQueue, records: MetricsRecord*)() = {
     records.foreach(r => {
-      queue.create(Fluff(r.getEntityId), Fluff(r.getName), r.getValue.longValue(), r.getTimestamp, r.getType)
+      queue.create(Fluff(r.entityId), Fluff(r.name), r.value.longValue(), r.timestamp, r.metricType)
       Thread.sleep(queueCreateMetricWaitTimeMS)
     })
   }
@@ -125,11 +125,11 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
     // For every metric written to disk, all but the metrics in youngest file should be processed.
     metrics.foreach(m => {
       verify(mockQueue, times(numTimesMetricEmitted)).create(
-        Fluff(m.getEntityId),
-        Fluff(m.getName),
-        m.getValue.longValue(),
-        m.getTimestamp,
-        m.getType
+        Fluff(m.entityId),
+        Fluff(m.name),
+        m.value.longValue(),
+        m.timestamp,
+        m.metricType
       )
     })
   }
@@ -209,7 +209,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
           // We are creating a 5 queues for a given metric directory
           // 5 individual file queues correspond to 5 individual metric data files for any given metric directory.
           val numMetricFiles = 5
-          val newFileQueues: Map[Path, Seq[MetricFileQueue]] = fileQueues.map { case (path, fq) =>
+          val newFileQueues: Map[Path, Seq[MetricFileQueue]] = fileQueues.map { case (path, _) =>
               path -> createFileQueues(path, numMetricFiles)
             }
           testEmitsMetrics(
