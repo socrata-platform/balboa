@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 
 /**
  * The MetricConsumer consumes metrics from data files from within a specific directory.  Any metrics extracted will
- * pill be pushed to a specified {@link MetricQueue}.
+ * be pushed to a specified {@link MetricQueue}.
  *
  * <br>
  *
@@ -181,7 +181,7 @@ public class MetricConsumer implements Runnable, AutoCloseable {
     }
 
     /**
-     * Grovel accepts a stream of bytes and deserialize them into a single Metric.
+     * Accepts a stream of bytes and deserialize them into a single Metric.
      *
      * <b>
      *  This class works under the assumptions that bytes are serialized under the following format

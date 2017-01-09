@@ -10,6 +10,8 @@ import org.mockito.Matchers
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ShouldMatchers, WordSpec}
 
+import scala.collection.immutable.IndexedSeq
+
 /**
   * Unit Tests for [[MetricConsumer]]
   */
@@ -30,13 +32,13 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
 
   trait TestMetrics {
     private val time = System.currentTimeMillis()
-    val testMetrics = (1 to 10) map (i =>
+    val testMetrics: IndexedSeq[MetricsRecord] = (1 to 10) map (i =>
       new MetricsRecord(s"entity_id_$i", s"metric_$i", i, time + i, Metric.RecordType.AGGREGATE)
       )
   }
 
   trait MockQueue {
-    val mockQueue = mock[MetricQueue]
+    val mockQueue: MetricQueue = mock[MetricQueue]
   }
 
   /**
@@ -48,7 +50,8 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
 
     // a mapping of metrics directories and file queues that write to that directory.
     val numFileQueues = 5
-    val fileQueues: Map[Path, Seq[MetricFileQueue]] = Map(rootMetricsDir -> createFileQueues(rootMetricsDir, numFileQueues))
+    val fileQueues: Map[Path, Seq[MetricFileQueue]] =
+      Map(rootMetricsDir -> createFileQueues(rootMetricsDir, numFileQueues))
 
     /**
       * Creates `num` individual file queues for a single directory.
@@ -56,11 +59,12 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
       * @param num Number of queues to create
       * @return Sequence of MetricFileQueues
       */
-    def createFileQueues(dir: Path, num: Int): Seq[MetricFileQueue] = (1 to num) map (_ => new MetricFileQueue(dir.toFile))
+    def createFileQueues(dir: Path, num: Int): Seq[MetricFileQueue] =
+      (1 to num) map (_ => new MetricFileQueue(dir.toFile))
   }
 
   trait MultipleRootDirectories extends OneRootDirectory {
-    val metricDirs = (1 to numMultipleMetricsDir).map(i => {
+    val metricDirs: IndexedSeq[Path] = (1 to numMultipleMetricsDir).map(i => {
       val dir = rootMetricsDir.resolve(s"metrics-dir-$i")
       Files.createDirectory(dir)
       dir
@@ -148,8 +152,8 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
     "there is a single root directory" when {
       "there is no metrics data" should {
         "emit no metrics" in new OneRootDirectory {
-          verify(mockQueue, never()).create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](), Matchers.anyLong(),
-            Matchers.anyLong(), Matchers.any[Metric.RecordType]())
+          verify(mockQueue, never()).create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](),
+            Matchers.anyLong(), Matchers.anyLong(), Matchers.any[Metric.RecordType]())
         }
       }
       "there is 1 metrics data file" should {
@@ -184,12 +188,13 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
       }
       "there are multiple metrics data files in one directory" should {
         "process a single directory" in new MultipleRootDirectories with TestMetrics {
-          val fullDirPath = fileQueues.head._1
+          val fullDirPath: Path = fileQueues.head._1
           // We are creating a 5 queues for a given metric directory
           // 5 individual file queues correspond to 5 individual metric data files for any given metric directory.
           val numMetricFiles = 5
-          val multipleQueues = fileQueues(fullDirPath) ++ createFileQueues(fullDirPath, numMetricFiles)
-          val newFileQueues = fileQueues + (fullDirPath -> multipleQueues)
+          val multipleQueues: Seq[MetricFileQueue] =
+            fileQueues(fullDirPath) ++ createFileQueues(fullDirPath, numMetricFiles)
+          val newFileQueues: Map[Path, Seq[MetricFileQueue]] = fileQueues + (fullDirPath -> multipleQueues)
           testEmitsMetrics(
             metricConsumer,
             mockQueue,
@@ -204,7 +209,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
           // We are creating a 5 queues for a given metric directory
           // 5 individual file queues correspond to 5 individual metric data files for any given metric directory.
           val numMetricFiles = 5
-          val newFileQueues = fileQueues.map { case (path, fq) =>
+          val newFileQueues: Map[Path, Seq[MetricFileQueue]] = fileQueues.map { case (path, fq) =>
               path -> createFileQueues(path, numMetricFiles)
             }
           testEmitsMetrics(

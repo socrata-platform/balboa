@@ -56,12 +56,11 @@ public class MetricsRecord {
 
         MetricsRecord that = (MetricsRecord) o;
 
-        if (timestamp != that.timestamp) return false;
-        if (entityId != null ? !entityId.equals(that.entityId) : that.entityId != null) return false;
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
-        return type == that.type;
-
+        return timestampsEqual(that)
+                && entityIdsEqual(that)
+                && namesEqual(that)
+                && valuesEqual(that)
+                && type == that.type;
     }
 
     @Override
@@ -83,5 +82,33 @@ public class MetricsRecord {
                 ", type=" + type +
                 ", timestamp=" + timestamp +
                 '}';
+    }
+
+    private boolean timestampsEqual(MetricsRecord other) {
+        return (timestamp == other.timestamp);
+    }
+
+    private boolean entityIdsEqual(MetricsRecord other) {
+        if (entityId == null) {
+            return other.entityId == null;
+        } else {
+            return entityId.equals(other.entityId);
+        }
+    }
+
+    private boolean namesEqual(MetricsRecord other) {
+        if (name == null) {
+            return other.name == null;
+        } else {
+            return name.equals(other.name);
+        }
+    }
+
+    private boolean valuesEqual(MetricsRecord other) {
+        if (value == null) {
+            return other.value == null;
+        } else {
+            return value.equals(other.value);
+        }
     }
 }
