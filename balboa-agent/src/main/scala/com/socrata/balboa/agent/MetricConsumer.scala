@@ -12,8 +12,8 @@ import com.socrata.balboa.util.FileUtils
 import com.socrata.metrics.{Fluff, MetricQueue}
 import com.typesafe.scalalogging.LazyLogging
 
-import scala.collection.JavaConverters._
 import scala.util.control.Breaks.{break, breakable}
+import scala.util.{Failure, Success, Try}
 
 /**
   * The MetricConsumer consumes metrics from data files from within a specific directory.  Any metrics extracted will
@@ -35,8 +35,8 @@ object MetricConsumer {
   val NAME: String = "name"
   val VALUE: String = "value"
   val RECORD_TYPE: String = "type"
-  val fields: util.List[String] = util.Arrays.asList(TIMESTAMP, ENTITY_ID, NAME, VALUE, RECORD_TYPE)
-  val integerPattern: Pattern = Pattern.compile("-?[0-9]+")
+  val fields: List[String] = List(TIMESTAMP, ENTITY_ID, NAME, VALUE, RECORD_TYPE)
+  val integerPattern: Pattern = "-?[0-9]+".r.pattern
 }
 
 /**
@@ -73,32 +73,29 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     // Treat each individual Metric data file as its own isolated run.
     // We are trying to prevent the failure to process one file from blocking or preventing the processing
     // of others.
-    fileProvider.provide.foreach { metricsEventLog =>
+    val files: Set[File] = fileProvider.provide
+    files.foreach { metricsEventLog: File =>
       logger.info(s"Processing '${metricsEventLog.getAbsolutePath}'.")
-      var records: util.List[MetricsRecord] = null
-      breakable {
-        try {
-          records = processFile(metricsEventLog)
-        }
-        catch {
-          case e: IOException =>
-            logger.error(s"Error reading records from $metricsEventLog", e)
-            BalboaAgentMetrics.metricsProcessingFailureCounter.inc()
-            val broken: File = new File(metricsEventLog.getAbsolutePath + FileUtils.BROKEN_FILE_EXTENSION)
-            if (!metricsEventLog.renameTo(broken)) {
-              logger.warn(s"Unable to rename broken file $metricsEventLog permissions issue?")
-              BalboaAgentMetrics.renameBrokenFileFailureCounter.inc()
-            }
-            break()
-        }
-        records.asScala.foreach { r =>
-          metricPublisher.create(Fluff(r.entityId), Fluff(r.name), r.value.longValue, r.timestamp, r.metricType)
-        }
-        recordsProcessed += records.size
-        if (!metricsEventLog.delete) {
-          logger.error(s"Unable to delete event log $metricsEventLog - file may be read twice, which is bad.")
-          BalboaAgentMetrics.deleteEventFailureCounter.inc()
-        }
+      val maybeRecords: Try[List[MetricsRecord]] = Try(processFile(metricsEventLog))
+      maybeRecords match {
+        case Failure(e: IOException) =>
+          logger.error(s"Error reading records from $metricsEventLog", e)
+          BalboaAgentMetrics.metricsProcessingFailureCounter.inc()
+          val broken: File = new File(metricsEventLog.getAbsolutePath + FileUtils.BROKEN_FILE_EXTENSION)
+          if (!metricsEventLog.renameTo(broken)) {
+            logger.warn(s"Unable to rename broken file $metricsEventLog permissions issue?")
+            BalboaAgentMetrics.renameBrokenFileFailureCounter.inc()
+          }
+        case Success(records) =>
+          records.foreach { r =>
+            metricPublisher.create(Fluff(r.entityId), Fluff(r.name), r.value.longValue, r.timestamp, r.metricType)
+          }
+          recordsProcessed += records.size
+          if (!metricsEventLog.delete) {
+            logger.error(s"Unable to delete event log $metricsEventLog - file may be read twice, which is bad.")
+            BalboaAgentMetrics.deleteEventFailureCounter.inc()
+          }
+        case _ =>
       }
     }
     val processingTime: Long = System.currentTimeMillis - start
@@ -125,10 +122,10 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     * @throws IOException When there is a problem processing the file.
     */
   @throws[IOException]
-  private def processFile(f: File): util.List[MetricsRecord] = {
+  private def processFile(f: File): List[MetricsRecord] = {
     val filePath: String = f.getAbsolutePath
     logger.info("Processing file {}", filePath)
-    val results: util.List[MetricsRecord] = new util.ArrayList[MetricsRecord]
+    var results: Vector[MetricsRecord] = Vector.empty
     val stream: InputStream = new BufferedInputStream(new FileInputStream(f))
     try {
       var record: util.Map[String, String] = readRecord(stream)
@@ -155,7 +152,7 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
           val name = record.get(MetricConsumer.NAME)
           val timestamp = JavaLong.parseLong(record.get(MetricConsumer.TIMESTAMP))
           val metricType = Metric.RecordType.valueOf(record.get(MetricConsumer.RECORD_TYPE).toUpperCase)
-          results.add(new MetricsRecord(entityId, name, value, timestamp, metricType))
+          results = results :+ new MetricsRecord(entityId, name, value, timestamp, metricType)
         }
         record = readRecord(stream)
       }
@@ -164,7 +161,7 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
       // Percolate the exception up the call stack.... ugh.
       stream.close()
     }
-    results
+    results.toList
   }
 
   /**
@@ -197,7 +194,6 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     // It *should* be the very first byte we're looking at.
     if (!seekToHeadOfMetrics(stream)) return null
     val record: util.Map[String, String] = new util.HashMap[String, String]
-    import scala.collection.JavaConversions._
     for (field <- MetricConsumer.fields) {
       val fieldValue: String = readField(stream)
       if (fieldValue == null) {
