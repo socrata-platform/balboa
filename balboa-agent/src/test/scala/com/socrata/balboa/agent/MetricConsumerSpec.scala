@@ -135,7 +135,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
   }
 
   "A Metric Consumer" when {
-    "the root directory does not exists" should {
+    "the root directory does not exist" should {
       "throw an IllegalArgumentException" in new MockQueue {
         intercept[IllegalArgumentException] {
           new MetricConsumer(Files.createTempDirectory("metrics").resolve("nonexistent_subdirectory").toFile, mockQueue)
