@@ -152,7 +152,7 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
           val name = record.get(MetricConsumer.NAME)
           val timestamp = JavaLong.parseLong(record.get(MetricConsumer.TIMESTAMP))
           val metricType = Metric.RecordType.valueOf(record.get(MetricConsumer.RECORD_TYPE).toUpperCase)
-          results = results :+ new MetricsRecord(entityId, name, value, timestamp, metricType)
+          results = results :+ MetricsRecord(entityId, name, value, timestamp, metricType)
         }
         record = readRecord(stream)
       }

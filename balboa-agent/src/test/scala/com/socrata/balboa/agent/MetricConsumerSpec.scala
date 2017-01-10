@@ -33,7 +33,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
   trait TestMetrics {
     private val time = System.currentTimeMillis()
     val testMetrics: IndexedSeq[MetricsRecord] = (1 to 10) map (i =>
-      new MetricsRecord(s"entity_id_$i", s"metric_$i", i, time + i, Metric.RecordType.AGGREGATE)
+      MetricsRecord(s"entity_id_$i", s"metric_$i", i, time + i, Metric.RecordType.AGGREGATE)
       )
   }
 
