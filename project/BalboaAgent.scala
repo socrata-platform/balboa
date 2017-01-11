@@ -28,6 +28,7 @@ object BalboaAgent extends DockerKeys with LinuxKeys {
     json4s,
     newman,
     scalatest,
-    json4s
+    json4s,
+    scodec_core
   ) ++ balboa_logging
 }

@@ -11,7 +11,10 @@ import com.socrata.balboa.metrics.Metric
 import com.socrata.balboa.util.FileUtils
 import com.socrata.metrics.{Fluff, MetricQueue}
 import com.typesafe.scalalogging.LazyLogging
+import scodec.Codec
+import scodec.bits.BitVector
 
+import scala.io.Source
 import scala.util.control.Breaks.{break, breakable}
 import scala.util.{Failure, Success, Try}
 
@@ -59,6 +62,10 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     */
   def this(directory: File, metricPublisher: MetricQueue) {
     this(directory, metricPublisher, AlphabeticMetricFileProvider(directory.toPath))
+  }
+
+  val defineCodec = {
+
   }
 
   /**
@@ -127,6 +134,13 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     logger.info("Processing file {}", filePath)
     var results: Vector[MetricsRecord] = Vector.empty
     val stream: InputStream = new BufferedInputStream(new FileInputStream(f))
+
+    val bitVector = BitVector.fromMmap(new FileInputStream(f).getChannel)
+    println(bitVector)
+    val (_, records) = Codec.decodeAll[MetricsRecord, Vector[MetricsRecord]](
+      bitVector)(Vector.empty, _ ++ _) { r => Vector(r) }
+    println(records)
+
     try {
       var record: util.Map[String, String] = readRecord(stream)
       while (record != null) {
@@ -152,7 +166,7 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
           val name = record.get(MetricConsumer.NAME)
           val timestamp = JavaLong.parseLong(record.get(MetricConsumer.TIMESTAMP))
           val metricType = Metric.RecordType.valueOf(record.get(MetricConsumer.RECORD_TYPE).toUpperCase)
-          results = results :+ MetricsRecord(entityId, name, value, timestamp, metricType)
+          results = results :+ MetricsRecord(timestamp, entityId, name, value, metricType)
         }
         record = readRecord(stream)
       }
