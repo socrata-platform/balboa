@@ -3,23 +3,17 @@ package com.socrata.balboa.agent
 import java.lang.{Double => JavaDouble, Long => JavaLong}
 import java.util.regex.Pattern
 
-import com.socrata.balboa.agent.metrics.BalboaAgentMetrics
 import com.socrata.balboa.metrics.Metric
 import com.socrata.balboa.metrics.Metric.RecordType
-import scodec.Codec
-import scodec._
+import scodec.{Codec, _}
 import scodec.bits.{BitVector, ByteVector}
-
-import scala.util.control.Breaks.break
-//import scodec.bits._
 import scodec.codecs._
-import scodec.codecs.implicits._
 /**
   * A Metrics Record is an immutable class that represents a metric
   * that occurred with a specific entity-id, name, value, type, and time.
   *
   * Created by michaelhotan on 2/2/16.
-  * Converted from Java to Scala on 1/9/2017
+  * Converted from Java to Scala using scodec for decoding on 1/9/2017
   */
 case class MetricsRecord(timestamp: Long, entityId: String, name: String, value: Number, metricType: RecordType)
 
@@ -85,6 +79,7 @@ object MetricsRecord {
 
   private val metricTypeCodec = metricFieldStringCodec
     .xmap[RecordType](s => Metric.RecordType.valueOf(s.toUpperCase), _.toString)
+
   implicit val codec: Codec[MetricsRecord] = {
     ("metric start indicator" | constant(0xff)) :~>:
       ("timestamp" | timestampCodec) ::
