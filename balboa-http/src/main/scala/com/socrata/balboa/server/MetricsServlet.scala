@@ -6,7 +6,7 @@ import java.util.Date
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.data.{DataStoreFactory, DateRange, DefaultDataStoreFactory, Period}
 import com.socrata.balboa.metrics.impl.ProtocolBuffersMetrics
-import com.socrata.balboa.metrics.{Metric, Metrics, Timeslice}
+import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.balboa.server.ResponseWithType._
 import com.socrata.balboa.server.ScalatraUtil.getAccepts
 import com.socrata.balboa.server.rest.Extractable

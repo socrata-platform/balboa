@@ -1,14 +1,13 @@
 package com.socrata.balboa.impl
 
 import com.socrata.balboa.impl.MetricLoggerToDispatcherSetup.FakeQueueComponents
-import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.config.Keys
 import com.socrata.metrics.collection.LinkedBlockingPreBufferQueue
 import com.socrata.metrics.components.{MessageQueueComponent, MetricEnqueuer}
 import com.typesafe.config.Config
-import org.scalatest.mock.MockitoSugar
-import org.scalatest.WordSpec
 import org.mockito.Mockito._
+import org.scalatest.WordSpec
+import org.scalatest.mock.MockitoSugar
 
 import scala.collection.JavaConverters._
 

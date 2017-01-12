@@ -5,16 +5,14 @@ package com.socrata.balboa.metrics.data.impl
 import java.net.InetSocketAddress
 import java.{util => ju}
 
+import com.datastax.driver.core._
 import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, LoggingRetryPolicy}
 import com.socrata.balboa.metrics.Metric.RecordType
-import com.socrata.balboa.metrics.{Metrics, Timeslice}
 import com.socrata.balboa.metrics.data.{DateRange, Period}
-import com.typesafe.scalalogging.StrictLogging
-import com.datastax.driver.core._
+import com.socrata.balboa.metrics.{Metrics, Timeslice}
 import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.scalalogging.StrictLogging
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
 import scala.{collection => sc}
 
 /**

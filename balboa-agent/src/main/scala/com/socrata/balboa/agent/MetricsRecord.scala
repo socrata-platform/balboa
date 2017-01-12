@@ -5,9 +5,9 @@ import java.util.regex.Pattern
 
 import com.socrata.balboa.metrics.Metric
 import com.socrata.balboa.metrics.Metric.RecordType
-import scodec.{Codec, _}
-import scodec.bits.{BitVector, ByteVector}
+import scodec.bits.BitVector
 import scodec.codecs._
+import scodec.{Codec, _}
 /**
   * A Metrics Record is an immutable class that represents a metric
   * that occurred with a specific entity-id, name, value, type, and time.
