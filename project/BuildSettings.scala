@@ -18,6 +18,7 @@ object BuildSettings {
     scalacOptions in (Compile, doc) ++= Seq( // Related Issue: http://scala-language.1934581.n4.nabble.com/Scaladoc-2-11-quot-throws-tag-quot-cannot-find-any-member-to-link-td4641850.html
       "-no-link-warnings" // Suppresses problems with Scaladoc @throws links
     ),
+    scalacOptions ++= Seq("-unchecked", "-deprecation", "-language:implicitConversions", "-language:postfixOps"),
     publishTo := {
       val nexus = "https://repo.socrata.com/artifactory/"
       if (isSnapshot.value)
