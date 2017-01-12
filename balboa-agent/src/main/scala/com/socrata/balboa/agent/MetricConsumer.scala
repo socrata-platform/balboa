@@ -28,6 +28,7 @@ import scala.util.{Failure, Success, Try}
   */
 //  TODO: Make this contract better (assuming last file off-limits is dumb)
 
+// scalastyle:off field.name
 object MetricConsumer {
   val TIMESTAMP: String = "timestamp"
   val ENTITY_ID: String = "entityId"
@@ -37,10 +38,12 @@ object MetricConsumer {
   val fields: List[String] = List(TIMESTAMP, ENTITY_ID, NAME, VALUE, RECORD_TYPE)
   val integerPattern: Pattern = "-?[0-9]+".r.pattern
 }
+// scalastyle:on field.name
 
 /**
-  * Creates a MetricConsumer that processes files from `directory` and emits them to `metricPublisher`.  The `fileProvider`
-  * is a control mechanism that allows clients to make determinations on which [[java.io.File]]s can be processed.
+  * Creates a MetricConsumer that processes files from `directory` and emits them to `metricPublisher`.  The
+  * `fileProvider` is a control mechanism that allows clients to make determinations on which [[java.io.File]]s can
+  * be processed.
   *
   * @param directory       Directory in which to process metrics.
   * @param metricPublisher Queue to emit metrics to.
@@ -48,15 +51,15 @@ object MetricConsumer {
   */
 class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val fileProvider: MetricFileProvider)
   extends Runnable with AutoCloseable with LazyLogging {
-
-  if (directory == null || !directory.isDirectory) throw new IllegalArgumentException("Illegal Data directory " + directory)
-  if (metricPublisher == null) throw new NullPointerException("Metric Queue cannot be null")
+  require(Option(directory).nonEmpty, "Directory cannot be null")
+  require(directory.isDirectory, s"$directory is not a directory")
+  require(Option(metricPublisher).nonEmpty, "Metric Queue cannot be null")
 
   /**
     * Creates Metric consumer that will attempt to find all the metric data within a directory
     * and push them to a metricPublisher. Does not take responsibility for closing the metricPublisher.
     */
-  def this(directory: File, metricPublisher: MetricQueue) {
+  def this(directory: File, metricPublisher: MetricQueue) { // scalastyle:ignore
     this(directory, metricPublisher, AlphabeticMetricFileProvider(directory.toPath))
   }
 
@@ -64,7 +67,7 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     * Attempts to process all the sub directories on the root directories for all possible
     * metrics.
     */
-  def run() {
+  def run(): Unit = {
     logger.info(s"Looking for metrics files recursively in '${this.directory.getAbsoluteFile}'")
     val runTimer: Timer.Context = BalboaAgentMetrics.totalRuntime.time
     val start: Long = System.currentTimeMillis
@@ -109,7 +112,7 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     * ownership of its metricPublisher, it cannot be sure that it is safe to close.
     */
   @throws[Exception]
-  def close() {
+  def close(): Unit = {
   }
 
   /**

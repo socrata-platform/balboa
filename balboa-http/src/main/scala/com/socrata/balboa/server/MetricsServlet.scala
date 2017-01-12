@@ -97,9 +97,11 @@ class MetricsServlet(dataStoreFactory: DataStoreFactory) extends JacksonJsonServ
     metrics
   }
 
-  get("/:entityId/range*")(getRange)
+  private val entityIdKey = "entityId"
+
+  get(s"/:$entityIdKey/range*")(getRange)
   def getRange: ActionResult = {
-    val entityId = params("entityId")
+    val entityId = params(entityIdKey)
 
     val start = params.getOrElse(StartKey, {
       contentType = json
@@ -136,7 +138,7 @@ class MetricsServlet(dataStoreFactory: DataStoreFactory) extends JacksonJsonServ
 
   get("/range")(getRanges)
   def getRanges: ActionResult = {
-    val entityIds = multiParams("entityId")
+    val entityIds = multiParams(entityIdKey)
 
     val start = params.getOrElse(StartKey, {
       contentType = json
@@ -168,9 +170,9 @@ class MetricsServlet(dataStoreFactory: DataStoreFactory) extends JacksonJsonServ
     }).call()
   }
 
-  get("/:entityId/series*")(getSeries)
+  get(s"/:$entityIdKey/series*")(getSeries)
   def getSeries: ActionResult = {
-    val entityId = params("entityId")
+    val entityId = params(entityIdKey)
 
     val period = params.get(PeriodKey).map(Extractable[Period].extract) match {
       case Some(Right(value)) => value
@@ -215,7 +217,7 @@ class MetricsServlet(dataStoreFactory: DataStoreFactory) extends JacksonJsonServ
 
   get("/series")(getSerieses)
   def getSerieses: ActionResult = {
-    val entityIds = multiParams("entityId")
+    val entityIds = multiParams(entityIdKey)
 
     val period = params.get(PeriodKey).map(Extractable[Period].extract) match {
       case Some(Right(value)) => value
@@ -254,14 +256,14 @@ class MetricsServlet(dataStoreFactory: DataStoreFactory) extends JacksonJsonServ
     }).call()
   }
 
-  post("/:entityId")(postMetrics())
+  post(s"/:$entityIdKey")(postMetrics())
   def postMetrics(): ActionResult = {
     // Note: The `contentType` is used to determine how the response is to be
     // interpreted. For some unclear reason, it must be set -before- calling
     // extractOpt for the body of the request in order for it to take effect on
     // the response.
     contentType = json
-    val entityId = params("entityId")
+    val entityId = params(entityIdKey)
     val entityOpt = parsedBody.extractOpt[EntityJSON]
 
     val entity = entityOpt.getOrElse({

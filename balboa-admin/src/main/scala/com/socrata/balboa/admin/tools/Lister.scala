@@ -10,10 +10,10 @@ import scala.collection.JavaConverters._
   */
 class Lister(dataStoreFactory: DataStoreFactory) {
 
-  def listJava(filters: java.util.Iterator[String]) = list(filters.asScala)
+  def listJava(filters: java.util.Iterator[String]): Unit = list(filters.asScala)
 
   @throws[IOException]
-  def list(filters: Iterator[String], printer: (String => Unit) = println): Unit = {
+  def list(filters: Iterator[String], printer: (String => Unit) = println): Unit = { // scalastyle:ignore
     val ds = dataStoreFactory.get
     val entities = (if (filters.isEmpty) {
       ds.entities()

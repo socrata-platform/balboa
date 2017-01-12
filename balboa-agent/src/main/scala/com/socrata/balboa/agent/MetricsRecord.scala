@@ -24,15 +24,17 @@ case class MetricsRecord(timestamp: Long, entityId: String, name: String, value:
   * This class works under the assumptions that bytes are serialized under the following format
   * <ul>
   * <li>0xff - single byte - Beginning mark of a single metrics entry</li>
-  * <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of a timestamp of type long.</li>
+  * <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of timestamp of type long.</li>
   * <li>0xfe - single byte - end of timestamp sequence</li>
   * <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of the entity id</li>
   * <li>0xfe - single byte - end of entity id byte sequence</li>
   * <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of the metric name</li>
   * <li>0xfe - single byte - end of metric name byte sequence</li>
-  * <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of the metric value. The metric value is of type Number</li>
+  * <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of the metric value.
+  * The metric value is of type Number</li>
   * <li>0xfe - single byte - end of metric value byte sequence</li>
-  * <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of the metric type. See [[com.socrata.balboa.metrics.Metric.RecordType]]</li>
+  * <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of the metric type.
+  * See [[com.socrata.balboa.metrics.Metric.RecordType]]</li>
   * <li>0xfe - single byte - end of metric type byte sequence</li>
   * </ul>
   * </b>
@@ -63,7 +65,7 @@ object MetricsRecord {
 
   private val valueCodec: Codec[Number] = metricFieldStringCodec.exmap[Number]({ rawValue: String =>
     if (rawValue.equalsIgnoreCase("null")) {
-      Attempt.successful(null)
+      Attempt.successful(null) // scalastyle:ignore
     } else {
       try {
         if (integerPattern.matcher(rawValue).matches) {
