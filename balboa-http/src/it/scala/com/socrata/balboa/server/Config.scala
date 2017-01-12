@@ -5,7 +5,6 @@ import java.net.URL
 import com.typesafe.config.ConfigFactory
 
 import scala.concurrent.duration._
-import scala.language.postfixOps
 
 object Config {
   val conf = ConfigFactory.load().getConfig("com.socrata.balboa.server.it")

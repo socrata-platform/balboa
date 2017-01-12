@@ -4,8 +4,6 @@ import java.io.File
 
 import com.typesafe.config.ConfigFactory
 
-import scala.language.postfixOps
-
 object IntegrationTestConfig {
   val conf = ConfigFactory.load().getConfig("com.socrata.balboa.agent.it")
 
