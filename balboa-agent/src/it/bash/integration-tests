@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 BALBOA_AGENT_PID=0
 
@@ -68,7 +68,7 @@ if ! sbt balboa-agent/compile ; then
     exit 1
 fi
 
-# The dataset-of-datasets integration tests build a dockerized service for
+# The integration tests build a dockerized service for
 # doing the testing, but making the dockerized service consumes a significant
 # portion of the time for executing the integration tests. These tests run the
 # service using sbt in the background to try to execute integration tests
