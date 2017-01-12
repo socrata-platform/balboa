@@ -41,21 +41,25 @@ case class MetricsRecord(timestamp: Long, entityId: String, name: String, value:
 object MetricsRecord {
   private val integerPattern: Pattern = "-?[0-9]+".r.pattern
 
-  private val metricFieldSeparator: BitVector = ByteVector(0xfe).bits
-  private val metricFieldStringCodec = filtered(utf8, new Codec[BitVector] {
-    private val separator = metricFieldSeparator
+  private val startByte = 0xff.toByte
+  private val separatorByte = 0xfe.toByte
+  private def byteTerminatedStringCodec(separatorByte: Byte) =
+    filtered(utf8, new Codec[BitVector] {
+      private val separator = BitVector(separatorByte)
 
-    override def sizeBound: SizeBound = SizeBound.unknown
+      override def sizeBound: SizeBound = SizeBound.unknown
 
-    override def encode(bits: BitVector): Attempt[BitVector] = Attempt.successful(bits ++ separator)
+      override def encode(bits: BitVector): Attempt[BitVector] = Attempt.successful(bits ++ separator)
 
-    override def decode(bits: BitVector): Attempt[DecodeResult[BitVector]] = {
-      bits.bytes.indexOfSlice(separator.bytes) match {
-        case -1 => Attempt.failure(Err("Does not contain a '0xfe' termination byte."))
-        case i => Attempt.successful(DecodeResult(bits.take(i * 8L), bits.drop(i * 8L + 8L)))
+      override def decode(bits: BitVector): Attempt[DecodeResult[BitVector]] = {
+        bits.bytes.indexOfSlice(separator.bytes) match {
+          case -1 => Attempt.failure(Err("Does not contain a '0x%02x' termination byte.".format(separatorByte)))
+          case idx: Long => Attempt.successful(DecodeResult(bits.take(idx * 8L), bits.drop(idx * 8L + 8L)))
+        }
       }
-    }
-  })
+    })
+
+  private val metricFieldStringCodec = byteTerminatedStringCodec(separatorByte)
 
   private val valueCodec: Codec[Number] = metricFieldStringCodec.exmap[Number]({ rawValue: String =>
     if (rawValue.equalsIgnoreCase("null")) {
@@ -81,7 +85,7 @@ object MetricsRecord {
     .xmap[RecordType](s => Metric.RecordType.valueOf(s.toUpperCase), _.toString)
 
   implicit val codec: Codec[MetricsRecord] = {
-    ("metric start indicator" | constant(0xff)) :~>:
+    ("metric start indicator" | byteTerminatedStringCodec(startByte).unit("")) :~>:
       ("timestamp" | timestampCodec) ::
       ("entityId" | metricFieldStringCodec) ::
       ("name" | metricFieldStringCodec) ::
