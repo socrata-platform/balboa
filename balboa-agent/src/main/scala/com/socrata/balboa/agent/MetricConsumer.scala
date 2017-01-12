@@ -12,7 +12,7 @@ import scodec.Attempt.{Successful, Failure => AttemptFailure}
 import scodec.bits.BitVector
 import scodec.{Codec, DecodeResult}
 
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 /**
   * The MetricConsumer consumes metrics from data files from within a specific directory.  Any metrics extracted will
@@ -68,37 +68,37 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     * metrics.
     */
   def run(): Unit = {
-    logger.info(s"Looking for metrics files recursively in '${this.directory.getAbsoluteFile}'")
+    logger.info(s"Looking for metrics files recursively in '${directory.getAbsoluteFile}'")
     val runTimer: Timer.Context = BalboaAgentMetrics.totalRuntime.time
     val start: Long = System.currentTimeMillis
-    var recordsProcessed: Int = 0
     // Treat each individual Metric data file as its own isolated run.
     // We are trying to prevent the failure to process one file from blocking or preventing the processing
     // of others.
     val files: Set[File] = fileProvider.provide
-    files.foreach { metricsEventLog: File =>
+    val recordsProcessed: Int = files.foldLeft(0) { (count: Int, metricsEventLog: File) =>
       logger.info(s"Processing '${metricsEventLog.getAbsolutePath}'.")
       val maybeRecords: Try[List[MetricsRecord]] = Try(processFile(metricsEventLog))
-      maybeRecords match {
-        case Failure(e: IOException) =>
-          logger.error(s"Error reading records from $metricsEventLog", e)
-          BalboaAgentMetrics.metricsProcessingFailureCounter.inc()
-          val broken: File = new File(metricsEventLog.getAbsolutePath + FileUtils.BROKEN_FILE_EXTENSION)
-          if (!metricsEventLog.renameTo(broken)) {
-            logger.warn(s"Unable to rename broken file $metricsEventLog permissions issue?")
-            BalboaAgentMetrics.renameBrokenFileFailureCounter.inc()
-          }
-        case Success(records) =>
-          records.foreach { r =>
-            metricPublisher.create(Fluff(r.entityId), Fluff(r.name), r.value.longValue, r.timestamp, r.metricType)
-          }
-          recordsProcessed += records.size
+      maybeRecords
+        .map { records =>
+          records.foreach(publishRecord)
           if (!metricsEventLog.delete) {
             logger.error(s"Unable to delete event log $metricsEventLog - file may be read twice, which is bad.")
             BalboaAgentMetrics.deleteEventFailureCounter.inc()
           }
-        case _ =>
-      }
+          records.size
+        }
+        .recover {
+          case e: Throwable =>
+            logger.error(s"Error reading records from $metricsEventLog", e)
+            BalboaAgentMetrics.metricsProcessingFailureCounter.inc()
+            val broken: File = new File(metricsEventLog.getAbsolutePath + FileUtils.BROKEN_FILE_EXTENSION)
+            if (!metricsEventLog.renameTo(broken)) {
+              logger.warn(s"Unable to rename broken file $metricsEventLog permissions issue?")
+              BalboaAgentMetrics.renameBrokenFileFailureCounter.inc()
+            }
+            0
+        }
+        .getOrElse(0) + count
     }
     val processingTime: Long = System.currentTimeMillis - start
     logger.info(s"Run completed, processed $recordsProcessed in $processingTime ms")
@@ -107,11 +107,14 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     runTimer.stop
   }
 
+  private def publishRecord(r: MetricsRecord): Unit = {
+    metricPublisher.create(Fluff(r.entityId), Fluff(r.name), r.value.longValue, r.timestamp, r.metricType)
+  }
+
   /**
     * This method does nothing. As the MetricConsumer does not take unique
     * ownership of its metricPublisher, it cannot be sure that it is safe to close.
     */
-  @throws[Exception]
   def close(): Unit = {
   }
 
@@ -121,30 +124,25 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     *
     * @param f File to process.
     * @return A list of { @link MetricsRecord}s that were process.
-    * @throws IOException When there is a problem processing the file.
     */
-  @throws[IOException]
   private def processFile(f: File): List[MetricsRecord] = {
     val filePath: String = f.getAbsolutePath
     logger.info(s"Processing file $filePath")
 
     val bitVector = BitVector.fromMmap(new FileInputStream(f).getChannel)
-    val recordsAttempt = Codec
-      .decodeCollect[Vector, MetricsRecord](MetricsRecord.codec.asDecoder, None)(bitVector)
-    val results: Vector[MetricsRecord] = recordsAttempt match {
+    val recordsAttempt = Codec.decodeCollect[List, MetricsRecord](MetricsRecord.codec.asDecoder, None)(bitVector)
+    recordsAttempt match {
       case Successful(DecodeResult(value, remainder)) =>
         if (remainder.nonEmpty) {
           logger.warn(s"Metric records file $filePath had remaining bits after decoding; is probably incomplete")
-          Vector.empty
+          List.empty
         } else {
           value
         }
       case AttemptFailure(cause) =>
         logger.error(s"Error decoding metric records: ${cause.messageWithContext}")
-        Vector.empty
+        List.empty
     }
-
-    results.toList
   }
 
   override def toString: String = s"MetricConsumer{directory=$directory, metricPublisher=$metricPublisher}"
