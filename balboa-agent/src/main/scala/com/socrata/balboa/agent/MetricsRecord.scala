@@ -5,7 +5,7 @@ import java.util.regex.Pattern
 
 import com.socrata.balboa.metrics.Metric
 import com.socrata.balboa.metrics.Metric.RecordType
-import scodec.bits.BitVector
+import scodec.bits.{BitVector, ByteVector}
 import scodec.codecs._
 import scodec.{Codec, _}
 /**
@@ -18,10 +18,7 @@ import scodec.{Codec, _}
 case class MetricsRecord(timestamp: Long, entityId: String, name: String, value: Number, metricType: RecordType)
 
 /**
-  * Accepts a stream of bytes and deserialize them into a single Metric.
-  *
-  * <b>
-  * This class works under the assumptions that bytes are serialized under the following format
+  * MetricsRecord Codec
   * <ul>
   * <li>0xff - single byte - Beginning mark of a single metrics entry</li>
   * <li>Sequence of bytes of undetermined length - A utf-8 byte String encoded to bytes of timestamp of type long.</li>
@@ -45,8 +42,8 @@ object MetricsRecord {
 
   private val startByte = 0xff.toByte
   private val separatorByte = 0xfe.toByte
-  private def byteTerminatedStringCodec(separatorByte: Byte) =
-    filtered(utf8, new Codec[BitVector] {
+  private def byteTerminatedCodec[A](separatorByte: Byte, codec: Codec[A]) =
+    filtered(codec, new Codec[BitVector] {
       private val separator = BitVector(separatorByte)
 
       override def sizeBound: SizeBound = SizeBound.unknown
@@ -55,13 +52,13 @@ object MetricsRecord {
 
       override def decode(bits: BitVector): Attempt[DecodeResult[BitVector]] = {
         bits.bytes.indexOfSlice(separator.bytes) match {
-          case -1 => Attempt.failure(Err("Does not contain a '0x%02x' termination byte.".format(separatorByte)))
+          case -1 => Attempt.failure(Err("Does not contain a '0x%02x' separator byte.".format(separatorByte)))
           case idx: Long => Attempt.successful(DecodeResult(bits.take(idx * 8L), bits.drop(idx * 8L + 8L)))
         }
       }
     })
 
-  private val metricFieldStringCodec = byteTerminatedStringCodec(separatorByte)
+  private val metricFieldStringCodec = byteTerminatedCodec(separatorByte, utf8)
 
   private val valueCodec: Codec[Number] = metricFieldStringCodec.exmap[Number]({ rawValue: String =>
     if (rawValue.equalsIgnoreCase("null")) {
@@ -87,7 +84,7 @@ object MetricsRecord {
     .xmap[RecordType](s => Metric.RecordType.valueOf(s.toUpperCase), _.toString)
 
   implicit val codec: Codec[MetricsRecord] = {
-    ("metric start indicator" | byteTerminatedStringCodec(startByte).unit("")) :~>:
+    ("metric start indicator" | byteTerminatedCodec(startByte, bytes).unit(ByteVector.empty)) :~>:
       ("timestamp" | timestampCodec) ::
       ("entityId" | metricFieldStringCodec) ::
       ("name" | metricFieldStringCodec) ::

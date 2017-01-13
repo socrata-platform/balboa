@@ -1,14 +1,16 @@
 package com.socrata.balboa.agent
 
+import java.io.{File, FileOutputStream}
 import java.nio.file.{Files, Path}
 
 import com.blist.metrics.impl.queue.MetricFileQueue
 import com.socrata.balboa.metrics.Metric
 import com.socrata.metrics.{Fluff, MetricIdParts, MetricQueue}
-import com.typesafe.scalalogging.StrictLogging
+import com.typesafe.scalalogging.{Logger, StrictLogging}
 import org.mockito.Matchers
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ShouldMatchers, WordSpec}
+import scodec.bits.ByteVector
 
 import scala.collection.immutable.IndexedSeq
 
@@ -134,6 +136,17 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
     })
   }
 
+  private def writeMetricAsHexStringToIndexedFile(path: Path, metricAsHex: String, index: Int) = {
+    val now = System.currentTimeMillis
+    val logName = s"metrics2012.$index.%016x.data".format(now)
+    val file = new File(path.toFile, logName)
+    val fos = new FileOutputStream(file)
+
+    val bytes = ByteVector.fromValidHex(metricAsHex)
+    fos.write(bytes.toArray)
+    fos.close()
+  }
+
   "A Metric Consumer" when {
     "the root directory does not exist" should {
       "throw an IllegalArgumentException" in new MockQueue {
@@ -147,6 +160,46 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
         intercept[IllegalArgumentException] {
           new MetricConsumer(Files.createTempFile("metric", ".txt").toFile, mockQueue)
         }
+      }
+    }
+    "the root file has corrupt files" should {
+      "logs errors and emits no metrics" in new MockQueue {
+        private val tempDir = Files.createTempDirectory("metrics")
+        private val start = "ff"
+        private val separator = "fe"
+        private val timestamp = "31343834323636343534333034"
+        private val entityId = "656e746974795f69645f31"
+        private val name = "6d65747269635f31"
+        private val value = "31"
+        private val metricType = "616767726567617465"
+        Seq(start, timestamp, separator, entityId, separator, name, separator, value, separator, metricType, separator, "")
+          .zipWithIndex
+          .foldLeft("0x") { (hex, partAndIndex) =>
+            val (part, idx) = partAndIndex
+            writeMetricAsHexStringToIndexedFile(tempDir, hex, idx)
+            hex + part
+          }
+
+        private val mockLogger = mock[org.slf4j.Logger]
+        when(mockLogger.isErrorEnabled).thenReturn(true)
+        val metricConsumer = new MetricConsumer(tempDir.toFile, mockQueue) {
+          override protected lazy val logger: Logger = Logger(mockLogger)
+        }
+        metricConsumer.run()
+        metricConsumer.close()
+        verify(mockLogger, times(2))
+          .error("Error decoding metric records: 0/entityId: Does not contain a '0xfe' separator byte.")
+        verify(mockLogger, times(2))
+          .error("Error decoding metric records: 0/timestamp: Does not contain a '0xfe' separator byte.")
+        verify(mockLogger, times(2))
+          .error("Error decoding metric records: 0/name: Does not contain a '0xfe' separator byte.")
+        verify(mockLogger, times(2))
+          .error("Error decoding metric records: 0/value: Does not contain a '0xfe' separator byte.")
+        verify(mockLogger)
+          .error("Error decoding metric records: 0/metricType: Does not contain a '0xfe' separator byte.")
+        verify(mockQueue)
+          .create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](),
+          Matchers.anyLong(), Matchers.anyLong(), Matchers.any[Metric.RecordType]())
       }
     }
     "there is a single root directory" when {

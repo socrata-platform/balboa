@@ -13,7 +13,7 @@ object BalboaClient {
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 2
   )
 
-  def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
+  def libraries(implicit scalaVersion: String): Seq[ModuleID] = BalboaCommon.libraries ++ Seq(
     socrata_utils,
     simple_arm
   )
@@ -25,7 +25,7 @@ object BalboaClientJMS {
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
   )
 
-  def libraries(implicit scalaVersion: String) = BalboaClient.libraries ++ Seq(
+  def libraries(implicit scalaVersion: String): Seq[ModuleID] = BalboaClient.libraries ++ Seq(
     activemq,
     activemqOpenwire
   )
@@ -37,5 +37,5 @@ object BalboaClientDispatcher {
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 64
   )
 
-  def libraries(implicit scalaVersion: String) = BalboaClient.libraries
+  def libraries(implicit scalaVersion: String): Seq[ModuleID] = BalboaClient.libraries
 }

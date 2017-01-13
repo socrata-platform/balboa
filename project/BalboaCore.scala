@@ -10,7 +10,7 @@ object BalboaCore {
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
   )
 
-  def libraries(implicit scalaVersion: String) = Seq(
+  def libraries(implicit scalaVersion: String): Seq[ModuleID] = Seq(
     cassandra_driver_core,
     cassandra_driver_mapping,
     cassandra_driver_extras,
