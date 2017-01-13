@@ -15,6 +15,7 @@ object Keys {
   val RootJMSActiveMQNamespace = join(RootJMSNamespace("activemq")) _
   val RootEmergencyDirNamespace = join(RootNamespace("emergency")) _
 
+  val JMSActiveMQCloseTimeout = RootJMSActiveMQNamespace("closeTimeout")
   val JMSActiveMQServer = RootJMSActiveMQNamespace("server")
   val JMSActiveMQQueue = RootJMSActiveMQNamespace("queue")
   val JMSActiveMQUser = RootJMSActiveMQNamespace("user")

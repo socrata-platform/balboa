@@ -80,7 +80,7 @@ public class MetricJmsQueue extends AbstractJavaMetricQueue {
         metric.setValue(value);
         metrics.put(name, metric);
 
-        // Flush the buffer if it becomes to large.
+        // Flush the buffer if it becomes too large.
         // A simpler model given the Java default concurrency model.
         writeBuffer.add(entityId, metrics, timestamp);
         if (writeBuffer.size() >= this.bufferCapacity) {

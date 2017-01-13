@@ -8,6 +8,7 @@ import com.socrata.balboa.metrics.config.Keys
 import com.typesafe.config.Config
 
 import scala.concurrent.duration._
+import scala.util.Try
 
 /**
  * Parent Configuration class for all Client Configurations.  This class encapsulates core functionality that can be
@@ -32,4 +33,6 @@ class AgentConfig(conf: Config) extends JMSClientConfig(conf) {
   val balboaHttpUrl: String = conf.getString(Keys.BalboaHttpUrl)
   val balboaHttpTimeout: Duration = conf.getLong(Keys.BalboaHttpTimeoutMs).millis
   val balboaHttpMaxRetryWait: Duration = conf.getLong(Keys.BalboaHttpMaxRetryWaitMs).millis
+
+  val activemqCloseTimeout: Int = conf.getInt(Keys.JMSActiveMQCloseTimeout)
 }

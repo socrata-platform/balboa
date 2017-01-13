@@ -80,16 +80,7 @@ object BalboaAgent extends App with StrictLogging {
       logger info "balboa-agent is shutting down."
       logger info "Canceling current and future runs."
       future.cancel(false)
-
-      // It seems like these calls would be useful to include here, but if the
-      // ActiveMQ server disappears while balboa-agent is running, and isn't
-      // available when these lines try to execute, the `.close()` call pauses
-      // forever (at least longer than my patience to test), and the
-      // `.setCloseTimeout(...)` call does not do what the documentation says
-      // it will.
-      //     metricPublisher.setCloseTimeout(1)
-      //     metricPublisher.close()
-
+      metricPublisher.close()
       logger info "Stopping the JMX Reporter."
       jmxReporter.stop()
     }
@@ -137,6 +128,7 @@ object BalboaAgent extends App with StrictLogging {
       // and retries connections every 30s for at least 20min. I didn't test any
       // longer than that.
       amqConnection.start()
+      amqConnection.setCloseTimeout(conf.activemqCloseTimeout)
     } catch {
       // It is unclear under what practical circumstances this exception can occur.
       // Network related connection failures do not appear to lead to an exception,
@@ -151,7 +143,6 @@ object BalboaAgent extends App with StrictLogging {
 
     logger info s"Reading metrics from directory '${dataDir.getAbsolutePath}'."
     logger info s"Sending metrics to ActiveMQ queue '${conf.activemqQueue}'"
-
     new MetricJmsQueue(amqConnection, conf.activemqQueue, conf.bufferSize)
   }
 }
