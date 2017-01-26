@@ -35,12 +35,10 @@ class EntitiesServlet(dataStoreFactory: DataStoreFactory) extends ScalatraServle
   def getEntities: ActionResult = {
     contentType = json
 
-    val predicate: (String => Boolean) =
-      params.get("filter").map(Pattern.compile)
-        .map { pattern => (str: String) => pattern.matcher(str).matches }.getOrElse(_ => true)
+    val filter = params.getOrElse("filter",".*")
 
     timer("entities-get")({
-      val it = dataStore.entities().filter(predicate)
+      val it = dataStore.entities(filter)
       // backwards-compatibility: -1 == no limit
       val limitString = params.getOrElse("limit", "-1")
       val limit = try {
