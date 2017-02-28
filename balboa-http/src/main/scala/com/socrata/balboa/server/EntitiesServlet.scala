@@ -1,6 +1,5 @@
 package com.socrata.balboa.server
 
-import java.util.regex.Pattern
 import javax.servlet.http.HttpServletRequest
 
 import com.socrata.balboa.metrics.data.{DataStoreFactory, DefaultDataStoreFactory}
