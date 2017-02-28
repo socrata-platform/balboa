@@ -26,23 +26,20 @@ object FileUtils {
     }
   }
 
-  val isBalboaBrokenFile = new FileFilter {
-    override def accept(file: File): Boolean = file.isFile &&
-      (file.getName.endsWith(BROKEN_FILE_EXTENSION) || file.getName.endsWith(BROKEN_FILE_EXTENSION.toUpperCase))
-  }
+  val isBalboaBrokenFile: FileFilter = isFileEndingWith(BROKEN_FILE_EXTENSION)
 
-  val isBalboaLockFile = new FileFilter {
-    override def accept(file: File): Boolean = file.isFile &&
-      (file.getName.endsWith(LOCK_FILE_EXTENSION) || file.getName.endsWith(LOCK_FILE_EXTENSION.toUpperCase))
-  }
+  val isBalboaLockFile: FileFilter = isFileEndingWith(LOCK_FILE_EXTENSION)
 
-  val isBalboaImmutableFile = new FileFilter {
-    override def accept(file: File): Boolean = file.isFile &&
-      (file.getName.endsWith(IMMUTABLE_FILE_EXTENSION) || file.getName.endsWith(IMMUTABLE_FILE_EXTENSION.toUpperCase))
-  }
+  val isBalboaImmutableFile: FileFilter = isFileEndingWith(IMMUTABLE_FILE_EXTENSION)
 
   val isDirectory = new FileFilter() {
     override def accept(file: File): Boolean = file.isDirectory
+  }
+
+  def isFileEndingWith(suffix: String): FileFilter = {
+    new FileFilter {
+      override def accept(file: File): Boolean = file.isFile && file.getName.toLowerCase.endsWith(suffix)
+    }
   }
 
   def getBalboaDataFilesAtRoot(dir: File): Set[File] = Set(dir.listFiles(isBalboaDataFile):_*)
