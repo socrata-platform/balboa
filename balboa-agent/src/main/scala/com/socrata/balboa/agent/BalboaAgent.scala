@@ -38,7 +38,7 @@ object BalboaAgent extends App with StrictLogging {
   val metricPublisher = conf.transportType match {
     case Mq => amqMetricQueue()
     case Http =>
-      new HttpMetricQueue(
+      HttpMetricQueue(
         conf.balboaHttpUrl,
         conf.balboaHttpTimeout,
         conf.balboaHttpMaxRetryWait

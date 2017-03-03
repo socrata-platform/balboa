@@ -3,9 +3,9 @@ package com.socrata.balboa.metrics.data.impl
 import java.io.IOException
 import java.util.Date
 
-import com.socrata.balboa.metrics.Metrics
+import com.socrata.balboa.metrics.{Metrics, Timeslice}
 import com.socrata.balboa.metrics.data.{DataStore, Period}
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable
 
@@ -32,7 +32,7 @@ class BufferedDataStore(underlying: DataStore,
                         timeService: TimeService = new TimeService,
                         val bufferGranularity: Long) extends DataStoreImpl {
 
-  val log = LoggerFactory.getLogger(classOf[BufferedDataStore])
+  val log: Logger = LoggerFactory.getLogger(classOf[BufferedDataStore])
   var buffer = new mutable.HashMap[String, Metrics]
   var currentSlice: Long = -1
 
@@ -57,7 +57,7 @@ class BufferedDataStore(underlying: DataStore,
     buffer.synchronized {
       val nearestSlice = timestamp - (timestamp % bufferGranularity)
       if (nearestSlice > currentSlice) {
-        log.info("Flushing " + buffer.size + " entities to underlying datastore from the last " + bufferGranularity + "ms")
+        log.info(s"Flushing ${buffer.size} entities to underlying datastore from the last ${bufferGranularity}ms")
         // flush metrics
         buffer.foreach({ case (entity, metrics) =>
           // If a failure occurs in the underlying datastore the exception
@@ -91,15 +91,15 @@ class BufferedDataStore(underlying: DataStore,
     }
   }
 
-  override def entities() = underlying.entities()
-  override def entities(pattern: String) = underlying.entities(pattern)
-  override def slices(entityId: String, period: Period, start: Date, end: Date) =
+  override def entities(): Iterator[String] = underlying.entities()
+  override def entities(pattern: String): Iterator[String] = underlying.entities(pattern)
+  override def slices(entityId: String, period: Period, start: Date, end: Date): Iterator[Timeslice] =
     underlying.slices(entityId, period, start, end)
-  override def find(entityId: String, period: Period, start: Date) =
+  override def find(entityId: String, period: Period, start: Date): Iterator[Metrics] =
     underlying.find(entityId, period, start)
-  override def find(entityId: String, period: Period, start: Date, end: Date) =
+  override def find(entityId: String, period: Period, start: Date, end: Date): Iterator[Metrics] =
     underlying.find(entityId, period, start, end)
-  override def find(entityId: String, start: Date, end: Date) =
+  override def find(entityId: String, start: Date, end: Date): Iterator[Metrics] =
     underlying.find(entityId, start, end)
 
   override def onStop(): Unit = heartbeat()

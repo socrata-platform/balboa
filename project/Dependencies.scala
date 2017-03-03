@@ -32,6 +32,7 @@ object Dependencies {
     val socrata_utils = "[0.6.0, 1.0.0)"
     val socrata_thirdparty_utils = "4.0.1"
     val scalatra = "2.4.0"
+    val scodec_core = "1.10.3"
   }
 
   //////////////////////////////////////////////////////////////////
@@ -85,4 +86,6 @@ object Dependencies {
   val scalatra_json = "org.scalatra" %% "scalatra-json" % versions.scalatra
   val scalatra_metrics = "org.scalatra" %% "scalatra-metrics" % versions.scalatra
   val typesafe_config = "com.typesafe" % "config" % "1.2.1"
+  val scodec_core: ModuleID = "org.scodec" %% "scodec-core" % versions.scodec_core
+
 }

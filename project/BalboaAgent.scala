@@ -20,7 +20,7 @@ object BalboaAgent extends DockerKeys with LinuxKeys {
     com.socrata.sbtplugins.StylePlugin.StyleKeys.styleFailOnError in Compile := true
   )
 
-  def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
+  def libraries(implicit scalaVersion: String): Seq[ModuleID] = BalboaCommon.libraries ++ Seq(
     commons_logging,
     dropwizard_metrics,
     dropwizard_servlets,
@@ -28,6 +28,7 @@ object BalboaAgent extends DockerKeys with LinuxKeys {
     json4s,
     newman,
     scalatest,
-    json4s
+    json4s,
+    scodec_core
   ) ++ balboa_logging
 }

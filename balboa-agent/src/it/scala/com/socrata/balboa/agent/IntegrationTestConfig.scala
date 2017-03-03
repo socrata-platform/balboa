@@ -2,12 +2,10 @@ package com.socrata.balboa.agent
 
 import java.io.File
 
-import com.typesafe.config.ConfigFactory
-
-import scala.language.postfixOps
+import com.typesafe.config.{Config, ConfigFactory}
 
 object IntegrationTestConfig {
-  val conf = ConfigFactory.load().getConfig("com.socrata.balboa.agent.it")
+  val conf: Config = ConfigFactory.load().getConfig("com.socrata.balboa.agent.it")
 
   val metricDirectory = new File(conf.getString("metric_directory"))
   val activemqServer = conf.getString("activemq_server")

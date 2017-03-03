@@ -1,14 +1,18 @@
 package com.socrata.balboa.agent
 
+import java.io.{File, FileOutputStream}
 import java.nio.file.{Files, Path}
 
 import com.blist.metrics.impl.queue.MetricFileQueue
 import com.socrata.balboa.metrics.Metric
 import com.socrata.metrics.{Fluff, MetricIdParts, MetricQueue}
-import com.typesafe.scalalogging.StrictLogging
+import com.typesafe.scalalogging.{Logger, StrictLogging}
 import org.mockito.Matchers
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ShouldMatchers, WordSpec}
+import scodec.bits.ByteVector
+
+import scala.collection.immutable.IndexedSeq
 
 /**
   * Unit Tests for [[MetricConsumer]]
@@ -19,7 +23,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
 
   /**
     * The MetricFileQueue is designed to write to the same file given if subsequent writes occur at the same time.
-    * This makes testing indetermistic right at the same System.currentTime().
+    * This makes testing nondeterministic right at the same System.currentTime().
     */
   private val queueCreateMetricWaitTimeMS = 5
 
@@ -30,13 +34,13 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
 
   trait TestMetrics {
     private val time = System.currentTimeMillis()
-    val testMetrics = (1 to 10) map (i =>
-      new MetricsRecord(s"entity_id_$i", s"metric_$i", i, time + i, Metric.RecordType.AGGREGATE)
+    val testMetrics: IndexedSeq[MetricsRecord] = (1 to 10) map (i =>
+      MetricsRecord(time + i, s"entity_id_$i", s"metric_$i", i, Metric.RecordType.AGGREGATE)
       )
   }
 
   trait MockQueue {
-    val mockQueue = mock[MetricQueue]
+    val mockQueue: MetricQueue = mock[MetricQueue]
   }
 
   /**
@@ -48,7 +52,8 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
 
     // a mapping of metrics directories and file queues that write to that directory.
     val numFileQueues = 5
-    val fileQueues: Map[Path, Seq[MetricFileQueue]] = Map(rootMetricsDir -> createFileQueues(rootMetricsDir, numFileQueues))
+    val fileQueues: Map[Path, Seq[MetricFileQueue]] =
+      Map(rootMetricsDir -> createFileQueues(rootMetricsDir, numFileQueues))
 
     /**
       * Creates `num` individual file queues for a single directory.
@@ -56,11 +61,12 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
       * @param num Number of queues to create
       * @return Sequence of MetricFileQueues
       */
-    def createFileQueues(dir: Path, num: Int): Seq[MetricFileQueue] = (1 to num) map (_ => new MetricFileQueue(dir.toFile))
+    def createFileQueues(dir: Path, num: Int): Seq[MetricFileQueue] =
+      (1 to num) map (_ => new MetricFileQueue(dir.toFile))
   }
 
   trait MultipleRootDirectories extends OneRootDirectory {
-    val metricDirs = (1 to numMultipleMetricsDir).map(i => {
+    val metricDirs: IndexedSeq[Path] = (1 to numMultipleMetricsDir).map(i => {
       val dir = rootMetricsDir.resolve(s"metrics-dir-$i")
       Files.createDirectory(dir)
       dir
@@ -77,7 +83,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
     */
   private def writeToQueue(queue: MetricQueue, records: MetricsRecord*)() = {
     records.foreach(r => {
-      queue.create(Fluff(r.getEntityId), Fluff(r.getName), r.getValue.longValue(), r.getTimestamp, r.getType)
+      queue.create(Fluff(r.entityId), Fluff(r.name), r.value.longValue(), r.timestamp, r.metricType)
       Thread.sleep(queueCreateMetricWaitTimeMS)
     })
   }
@@ -121,17 +127,28 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
     // For every metric written to disk, all but the metrics in youngest file should be processed.
     metrics.foreach(m => {
       verify(mockQueue, times(numTimesMetricEmitted)).create(
-        Fluff(m.getEntityId),
-        Fluff(m.getName),
-        m.getValue.longValue(),
-        m.getTimestamp,
-        m.getType
+        Fluff(m.entityId),
+        Fluff(m.name),
+        m.value.longValue(),
+        m.timestamp,
+        m.metricType
       )
     })
   }
 
+  private def writeMetricAsHexStringToIndexedFile(path: Path, metricAsHex: String, index: Int) = {
+    val now = System.currentTimeMillis
+    val logName = s"metrics2012.$index.%016x.data".format(now)
+    val file = new File(path.toFile, logName)
+    val fos = new FileOutputStream(file)
+
+    val bytes = ByteVector.fromValidHex(metricAsHex)
+    fos.write(bytes.toArray)
+    fos.close()
+  }
+
   "A Metric Consumer" when {
-    "the root directory does not exists" should {
+    "the root directory does not exist" should {
       "throw an IllegalArgumentException" in new MockQueue {
         intercept[IllegalArgumentException] {
           new MetricConsumer(Files.createTempDirectory("metrics").resolve("nonexistent_subdirectory").toFile, mockQueue)
@@ -145,11 +162,51 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
         }
       }
     }
+    "the root file has corrupt files" should {
+      "logs errors and emits no metrics" in new MockQueue {
+        private val tempDir = Files.createTempDirectory("metrics")
+        private val start = "ff"
+        private val separator = "fe"
+        private val timestamp = "31343834323636343534333034"
+        private val entityId = "656e746974795f69645f31"
+        private val name = "6d65747269635f31"
+        private val value = "31"
+        private val metricType = "616767726567617465"
+        Seq(start, timestamp, separator, entityId, separator, name, separator, value, separator, metricType, separator, "")
+          .zipWithIndex
+          .foldLeft("0x") { (hex, partAndIndex) =>
+            val (part, idx) = partAndIndex
+            writeMetricAsHexStringToIndexedFile(tempDir, hex, idx)
+            hex + part
+          }
+
+        private val mockLogger = mock[org.slf4j.Logger]
+        when(mockLogger.isErrorEnabled).thenReturn(true)
+        val metricConsumer = new MetricConsumer(tempDir.toFile, mockQueue) {
+          override protected lazy val logger: Logger = Logger(mockLogger)
+        }
+        metricConsumer.run()
+        metricConsumer.close()
+        verify(mockLogger, times(2))
+          .error("Error decoding metric records: 0/entityId: Does not contain a '0xfe' separator byte.")
+        verify(mockLogger, times(2))
+          .error("Error decoding metric records: 0/timestamp: Does not contain a '0xfe' separator byte.")
+        verify(mockLogger, times(2))
+          .error("Error decoding metric records: 0/name: Does not contain a '0xfe' separator byte.")
+        verify(mockLogger, times(2))
+          .error("Error decoding metric records: 0/value: Does not contain a '0xfe' separator byte.")
+        verify(mockLogger)
+          .error("Error decoding metric records: 0/metricType: Does not contain a '0xfe' separator byte.")
+        verify(mockQueue)
+          .create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](),
+          Matchers.anyLong(), Matchers.anyLong(), Matchers.any[Metric.RecordType]())
+      }
+    }
     "there is a single root directory" when {
       "there is no metrics data" should {
         "emit no metrics" in new OneRootDirectory {
-          verify(mockQueue, never()).create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](), Matchers.anyLong(),
-            Matchers.anyLong(), Matchers.any[Metric.RecordType]())
+          verify(mockQueue, never()).create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](),
+            Matchers.anyLong(), Matchers.anyLong(), Matchers.any[Metric.RecordType]())
         }
       }
       "there is 1 metrics data file" should {
@@ -184,12 +241,13 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
       }
       "there are multiple metrics data files in one directory" should {
         "process a single directory" in new MultipleRootDirectories with TestMetrics {
-          val fullDirPath = fileQueues.head._1
+          val fullDirPath: Path = fileQueues.head._1
           // We are creating a 5 queues for a given metric directory
           // 5 individual file queues correspond to 5 individual metric data files for any given metric directory.
           val numMetricFiles = 5
-          val multipleQueues = fileQueues(fullDirPath) ++ createFileQueues(fullDirPath, numMetricFiles)
-          val newFileQueues = fileQueues + (fullDirPath -> multipleQueues)
+          val multipleQueues: Seq[MetricFileQueue] =
+            fileQueues(fullDirPath) ++ createFileQueues(fullDirPath, numMetricFiles)
+          val newFileQueues: Map[Path, Seq[MetricFileQueue]] = fileQueues + (fullDirPath -> multipleQueues)
           testEmitsMetrics(
             metricConsumer,
             mockQueue,
@@ -204,7 +262,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
           // We are creating a 5 queues for a given metric directory
           // 5 individual file queues correspond to 5 individual metric data files for any given metric directory.
           val numMetricFiles = 5
-          val newFileQueues = fileQueues.map { case (path, fq) =>
+          val newFileQueues: Map[Path, Seq[MetricFileQueue]] = fileQueues.map { case (path, _) =>
               path -> createFileQueues(path, numMetricFiles)
             }
           testEmitsMetrics(

@@ -198,8 +198,8 @@ libraryDependencies ++= Seq(
 ### Server
 **Balboa server** requires four separate components to function properly:
 
-* [ActiveMQ](http://activemq.apache.org) (v5.5.1)
-* A [Cassandra](http://cassandra.apache.org) cluster (v1.1.7)
+* [ActiveMQ](http://activemq.apache.org) (v5.13.3)
+* A [Cassandra](http://cassandra.apache.org) cluster (v2.0.17)
 * balboa-jms
 * balboa-http
 

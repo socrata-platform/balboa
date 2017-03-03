@@ -11,7 +11,7 @@ object BalboaHttp {
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
   ) ++ ScalatraPlugin.scalatraFullSettings
 
-  def libraries(implicit scalaVersion: String) = Seq(
+  def libraries(implicit scalaVersion: String): Seq[ModuleID] = Seq(
     gatling,
     gatling_highcharts,
     jetty_webapp,

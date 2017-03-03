@@ -13,7 +13,7 @@ import org.json4s.jackson.JsonMethods.{pretty, render}
 import org.json4s.{DefaultFormats, Extraction, Formats}
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor}
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -32,13 +32,13 @@ case class HttpMetricQueue(balboaHttpURL: String,
                            implicit val httpClient: HttpClient = new ApacheHttpClient)
   extends MetricQueue with StrictLogging {
 
-  val StartingWaitDuration = 50.millis
+  val StartingWaitDuration: FiniteDuration = 50.millis
   val Utf8 = "UTF-8"
 
   implicit val jsonFormats: Formats = DefaultFormats
-  implicit val executionContext = ExecutionContext.global
+  implicit val executionContext: ExecutionContextExecutor = ExecutionContext.global
 
-  logger info s"Initializing HttpMetricQueue targeting $balboaHttpURL"
+  logger.info(s"Initializing HttpMetricQueue targeting $balboaHttpURL")
 
   /**
    * Accepts a metric to transmit to the remote metric store.

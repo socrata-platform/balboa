@@ -11,7 +11,7 @@ object BalboaCommon {
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
   )
 
-  def libraries(implicit scalaVersion: String) = Seq(
+  def libraries(implicit scalaVersion: String): Seq[ModuleID] = Seq(
     // SLF4J is used directly here instead of scala-logging to allow for cross-compilation to 2.10
     log4j,
     slf4j_log4j,

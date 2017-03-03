@@ -24,7 +24,7 @@ object BalboaService {
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 0
   )
 
-  def libraries(implicit scalaVersion: String) = BalboaCommon.libraries ++ Seq(
+  def libraries(implicit scalaVersion: String): Seq[ModuleID] = BalboaCommon.libraries ++ Seq(
     // Add dependencies for base Services.
   )
 }
@@ -39,7 +39,7 @@ object BalboaJms {
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 94
   )
 
-  def libraries(implicit scalaVersion: String) = BalboaService.libraries ++ Seq(
+  def libraries(implicit scalaVersion: String): Seq[ModuleID] = BalboaService.libraries ++ Seq(
     activemq,
     activemqOpenwire
     // Add more dependencies for JMS Service here...

@@ -8,7 +8,6 @@ import com.stackmob.newman.response.HttpResponseCode.NotFound
 import org.scalatest.{FlatSpec, Matchers}
 
 import scala.concurrent._
-import scala.language.postfixOps
 
 class NotFoundIntegrationTest extends FlatSpec with Matchers {
   implicit val httpClient = new ApacheHttpClient

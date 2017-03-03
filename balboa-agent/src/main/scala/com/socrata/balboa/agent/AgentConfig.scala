@@ -8,7 +8,6 @@ import com.socrata.balboa.metrics.config.Keys
 import com.typesafe.config.Config
 
 import scala.concurrent.duration._
-import scala.util.Try
 
 /**
  * Parent Configuration class for all Client Configurations.  This class encapsulates core functionality that can be
