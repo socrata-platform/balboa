@@ -16,3 +16,4 @@ docker/*.jar
 marathon.properties
 *.jar
 staging_config.properties
+/jenkins/
