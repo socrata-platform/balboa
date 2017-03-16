@@ -129,9 +129,10 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     val filePath: String = f.getAbsolutePath
     logger.info(s"Processing file $filePath")
 
-    val bitVector = BitVector.fromMmap(new FileInputStream(f).getChannel)
+    val fileInputStream = new FileInputStream(f)
+    val bitVector = BitVector.fromMmap(fileInputStream.getChannel)
     val recordsAttempt = Codec.decodeCollect[List, MetricsRecord](MetricsRecord.codec.asDecoder, None)(bitVector)
-    recordsAttempt match {
+    val records = recordsAttempt match {
       case Successful(DecodeResult(value, remainder)) =>
         if (remainder.nonEmpty) {
           logger.warn(s"Metric records file $filePath had remaining bits after decoding; is probably incomplete")
@@ -143,6 +144,8 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
         logger.error(s"Error decoding metric records: ${cause.messageWithContext}")
         List.empty
     }
+    fileInputStream.close()
+    records
   }
 
   override def toString: String = s"MetricConsumer{directory=$directory, metricPublisher=$metricPublisher}"
