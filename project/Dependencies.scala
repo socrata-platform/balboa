@@ -54,6 +54,7 @@ object Dependencies {
   // will show up as runtime problems and only be logged correctly when the AMQ
   // library is at log level DEBUG.
   val activemqOpenwire = "org.apache.activemq" % "activemq-openwire-legacy" % "5.13.3"
+  val arm = "com.jsuereth" %% "scala-arm" % "2.0"
   val commons_logging = "commons-logging" % "commons-logging" % versions.commons_logging
   val cassandra_driver_core = "com.datastax.cassandra" % "cassandra-driver-core" % versions.datastax withSources() withJavadoc()
   val cassandra_driver_mapping = "com.datastax.cassandra" % "cassandra-driver-mapping" % versions.datastax withSources() withJavadoc()

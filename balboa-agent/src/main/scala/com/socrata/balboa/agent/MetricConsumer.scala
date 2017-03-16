@@ -8,6 +8,7 @@ import com.socrata.balboa.agent.metrics.BalboaAgentMetrics
 import com.socrata.balboa.util.FileUtils
 import com.socrata.metrics.{Fluff, MetricQueue}
 import com.typesafe.scalalogging.LazyLogging
+import resource._
 import scodec.Attempt.{Successful, Failure => AttemptFailure}
 import scodec.bits.BitVector
 import scodec.{Codec, DecodeResult}
@@ -129,23 +130,22 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     val filePath: String = f.getAbsolutePath
     logger.info(s"Processing file $filePath")
 
-    val fileInputStream = new FileInputStream(f)
-    val bitVector = BitVector.fromMmap(fileInputStream.getChannel)
-    val recordsAttempt = Codec.decodeCollect[List, MetricsRecord](MetricsRecord.codec.asDecoder, None)(bitVector)
-    val records = recordsAttempt match {
-      case Successful(DecodeResult(value, remainder)) =>
-        if (remainder.nonEmpty) {
-          logger.warn(s"Metric records file $filePath had remaining bits after decoding; is probably incomplete")
+    for(fileInputStream <- managed(new FileInputStream(f))) {
+      val bitVector = BitVector.fromMmap(fileInputStream.getChannel)
+      val recordsAttempt = Codec.decodeCollect[List, MetricsRecord](MetricsRecord.codec.asDecoder, None)(bitVector)
+      yield recordsAttempt match {
+        case Successful(DecodeResult(value, remainder)) =>
+          if (remainder.nonEmpty) {
+            logger.warn(s"Metric records file $filePath had remaining bits after decoding; is probably incomplete")
+            List.empty
+          } else {
+            value
+          }
+        case AttemptFailure(cause) =>
+          logger.error(s"Error decoding metric records: ${cause.messageWithContext}")
           List.empty
-        } else {
-          value
-        }
-      case AttemptFailure(cause) =>
-        logger.error(s"Error decoding metric records: ${cause.messageWithContext}")
-        List.empty
+      }
     }
-    fileInputStream.close()
-    records
   }
 
   override def toString: String = s"MetricConsumer{directory=$directory, metricPublisher=$metricPublisher}"
