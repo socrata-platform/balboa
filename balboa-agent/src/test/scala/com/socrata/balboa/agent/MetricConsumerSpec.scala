@@ -7,11 +7,12 @@ import com.blist.metrics.impl.queue.MetricFileQueue
 import com.socrata.balboa.metrics.Metric
 import com.socrata.metrics.{Fluff, MetricIdParts, MetricQueue}
 import com.typesafe.scalalogging.{Logger, StrictLogging}
-import org.mockito.Matchers
+import org.mockito.{ArgumentCaptor, Matchers}
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ShouldMatchers, WordSpec}
 import scodec.bits.ByteVector
 
+import scala.collection.JavaConverters._
 import scala.collection.immutable.IndexedSeq
 
 /**
@@ -138,7 +139,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
 
   private def writeMetricAsHexStringToIndexedFile(path: Path, metricAsHex: String, index: Int) = {
     val now = System.currentTimeMillis
-    val logName = s"metrics2012.$index.%016x.data".format(now)
+    val logName = s"metrics2012.%03d.%016x.data".format(index, now)
     val file = new File(path.toFile, logName)
     val fos = new FileOutputStream(file)
 
@@ -172,7 +173,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
         private val name = "6d65747269635f31"
         private val value = "31"
         private val metricType = "616767726567617465"
-        Seq(start, timestamp, separator, entityId, separator, name, separator, value, separator, metricType, separator, "")
+        Seq(start, timestamp, separator, entityId, separator, name, separator, value, separator, metricType, separator, "", "")
           .zipWithIndex
           .foldLeft("0x") { (hex, partAndIndex) =>
             val (part, idx) = partAndIndex
@@ -181,22 +182,32 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
           }
 
         private val mockLogger = mock[org.slf4j.Logger]
+
         when(mockLogger.isErrorEnabled).thenReturn(true)
         val metricConsumer = new MetricConsumer(tempDir.toFile, mockQueue) {
           override protected lazy val logger: Logger = Logger(mockLogger)
         }
         metricConsumer.run()
         metricConsumer.close()
-        verify(mockLogger, times(2))
-          .error("Error decoding metric records: 0/entityId: Does not contain a '0xfe' separator byte.")
-        verify(mockLogger, times(2))
-          .error("Error decoding metric records: 0/timestamp: Does not contain a '0xfe' separator byte.")
-        verify(mockLogger, times(2))
-          .error("Error decoding metric records: 0/name: Does not contain a '0xfe' separator byte.")
-        verify(mockLogger, times(2))
-          .error("Error decoding metric records: 0/value: Does not contain a '0xfe' separator byte.")
-        verify(mockLogger)
-          .error("Error decoding metric records: 0/metricType: Does not contain a '0xfe' separator byte.")
+
+        val strCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+        val errCaptor: ArgumentCaptor[Throwable] = ArgumentCaptor.forClass(classOf[Throwable])
+
+        verify(mockLogger, times(10)).error(strCaptor.capture(), errCaptor.capture())
+
+        val elements = Seq("timestamp", "entityId", "name", "value", "metricType")
+
+        errCaptor.getAllValues.asScala.grouped(2).zip[String](elements.iterator).foreach { case (errs, element) =>
+          errs.foreach { err =>
+            err.getMessage should
+              include(s"Error decoding metric records: 0/${element}: Does not contain a '0xfe' separator byte.")
+          }
+        }
+
+        val (broken, remaining) = tempDir.toFile.listFiles().partition(f => f.getName.contains("broken"))
+        broken.length shouldBe 10
+        remaining.length shouldBe 1
+
         verify(mockQueue)
           .create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](),
           Matchers.anyLong(), Matchers.anyLong(), Matchers.any[Metric.RecordType]())
