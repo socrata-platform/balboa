@@ -129,11 +129,11 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
   private def processFile(f: File): List[MetricsRecord] = {
     val filePath: String = f.getAbsolutePath
     logger.info(s"Processing file $filePath")
-
-    for(fileInputStream <- managed(new FileInputStream(f))) {
+    val managedFileInputStream = managed(new FileInputStream(f))
+    managedFileInputStream.map { fileInputStream =>
       val bitVector = BitVector.fromMmap(fileInputStream.getChannel)
       val recordsAttempt = Codec.decodeCollect[List, MetricsRecord](MetricsRecord.codec.asDecoder, None)(bitVector)
-      yield recordsAttempt match {
+      recordsAttempt match {
         case Successful(DecodeResult(value, remainder)) =>
           if (remainder.nonEmpty) {
             logger.warn(s"Metric records file $filePath had remaining bits after decoding; is probably incomplete")
@@ -145,6 +145,11 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
           logger.error(s"Error decoding metric records: ${cause.messageWithContext}")
           List.empty
       }
+    }.either.either match {
+      case Left(errors: Seq[Throwable]) =>
+        errors.foreach(logger.error(s"Unexpected error while processing file", _))
+        List.empty
+      case Right(v: List[MetricsRecord]) => v
     }
   }
 
