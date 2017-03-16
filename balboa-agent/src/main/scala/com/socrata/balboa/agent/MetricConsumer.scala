@@ -8,11 +8,10 @@ import com.socrata.balboa.agent.metrics.BalboaAgentMetrics
 import com.socrata.balboa.util.FileUtils
 import com.socrata.metrics.{Fluff, MetricQueue}
 import com.typesafe.scalalogging.LazyLogging
+import resource._
 import scodec.Attempt.{Successful, Failure => AttemptFailure}
 import scodec.bits.BitVector
 import scodec.{Codec, DecodeResult}
-
-import scala.util.Try
 
 /**
   * The MetricConsumer consumes metrics from data files from within a specific directory.  Any metrics extracted will
@@ -74,31 +73,31 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     // Treat each individual Metric data file as its own isolated run.
     // We are trying to prevent the failure to process one file from blocking or preventing the processing
     // of others.
-    val files: Set[File] = fileProvider.provide
+    // the "Alphabetic" file provider returns a set, which is not guaranteed to be in order.  Sorting here to avoid
+    // a larger-than-necessary refactor... for now.
+    val files: List[File] = fileProvider.provide.toList.sortBy(_.getName)
     val recordsProcessed: Int = files.foldLeft(0) { (count: Int, metricsEventLog: File) =>
       logger.info(s"Processing '${metricsEventLog.getAbsolutePath}'.")
-      val maybeRecords: Try[List[MetricsRecord]] = Try(processFile(metricsEventLog))
-      maybeRecords
-        .map { records =>
+      val recordsOrErrors = processFile(metricsEventLog)
+      val newRecordsCount = recordsOrErrors match {
+        case Left(errors) =>
+          errors.foreach(logger.error(s"Error reading records from $metricsEventLog", _))
+          BalboaAgentMetrics.metricsProcessingFailureCounter.inc()
+          val broken: File = new File(metricsEventLog.getAbsolutePath + FileUtils.BROKEN_FILE_EXTENSION)
+          if (!metricsEventLog.renameTo(broken)) {
+            logger.warn(s"Unable to rename broken file $metricsEventLog permissions issue?")
+            BalboaAgentMetrics.renameBrokenFileFailureCounter.inc()
+          }
+          0
+        case Right(records) =>
           records.foreach(publishRecord)
           if (!metricsEventLog.delete) {
             logger.error(s"Unable to delete event log $metricsEventLog - file may be read twice, which is bad.")
             BalboaAgentMetrics.deleteEventFailureCounter.inc()
           }
           records.size
-        }
-        .recover {
-          case e: Throwable =>
-            logger.error(s"Error reading records from $metricsEventLog", e)
-            BalboaAgentMetrics.metricsProcessingFailureCounter.inc()
-            val broken: File = new File(metricsEventLog.getAbsolutePath + FileUtils.BROKEN_FILE_EXTENSION)
-            if (!metricsEventLog.renameTo(broken)) {
-              logger.warn(s"Unable to rename broken file $metricsEventLog permissions issue?")
-              BalboaAgentMetrics.renameBrokenFileFailureCounter.inc()
-            }
-            0
-        }
-        .getOrElse(0) + count
+      }
+      newRecordsCount + count
     }
     val processingTime: Long = System.currentTimeMillis - start
     logger.info(s"Run completed, processed $recordsProcessed in $processingTime ms")
@@ -123,29 +122,29 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
     * pushes these metrics into the underlying metricPublisher.
     *
     * @param f File to process.
-    * @return A list of { @link MetricsRecord}s that were process.
+    * @return Either a list of { @link MetricsRecord}s that were process,
+    *         or list of unexpected errors occurred during processing
     */
-  private def processFile(f: File): List[MetricsRecord] = {
+  private def processFile(f: File): Either[Seq[Throwable], List[MetricsRecord]] = {
     val filePath: String = f.getAbsolutePath
     logger.info(s"Processing file $filePath")
+    val managedFileInputStream = managed(new FileInputStream(f))
 
-    val fileInputStream = new FileInputStream(f)
-    val bitVector = BitVector.fromMmap(fileInputStream.getChannel)
-    val recordsAttempt = Codec.decodeCollect[List, MetricsRecord](MetricsRecord.codec.asDecoder, None)(bitVector)
-    val records = recordsAttempt match {
+    managedFileInputStream.map { fileInputStream =>
+      val bitVector = BitVector.fromMmap(fileInputStream.getChannel)
+      Codec.decodeCollect[List, MetricsRecord](MetricsRecord.codec.asDecoder, None)(bitVector)
+    }.either.right.flatMap {
       case Successful(DecodeResult(value, remainder)) =>
         if (remainder.nonEmpty) {
-          logger.warn(s"Metric records file $filePath had remaining bits after decoding; is probably incomplete")
-          List.empty
+          Left(
+            Seq(new Error(s"Metric records file $filePath had remaining bits after decoding; is probably incomplete"))
+          )
         } else {
-          value
+          Right(value)
         }
       case AttemptFailure(cause) =>
-        logger.error(s"Error decoding metric records: ${cause.messageWithContext}")
-        List.empty
+        Left(Seq(new Error(s"Error decoding metric records: ${cause.messageWithContext}")))
     }
-    fileInputStream.close()
-    records
   }
 
   override def toString: String = s"MetricConsumer{directory=$directory, metricPublisher=$metricPublisher}"
