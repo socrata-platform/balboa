@@ -128,12 +128,14 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
   private def processFile(f: File): Either[Seq[Throwable], List[MetricsRecord]] = {
     val filePath: String = f.getAbsolutePath
     logger.info(s"Processing file $filePath")
-    val managedFileInputStream = managed(new FileInputStream(f))
+    val managedResource = managed(new FileInputStream(f)) flatMap { fileInputStream =>
+      managed(fileInputStream.getChannel) map { fileChannel =>
+        val bitVector = BitVector.fromMmap(fileChannel)
+        Codec.decodeCollect[List, MetricsRecord](MetricsRecord.codec.asDecoder, None)(bitVector)
+      }
+    } map identity
 
-    managedFileInputStream.map { fileInputStream =>
-      val bitVector = BitVector.fromMmap(fileInputStream.getChannel)
-      Codec.decodeCollect[List, MetricsRecord](MetricsRecord.codec.asDecoder, None)(bitVector)
-    }.either.right.flatMap {
+    managedResource.either.right.flatMap {
       case Successful(DecodeResult(value, remainder)) =>
         if (remainder.nonEmpty) {
           Left(
