@@ -1,17 +1,18 @@
 package com.socrata.balboa.agent
 
 import java.util.UUID
-import javax.jms.{Message, TextMessage, Connection, ExceptionListener, JMSException, Session}
+import javax.jms._
 
 import com.blist.metrics.impl.queue.MetricFileQueue
-import com.socrata.balboa.agent.CustomMatchers.{haveKeyValue, haveKey}
+import com.socrata.balboa.agent.CustomMatchers.{haveKey, haveKeyValue}
 import com.socrata.metrics.{Fluff, MetricIdPart}
 import org.apache.activemq.ActiveMQConnectionFactory
 import org.json4s.jackson.JsonMethods.parse
 import org.scalatest.{BeforeAndAfterAll, FlatSpec, Matchers}
 
 import scala.concurrent.duration._
-import util.Random
+import scala.io.Source
+import scala.util.Random
 
 class WriteMetricIntegrationTest extends FlatSpec with BeforeAndAfterAll with Matchers {
   val EntityName: String = s"this.is.an.entity.name.${UUID.randomUUID()}"
@@ -35,12 +36,12 @@ class WriteMetricIntegrationTest extends FlatSpec with BeforeAndAfterAll with Ma
     connection.stop()
   }
 
-  "Writing a metric" should "forward on" in {
+  def withConsumer(testCode: MessageConsumer => Any): Unit = {
     // Read from the ActiveMQ queue where the running balboa-agent should have
     // written the metric.
     val session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
     val destination = session.createQueue(IntegrationTestConfig.activemqQueue)
-    val consumer = session.createConsumer(destination)
+    val consumer: MessageConsumer = session.createConsumer(destination)
     // Before beginning, clear the queue of any existing messages.
     var message: Message = null
     do {
@@ -48,19 +49,19 @@ class WriteMetricIntegrationTest extends FlatSpec with BeforeAndAfterAll with Ma
       if (message != null) message.acknowledge()
     } while (message != null)
 
+    try {
+      testCode(consumer)
+    }
+    finally {
+      consumer.close()
+      session.close()
+    }
+  }
 
-    val metricName = s"metric.name.${UUID.randomUUID()}"
-    val metricValue = Random.nextInt()
+  "Writing a metric" should "forward on" in withConsumer { consumer =>
+    val (metricName, metricValue) = createRandomMetric
 
-    // Write a metric to where the running balboa-agent instance can see it.
-    val metricFileQueue = new MetricFileQueue(IntegrationTestConfig.metricDirectory)
-    metricFileQueue.create(new MetricIdPart(EntityName), Fluff(metricName), metricValue)
-    // Close the metric stream will cause the output file to be marked as
-    // completed. balboa-agent won't start consuming metrics from a file until
-    // it is marked as completed, meaning nothing more will be appended.
-    metricFileQueue.close()
-
-    message = consumer.receive(25.second.toMillis)
+    val message = consumer.receive(25.second.toMillis)
     message should not be null
     message.acknowledge()
 
@@ -74,4 +75,36 @@ class WriteMetricIntegrationTest extends FlatSpec with BeforeAndAfterAll with Ma
     valueBody should haveKeyValue("value", metricValue)
   }
 
+  it should "clean up file descriptors" in withConsumer { consumer =>
+    val pid = IntegrationTestConfig.agentPid
+    def numMetricFileDescriptors = {
+      val proc = Runtime.getRuntime.exec(s"lsof -p $pid")
+      Source.fromInputStream(proc.getInputStream)
+        .getLines()
+        .filter(p => p.contains("metrics2012"))
+        .toSeq
+        .length
+    }
+
+    val startFileDescriptorNum = numMetricFileDescriptors
+
+    createRandomMetric
+
+    val message = consumer.receive(25.second.toMillis)
+    message should not be null
+    message.acknowledge()
+
+    val endFileDescriptorNum = numMetricFileDescriptors
+    endFileDescriptorNum should equal(startFileDescriptorNum)
+  }
+
+  private def createRandomMetric = {
+    val metricName = s"metric.name.${UUID.randomUUID()}"
+    val metricValue = Random.nextInt()
+
+    val metricFileQueue = new MetricFileQueue(IntegrationTestConfig.metricDirectory)
+    metricFileQueue.create(new MetricIdPart(EntityName), Fluff(metricName), metricValue)
+    metricFileQueue.close()
+    (metricName, metricValue)
+  }
 }

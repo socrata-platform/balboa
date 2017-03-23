@@ -165,7 +165,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
     }
     "the root file has corrupt files" should {
       "logs errors and emits no metrics" in new MockQueue {
-        private val tempDir = Files.createTempDirectory("metrics")
+        private val tempDir = Files.createTempDirectory("metrics-codec-spec")
         private val start = "ff"
         private val separator = "fe"
         private val timestamp = "31343834323636343534333034"
