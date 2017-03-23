@@ -128,14 +128,15 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
   private def processFile(f: File): Either[Seq[Throwable], List[MetricsRecord]] = {
     val filePath: String = f.getAbsolutePath
     logger.info(s"Processing file $filePath")
-    val managedResource = managed(new FileInputStream(f)) flatMap { fileInputStream =>
-      managed(fileInputStream.getChannel) map { fileChannel =>
-        val bitVector = BitVector.fromMmap(fileChannel)
-        Codec.decodeCollect[List, MetricsRecord](MetricsRecord.codec.asDecoder, None)(bitVector)
-      }
-    } map identity
+    val managedResource = (for {
+      fileInputStream <- managed(new FileInputStream(f))
+      fileChannel <- managed(fileInputStream.getChannel)
+    } yield {
+      val bitVector = BitVector.fromMmap(fileChannel)
+      Codec.decodeCollect[List, MetricsRecord](MetricsRecord.codec.asDecoder, None)(bitVector)
+    }).map(identity) // converts to extractable managed resource
 
-    managedResource.either.right.flatMap {
+    val result = managedResource.either.right.flatMap {
       case Successful(DecodeResult(value, remainder)) =>
         if (remainder.nonEmpty) {
           Left(
@@ -147,6 +148,8 @@ class MetricConsumer(val directory: File, val metricPublisher: MetricQueue, val 
       case AttemptFailure(cause) =>
         Left(Seq(new Error(s"Error decoding metric records: ${cause.messageWithContext}")))
     }
+
+    result
   }
 
   override def toString: String = s"MetricConsumer{directory=$directory, metricPublisher=$metricPublisher}"
