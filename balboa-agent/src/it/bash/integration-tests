@@ -5,10 +5,7 @@ BALBOA_AGENT_PID=0
 function cleanUp() {
     if [[ $BALBOA_AGENT_PID -gt 0 ]]; then
         echo "Stopping the balboa-agent."
-        # The balboa-agent is running with sbt, so balboa-agent itself is
-        # actually running as a child of sbt. Once you kill the child, the
-        # parent process will naturally exit.
-        kill $(ps -eo ppid,pid | grep "^$BALBOA_AGENT_PID" | cut -d' ' -f2)
+        kill $BALBOA_AGENT_PID
     fi
 
     # Remove the ActiveMQ queue created by these tests.
@@ -74,7 +71,7 @@ fi
 # service using sbt in the background to try to execute integration tests
 # faster.
 sbt balboa-agent/run >& $SERVICE_LOG &
-BALBOA_AGENT_PID=$!
+SBT_PID=$!
 
 echo -n "Waiting for balboa-agent to start."
 i=0
@@ -91,6 +88,10 @@ while ! grep "Connected to ActiveMQ broker" $SERVICE_LOG >& /dev/null ; do
 done
 echo
 echo "balboa-agent service is started."
+# The balboa-agent is running with sbt, so balboa-agent itself is
+# actually running as a child of sbt.
+export BALBOA_AGENT_PID="$(ps -eo ppid,pid | grep "^${SBT_PID}" | cut -d' ' -f2)"
+echo "Balboa agent PID = ${BALBOA_AGENT_PID}"
 
 # The integration tests will use these environment variables for configuration:
 #     METRIC_DIRECTORY
