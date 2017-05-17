@@ -13,6 +13,7 @@ ENV BALBOA_LOG4J log4j.properties
 
 # Default Values
 ENV JAVA_XMX 1024m
+ENV JAVA_MAX_METASPACE_SIZE 30m
 
 RUN mkdir ${SERVICE_DIR}
 
