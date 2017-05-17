@@ -11,6 +11,8 @@ exec su socrata -c '/usr/bin/java \
     -Dloglevel=${LOG_LEVEL} \
     -Xmx${JAVA_XMX} \
     -Xms${JAVA_XMX} \
+    -XX:MaxMetaspaceSize=${JAVA_MAX_METASPACE_SIZE} \
+    -Xmn${JAVA_XMX} \
     -Dbalboa.config=${BALBOA_CONFIG} \
     -Dlog4j.configuration=${BALBOA_LOG4J} \
     -jar $BALBOA_ARTIFACT $BALBOA_PORT'
