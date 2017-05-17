@@ -10,6 +10,7 @@ ENV BALBOA_ARTIFACT balboa-service-jms-assembly.jar
 
 # Default Values
 ENV JAVA_XMX 1024m
+ENV JAVA_MAX_METASPACE_SIZE 64m
 
 WORKDIR $BALBOA_ROOT
 
