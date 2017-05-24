@@ -31,7 +31,7 @@
 
 scalaVersion := "2.11.8"
 
-maintainer := "Socrata Mission Control Team, mission-control-l@socrata.com"
+maintainer := "Socrata Mission Control Team <mission-control-l@socrata.com>"
 
 packageSummary := "Balboa"
 
