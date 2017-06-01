@@ -55,6 +55,7 @@ public class MetricsBuffer {
         if (internalBuffer.containsKey(bufferKey)) {
             log.debug("Buffer already contains \"{}\".  Merging with existing value set of metrics.", notBuffered);
             MetricsBucket buffered = internalBuffer.get(bufferKey);
+            //When we returned a copy of the data, this merge does nothing. The state is completely thrown away.
             buffered.getData().merge(notBuffered.getData());
         } else {
             log.debug("Adding new entry: \"{}\" to the write internalBuffer", notBuffered);
