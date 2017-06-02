@@ -46,7 +46,7 @@ public class MetricJmsQueue extends AbstractJavaMetricQueue {
         this.bufferCapacity = bufferCapacity;
     }
 
-    private void flushWriteBuffer() {
+    public void flushWriteBuffer() {
         Collection<MetricsBucket> buckets = writeBuffer.popAll(); // Remove and empty
         log.info("Flushing the write buffer of all {} metric buckets.", buckets.size());
         for (MetricsBucket bucket : buckets) {

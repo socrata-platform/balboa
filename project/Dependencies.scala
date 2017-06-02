@@ -20,7 +20,7 @@ object Dependencies {
     val junit = "4.5"
     val jopt_simple = "4.8"
     val log4j = "1.2.17"
-    val mockito = "1.+"
+    val mockito = "2.2.+"
     val newman = "1.3.12"
     val opencsv = "2.0.1"
     val protobuf_java = "2.3.0"

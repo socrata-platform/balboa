@@ -4,11 +4,12 @@ import com.socrata.balboa.metrics.Message;
 import com.socrata.balboa.metrics.Metrics;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.json4s.jackson.Json;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class JsonMessage extends Message
+/*public class JsonMessage extends Message
 {
     public JsonMessage()
     {
@@ -72,4 +73,22 @@ public class JsonMessage extends Message
             return "JsonMessage{}";
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof JsonMessage) {
+            JsonMessage other = (JsonMessage) o;
+
+            return  (other.getEntityId() == this.getEntityId() ||
+                    (other.getEntityId() != null &&
+                    other.getEntityId().equals(this.getEntityId()))) &&
+                    (other.getEntityId() == this.getEntityId() ||
+                            (other.getEntityId() != null &&
+                    other.getMetrics().equals(this.getMetrics()))) &&
+                    other.getTimestamp() == this.getTimestamp();
+        }
+
+        return false;
+    }
 }
+*/
