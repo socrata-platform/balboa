@@ -6,19 +6,12 @@ import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.balboa.metrics.impl.JsonMessage
 import com.socrata.metrics.{Fluff, MetricQueue}
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
+import org.scalatest.{Matchers, WordSpec}
 import org.mockito.Mockito._
 
 import scala.collection.immutable.IndexedSeq
 
-class MetricJmsQueueSpec extends WordSpec with Matchers with BeforeAndAfterEach with MockitoSugar {
-
-  override protected def beforeEach(): Unit = {
-
-  }
-
-  override protected def afterEach(): Unit = {
-  }
+class MetricJmsQueueSpec extends WordSpec with Matchers with MockitoSugar {
 
   trait QueueSetup {
     val mockQueue: Queue = mock[Queue]
@@ -34,16 +27,18 @@ class MetricJmsQueueSpec extends WordSpec with Matchers with BeforeAndAfterEach 
 
     when(mockConnection.createSession(false, Session.AUTO_ACKNOWLEDGE)).thenReturn(mockSession)
 
-    val testMetrics: IndexedSeq[(Long, String, String, Int, Metric.RecordType)] = IndexedSeq(
-      (1496268557542l, "3", "num-metadata-completed", 21,  Metric.RecordType.ABSOLUTE),
+    case class MetricRecord(timestamp: Long, entityId: String, name: String, value: Long, recordType: Metric.RecordType)
+
+    val testMetrics: IndexedSeq[MetricRecord] = IndexedSeq(
+      MetricRecord(1496268557542l, "3", "num-metadata-completed", 21,  Metric.RecordType.ABSOLUTE),
       (1496268557542l, "3", "num-metadata-available", 114,  Metric.RecordType.ABSOLUTE),
       (1496268557542l, "1", "num-metadata-completed", 5339,  Metric.RecordType.ABSOLUTE),
       (1496268557542l, "1", "num-metadata-available", 20916,  Metric.RecordType.ABSOLUTE),
       (1496268557542l, "14", "num-metadata-completed", 41,  Metric.RecordType.ABSOLUTE),
       (1496268557542l, "14", "num-metadata-available", 270,  Metric.RecordType.ABSOLUTE),
-      (1496268557542l, "5", "num-metadata-completed", 23,  Metric.RecordType.ABSOLUTE),
       (1496268557542l, "5", "num-metadata-available", 90,  Metric.RecordType.ABSOLUTE),
       (1496268557542l, "7", "num-metadata-completed", 408,  Metric.RecordType.ABSOLUTE),
+      (1496268557542l, "5", "num-metadata-completed", 23,  Metric.RecordType.ABSOLUTE),
       (1496268557542l, "7", "num-metadata-available", 1422,  Metric.RecordType.ABSOLUTE),
       (1496268557542l, "8", "num-metadata-completed", 0,  Metric.RecordType.ABSOLUTE),
       (1496268557542l, "8", "num-metadata-available", 0,  Metric.RecordType.ABSOLUTE),
@@ -370,21 +365,31 @@ class MetricJmsQueueSpec extends WordSpec with Matchers with BeforeAndAfterEach 
         queue.create(Fluff(r._2), Fluff(r._3), r._4, r._1, r._5)
       } )
 
-      testMetrics.foreach( r => {
-        val metric = new Metric()
-        metric.setValue(r._4)
-        metric.setType(r._5)
-        val metrics = new Metrics()
-        metrics.put(r._3, metric)
+      val bucketedMetrics = testMetrics.foldLeft(Map.empty[(Long,String),Metrics])((accum, metric) => {
+        accum.get((metric._1, metric._2)) match {
+          case Some(metrics: Metrics) => {
+            val metricObj = new Metric()
+            metricObj.setValue(metric._4)
+            metricObj.setType(metric._5)
+            accum ++ Map[(Long,String), Metrics]((metric._1,metric._2) -> {
+              metrics.put(metric._3, metricObj)
+              new Metrics(metrics)
+            })
+          }
+          case None => Map.empty
+        }
+      })
+
+      bucketedMetrics.foreach( (bucket) => {
+        val (identifier, metrics) = bucket
+        val (timestamp, entityId) = identifier
         val msg = new JsonMessage
-        msg.setEntityId(r._2)
+        msg.setEntityId(entityId)
         msg.setMetrics(metrics)
-        msg.setTimestamp(1496268480000l)
+        msg.setTimestamp(timestamp)
         val bytes = msg.serialize
         verify(mockSession).createTextMessage(new String(bytes))
       })
-
-
     }
   }
 }
