@@ -22,7 +22,7 @@ class MetricJmsQueueSpec extends WordSpec with Matchers with MockitoSugar {
       println(s"Expected: ${expected}")
       println(parsedMessage.getMetrics == expected.getMetrics)
       println(JsonMessage(argument).equals(expected))
-      parsedMessage.getMetrics == expected.getMetrics && JsonMessage(argument).equals(expected)
+      parsedMessage.getMetrics == expected.getMetrics && JsonMessage(argument) == expected
     }
   }
 
