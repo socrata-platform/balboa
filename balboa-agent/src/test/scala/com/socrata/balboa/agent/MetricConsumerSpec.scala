@@ -7,7 +7,8 @@ import com.blist.metrics.impl.queue.MetricFileQueue
 import com.socrata.balboa.metrics.Metric
 import com.socrata.metrics.{Fluff, MetricIdParts, MetricQueue}
 import com.typesafe.scalalogging.{Logger, StrictLogging}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.{ArgumentCaptor}
+import org.mockito.ArgumentMatchers._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ShouldMatchers, WordSpec}
 import scodec.bits.ByteVector
@@ -107,11 +108,12 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
   private def testNeverEmitMetrics(metricConsumer: MetricConsumer, mockQueue: MetricQueue): Unit = {
     metricConsumer.run()
     metricConsumer.close()
-    verify(mockQueue, never()).create(Matchers.any[MetricIdParts](),
-      Matchers.any[MetricIdParts](),
-      Matchers.anyLong(),
-      Matchers.anyLong(),
-      Matchers.any[Metric.RecordType]())
+    verify(mockQueue, never()).create(
+      any[MetricIdParts](),
+      any[MetricIdParts](),
+      anyLong(),
+      anyLong(),
+      any[Metric.RecordType]())
   }
 
   /**
@@ -247,15 +249,15 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
         remaining.length shouldBe 1
 
         verify(mockQueue)
-          .create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](),
-          Matchers.anyLong(), Matchers.anyLong(), Matchers.any[Metric.RecordType]())
+          .create(any[MetricIdParts](), any[MetricIdParts](),
+          anyLong(), anyLong(), any[Metric.RecordType]())
       }
     }
     "there is a single root directory" when {
       "there is no metrics data" should {
         "emit no metrics" in new OneRootDirectory {
-          verify(mockQueue, never()).create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](),
-            Matchers.anyLong(), Matchers.anyLong(), Matchers.any[Metric.RecordType]())
+          verify(mockQueue, never()).create(any[MetricIdParts](), any[MetricIdParts](),
+            anyLong(), anyLong(), any[Metric.RecordType]())
         }
       }
       "there is 1 metrics data file" should {
@@ -279,8 +281,10 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
 
       "it successfully reads in all the metrics from the file" should {
         "emit all of them" in new OneRootDirectory with MetadataTestMetrics {
-          def slurp(resource: String) = {
-            val bis = new BufferedInputStream(new FileInputStream(getClass.getResource(resource).getFile))
+          def slurp(resourceName: String) = {
+            val resource = getClass.getClassLoader.getResource(resourceName)
+            val file = resource.getFile
+            val bis = new BufferedInputStream(new FileInputStream(file))
             try Stream.continually(bis.read).takeWhile(-1 !=).map(_.toByte).toArray
             finally bis.close()
           }
