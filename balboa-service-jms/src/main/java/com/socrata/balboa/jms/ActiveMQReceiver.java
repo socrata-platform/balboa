@@ -110,7 +110,7 @@ public class ActiveMQReceiver implements WatchDog.WatchDogListener
                 TextMessage text = (TextMessage)payload;
                 messageText = text.getText();
 
-                JsonMessage message = new JsonMessage(messageText);
+                JsonMessage message = JsonMessage.apply(messageText);
 
                 ds.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
 
