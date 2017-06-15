@@ -42,11 +42,7 @@ public class MetricsBucket {
      * @return The metrics data
      */
     public Metrics getData() {
-        // !! DEV NOTES: We sacrifice performance gains of returning a reference to the underlying data structure for
-        // !! maintainability and preserving the immutable data structure model.
-        // !! This was a design choice that was deemed appropriate because this Class is not meant to be on any
-        // !! code path optimized for time.
-        return this.data;
+        return data;
     }
 
     /**
@@ -88,6 +84,4 @@ public class MetricsBucket {
         result = 31 * result + id.hashCode();
         return result;
     }
-
-
 }

@@ -27,6 +27,8 @@ with TestMessageQueueComponent with BeforeAndAfterEach {
     val met3 = new Metrics()
     val met4 = new Metrics()
     val met5 = new Metrics()
+    val met6 = new Metrics()
+    val met7 = new Metrics()
 
     met1.put("num_kitties", new Metric(agg, -1))
     met1.put("num_kiddies", new Metric(agg, 1))
@@ -45,6 +47,17 @@ with TestMessageQueueComponent with BeforeAndAfterEach {
     met5.put("num_kaleidoscopes", new Metric(abs, 0))
     met5.put("num_kazoos", new Metric(abs, 2))
     met5.put("num_kangaroos", new Metric(abs, 0))
+
+    met6.put("num_kitties", new Metric(agg, 4))
+    met6.put("num_kaleidoscopes", new Metric(abs, 0))
+    met6.put("num_kazoos", new Metric(abs, 2))
+    met6.put("num_kangaroos", new Metric(abs, 0))
+
+    met7.put("num_kiddies", new Metric(agg, 1))
+    met7.put("num_kitties", new Metric(agg, 6))
+    met7.put("num_kaleidoscopes", new Metric(abs, 0))
+    met7.put("num_kazoos", new Metric(abs, 2))
+    met7.put("num_kangaroos", new Metric(abs, 0))
   }
 
   trait FullBufferSetup extends BufferSetup {
@@ -117,6 +130,19 @@ with TestMessageQueueComponent with BeforeAndAfterEach {
       val itemOk = bufferItem match {
         case None => false
         case Some(b) => b.entityId == entId && equivalentMetrics(b.metrics, met3) && b.timestamp == testBuffer.timeBoundary(time3)
+      }
+      itemOk should be (true)
+      testBuffer.bufferMap.size should be (3)
+    }
+
+    "update buffer with multiple different metrics in different bufferItems" in new FullBufferSetup {
+      val entId = "marc"
+      val time3 = 1L + granularity/4
+      testBuffer.add(new BufferItem(entId, met6, time3))
+      val bufferItem = testBuffer.bufferMap.get(entId + ":" + testBuffer.timeBoundary(time3))
+      val itemOk = bufferItem match {
+        case None => false
+        case Some(b) => b.entityId == entId && equivalentMetrics(b.metrics, met7) && b.timestamp == testBuffer.timeBoundary(time3)
       }
       itemOk should be (true)
       testBuffer.bufferMap.size should be (3)

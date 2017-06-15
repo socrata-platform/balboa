@@ -47,7 +47,7 @@ public class MetricsBuffer {
      * @param timestamp The timestamp these metrics occured.
      */
     synchronized void add(String entityId, Metrics data, long timestamp) {
-        long nearestSlice = timestamp - (timestamp %  MetricQueue$.MODULE$.AGGREGATE_GRANULARITY());
+        long nearestSlice = nearestSlice(timestamp);
         String bufferKey = entityId + ":" + nearestSlice;
         MetricsBucket notBuffered = new MetricsBucket(entityId, data, nearestSlice);
 
@@ -61,6 +61,10 @@ public class MetricsBuffer {
             log.debug("Adding new entry: \"{}\" to the write internalBuffer", notBuffered);
             internalBuffer.put(bufferKey, notBuffered);
         }
+    }
+
+    public long nearestSlice(Long timestamp) {
+        return timestamp - (timestamp % MetricQueue$.MODULE$.AGGREGATE_GRANULARITY());
     }
 
     /**

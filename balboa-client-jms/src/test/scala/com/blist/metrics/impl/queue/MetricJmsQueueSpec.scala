@@ -18,12 +18,10 @@ class MetricJmsQueueSpec extends WordSpec with Matchers with MockitoSugar {
   class JsonMessageMatcher(expected: JsonMessage) extends ArgumentMatcher[String] {
     def matches(argument: String): Boolean = {
       val parsedMessage = JsonMessage(argument)
-      println(s"Parsed ${parsedMessage}")
-      println(s"Expected: ${expected}")
-      println(parsedMessage.getMetrics == expected.getMetrics)
-      println(JsonMessage(argument).equals(expected))
-      parsedMessage.getMetrics == expected.getMetrics && JsonMessage(argument) == expected
+      parsedMessage.getMetrics.equals(expected.getMetrics) && JsonMessage(argument) == expected
     }
+
+    override def toString: String = s"""\"${expected}\"""""
   }
 
   trait AllAbsoluteQueueSetup extends QueueSetup {
@@ -98,7 +96,7 @@ class MetricJmsQueueSpec extends WordSpec with Matchers with MockitoSugar {
               case Metric.RecordType.ABSOLUTE => metric.value
               case Metric.RecordType.AGGREGATE => {
                 val storedValue: Number = metrics.getOrDefault(metric.name, metricWithZeroValue).getValue
-                storedValue.longValue + metric.value.longValue
+                storedValue.intValue + metric.value.intValue
               }
               case _ => 0
             }
@@ -129,19 +127,16 @@ class MetricJmsQueueSpec extends WordSpec with Matchers with MockitoSugar {
       lazy val queue = new MetricJmsQueue(mockConnection, "not-a-real-queue", 20000)
 
       testMetrics.foreach(r => {
-        println(s"Inserting $r")
         queue.create(Fluff(r.entityId), Fluff(r.name), r.value.longValue, r.timestamp, r.recordType)
       })
 
       queue.flushWriteBuffer()
 
 
-      Seq((1496268480000l,"3"),(1496268480000l,"1"),(1496268480000l,"14")).foreach((bucketId) => {
+      Seq((1496268480000l,"14"),(1496268480000l,"3"),(1496268480000l,"1")).foreach((bucketId) => {
         val (timestamp, entityId) = bucketId
         bucketedMetrics.get((timestamp, entityId)) match {
           case Some(metrics) => {
-            println(s"$bucketId $metrics")
-
             val msg = new JsonMessage
             msg.setEntityId(entityId)
             msg.setMetrics(metrics)
