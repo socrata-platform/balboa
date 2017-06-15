@@ -7,13 +7,12 @@ import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.metrics.{DomainId, MetricIdParts, UserUid, ViewUid}
 import com.stackmob.newman.{ApacheHttpClient, Headers, RawBody}
 import com.typesafe.scalalogging.StrictLogging
-import org.mockito.ArgumentCaptor
-import org.scalatest.{BeforeAndAfterEach, ShouldMatchers, WordSpec}
-import org.mockito.Mockito._
-import org.mockito.Matchers._
-import org.scalatest.mock.MockitoSugar
 import org.json4s._
 import org.json4s.jackson.JsonMethods.{parse, pretty, render}
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito._
+import org.scalatest.mock.MockitoSugar
+import org.scalatest.{BeforeAndAfterEach, ShouldMatchers, WordSpec}
 
 import scala.concurrent.duration._
 import scala.util.Try

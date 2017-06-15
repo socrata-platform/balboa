@@ -1,7 +1,7 @@
 package com.socrata.balboa.agent
 
-import java.io.{BufferedOutputStream, File, FileOutputStream}
-import java.nio.file.{Files, Path, Paths}
+import java.io._
+import java.nio.file.{Files, Path}
 
 import com.blist.metrics.impl.queue.MetricFileQueue
 import com.socrata.balboa.metrics.Metric
@@ -279,7 +279,13 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
 
       "it successfully reads in all the metrics from the file" should {
         "emit all of them" in new OneRootDirectory with MetadataTestMetrics {
-          val byteArray = Files.readAllBytes(Paths.get("/Users/andrew.gall/Developer/Socrata/balboa/metrics2012.0000015c608e4eff.data"))
+          def slurp(resource: String) = {
+            val bis = new BufferedInputStream(new FileInputStream(getClass.getResource(resource).getFile))
+            try Stream.continually(bis.read).takeWhile(-1 !=).map(_.toByte).toArray
+            finally bis.close()
+          }
+
+          val byteArray = slurp("metrics2012.0000015c608e4eff.data")
 
           testEmitsMetrics(metricConsumer, mockQueue, testMetrics, rootMetricsDir.toFile, byteArray, 1 )
         }
