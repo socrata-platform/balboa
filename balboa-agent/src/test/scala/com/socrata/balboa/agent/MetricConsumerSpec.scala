@@ -285,13 +285,17 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
             val resource = getClass.getClassLoader.getResource(resourceName)
             val file = resource.getFile
             val bis = new BufferedInputStream(new FileInputStream(file))
-            try Stream.continually(bis.read).takeWhile(-1 !=).map(_.toByte).toArray
-            finally bis.close()
+            try {
+              val stream = Stream.continually(bis.read).takeWhile(-1 !=)
+              stream.map(_.toByte).toArray
+            } finally {
+              bis.close()
+            }
           }
 
           val byteArray = slurp("metrics2012.0000015c608e4eff.data")
 
-          testEmitsMetrics(metricConsumer, mockQueue, testMetrics, rootMetricsDir.toFile, byteArray, 1 )
+          testEmitsMetrics(metricConsumer, mockQueue, testMetrics, rootMetricsDir.toFile, byteArray, 1)
         }
 
       }

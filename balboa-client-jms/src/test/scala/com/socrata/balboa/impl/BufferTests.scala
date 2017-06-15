@@ -142,7 +142,12 @@ with TestMessageQueueComponent with BeforeAndAfterEach {
       val bufferItem = testBuffer.bufferMap.get(entId + ":" + testBuffer.timeBoundary(time3))
       val itemOk = bufferItem match {
         case None => false
-        case Some(b) => b.entityId == entId && equivalentMetrics(b.metrics, met7) && b.timestamp == testBuffer.timeBoundary(time3)
+        case Some(b) => {
+          val idsEqual = b.entityId == entId
+          val metricsEquivalent = equivalentMetrics(b.metrics, met7)
+          val sameTimeslice = b.timestamp == testBuffer.timeBoundary(time3)
+          idsEqual && metricsEquivalent && sameTimeslice
+        }
       }
       itemOk should be (true)
       testBuffer.bufferMap.size should be (3)
@@ -163,6 +168,6 @@ with TestMessageQueueComponent with BeforeAndAfterEach {
   def equivalentMetrics(metrics1:Metrics, metrics2:Metrics) = {
     val keys1 = metrics1.keySet().asScala
     val keys2 = metrics2.keySet().asScala
-    keys1.equals(keys2) && keys1.filter(k => !Option(metrics1.get(k)).equals(Option(metrics1.get(k)))).size == 0
+    keys1.equals(keys2) && keys1.filterNot(k => Option(metrics1.get(k)).equals(Option(metrics1.get(k)))).size == 0
   }
 }

@@ -4,7 +4,7 @@ import com.blist.metrics.impl.queue.MetricsBufferSpecSetup.EmptyMetrics
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.{Metric, Metrics}
 import com.socrata.metrics.MetricQueue
-import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
+import org.scalatest.{Matchers, WordSpec}
 
 import scala.collection.JavaConverters._
 
@@ -21,12 +21,7 @@ object MetricsBufferSpecSetup {
 
 }
 
-/**
-  * Tests for [[MetricsBuffer]].
-  *
-  * Created by michaelhotan on 2/1/16.
-  */
-class MetricsBufferSpec extends WordSpec with Matchers with BeforeAndAfterEach {
+class MetricsBufferSpec extends WordSpec with Matchers {
 
   "A MetricsBuffer" should {
 
@@ -93,9 +88,7 @@ class MetricsBufferSpec extends WordSpec with Matchers with BeforeAndAfterEach {
     val expected : Seq[MetricsBucket]
 
     def insert() = {
-      toInsert.foreach( (tuple) => {
-        (testBuffer.add _).tupled(tuple)
-      })
+      toInsert.foreach { case((id, metric, time)) => testBuffer.add(id, metric, time) }
     }
 
     lazy val buckets: Seq[MetricsBucket] = testBuffer.popAll().asScala.toSeq
@@ -212,11 +205,11 @@ class MetricsBufferSpec extends WordSpec with Matchers with BeforeAndAfterEach {
     }
   }
 
-  def equivalentMetrics(metrics1:Metrics, metrics2:Metrics) : Boolean = {
+  def equivalentMetrics(metrics1: Metrics, metrics2: Metrics) : Boolean = {
     val keys1 = metrics1.keySet().asScala
     val keys2 = metrics2.keySet().asScala
-    keys1.equals(keys2) && keys1.filter(k => {
-      !Option(metrics1.get(k)).equals(Option(metrics1.get(k)))
+    keys1.equals(keys2) && keys1.filterNot(k => {
+      Option(metrics1.get(k)).equals(Option(metrics1.get(k)))
     }).size == 0
   }
 }
