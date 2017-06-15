@@ -1,7 +1,7 @@
 package com.socrata.balboa.agent
 
-import java.io.{File, FileOutputStream}
-import java.nio.file.{Files, Path}
+import java.io.{BufferedOutputStream, File, FileOutputStream}
+import java.nio.file.{Files, Path, Paths}
 
 import com.blist.metrics.impl.queue.MetricFileQueue
 import com.socrata.balboa.metrics.Metric
@@ -38,6 +38,15 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
     val testMetrics: IndexedSeq[MetricsRecord] = (1 to 10) map (i =>
       MetricsRecord(time + i, s"entity_id_$i", s"metric_$i", i, Metric.RecordType.AGGREGATE)
       )
+  }
+
+  trait MetadataTestMetrics {
+    val testMetrics: IndexedSeq[MetricsRecord] = IndexedSeq(
+      MetricsRecord(1496268557542l, "3", "num-metadata-completed", 21, Metric.RecordType.ABSOLUTE),
+      MetricsRecord(1496268557542l, "3", "num-metadata-available", 114, Metric.RecordType.ABSOLUTE),
+      MetricsRecord(1496268557542l, "1", "num-metadata-completed", 5339, Metric.RecordType.ABSOLUTE),
+      MetricsRecord(1496268557542l, "1", "num-metadata-available", 20916, Metric.RecordType.ABSOLUTE)
+    )
   }
 
   trait MockQueue {
@@ -127,6 +136,35 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
     metricConsumer.close()
     // For every metric written to disk, all but the metrics in youngest file should be processed.
     metrics.foreach(m => {
+      verify(mockQueue, times(numTimesMetricEmitted)).create(
+        Fluff(m.entityId),
+        Fluff(m.name),
+        m.value.longValue(),
+        m.timestamp,
+        m.metricType
+      )
+    })
+  }
+
+  private def testEmitsMetrics(metricConsumer: MetricConsumer,
+                               mockQueue: MetricQueue,
+                               expectedMetrics: Seq[MetricsRecord],
+                               directoryToCreateFileIn: File,
+                               rawMetricsData: Array[Byte],
+                               numTimesMetricEmitted: Int): Unit = {
+
+    directoryToCreateFileIn.mkdirs
+
+    val now = System.currentTimeMillis
+    val file = s"metrics2012.${now}.data.COMPLETED"
+    val stream = new BufferedOutputStream(new FileOutputStream(new File(directoryToCreateFileIn,file), true))
+    stream.write(rawMetricsData)
+    stream.close()
+
+    metricConsumer.run()
+    metricConsumer.close()
+    // For every metric written to disk, all but the metrics in youngest file should be processed.
+    expectedMetrics.foreach(m => {
       verify(mockQueue, times(numTimesMetricEmitted)).create(
         Fluff(m.entityId),
         Fluff(m.name),
@@ -238,6 +276,15 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
             fileQueues(rootMetricsDir).size - 1)
         }
       }
+
+      "it successfully reads in all the metrics from the file" should {
+        "emit all of them" in new OneRootDirectory with MetadataTestMetrics {
+          val byteArray = Files.readAllBytes(Paths.get("/Users/andrew.gall/Developer/Socrata/balboa/metrics2012.0000015c608e4eff.data"))
+
+          testEmitsMetrics(metricConsumer, mockQueue, testMetrics, rootMetricsDir.toFile, byteArray, 1 )
+        }
+
+      }
     }
     "there are multiple subdirectories" when {
       "there are no metrics data files" should {
@@ -250,6 +297,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
           testNeverEmitMetrics(metricConsumer, mockQueue)
         }
       }
+
       "there are multiple metrics data files in one directory" should {
         "process a single directory" in new MultipleRootDirectories with TestMetrics {
           val fullDirPath: Path = fileQueues.head._1

@@ -48,7 +48,7 @@ public class Metric {
     public boolean equals(Object o) {
         if (o instanceof Metric) {
             Metric other = (Metric) o;
-            return other.type == type && other.value.equals(value);
+            return other.type.equals(type) && other.value.equals(value);
         } else {
             return false;
         }
