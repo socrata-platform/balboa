@@ -5,7 +5,7 @@ import com.socrata.balboa.metrics.data.{DataStore, DataStoreFactory}
 import org.scalatest.{FlatSpec, Matchers}
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
-import org.mockito.Matchers.{eq => eqTo}
+import org.mockito.ArgumentMatchers.{eq => eqTo}
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.JavaConverters._

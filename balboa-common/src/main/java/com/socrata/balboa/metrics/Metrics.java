@@ -81,7 +81,7 @@ public class Metrics extends HashMap<String, Metric> {
      *
      * @param other Other Metrics to combine with this.
      */
-    public void merge(Metrics other) {
+    public Metrics merge(Metrics other) {
         // Get the union of the two key sets.
         Set<String> unionKeys = new HashSet<>(keySet());
         unionKeys.addAll(other.keySet());
@@ -94,6 +94,8 @@ public class Metrics extends HashMap<String, Metric> {
                 put(key, other.get(key));
             }
         }
+
+        return this;
     }
 
     public static Metrics summarize(scala.collection.Iterator<Metrics> metricsIterator) throws IOException {
