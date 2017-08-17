@@ -7,11 +7,13 @@ import java.{util => ju}
 
 import com.datastax.driver.core._
 import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryPolicy, LoggingRetryPolicy}
+import com.datastax.driver.core.querybuilder.QueryBuilder
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.data.{DateRange, Period}
 import com.socrata.balboa.metrics.{Metrics, Timeslice}
 import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.StrictLogging
+import scala.collection.JavaConverters._
 
 import scala.{collection => sc}
 
@@ -27,6 +29,17 @@ object CassandraUtil extends StrictLogging {
   case class DatastaxContext(cluster: Cluster, _keyspace: String) {
 
     private var session: Option[Session] = None
+
+    def truncateAll(): Unit = {
+      val tables: Iterable[TableMetadata] = cluster.getMetadata.getKeyspace(keyspace).getTables.asScala
+      tables.foreach((table: TableMetadata) => {
+        truncate(table.getName)
+      })
+    }
+
+    def truncate(table: String): Unit = {
+      getSession.execute(QueryBuilder.truncate(keyspace, table))
+    }
 
     def keyspace: String = {
       // Mixed case names are automatically lower cased somewhere along the
@@ -127,6 +140,13 @@ object CassandraUtil extends StrictLogging {
 
   def getColumnFamily(period:Period, recordType:RecordType): String = {
     period.toString + "_" + recordType.toString
+  }
+
+  def getColumnFamilies(): Seq[String] = {
+    for {
+      period <- Period.values()
+      recordType <- RecordType.values()
+    } yield getColumnFamily(period, recordType)
   }
 
   def createEntityKey(entityId:String, timestamp:Long): String = entityId + "-" + timestamp

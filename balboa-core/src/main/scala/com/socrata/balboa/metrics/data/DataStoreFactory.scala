@@ -42,6 +42,10 @@ object DefaultDataStoreFactory extends DataStoreFactory {
           new CassandraDataStore(
             new CassandraQueryImpl(
               CassandraUtil.initializeContext(conf))))
+      case "raw" =>
+        new CassandraDataStore(
+          new CassandraQueryImpl(
+            CassandraUtil.initializeContext(conf)))
       case _ =>
         throw new ConfigurationException("Unknown datastore '" + datastore + "'.")
     }

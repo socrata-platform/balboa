@@ -1,7 +1,7 @@
 
-CREATE KEYSPACE "Metrics2012" WITH replication = {'class': 'NetworkTopologyStrategy', 'datacenter1': '1'}  AND durable_writes = true;
+CREATE KEYSPACE "Metrics2012Test" WITH replication = {'class': 'NetworkTopologyStrategy', 'datacenter1': '1'}  AND durable_writes = true;
 
-CREATE TABLE "Metrics2012".yearly_absolute (
+CREATE TABLE "Metrics2012Test".yearly_absolute (
     key text,
     column1 text,
     value bigint,
@@ -23,7 +23,7 @@ CREATE TABLE "Metrics2012".yearly_absolute (
     AND read_repair_chance = 0.1
     AND speculative_retry = 'NONE';
 
-CREATE TABLE "Metrics2012".hourly_absolute (
+CREATE TABLE "Metrics2012Test".hourly_absolute (
     key text,
     column1 text,
     value bigint,
@@ -45,7 +45,7 @@ CREATE TABLE "Metrics2012".hourly_absolute (
     AND read_repair_chance = 0.1
     AND speculative_retry = 'NONE';
 
-CREATE TABLE "Metrics2012".monthly_absolute (
+CREATE TABLE "Metrics2012Test".monthly_absolute (
     key text,
     column1 text,
     value bigint,
@@ -67,7 +67,7 @@ CREATE TABLE "Metrics2012".monthly_absolute (
     AND read_repair_chance = 0.1
     AND speculative_retry = 'NONE';
 
-CREATE TABLE "Metrics2012".daily_aggregate (
+CREATE TABLE "Metrics2012Test".daily_aggregate (
     key text,
     column1 text,
     value counter,
@@ -89,7 +89,7 @@ CREATE TABLE "Metrics2012".daily_aggregate (
     AND read_repair_chance = 0.1
     AND speculative_retry = 'NONE';
 
-CREATE TABLE "Metrics2012".monthly_aggregate (
+CREATE TABLE "Metrics2012Test".monthly_aggregate (
     key text,
     column1 text,
     value counter,
@@ -111,7 +111,7 @@ CREATE TABLE "Metrics2012".monthly_aggregate (
     AND read_repair_chance = 0.1
     AND speculative_retry = 'NONE';
 
-CREATE TABLE "Metrics2012".daily_absolute (
+CREATE TABLE "Metrics2012Test".daily_absolute (
     key text,
     column1 text,
     value bigint,
@@ -133,7 +133,7 @@ CREATE TABLE "Metrics2012".daily_absolute (
     AND read_repair_chance = 0.1
     AND speculative_retry = 'NONE';
 
-CREATE TABLE "Metrics2012".yearly_aggregate (
+CREATE TABLE "Metrics2012Test".yearly_aggregate (
     key text,
     column1 text,
     value counter,
@@ -155,7 +155,7 @@ CREATE TABLE "Metrics2012".yearly_aggregate (
     AND read_repair_chance = 0.1
     AND speculative_retry = 'NONE';
 
-CREATE TABLE "Metrics2012".fifteen_minute_aggregate (
+CREATE TABLE "Metrics2012Test".fifteen_minute_aggregate (
     key text,
     column1 text,
     value counter,
@@ -177,7 +177,7 @@ CREATE TABLE "Metrics2012".fifteen_minute_aggregate (
     AND read_repair_chance = 0.1
     AND speculative_retry = 'NONE';
 
-CREATE TABLE "Metrics2012".hourly_aggregate (
+CREATE TABLE "Metrics2012Test".hourly_aggregate (
     key text,
     column1 text,
     value counter,
@@ -199,7 +199,7 @@ CREATE TABLE "Metrics2012".hourly_aggregate (
     AND read_repair_chance = 0.1
     AND speculative_retry = 'NONE';
 
-CREATE TABLE "Metrics2012".fifteen_minute_absolute (
+CREATE TABLE "Metrics2012Test".fifteen_minute_absolute (
     key text,
     column1 text,
     value bigint,
