@@ -4,6 +4,7 @@ services:
     image: webcenter/activemq:5.13.2
     ports:
       - "61616"
+      - "61613"
       - "8161"
     environment:
       ACTIVEMQ_ENABLED_AUTH: "false"
