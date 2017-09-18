@@ -101,7 +101,7 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
               aggregates: sc.Map[String, Metric],
               absolutes: sc.Map[String, Metric]): Unit = {
     val entityKey = CassandraUtil.createEntityKey(entityId, bucket.getTime)
-    logger debug s"Using entity/row key $entityKey at period $period"
+    logger.debug(s"Using entity/row key $entityKey at period $period")
     fastfail.proceedOrThrow()
     val entityKeyWhere = QueryBuilder.eq(Key, entityKey)
 
@@ -145,7 +145,7 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
                   .where(entityKeyWhere).and(QueryBuilder.eq(ColumnOne, k)))
           }
         } else {
-          logger warn "dropping metric with empty string as column"
+          logger.warn("dropping metric with empty string as column")
         }
       }
 
