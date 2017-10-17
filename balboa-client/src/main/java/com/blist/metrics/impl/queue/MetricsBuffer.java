@@ -47,7 +47,7 @@ public class MetricsBuffer {
      * @param timestamp The timestamp these metrics occured.
      */
     synchronized void add(String entityId, Metrics data, long timestamp) {
-        long nearestSlice = timestamp - (timestamp %  MetricQueue$.MODULE$.AGGREGATE_GRANULARITY());
+        long nearestSlice = nearestSlice(timestamp);
         String bufferKey = entityId + ":" + nearestSlice;
         MetricsBucket notBuffered = new MetricsBucket(entityId, data, nearestSlice);
 
@@ -55,11 +55,16 @@ public class MetricsBuffer {
         if (internalBuffer.containsKey(bufferKey)) {
             log.debug("Buffer already contains \"{}\".  Merging with existing value set of metrics.", notBuffered);
             MetricsBucket buffered = internalBuffer.get(bufferKey);
+            //When we returned a copy of the data, this merge does nothing. The state is completely thrown away.
             buffered.getData().merge(notBuffered.getData());
         } else {
             log.debug("Adding new entry: \"{}\" to the write internalBuffer", notBuffered);
             internalBuffer.put(bufferKey, notBuffered);
         }
+    }
+
+    public long nearestSlice(Long timestamp) {
+        return timestamp - (timestamp % MetricQueue$.MODULE$.AGGREGATE_GRANULARITY());
     }
 
     /**

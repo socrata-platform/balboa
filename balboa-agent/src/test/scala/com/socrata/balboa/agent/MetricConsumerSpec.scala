@@ -1,13 +1,14 @@
 package com.socrata.balboa.agent
 
-import java.io.{File, FileOutputStream}
+import java.io._
 import java.nio.file.{Files, Path}
 
 import com.blist.metrics.impl.queue.MetricFileQueue
 import com.socrata.balboa.metrics.Metric
 import com.socrata.metrics.{Fluff, MetricIdParts, MetricQueue}
 import com.typesafe.scalalogging.{Logger, StrictLogging}
-import org.mockito.{ArgumentCaptor, Matchers}
+import org.mockito.{ArgumentCaptor}
+import org.mockito.ArgumentMatchers._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ShouldMatchers, WordSpec}
 import scodec.bits.ByteVector
@@ -38,6 +39,15 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
     val testMetrics: IndexedSeq[MetricsRecord] = (1 to 10) map (i =>
       MetricsRecord(time + i, s"entity_id_$i", s"metric_$i", i, Metric.RecordType.AGGREGATE)
       )
+  }
+
+  trait MetadataTestMetrics {
+    val testMetrics: IndexedSeq[MetricsRecord] = IndexedSeq(
+      MetricsRecord(1496268557542l, "3", "num-metadata-completed", 21, Metric.RecordType.ABSOLUTE),
+      MetricsRecord(1496268557542l, "3", "num-metadata-available", 114, Metric.RecordType.ABSOLUTE),
+      MetricsRecord(1496268557542l, "1", "num-metadata-completed", 5339, Metric.RecordType.ABSOLUTE),
+      MetricsRecord(1496268557542l, "1", "num-metadata-available", 20916, Metric.RecordType.ABSOLUTE)
+    )
   }
 
   trait MockQueue {
@@ -98,11 +108,12 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
   private def testNeverEmitMetrics(metricConsumer: MetricConsumer, mockQueue: MetricQueue): Unit = {
     metricConsumer.run()
     metricConsumer.close()
-    verify(mockQueue, never()).create(Matchers.any[MetricIdParts](),
-      Matchers.any[MetricIdParts](),
-      Matchers.anyLong(),
-      Matchers.anyLong(),
-      Matchers.any[Metric.RecordType]())
+    verify(mockQueue, never()).create(
+      any[MetricIdParts](),
+      any[MetricIdParts](),
+      anyLong(),
+      anyLong(),
+      any[Metric.RecordType]())
   }
 
   /**
@@ -127,6 +138,35 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
     metricConsumer.close()
     // For every metric written to disk, all but the metrics in youngest file should be processed.
     metrics.foreach(m => {
+      verify(mockQueue, times(numTimesMetricEmitted)).create(
+        Fluff(m.entityId),
+        Fluff(m.name),
+        m.value.longValue(),
+        m.timestamp,
+        m.metricType
+      )
+    })
+  }
+
+  private def testEmitsMetrics(metricConsumer: MetricConsumer,
+                               mockQueue: MetricQueue,
+                               expectedMetrics: Seq[MetricsRecord],
+                               directoryToCreateFileIn: File,
+                               rawMetricsData: Array[Byte],
+                               numTimesMetricEmitted: Int): Unit = {
+
+    directoryToCreateFileIn.mkdirs
+
+    val now = System.currentTimeMillis
+    val file = s"metrics2012.${now}.data.COMPLETED"
+    val stream = new BufferedOutputStream(new FileOutputStream(new File(directoryToCreateFileIn,file), true))
+    stream.write(rawMetricsData)
+    stream.close()
+
+    metricConsumer.run()
+    metricConsumer.close()
+    // For every metric written to disk, all but the metrics in youngest file should be processed.
+    expectedMetrics.foreach(m => {
       verify(mockQueue, times(numTimesMetricEmitted)).create(
         Fluff(m.entityId),
         Fluff(m.name),
@@ -209,15 +249,15 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
         remaining.length shouldBe 1
 
         verify(mockQueue)
-          .create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](),
-          Matchers.anyLong(), Matchers.anyLong(), Matchers.any[Metric.RecordType]())
+          .create(any[MetricIdParts](), any[MetricIdParts](),
+          anyLong(), anyLong(), any[Metric.RecordType]())
       }
     }
     "there is a single root directory" when {
       "there is no metrics data" should {
         "emit no metrics" in new OneRootDirectory {
-          verify(mockQueue, never()).create(Matchers.any[MetricIdParts](), Matchers.any[MetricIdParts](),
-            Matchers.anyLong(), Matchers.anyLong(), Matchers.any[Metric.RecordType]())
+          verify(mockQueue, never()).create(any[MetricIdParts](), any[MetricIdParts](),
+            anyLong(), anyLong(), any[Metric.RecordType]())
         }
       }
       "there is 1 metrics data file" should {
@@ -238,6 +278,27 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
             fileQueues(rootMetricsDir).size - 1)
         }
       }
+
+      "it successfully reads in all the metrics from the file" should {
+        "emit all of them" in new OneRootDirectory with MetadataTestMetrics {
+          def slurp(resourceName: String) = {
+            val resource = getClass.getClassLoader.getResource(resourceName)
+            val file = resource.getFile
+            val bis = new BufferedInputStream(new FileInputStream(file))
+            try {
+              val stream = Stream.continually(bis.read).takeWhile(-1 !=)
+              stream.map(_.toByte).toArray
+            } finally {
+              bis.close()
+            }
+          }
+
+          val byteArray = slurp("metrics2012.0000015c608e4eff.data")
+
+          testEmitsMetrics(metricConsumer, mockQueue, testMetrics, rootMetricsDir.toFile, byteArray, 1)
+        }
+
+      }
     }
     "there are multiple subdirectories" when {
       "there are no metrics data files" should {
@@ -250,6 +311,7 @@ class MetricConsumerSpec extends WordSpec with ShouldMatchers with MockitoSugar 
           testNeverEmitMetrics(metricConsumer, mockQueue)
         }
       }
+
       "there are multiple metrics data files in one directory" should {
         "process a single directory" in new MultipleRootDirectories with TestMetrics {
           val fullDirPath: Path = fileQueues.head._1

@@ -45,7 +45,7 @@ public class Producer {
      */
     public void sendMetrics(String entityId, long timestamp, Metrics metrics) throws JMSException {
         log.info("Sending chunked message with " + metrics.size() + " metrics for entity " + entityId + " back to the queue");
-        JsonMessage newMessage = new JsonMessage(entityId, timestamp, metrics);
+        JsonMessage newMessage = JsonMessage.apply(entityId, timestamp, metrics);
         this.sendMessage(newMessage);
     }
 

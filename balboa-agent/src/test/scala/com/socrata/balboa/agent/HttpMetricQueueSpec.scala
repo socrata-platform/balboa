@@ -7,13 +7,13 @@ import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.metrics.{DomainId, MetricIdParts, UserUid, ViewUid}
 import com.stackmob.newman.{ApacheHttpClient, Headers, RawBody}
 import com.typesafe.scalalogging.StrictLogging
-import org.mockito.ArgumentCaptor
-import org.scalatest.{BeforeAndAfterEach, ShouldMatchers, WordSpec}
-import org.mockito.Mockito._
-import org.mockito.Matchers._
-import org.scalatest.mock.MockitoSugar
 import org.json4s._
 import org.json4s.jackson.JsonMethods.{parse, pretty, render}
+import org.mockito.ArgumentCaptor
+import org.mockito.Mockito._
+import org.mockito.ArgumentMatchers._
+import org.scalatest.mock.MockitoSugar
+import org.scalatest.{BeforeAndAfterEach, ShouldMatchers, WordSpec}
 
 import scala.concurrent.duration._
 import scala.util.Try
@@ -72,11 +72,11 @@ class HttpMetricQueueSpec extends WordSpec
       "make an http request with the proper arguments" in {
         httpMetricQueue.create(TestEntity, TestName, TestVal, TestTime, TestType)
 
-        val url = ArgumentCaptor.forClass(classOf[URL])
-        val body = ArgumentCaptor.forClass(classOf[RawBody])
+        val url: ArgumentCaptor[URL] = ArgumentCaptor.forClass(classOf[URL])
+        val body: ArgumentCaptor[RawBody] = ArgumentCaptor.forClass(classOf[RawBody])
 
         verify(mockHttpClient, atLeastOnce)
-          .post(url.capture(), notNull(classOf[Headers]), body.capture())
+          .post(url.capture(), any[Headers](), body.capture())
 
         url.getValue should be (new URL(s"$TestUrl/metrics/${URLEncoder.encode(TestEntity.toString, "UTF-8")}"))
 

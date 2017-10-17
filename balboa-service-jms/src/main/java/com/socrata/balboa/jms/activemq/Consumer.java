@@ -40,7 +40,7 @@ public class Consumer implements MessageListener {
             TextMessage text = (TextMessage) payload;
             messageText = text.getText();
 
-            JsonMessage message = new JsonMessage(messageText);
+            JsonMessage message = JsonMessage.apply(messageText);
 
             int metricsSize = message.getMetrics().size();
             if (metricsSize > metricCountLimit) {

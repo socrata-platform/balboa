@@ -5,4 +5,5 @@ set -ev
 exec sudo -E -u socrata java \
   -Xmx${JAVA_XMX} \
   -Xms${JAVA_XMX} \
+  -XX:MaxMetaspaceSize=${JAVA_MAX_METASPACE_SIZE} \
   -jar "$JAR"

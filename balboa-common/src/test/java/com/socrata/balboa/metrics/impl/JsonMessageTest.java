@@ -21,7 +21,7 @@ public class JsonMessageTest
 
         byte[] json = message.serialize();
 
-        JsonMessage message2 = new JsonMessage(new String(json));
+        JsonMessage message2 = JsonMessage.apply(new String(json));
 
         Assert.assertEquals("sam-foo", message2.getEntityId());
         Assert.assertEquals(0, message2.getTimestamp());
