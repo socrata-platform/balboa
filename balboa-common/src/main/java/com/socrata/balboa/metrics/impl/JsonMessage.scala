@@ -19,6 +19,7 @@ object JsonMessage {
     message.setEntityId(entityId)
     message.setTimestamp(timestamp)
     message.setMetrics(metrics)
+    message
   }
 }
 
