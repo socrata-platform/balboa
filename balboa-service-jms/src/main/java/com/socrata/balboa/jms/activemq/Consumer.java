@@ -2,7 +2,6 @@ package com.socrata.balboa.jms.activemq;
 
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.impl.JsonMessage;
-import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQMessageConsumer;
 import org.apache.activemq.ActiveMQSession;
 import org.slf4j.Logger;
@@ -17,17 +16,20 @@ public class Consumer implements MessageListener {
     private ActiveMQSession session;
     private ActiveMQMessageConsumer consumer;
     private DataStore dataStore;
+    private Producer producer;
+    private int metricCountLimit;
 
-    public Consumer(ActiveMQConnection connection, String queueName, DataStore ds) throws NamingException, JMSException {
+    public Consumer(ActiveMQSession session, String queueName, DataStore ds, int metricCountLimit) throws NamingException, JMSException {
         this.dataStore = ds;
-
-        session = (ActiveMQSession) connection.createSession(true, Session.SESSION_TRANSACTED);
+        this.session = session;
+        this.metricCountLimit = metricCountLimit;
 
         Queue queue = session.createQueue(queueName);
         consumer = (ActiveMQMessageConsumer) session.createConsumer(queue);
 
         consumer.setMessageListener(this);
-        connection.start();
+
+        producer = new Producer(session, queueName);
     }
 
     @Override
@@ -40,7 +42,18 @@ public class Consumer implements MessageListener {
 
             JsonMessage message = new JsonMessage(messageText);
 
-            dataStore.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
+            int metricsSize = message.getMetrics().size();
+            if (metricsSize > metricCountLimit) {
+                log.info(
+                        "Message contained " +
+                                metricsSize +
+                                " metrics which is larger than the configured max of " +
+                                metricCountLimit +
+                                "; chunking the message and re-adding it the queue");
+                producer.splitAndResendMessage(message, metricCountLimit);
+            } else {
+                dataStore.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
+            }
 
             session.commit();
             log.info("Consumed message of size " + (messageText == null ? "null" : messageText.length())

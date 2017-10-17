@@ -21,6 +21,13 @@ public class JsonMessage extends Message
         deserialize(serialized);
     }
 
+    public JsonMessage(String entityId, long timestamp, Metrics metrics) {
+        super();
+        super.setEntityId(entityId);
+        super.setTimestamp(timestamp);
+        super.setMetrics(metrics);
+    }
+
     @JsonProperty
     @Override
     public String getEntityId()

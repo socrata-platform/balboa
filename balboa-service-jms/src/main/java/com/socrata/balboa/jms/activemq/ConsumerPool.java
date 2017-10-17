@@ -4,6 +4,7 @@ import com.socrata.balboa.metrics.WatchDog;
 import com.socrata.balboa.metrics.data.DataStore;
 import org.apache.activemq.ActiveMQConnection;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.ActiveMQSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,7 +54,7 @@ public class ConsumerPool implements WatchDog.WatchDogListener {
 
     volatile boolean stopped = false;
 
-    public ConsumerPool(String[] servers, String channel, int threads, DataStore ds) throws NamingException, JMSException {
+    public ConsumerPool(String[] servers, String channel, int threads, DataStore ds, int metricCountLimit) throws NamingException, JMSException {
         consumers = new ArrayList<>(servers.length * threads);
 
         for (String server : servers) {
@@ -63,7 +64,9 @@ public class ConsumerPool implements WatchDog.WatchDogListener {
 
             for (int i = 0; i < threads; i++) {
                 ActiveMQConnection connection = (ActiveMQConnection) factory.createConnection();
-                consumers.add(new Consumer(connection, channel, ds));
+                ActiveMQSession session = (ActiveMQSession) connection.createSession(true, Session.SESSION_TRANSACTED);
+                consumers.add(new Consumer(session, channel, ds, metricCountLimit));
+                connection.start();
             }
         }
 
