@@ -1,5 +1,6 @@
 package com.socrata.balboa.jms;
 
+import com.socrata.balboa.jms.activemq.ActiveMQReceiver;
 import com.socrata.balboa.metrics.WatchDog;
 import com.socrata.balboa.metrics.config.Keys;
 import com.socrata.balboa.metrics.data.DataStore;
@@ -10,10 +11,6 @@ import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class BalboaJms {
     public static void main(String[] args) throws Exception {
