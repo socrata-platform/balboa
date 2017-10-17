@@ -1,6 +1,6 @@
 package com.socrata.balboa.jms;
 
-import com.socrata.balboa.jms.activemq.ActiveMQReceiver;
+import com.socrata.balboa.jms.activemq.ConsumerPool;
 import com.socrata.balboa.metrics.WatchDog;
 import com.socrata.balboa.metrics.config.Keys;
 import com.socrata.balboa.metrics.data.DataStore;
@@ -27,7 +27,7 @@ public class BalboaJms {
 
         log.info("Receivers starting, awaiting messages.");
         DataStore ds = DefaultDataStoreFactory.get();
-        ActiveMQReceiver receiver = new ActiveMQReceiver(servers, channel, threads, ds);
-        new WatchDog().watchAndWait(receiver, ds);
+        ConsumerPool consumers = new ConsumerPool(servers, channel, threads, ds);
+        new WatchDog().watchAndWait(consumers, ds);
     }
 }

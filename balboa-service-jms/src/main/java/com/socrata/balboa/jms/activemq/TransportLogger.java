@@ -6,30 +6,25 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-public class TransportLogger implements TransportListener
-{
+public class TransportLogger implements TransportListener {
     private static Logger log = LoggerFactory.getLogger(TransportLogger.class);
 
     @Override
-    public void onCommand(Object o)
-    {
+    public void onCommand(Object o) {
     }
 
     @Override
-    public void onException(IOException e)
-    {
-        log.error("There was an exception on the ActiveMQReceiver's transport.", e);
+    public void onException(IOException e) {
+        log.error("There was an exception on the ConsumerPool's transport.", e);
     }
 
     @Override
-    public void transportInterupted()
-    {
+    public void transportInterupted() {
         log.error("ActiveMQ transport interrupted.");
     }
 
     @Override
-    public void transportResumed()
-    {
+    public void transportResumed() {
         log.info("ActiveMQ transport resumed.");
     }
 }

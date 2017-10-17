@@ -3,7 +3,6 @@ package com.socrata.balboa.jms.activemq;
 import com.socrata.balboa.metrics.data.DataStore;
 import com.socrata.balboa.metrics.impl.JsonMessage;
 import org.apache.activemq.ActiveMQConnection;
-import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.ActiveMQMessageConsumer;
 import org.apache.activemq.ActiveMQSession;
 import org.slf4j.Logger;
@@ -12,23 +11,21 @@ import org.slf4j.LoggerFactory;
 import javax.jms.*;
 import javax.naming.NamingException;
 
-public class Listener implements MessageListener
-{
-    private static Logger log = LoggerFactory.getLogger(Listener.class);
+public class Consumer implements MessageListener {
+    private static Logger log = LoggerFactory.getLogger(Consumer.class);
 
     private ActiveMQSession session;
-    private Queue queue;
     private ActiveMQMessageConsumer consumer;
-    private ActiveMQConnection connection;
-    private DataStore ds;
+    private DataStore dataStore;
 
-    public Listener(ActiveMQConnectionFactory connFactory, String queueName, DataStore ds) throws NamingException, JMSException
-    {
-        this.ds = ds;
-        connection = (ActiveMQConnection) connFactory.createConnection();
+    public Consumer(ActiveMQConnection connection, String queueName, DataStore ds) throws NamingException, JMSException {
+        this.dataStore = ds;
+
         session = (ActiveMQSession) connection.createSession(true, Session.SESSION_TRANSACTED);
-        queue = session.createQueue(queueName);
+
+        Queue queue = session.createQueue(queueName);
         consumer = (ActiveMQMessageConsumer) session.createConsumer(queue);
+
         consumer.setMessageListener(this);
         connection.start();
     }
@@ -38,12 +35,12 @@ public class Listener implements MessageListener
         long start = System.currentTimeMillis();
         String messageText = null;
         try {
-            TextMessage text = (TextMessage)payload;
+            TextMessage text = (TextMessage) payload;
             messageText = text.getText();
 
             JsonMessage message = new JsonMessage(messageText);
 
-            ds.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
+            dataStore.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
 
             session.commit();
             log.info("Consumed message of size " + (messageText == null ? "null" : messageText.length())
