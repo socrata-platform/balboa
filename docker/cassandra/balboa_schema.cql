@@ -1,11 +1,11 @@
-CREATE KEYSPACE "Metrics2012" WITH replication = {
+CREATE KEYSPACE IF NOT EXISTS "Metrics2012" WITH replication = {
   'class': 'SimpleStrategy',
   'replication_factor': '1'
 };
 
 USE "Metrics2012";
 
-CREATE TABLE daily_absolute (
+CREATE TABLE IF NOT EXISTS daily_absolute (
   key text,
   column1 text,
   value bigint,
@@ -26,7 +26,7 @@ CREATE TABLE daily_absolute (
   compaction={'class': 'SizeTieredCompactionStrategy'} AND
   compression={'sstable_compression': 'SnappyCompressor'};
 
-CREATE TABLE daily_aggregate (
+CREATE TABLE IF NOT EXISTS daily_aggregate (
   key text,
   column1 text,
   value counter,
@@ -47,7 +47,7 @@ CREATE TABLE daily_aggregate (
   compaction={'class': 'SizeTieredCompactionStrategy'} AND
   compression={'sstable_compression': 'SnappyCompressor'};
 
-CREATE TABLE fifteen_minute_absolute (
+CREATE TABLE IF NOT EXISTS fifteen_minute_absolute (
   key text,
   column1 text,
   value bigint,
@@ -68,7 +68,7 @@ CREATE TABLE fifteen_minute_absolute (
   compaction={'class': 'SizeTieredCompactionStrategy'} AND
   compression={'sstable_compression': 'SnappyCompressor'};
 
-CREATE TABLE fifteen_minute_aggregate (
+CREATE TABLE IF NOT EXISTS fifteen_minute_aggregate (
   key text,
   column1 text,
   value counter,
@@ -89,7 +89,7 @@ CREATE TABLE fifteen_minute_aggregate (
   compaction={'class': 'SizeTieredCompactionStrategy'} AND
   compression={'sstable_compression': 'SnappyCompressor'};
 
-CREATE TABLE hourly_absolute (
+CREATE TABLE IF NOT EXISTS hourly_absolute (
   key text,
   column1 text,
   value bigint,
@@ -110,7 +110,7 @@ CREATE TABLE hourly_absolute (
   compaction={'class': 'SizeTieredCompactionStrategy'} AND
   compression={'sstable_compression': 'SnappyCompressor'};
 
-CREATE TABLE hourly_aggregate (
+CREATE TABLE IF NOT EXISTS hourly_aggregate (
   key text,
   column1 text,
   value counter,
@@ -131,7 +131,7 @@ CREATE TABLE hourly_aggregate (
   compaction={'class': 'SizeTieredCompactionStrategy'} AND
   compression={'sstable_compression': 'SnappyCompressor'};
 
-CREATE TABLE monthly_absolute (
+CREATE TABLE IF NOT EXISTS monthly_absolute (
   key text,
   column1 text,
   value bigint,
@@ -152,7 +152,7 @@ CREATE TABLE monthly_absolute (
   compaction={'class': 'SizeTieredCompactionStrategy'} AND
   compression={'sstable_compression': 'SnappyCompressor'};
 
-CREATE TABLE monthly_aggregate (
+CREATE TABLE IF NOT EXISTS monthly_aggregate (
   key text,
   column1 text,
   value counter,
@@ -173,7 +173,7 @@ CREATE TABLE monthly_aggregate (
   compaction={'class': 'SizeTieredCompactionStrategy'} AND
   compression={'sstable_compression': 'SnappyCompressor'};
 
-CREATE TABLE yearly_absolute (
+CREATE TABLE IF NOT EXISTS yearly_absolute (
   key text,
   column1 text,
   value bigint,
@@ -194,7 +194,7 @@ CREATE TABLE yearly_absolute (
   compaction={'class': 'SizeTieredCompactionStrategy'} AND
   compression={'sstable_compression': 'SnappyCompressor'};
 
-CREATE TABLE yearly_aggregate (
+CREATE TABLE IF NOT EXISTS yearly_aggregate (
   key text,
   column1 text,
   value counter,

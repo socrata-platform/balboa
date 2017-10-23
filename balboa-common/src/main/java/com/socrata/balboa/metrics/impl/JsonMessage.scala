@@ -13,6 +13,14 @@ object JsonMessage {
     message.deserialize(serialized)
     message
   }
+
+  def apply(entityId: String, timestamp: Long, metrics: Metrics): JsonMessage = {
+    val message = new JsonMessage()
+    message.setEntityId(entityId)
+    message.setTimestamp(timestamp)
+    message.setMetrics(metrics)
+    message
+  }
 }
 
 case class JsonMessage() extends Message {

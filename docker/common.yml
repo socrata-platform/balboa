@@ -8,7 +8,7 @@ activemq: # Not actually the version we run in production (5.13.3)
     ACTIVEMQ_MAX_MEMORY: 2048
 
 cassandra:
-  build: cassandra:2.0.17
+  build: cassandra:2.2.10
   ports:
     - "9042:9042" # Native
     - "9160:9160" # Thrift

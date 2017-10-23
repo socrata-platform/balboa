@@ -198,8 +198,8 @@ libraryDependencies ++= Seq(
 ### Server
 **Balboa server** requires four separate components to function properly:
 
-* [ActiveMQ](http://activemq.apache.org) (v5.13.3)
-* A [Cassandra](http://cassandra.apache.org) cluster (v2.0.17)
+* [ActiveMQ](http://activemq.apache.org) (v5.13.3 - Sept 2017)
+* A [Cassandra](http://cassandra.apache.org) cluster (v2.2.10 - Sept 2017)
 * balboa-jms
 * balboa-http
 
@@ -217,7 +217,7 @@ these settings, set the corresponding environmental variable found in
 `balboa-jms/target/scala-2.10/balboa-jms-assembly-[VERSION].jar` and `balboa-http/target/scala-2.10/balboa-http-assembly-[VERSION].jar`, where VERSION is the current version of the project as defined in `version.sbt`.
 
 2. Assuming Cassandra and ActiveMQ are installed, create the Cassandra schema:
-`cassandra-cli < etc/balboa-cassandra.schema`. By default, this creates the `Metrics2012` keyspace. If a different keyspace is desired, tweak the schema file as necessary.
+`cqlsh -e etc/balboa-cassandra.schema`. By default, this creates the `Metrics2012` keyspace. If a different keyspace is desired, tweak the schema file as necessary.
 
 3. Start balboa-jms with `java -jar [JAR] [NUM_THREADS] [JMS_SERVER] [KEYSPACE]`. In a typical developer setup, this might look something like `java -jar balboa-jms/target/scala-2.10/balboa-jms-assembly-[VERSION].jar 1 failover:tcp://localhost:61616 Metrics2012`.
 
@@ -229,7 +229,7 @@ balboa-http.
 
 ##### Admin Tool
 
-BalboaAdmin is a tool for dumping and loading metrics. It is extemely useful for correcting metrics which have been incorrectly set; or for migrating metrics across environments.
+BalboaAdmin is a tool for dumping and loading metrics. It is extremely useful for correcting metrics which have been incorrectly set; or for migrating metrics across environments.
 
 ```
 > java -cp balboa-admin-assembly-0.14.1-SNAPSHOT.jar com.socrata.balboa.admin.BalboaAdmin

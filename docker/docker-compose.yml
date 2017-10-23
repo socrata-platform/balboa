@@ -1,0 +1,19 @@
+version: '2'
+services:
+  activemq: # Not actually the version we run in production (5.13.3)
+    image: webcenter/activemq:5.13.2
+    ports:
+      - "61616"
+      - "61613"
+      - "8161"
+    environment:
+      ACTIVEMQ_ENABLED_AUTH: "false"
+      ACTIVEMQ_MIN_MEMORY: 512
+      ACTIVEMQ_MAX_MEMORY: 2048
+
+  cassandra:
+    build: ./cassandra
+    ports:
+      - "9042" # Native
+      - "9160" # Thrift
+      - "7199" # JMX

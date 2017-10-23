@@ -1,5 +1,6 @@
 package com.socrata.balboa.jms;
 
+import com.socrata.balboa.jms.activemq.ConsumerPool;
 import com.socrata.balboa.metrics.WatchDog;
 import com.socrata.balboa.metrics.config.Keys;
 import com.socrata.balboa.metrics.data.DataStore;
@@ -10,10 +11,6 @@ import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class BalboaJms {
     public static void main(String[] args) throws Exception {
@@ -27,10 +24,11 @@ public class BalboaJms {
         Integer threads = config.getInt(Keys.JMSActiveMQThreadsPerServer());
         String[] servers = config.getString(Keys.JMSActiveMQServer()).split(",");
         String channel = config.getString(Keys.JMSActiveMQQueue());
+        Integer metricCountLimit = config.getInt("balboa.metric-count-limit");
 
         log.info("Receivers starting, awaiting messages.");
         DataStore ds = DefaultDataStoreFactory.get();
-        ActiveMQReceiver receiver = new ActiveMQReceiver(servers, channel, threads, ds);
-        new WatchDog().watchAndWait(receiver, ds);
+        ConsumerPool consumers = new ConsumerPool(servers, channel, threads, ds, metricCountLimit);
+        new WatchDog().watchAndWait(consumers, ds);
     }
 }

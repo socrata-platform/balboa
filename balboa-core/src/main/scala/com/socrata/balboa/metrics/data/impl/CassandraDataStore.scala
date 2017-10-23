@@ -176,8 +176,10 @@ class CassandraDataStore(queryImpl:CassandraQuery = new CassandraQueryImpl(Cassa
         period = period.flatMap(p => Option(p.moreGranular))
       }
     }
-    logger info s"Persisted entity: $entityId  with " + absolutes.size + " absolute and " +
-      aggregates.size + " aggregated metrics - took " + (timeSvc.currentTimeMillis() - start) + "ms"
+    val elapsedTime = timeSvc.currentTimeMillis() - start
+    logger.info(
+      s"Persisted entity: $entityId with ${absolutes.size} absolute" +
+        s" and ${aggregates.size} aggregated metrics - took ${elapsedTime}ms")
   }
 
 }
