@@ -6,6 +6,7 @@ import io.gatling.sbt.GatlingKeys.GatlingIt
 
 object BuildSettings {
   val buildSettings: Seq[Setting[_]] = Defaults.coreDefaultSettings++ Seq(
+    organization := "com.socrata",
     scalaVersion := "2.11.8",
     // TODO: enable style build failures
     com.socrata.sbtplugins.StylePlugin.StyleKeys.styleFailOnError in Compile := false,
