@@ -30,7 +30,7 @@ object Dependencies {
     val scopt = "3.3.0"
     val simple_arm = "[1.1.10, 2.0.0)"
     val socrata_utils = "[0.6.0, 1.0.0)"
-    val socrata_thirdparty_utils = "4.0.1"
+    val socrata_thirdparty_utils = "4.0.15"
     val scalatra = "2.4.0"
     val scodec_core = "1.10.3"
   }
