@@ -9,7 +9,7 @@ object BalboaClient {
   lazy val settings: Seq[Setting[_]] = BuildSettings.projectSettings ++ Seq(
     libraryDependencies <++= scalaVersion {libraries(_)},
     parallelExecution in Test := false,
-    crossScalaVersions := Seq("2.10.6", "2.11.8"),
+    crossScalaVersions := Seq("2.11.8"),
     ScoverageSbtPlugin.ScoverageKeys.coverageMinimum := 2
   )
 
