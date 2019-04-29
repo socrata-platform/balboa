@@ -93,7 +93,7 @@ public class Consumer implements MessageListener {
                 log.error("Restarting JMS listener");
                 consumer.start();
             } catch (JMSException e) {
-                log.error("Unable to restart the consumer after data store failure. This is bad.");
+                log.error("Unable to restart the consumer after data store failure. This is bad.", e);
             }
         }
     }
