@@ -47,7 +47,7 @@ class BufferedDataStore(underlying: DataStore,
         flushExpired(timestamp)
       } catch {
         case (e: IOException) =>
-          log.error("Unable to flush buffered metrics at regular heartbeat. This is bad.")
+          log.error("Unable to flush buffered metrics at regular heartbeat. This is bad.", e)
       }
     }
   }
