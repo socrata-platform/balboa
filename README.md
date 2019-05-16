@@ -182,7 +182,7 @@ To include it in a project:
 ```
 resolvers := Seq(
   ...
-  "socrata maven" at "https://repository-socrata-oss.forge.cloudbees.com/release",
+  "socrata artifactory" at "https://repo.socrata.com/artifactory/libs-release",
   ...
 )
 ```
