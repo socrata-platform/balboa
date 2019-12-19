@@ -2,7 +2,10 @@
 
 set -ev
 
-exec sudo -E -u socrata java \
+# 24 hours, in minutes, +/- 30 minutes
+timeout_minutes=$(shuf -i 1410-1470 -n 1)
+
+exec sudo -E -u socrata timeout "${timeout_minutes}"m java \
   -Xmx${JAVA_XMX} \
   -Xms${JAVA_XMX} \
   -XX:MaxMetaspaceSize=${JAVA_MAX_METASPACE_SIZE} \
