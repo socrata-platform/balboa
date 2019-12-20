@@ -95,7 +95,7 @@ function startServiceStack() {
     -v $(pwd)/${SCHEMA_DIR}:/balboa-schema \
     cassandra:2.1
 
-  dockerHost=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' $DB_IMAGE_NAME)
+  dockerHost=$(docker inspect --format '{{ .NetworkSettings.Gateway }}' $DB_IMAGE_NAME)
   dbServerIp=$dockerHost
   dbPort=$(docker inspect --format '{{ (index (index .NetworkSettings.Ports "9042/tcp") 0).HostPort }}' $DB_IMAGE_NAME)
 
