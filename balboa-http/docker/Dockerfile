@@ -1,4 +1,4 @@
-FROM socrata/runit-java8
+FROM socrata/runit-java8-bionic
 
 # Forward the ZooKeeper and Cassandra Port.
 ENV BALBOA_PORT 2012
