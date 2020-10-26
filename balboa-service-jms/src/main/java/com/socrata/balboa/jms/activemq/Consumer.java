@@ -39,7 +39,7 @@ public class Consumer implements MessageListener {
         long start = System.currentTimeMillis();
         String messageText = null;
         try {
-            // Before we even consider chunking a large message, check if we even need to write to send out the message
+            // Before we consider chunking a large message, check if we even need to write to send out the message
             if (stopWrites) {
                 session.commit();
                 log.debug("Config was set to stop writes from Balboa to Cassandra. Ignoring message");
