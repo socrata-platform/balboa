@@ -54,7 +54,7 @@ public class ConsumerPool implements WatchDog.WatchDogListener {
 
     volatile boolean stopped = false;
 
-    public ConsumerPool(String[] servers, String channel, int threads, DataStore ds, int metricCountLimit) throws NamingException, JMSException {
+    public ConsumerPool(String[] servers, String channel, int threads, DataStore ds, int metricCountLimit, boolean stopWrites) throws NamingException, JMSException {
         consumers = new ArrayList<>(servers.length * threads);
 
         for (String server : servers) {
@@ -65,7 +65,7 @@ public class ConsumerPool implements WatchDog.WatchDogListener {
             for (int i = 0; i < threads; i++) {
                 ActiveMQConnection connection = (ActiveMQConnection) factory.createConnection();
                 ActiveMQSession session = (ActiveMQSession) connection.createSession(true, Session.SESSION_TRANSACTED);
-                consumers.add(new Consumer(session, channel, ds, metricCountLimit));
+                consumers.add(new Consumer(session, channel, ds, metricCountLimit, stopWrites));
                 connection.start();
             }
         }

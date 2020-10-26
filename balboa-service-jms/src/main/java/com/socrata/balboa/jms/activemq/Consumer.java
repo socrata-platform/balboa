@@ -18,11 +18,13 @@ public class Consumer implements MessageListener {
     private DataStore dataStore;
     private Producer producer;
     private int metricCountLimit;
+    private boolean stopWrites;
 
-    public Consumer(ActiveMQSession session, String queueName, DataStore ds, int metricCountLimit) throws NamingException, JMSException {
+    public Consumer(ActiveMQSession session, String queueName, DataStore ds, int metricCountLimit, boolean stopWrites) throws NamingException, JMSException {
         this.dataStore = ds;
         this.session = session;
         this.metricCountLimit = metricCountLimit;
+        this.stopWrites = stopWrites;
 
         Queue queue = session.createQueue(queueName);
         consumer = (ActiveMQMessageConsumer) session.createConsumer(queue);
@@ -37,28 +39,34 @@ public class Consumer implements MessageListener {
         long start = System.currentTimeMillis();
         String messageText = null;
         try {
-            TextMessage text = (TextMessage) payload;
-            messageText = text.getText();
-
-            JsonMessage message = JsonMessage.apply(messageText);
-
-            int metricsSize = message.getMetrics().size();
-            if (metricsSize > metricCountLimit) {
-                log.info(
-                        "Message contained " +
-                                metricsSize +
-                                " metrics which is larger than the configured max of " +
-                                metricCountLimit +
-                                "; chunking the message and re-adding it the queue");
-                producer.splitAndResendMessage(message, metricCountLimit);
+            // Before we even consider chunking a large message, check if we even need to write to send out the message
+            if (stopWrites) {
+                session.commit();
+                log.debug("Config was set to stop writes from Balboa to Cassandra. Ignoring message");
             } else {
-                dataStore.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
-            }
+                TextMessage text = (TextMessage) payload;
+                messageText = text.getText();
 
-            session.commit();
-            log.info("Consumed message of size " + (messageText == null ? "null" : messageText.length())
-                    + " for entity: " + message.getEntityId()
-                    + " - took " + (System.currentTimeMillis() - start) + "ms");
+                JsonMessage message = JsonMessage.apply(messageText);
+
+                int metricsSize = message.getMetrics().size();
+                if (metricsSize > metricCountLimit) {
+                    log.info(
+                            "Message contained " +
+                                    metricsSize +
+                                    " metrics which is larger than the configured max of " +
+                                    metricCountLimit +
+                                    "; chunking the message and re-adding it the queue");
+                    producer.splitAndResendMessage(message, metricCountLimit);
+                } else {
+                    dataStore.persist(message.getEntityId(), message.getTimestamp(), message.getMetrics());
+                }
+
+                session.commit();
+                log.info("Consumed message of size " + (messageText == null ? "null" : messageText.length())
+                        + " for entity: " + message.getEntityId()
+                        + " - took " + (System.currentTimeMillis() - start) + "ms");
+            }
         } catch (Exception e) {
             log.error("There was some problem processing a message. Marking it as needing redelivery. Took " + (System.currentTimeMillis() - start) + "ms", e);
 
