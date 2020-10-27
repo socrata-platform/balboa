@@ -25,10 +25,11 @@ public class BalboaJms {
         String[] servers = config.getString(Keys.JMSActiveMQServer()).split(",");
         String channel = config.getString(Keys.JMSActiveMQQueue());
         Integer metricCountLimit = config.getInt("balboa.metric-count-limit");
+        Boolean stopWrites = config.getBoolean("balboa.stop-writes");
 
         log.info("Receivers starting, awaiting messages.");
         DataStore ds = DefaultDataStoreFactory.get();
-        ConsumerPool consumers = new ConsumerPool(servers, channel, threads, ds, metricCountLimit);
+        ConsumerPool consumers = new ConsumerPool(servers, channel, threads, ds, metricCountLimit, stopWrites);
         new WatchDog().watchAndWait(consumers, ds);
     }
 }

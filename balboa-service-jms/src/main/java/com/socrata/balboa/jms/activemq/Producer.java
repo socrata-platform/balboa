@@ -51,7 +51,7 @@ public class Producer {
 
     /**
      * Splits the given message into chunks that are metricCountLimit size and puts them back on the queue.
-     * Next time they are read from the queue, they will be small enough and will automaticlly be persisted to the data store.
+     * Next time they are read from the queue, they will be small enough and will automatically be persisted to the data store.
      * @param message Message to chunk
      * @param metricCountLimit Size of chunks to send
      * @throws JMSException If the message fails to send

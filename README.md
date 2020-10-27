@@ -217,7 +217,8 @@ these settings, set the corresponding environmental variable found in
 `balboa-jms/target/scala-2.10/balboa-jms-assembly-[VERSION].jar` and `balboa-http/target/scala-2.10/balboa-http-assembly-[VERSION].jar`, where VERSION is the current version of the project as defined in `version.sbt`.
 
 2. Assuming Cassandra and ActiveMQ are installed, create the Cassandra schema:
-`cqlsh -e etc/balboa-cassandra.schema`. By default, this creates the `Metrics2012` keyspace. If a different keyspace is desired, tweak the schema file as necessary.
+Edit the file at `etc/balboa-cassandra.cql`. Instructions on what to edit is in the comment of that file. 
+`cqlsh -e etc/balboa-cassandra.cql` or `cqlsh --file="etc/balboa-cassandra-cqlsh.cql"` if the first command doesn't work. By default, this creates the `Metrics2012` keyspace. If a different keyspace is desired, tweak the schema file as necessary.
 
 3. Start balboa-jms with `java -jar [JAR] [NUM_THREADS] [JMS_SERVER] [KEYSPACE]`. In a typical developer setup, this might look something like `java -jar balboa-jms/target/scala-2.10/balboa-jms-assembly-[VERSION].jar 1 failover:tcp://localhost:61616 Metrics2012`.
 
