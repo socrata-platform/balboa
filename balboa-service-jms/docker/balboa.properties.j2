@@ -3,4 +3,7 @@ cassandra.keyspace = {{ CASSANDRA_KEYSPACE }}
 {% if CASSANDRA_DATACENTER is defined -%}
 cassandra.datacenter = {{ CASSANDRA_DATACENTER }}
 {%- endif %}
+{% if CASSANDRA_MAX_BATCH_SIZE is defined -%}
+cassandra.maxbatchsize = {{ CASSANDRA_MAX_BATCH_SIZE }}
+{%- endif %}
 balboa.datastore = cassandra

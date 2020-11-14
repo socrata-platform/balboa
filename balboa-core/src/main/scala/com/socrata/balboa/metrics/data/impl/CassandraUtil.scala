@@ -10,7 +10,7 @@ import com.datastax.driver.core.policies.{DCAwareRoundRobinPolicy, DefaultRetryP
 import com.socrata.balboa.metrics.Metric.RecordType
 import com.socrata.balboa.metrics.data.{DateRange, Period}
 import com.socrata.balboa.metrics.{Metrics, Timeslice}
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{Config, ConfigFactory, ConfigException}
 import com.typesafe.scalalogging.StrictLogging
 
 import scala.{collection => sc}
@@ -24,7 +24,7 @@ object CassandraUtil extends StrictLogging {
   val leastGranular: Period = Period.leastGranular(periods)
   val mostGranular: Period = Period.mostGranular(periods)
 
-  case class DatastaxContext(cluster: Cluster, _keyspace: String) {
+  case class DatastaxContext(cluster: Cluster, _keyspace: String, maxBatchSize: Option[Int]) {
 
     private var session: Option[Session] = None
 
@@ -143,6 +143,9 @@ object CassandraUtil extends StrictLogging {
     val datacenter = if (conf.hasPath("cassandra.datacenter")) Some(conf.getString("cassandra.datacenter")) else None
     val sotimeout = conf.getInt("cassandra.sotimeout")
     val connections = conf.getInt("cassandra.maxpoolsize")
+    val batchSize =
+      try { Some(conf.getInt("cassandra.maxbatchsize")) }
+      catch { case _ : ConfigException.Missing => None }
 
     logger.info("Connecting to Cassandra servers '{}'", seeds)
     logger.info(
@@ -189,6 +192,6 @@ object CassandraUtil extends StrictLogging {
       .withRetryPolicy(new LoggingRetryPolicy(DefaultRetryPolicy.INSTANCE))
       .build()
 
-    DatastaxContext(cluster, keyspace)
+    DatastaxContext(cluster, keyspace, batchSize)
   }
 }

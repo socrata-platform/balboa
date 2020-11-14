@@ -106,7 +106,11 @@ class CassandraQueryImpl(context: DatastaxContext) extends CassandraQuery with S
     val entityKeyWhere = QueryBuilder.eq(Key, entityKey)
 
     for {
-      sameTypeRecords <- List(absolutes, aggregates).filter(_.nonEmpty)
+      sameTypeRecordsUngrouped <- List(absolutes, aggregates).filter(_.nonEmpty)
+      sameTypeRecords <- context.maxBatchSize match {
+        case None => Seq(sameTypeRecordsUngrouped)
+        case Some(batchSize) => sameTypeRecordsUngrouped.grouped(batchSize)
+      }
     } yield {
       // Must execute counter and non-counter separately, since counter batches
       // can only contain counter statements, and non-counter batches can only contain
